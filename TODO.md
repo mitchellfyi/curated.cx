@@ -50,32 +50,84 @@ Tenant.upsert_all([
 
 ---
 
-## 2) Auth + Users and Memberships
+## 2) Auth + AuthZ (Devise + Pundit + Rolify)
 
-* [ ] Generate `User` via Devise.
-* [ ] Create `Membership` model tying `users` to `tenants` with role enum: `owner`, `admin`, `editor`, `viewer`.
-* [ ] Guard tenant access via `current_membership` helper; root tenant has platform admins.
+* [ ] Add Devise for `User`.
+* [ ] Add Rolify roles scoped to `Tenant` (instance-scoped roles: `owner`, `admin`, `editor`, `viewer`).
+* [ ] Add Pundit for authorization. Define base `ApplicationPolicy` + policy scopes.
+* [ ] Replace `Membership` with Rolify (roles grant tenant access). Optional `platform_admin` boolean for root-only ops.
+* [ ] Add a developer user that has access to everything, everywhere. Credentials are available in application config: developer: email and developer: password
 
 **Commands**
 
 ```bash
 bin/rails g devise User
-bin/rails g model Membership user:references tenant:references role:integer default:1 index
+bundle add pundit rolify
+bin/rails g pundit:install
+bin/rails g rolify Role User
 ```
 
-### Agent prompt
+**Model wiring**
 
-**Context:** Users can belong to multiple tenants. Root tenant has platform admins. Minimal PII (email only).
-**Goal:** Add Devise auth and membership-based authorisation per tenant.
-**Inputs:** Devise defaults; role enum mapping; existing `Tenant`.
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  rolify
+  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable
+end
+
+# app/models/role.rb
+class Role < ApplicationRecord
+  has_and_belongs_to_many :users, join_table: :users_roles
+  belongs_to :resource, polymorphic: true, optional: true
+  validates :name, presence: true
+  scopify
+end
+```
+
+**Initializer**
+
+```ruby
+# app/controllers/application_controller.rb
+class ApplicationController < ActionController::Base
+  include Pundit::Authorization
+  after_action :verify_authorized, except: :index, unless: -> { devise_controller? }
+  after_action :verify_policy_scoped, only: :index, unless: -> { devise_controller? }
+end
+```
+
+**Example policy skeleton**
+
+```ruby
+# app/policies/application_policy.rb
+class ApplicationPolicy
+  attr_reader :user, :record
+  def initialize(user, record) = (@user, @record) = [user, record]
+  def index? = user.present?
+  def show? = index?
+  def create? = user.has_role?(:editor, Current.tenant) || user.has_role?(:admin, Current.tenant) || user.has_role?(:owner, Current.tenant)
+  def update? = create?
+  def destroy? = user.has_role?(:admin, Current.tenant) || user.has_role?(:owner, Current.tenant)
+  class Scope < Struct.new(:user, :scope)
+    def resolve
+      scope.where(tenant_id: Current.tenant.id)
+    end
+  end
+end
+```
+
+**Agent prompt**
+**Context:** Multi-tenant auth/authorization using Devise (authn), Rolify (tenant-scoped roles), and Pundit (policies/scopes).
+**Goal:** Replace bespoke memberships with instance-scoped roles on `Tenant` and enforce access via Pundit.
+**Inputs:** Roles: owner, admin, editor, viewer. Current tenant context.
 **Tasks:**
 
-1. Generate `User` and `Membership`; add `has_many :memberships` and `has_many :tenants, through: :memberships`.
-2. Define `role` enum; add `platform_admin:boolean` to users (default false) for root controls.
-3. Implement `Current.membership` from `Current.tenant` + `current_user`; before_action guard.
-4. Seed one platform admin and owner memberships per seeded tenant.
-   **Deliverables:** Models, migrations, guards, seeds.
-   **Acceptance:** Non-members get 403 on tenant pages; platform admin can access `/ops` on root.
+1. Install and wire Devise, Pundit, Rolify as above.
+2. Assign roles on user signup/seed: root owner on `curated.cx`; owners for `ainews` and `construction`.
+3. Add Pundit policies for Listing, Source, Category, Bookmark, and Ops::Jobs (dashboard) with policy scopes.
+4. Update controllers to call `authorize(record)` and `policy_scope(Model)`.
+   **Deliverables:** Devise auth, Rolify roles, Pundit policies + scopes, seeds.
+   **Acceptance:** A user without a tenant role cannot access tenant resources; policy scopes limit queries to `Current.tenant`; ops dashboard requires admin/owner on root.
 
 ---
 
@@ -316,21 +368,49 @@ root 'listings#index'
 
 ## 11) Jobs Ops (Mission Control Jobs)
 
-* [ ] Mount dashboard at `/ops/jobs` for root tenant admins only.
+* [ ] Mount dashboard at `/ops/jobs` for root tenant admins/owners only (authorize via Pundit).
 * [ ] Define queues: `ingestion`, `scrape`, `ai` with concurrency caps.
 * [ ] Add recurring schedules for sources with jitter.
 
 **Files**
 
-* `config/routes.rb` (authenticated mount)
-* `config/initializers/solid_queue.rb` (queue settings)
+* `config/routes.rb` (mount)
+* `app/policies/ops/jobs_policy.rb` (e.g. `index?` requires `user.has_role?(:admin, root_tenant)` or `:owner`)
+* `config/initializers/solid_queue.rb`
 * `config/initializers/mission_control_jobs.rb`
 
 **Routes mount sketch**
 
 ```ruby
-authenticate :user, ->(u){ u.platform_admin? } do
-  mount MissionControl::Jobs::Engine => "/ops/jobs"
+# config/routes.rb
+scope :ops do
+  authenticate :user do
+    mount MissionControl::Jobs::Engine => "/jobs"
+  end
+end
+```
+
+**Controller guard (example)**
+
+```ruby
+# app/controllers/ops/jobs_controller.rb (wrapper or before_action in ApplicationController)
+before_action do
+  root = Tenant.find_by!(slug: :root)
+  authorize [:ops, :jobs], :index?, policy_class: Ops::JobsPolicy if Current.tenant == root
+end
+```
+
+**Policy**
+
+```ruby
+# app/policies/ops/jobs_policy.rb
+module Ops
+  class JobsPolicy < Struct.new(:user, :record)
+    def index?
+      root = Tenant.find_by!(slug: :root)
+      user&.has_role?(:owner, root) || user&.has_role?(:admin, root)
+    end
+  end
 end
 ```
 
