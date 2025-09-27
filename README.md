@@ -49,6 +49,7 @@ This project includes comprehensive development tools for code quality, security
 - **Letter Opener** - Email preview in development
 - **Listen** - File system change monitoring
 - **Annotaterb** - Annotate models with schema information (Rails 8 compatible)
+- **Meta Tags** - SEO and social media meta tags management
 
 ### Internationalization & Accessibility
 - **i18n-tasks** - Manage missing and unused translations
@@ -87,10 +88,19 @@ The application is designed with internationalization and accessibility in mind:
 ### Accessibility Features
 - WCAG 2.1 AA compliance testing with axe-core
 - Semantic HTML structure with proper landmarks
-- Screen reader compatibility
-- Keyboard navigation support
-- Color contrast validation
+- Screen reader compatibility with sr-only text
+- Keyboard navigation support with focus management
+- Color contrast validation and high contrast mode support
 - Skip links for improved navigation
+- Reduced motion support for accessibility preferences
+
+### SEO & Meta Tags
+- **Meta Tags Gem** - Comprehensive meta tag management
+- Open Graph tags for social media sharing
+- Twitter Card support for rich Twitter previews
+- Canonical URLs for SEO optimization
+- Structured data ready (JSON-LD support)
+- Multi-language SEO support
 
 ### Configuration
 - Locale detection and fallbacks configured in `config/application.rb`

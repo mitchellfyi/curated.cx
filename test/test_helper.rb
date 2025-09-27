@@ -11,5 +11,13 @@ module ActiveSupport
     fixtures :all
 
     # Add more helper methods to be used by all tests here...
+
+    # Ensure tenants are seeded for tests
+    setup do
+      # Seed tenants if they don't exist
+      unless Tenant.exists?(slug: "root")
+        Rails.application.load_seed
+      end
+    end
   end
 end

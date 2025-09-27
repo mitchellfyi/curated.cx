@@ -10,8 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 0) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_27_140745) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
+  create_table "tenants", force: :cascade do |t|
+    t.string "hostname", null: false
+    t.string "slug", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.string "logo_url"
+    t.jsonb "settings", default: {}, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hostname"], name: "index_tenants_on_hostname", unique: true
+    t.index ["slug"], name: "index_tenants_on_slug", unique: true
+    t.index ["status"], name: "index_tenants_on_status"
+  end
 end
