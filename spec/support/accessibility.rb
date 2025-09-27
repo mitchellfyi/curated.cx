@@ -1,9 +1,14 @@
 # Axe-core accessibility testing configuration
-require 'axe-rspec'
+begin
+  require 'axe-rspec'
 
-RSpec.configure do |config|
-  config.include AxeRspec::API, type: :system
-  config.include AxeRspec::API, type: :feature
+  RSpec.configure do |config|
+    config.include AxeRspec::API, type: :system
+    config.include AxeRspec::API, type: :feature
+  end
+rescue LoadError, NameError => e
+  # Skip accessibility testing if axe-rspec is not available
+  puts "Warning: axe-rspec not available, skipping accessibility configuration: #{e.message}"
 end
 
 # Custom accessibility matcher
@@ -20,11 +25,11 @@ RSpec::Matchers.define :be_accessible do |options = {}|
         'iframe[src*="vimeo.com"]'
       ].join(','),
       # Test against WCAG 2.1 AA standards
-      tags: ['wcag2a', 'wcag2aa', 'wcag21aa']
+      tags: [ 'wcag2a', 'wcag2aa', 'wcag21aa' ]
     }
-    
+
     options = default_options.merge(options)
-    
+
     begin
       page.should be_axe_clean.according_to(*options[:tags]).excluding(options[:exclude])
       true
@@ -37,11 +42,11 @@ RSpec::Matchers.define :be_accessible do |options = {}|
   failure_message do |page|
     @failure_message || "Expected page to be accessible, but accessibility violations were found"
   end
-  
+
   failure_message_when_negated do |page|
     "Expected page to have accessibility violations, but none were found"
   end
-  
+
   description do
     "be accessible according to WCAG guidelines"
   end

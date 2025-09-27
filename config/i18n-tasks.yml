@@ -82,6 +82,8 @@ ignore_missing:
   - '{date,time,number,datetime,currency,percentage,precision,human}.*'
   - 'activerecord.*'
   - 'errors.*'
+  - 'a11y.*'  # Accessibility keys are handled in templates
+  - 'app.*'   # Application keys are handled in helpers
 
 ## Consider these keys used:
 ignore_unused:

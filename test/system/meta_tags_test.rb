@@ -10,22 +10,22 @@ class MetaTagsTest < ApplicationSystemTestCase
 
   test "should display correct meta tags for AI tenant" do
     visit root_path
-    
+
     # Check title
     assert_title "AI News"
-    
+
     # Check meta description
     assert_selector 'meta[name="description"][content="Curated AI industry news and insights"]', visible: false
-    
+
     # Check meta keywords
     assert_selector 'meta[name="keywords"][content="apps, news, services"]', visible: false
-    
+
     # Check Open Graph tags
     assert_selector 'meta[property="og:title"][content="AI News"]', visible: false
     assert_selector 'meta[property="og:description"][content="Curated AI industry news and insights"]', visible: false
     assert_selector 'meta[property="og:type"][content="website"]', visible: false
     assert_selector 'meta[property="og:site_name"][content="AI News"]', visible: false
-    
+
     # Check Twitter Card tags
     assert_selector 'meta[name="twitter:card"][content="summary_large_image"]', visible: false
     assert_selector 'meta[name="twitter:site"][content="@ai"]', visible: false
@@ -44,16 +44,16 @@ class MetaTagsTest < ApplicationSystemTestCase
 
   test "should display tenant information on show page" do
     visit root_path
-    
+
     # Check that tenant information is displayed
     assert_selector "h1", text: "AI News"
     assert_selector "p", text: "ainews.cx"
     assert_selector ".text-gray-700", text: "Curated AI industry news and insights"
-    
+
     # Check tenant details
     assert_selector "dd", text: "ai"
     assert_selector "span", text: "Enabled"
-    
+
     # Check settings display
     assert_selector "span", text: "Purple" # primary color
     assert_selector "span", text: "News"
@@ -63,18 +63,18 @@ class MetaTagsTest < ApplicationSystemTestCase
 
   test "should have proper HTML structure" do
     visit root_path
-    
+
     # Check basic HTML structure
     assert_selector "html[lang='en']"
     assert_selector "head"
     assert_selector "body"
-    
+
     # Check accessibility landmarks
     assert_selector "header[role='banner']"
     assert_selector "nav[role='navigation']"
     assert_selector "main#main-content[role='main']"
     assert_selector "footer[role='contentinfo']"
-    
+
     # Check skip link
     assert_selector 'a[href="#main-content"]', visible: false
   end
