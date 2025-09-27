@@ -10,9 +10,9 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  # Tenant resolution test endpoint
-  get "tenant" => "tenants#show"
-
+  # Tenant routes
+  resources :tenants, only: [:index, :show]
+  
   # Defines the root path route ("/")
   root "tenants#show"
 end

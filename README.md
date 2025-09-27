@@ -51,6 +51,7 @@ This project includes comprehensive development tools for code quality, security
 - **Annotaterb** - Annotate models with schema information (Rails 8 compatible)
 - **Meta Tags** - SEO and social media meta tags management
 - **Strong Migrations** - Safe database migration practices
+- **Draper** - Object-oriented presentation logic with decorators
 
 ### Internationalization & Accessibility
 - **i18n-tasks** - Manage missing and unused translations
@@ -109,7 +110,40 @@ The application is designed with internationalization and accessibility in mind:
 - Translation files in `config/locales/`
 - Accessibility helpers in `app/helpers/application_helper.rb`
 
-## Database Migrations
+## Architecture Patterns
+
+### Decorators (Draper)
+The application uses the **Decorator pattern** via Draper to handle presentation logic, keeping views clean and models focused on business logic.
+
+#### Key Benefits
+- **Separation of Concerns**: Model logic stays in models, presentation logic in decorators
+- **Testable**: Decorators are easily unit tested independently
+- **Reusable**: Presentation logic can be shared across different views
+- **Object-Oriented**: More maintainable than helper methods
+
+#### Usage Examples
+```ruby
+# In controllers
+@user = current_user.decorate
+@tenant = Current.tenant.decorate
+
+# In views
+<%= @user.avatar_image(size: 40) %>
+<%= @user.role_badges_for_tenant(@tenant) %>
+<%= @tenant.logo_image(css_class: "navbar-brand") %>
+```
+
+#### Available Decorators
+- **UserDecorator**: Avatar handling, role displays, user status
+- **TenantDecorator**: Logo management, theme variables, social media tags
+- **ApplicationDecorator**: Base decorator with common functionality
+
+### Helpers vs Decorators
+- **Helpers**: General view utilities (accessibility, i18n, forms)
+- **Decorators**: Model-specific presentation logic (avatars, badges, formatting)
+
+
+# Database Migrations
 
 The application uses **Strong Migrations** to prevent dangerous database migrations that could cause downtime in production.
 

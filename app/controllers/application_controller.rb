@@ -4,6 +4,9 @@ class ApplicationController < ActionController::Base
 
   # Include Pundit for authorization
   include Pundit::Authorization
+  
+  # Include Draper for decorators
+  before_action :setup_draper_context
 
   # Include meta-tags helper for SEO
   include MetaTags::ControllerHelper
@@ -12,13 +15,24 @@ class ApplicationController < ActionController::Base
   before_action :set_default_meta_tags
 
   # Pundit authorization callbacks
-  after_action :verify_authorized, except: :index, unless: -> { devise_controller? }
-  after_action :verify_policy_scoped, only: :index, unless: -> { devise_controller? }
+  after_action :verify_authorized, unless: -> { devise_controller? }
+  after_action :verify_policy_scoped, only: :index, unless: -> { devise_controller? || !has_index_action? }
 
   # Handle Pundit authorization errors
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   private
+
+  def has_index_action?
+    self.class.action_methods.include?('index')
+  end
+
+  def setup_draper_context
+    # Make current_user available in decorators
+    if respond_to?(:current_user)
+      Draper::ViewContext.current.define_singleton_method(:current_user) { current_user }
+    end
+  end
 
   def user_not_authorized
     flash[:alert] = "You are not authorized to perform this action."
@@ -28,34 +42,36 @@ class ApplicationController < ActionController::Base
   def set_default_meta_tags
     return unless Current.tenant
 
-    tenant = Current.tenant
+    # Use decorator for better presentation logic
+    tenant = Current.tenant.decorate
 
     set_meta_tags(
-      title: tenant.title,
-      description: tenant.description,
-      keywords: tenant.enabled_categories.join(", "),
+      title: tenant.social_title,
+      description: tenant.social_description,
+      keywords: tenant.enabled_categories_list,
+      canonical: tenant.absolute_url(request.path),
       og: {
-        title: tenant.title,
-        description: tenant.description,
+        title: tenant.social_title,
+        description: tenant.social_description,
         type: "website",
-        url: request.original_url,
+        url: tenant.absolute_url(request.path),
         site_name: tenant.title,
-        locale: "en_US"
+        locale: "en_US",
+        image: tenant.social_image_url
       },
       twitter: {
         card: "summary_large_image",
-        site: "@#{tenant.slug}",
-        title: tenant.title,
-        description: tenant.description
+        site: tenant.twitter_handle,
+        title: tenant.social_title,
+        description: tenant.social_description,
+        image: tenant.social_image_url
       }
     )
+  end
 
-    # Add logo if available
-    if tenant.logo_url.present?
-      set_meta_tags(
-        og: { image: tenant.logo_url },
-        twitter: { image: tenant.logo_url }
-      )
-    end
+  # Helper method for controllers to easily set page-specific meta tags
+  def set_page_meta_tags(options = {})
+    # This can be overridden in individual controllers
+    set_meta_tags(options)
   end
 end

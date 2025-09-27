@@ -1,28 +1,26 @@
-<% setup_meta_tags(
-  title: Current.tenant&.title || "Tenant Information",
-  description: Current.tenant&.description || "View tenant information and details"
-) %>
+<% tenant = Current.tenant&.decorate %>
 
 <div class="min-h-screen bg-gray-50 py-12">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <% if Current.tenant %>
+    <% if tenant %>
       <div class="bg-white shadow rounded-lg p-6">
         <div class="flex items-center justify-between mb-6">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900"><%= Current.tenant.title %></h1>
-            <p class="mt-1 text-sm text-gray-600"><%= Current.tenant.hostname %></p>
+          <div class="flex items-center space-x-4">
+            <%= tenant.logo_image(size: 48) %>
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900"><%= tenant.display_name %></h1>
+              <p class="mt-1 text-sm text-gray-600"><%= tenant.hostname %></p>
+            </div>
           </div>
           <div class="text-right">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              <%= Current.tenant.status.humanize %>
-            </span>
+            <%= tenant.status_badge %>
           </div>
         </div>
 
-        <% if Current.tenant.description.present? %>
+        <% if tenant.description.present? %>
           <div class="mb-6">
             <h2 class="text-lg font-medium text-gray-900 mb-2">Description</h2>
-            <p class="text-gray-700"><%= Current.tenant.description %></p>
+            <p class="text-gray-700"><%= tenant.display_description %></p>
           </div>
         <% end %>
 
@@ -32,11 +30,11 @@
             <dl class="space-y-2">
               <div>
                 <dt class="text-xs text-gray-500">Slug</dt>
-                <dd class="text-sm text-gray-900 font-mono"><%= Current.tenant.slug %></dd>
+                <dd class="text-sm text-gray-900 font-mono"><%= tenant.slug %></dd>
               </div>
               <div>
                 <dt class="text-xs text-gray-500">Created</dt>
-                <dd class="text-sm text-gray-900"><%= Current.tenant.created_at.strftime("%B %d, %Y") %></dd>
+                <dd class="text-sm text-gray-900"><%= tenant.created_at.strftime("%B %d, %Y") %></dd>
               </div>
             </dl>
           </div>
@@ -66,19 +64,22 @@
           <% end %>
         </div>
 
-        <!-- User Information Section -->
         <% if user_signed_in? %>
+          <% user = current_user.decorate %>
           <div class="mt-8 pt-6 border-t border-gray-200">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Current User</h3>
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-center space-x-3">
-                <%= user_avatar(current_user, size: :large) %>
+                <%= user.avatar_image(size: 48) %>
                 <div>
-                  <p class="text-sm font-medium text-gray-900"><%= current_user.email %></p>
-                  <% if current_user.admin? %>
-                    <p class="text-xs text-blue-600 font-medium">Platform Admin</p>
-                  <% end %>
-                  <%= user_role_badges(current_user) %>
+                  <p class="text-sm font-medium text-gray-900"><%= user.display_name %></p>
+                  <p class="text-xs text-gray-600"><%= user.email %></p>
+                  <div class="mt-1 flex items-center space-x-2">
+                    <%= user.platform_admin_badge %>
+                    <% if Current.tenant %>
+                      <%= user.role_badges_for_tenant(Current.tenant).join(' ').html_safe %>
+                    <% end %>
+                  </div>
                 </div>
               </div>
             </div>
