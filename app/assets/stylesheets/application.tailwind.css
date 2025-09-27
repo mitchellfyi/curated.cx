@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+/* Accessibility Styles */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  @apply sr-only;
+}
+
+.skip-link:focus {
+  @apply not-sr-only absolute top-0 left-0 bg-blue-600 text-white p-2 z-50 rounded-b;
+  text-decoration: none;
+}
+
+/* Focus styles for better keyboard navigation */
+:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Ensure sufficient color contrast for links */
+a:hover, a:focus {
+  text-decoration: underline;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  * {
+    border-color: ButtonText;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
