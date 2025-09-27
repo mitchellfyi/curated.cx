@@ -1,0 +1,93 @@
+<% setup_meta_tags(
+  title: "Account Settings",
+  description: "Manage your account settings, update your password, and configure your preferences"
+) %>
+
+<div class="min-h-screen bg-gray-50 py-12">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">Account Settings</h1>
+
+        <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-6" }) do |f| %>
+          <%= render "devise/shared/error_messages", resource: resource %>
+
+          <div>
+            <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1">
+              <%= f.email_field :email, 
+                  autofocus: true, 
+                  autocomplete: "email", 
+                  class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+            </div>
+          </div>
+
+          <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+              <p class="text-sm text-yellow-800">
+                Currently waiting confirmation for: <strong><%= resource.unconfirmed_email %></strong>
+              </p>
+            </div>
+          <% end %>
+
+          <div>
+            <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
+            <p class="text-xs text-gray-500">(leave blank if you don't want to change it)</p>
+            <% if @minimum_password_length %>
+              <p class="text-xs text-gray-500">(<%= @minimum_password_length %> characters minimum)</p>
+            <% end %>
+            <div class="mt-1">
+              <%= f.password_field :password, 
+                  autocomplete: "new-password", 
+                  class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+            </div>
+          </div>
+
+          <div>
+            <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1">
+              <%= f.password_field :password_confirmation, 
+                  autocomplete: "new-password", 
+                  class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+            </div>
+          </div>
+
+          <div>
+            <%= f.label :current_password, class: "block text-sm font-medium text-gray-700" %>
+            <p class="text-xs text-gray-500">(we need your current password to confirm your changes)</p>
+            <div class="mt-1">
+              <%= f.password_field :current_password, 
+                  autocomplete: "current-password", 
+                  class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <%= f.submit "Update Account", 
+                class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+            
+            <%= link_to "Back", :back, 
+                class: "text-gray-600 hover:text-gray-900 font-medium" %>
+          </div>
+        <% end %>
+
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Danger Zone</h3>
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <p class="text-sm text-red-800 mb-3">
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+            <%= button_to "Delete Account", 
+                registration_path(resource_name), 
+                data: { 
+                  confirm: "Are you sure? This action cannot be undone.", 
+                  turbo_confirm: "Are you sure? This action cannot be undone." 
+                }, 
+                method: :delete,
+                class: "bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
