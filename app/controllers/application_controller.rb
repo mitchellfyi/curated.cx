@@ -4,7 +4,7 @@ class ApplicationController < ActionController::Base
 
   # Include Pundit for authorization
   include Pundit::Authorization
-  
+
   # Include Draper for decorators
   before_action :setup_draper_context
 
@@ -16,7 +16,7 @@ class ApplicationController < ActionController::Base
 
   # Pundit authorization callbacks
   after_action :verify_authorized, unless: -> { devise_controller? }
-  after_action :verify_policy_scoped, if: -> { !devise_controller? && action_name == 'index' }
+  after_action :verify_policy_scoped, if: -> { !devise_controller? && action_name == "index" }
 
   # Handle Pundit authorization errors
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized

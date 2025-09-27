@@ -18,15 +18,19 @@ class TenantsControllerTest < ActionDispatch::IntegrationTest
 
   test "should render show template" do
     # Test that the controller action exists and renders the show template
-    get tenant_path
+    # Set the hostname to match our test tenant
+    host! @tenant.hostname
 
-    # The response should be 404 since no tenant is set in test environment
-    assert_response :not_found
+    get tenant_path(@tenant)
+
+    # The response should be 200 since we have a valid tenant
+    assert_response :success
   end
 
-  test "should have correct route" do
-    # Test that the route is properly configured
-    assert_routing "/tenant", { controller: "tenants", action: "show" }
+  test "should have correct routes" do
+    # Test that the routes are properly configured
+    assert_routing "/tenants", { controller: "tenants", action: "index" }
+    assert_routing({ path: "/tenants/#{@tenant.id}", method: :get }, { controller: "tenants", action: "show", id: @tenant.id.to_s })
   end
 
   test "should handle tenant data correctly" do

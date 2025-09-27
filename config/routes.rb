@@ -11,8 +11,8 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Tenant routes
-  resources :tenants, only: [:index, :show]
-  
+  resources :tenants, only: [ :index, :show ]
+
   # Defines the root path route ("/")
   root "tenants#show"
 end

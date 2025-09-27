@@ -1,6 +1,6 @@
 module ApplicationHelper
   # General purpose helpers - model-specific logic moved to decorators
-  
+
   # Accessibility helpers
   def skip_link(target = "#main-content", text = t("a11y.skip_to_content"))
     link_to text, target, class: "skip-link sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2 z-50 focus:z-50"
@@ -45,7 +45,14 @@ module ApplicationHelper
   # Form helpers with better accessibility
   def accessible_form_with(model: nil, **options, &block)
     options[:role] = "form" unless options.key?(:role)
-    form_with(model: model, **options, &block)
+
+    # Handle nil model case properly
+    if model.nil?
+      options[:url] = options[:url] || "#"
+      form_with(**options, &block)
+    else
+      form_with(model: model, **options, &block)
+    end
   end
 
   # Generic badge helper
@@ -53,11 +60,11 @@ module ApplicationHelper
     css_class = badge_class_for_status(status, type)
     content_tag :span, status.to_s.humanize, class: "badge #{css_class}"
   end
-  
+
   # Generic display date helper
   def display_time_ago(date)
     return "Never" unless date.present?
-    
+
     if date > 1.year.ago
       time_ago_in_words(date) + " ago"
     else
@@ -69,25 +76,25 @@ module ApplicationHelper
   def flash_messages
     flash.map do |type, message|
       next if message.blank?
-      
-      content_tag :div, message, 
+
+      content_tag :div, message,
         class: "flash-message flash-#{type}",
         role: "alert",
-        'aria-live': type == 'alert' ? 'assertive' : 'polite'
+        'aria-live': type == "alert" ? "assertive" : "polite"
     end.compact.join.html_safe
   end
 
   # Current user avatar (uses decorator)
   def current_user_avatar(size: 32, css_class: nil)
     return nil unless user_signed_in?
-    
+
     current_user.decorate.avatar_image(size: size, css_class: css_class)
   end
 
-  # Current tenant logo (uses decorator) 
+  # Current tenant logo (uses decorator)
   def current_tenant_logo(size: nil, css_class: nil)
     return nil unless Current.tenant
-    
+
     Current.tenant.decorate.logo_image(size: size, css_class: css_class)
   end
 
@@ -129,7 +136,7 @@ module ApplicationHelper
 
     # Remove nil values to avoid empty meta tags
     defaults = deep_compact(defaults)
-    
+
     set_meta_tags(defaults)
   end
 
@@ -144,20 +151,20 @@ module ApplicationHelper
 
   def badge_class_for_status(status, type)
     return "badge-#{type}" if type.present?
-    
+
     case status.to_s.downcase
-    when 'active', 'enabled', 'published', 'success'
-      'badge-success'
-    when 'inactive', 'disabled', 'unpublished', 'draft'
-      'badge-secondary'
-    when 'pending', 'review', 'warning'
-      'badge-warning'
-    when 'error', 'failed', 'danger'
-      'badge-danger'
-    when 'info', 'information'
-      'badge-info'
+    when "active", "enabled", "published", "success"
+      "badge-success"
+    when "inactive", "disabled", "unpublished", "draft"
+      "badge-secondary"
+    when "pending", "review", "warning"
+      "badge-warning"
+    when "error", "failed", "danger"
+      "badge-danger"
+    when "info", "information"
+      "badge-info"
     else
-      'badge-light'
+      "badge-light"
     end
   end
 end

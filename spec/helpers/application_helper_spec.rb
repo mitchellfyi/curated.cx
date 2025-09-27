@@ -57,67 +57,19 @@ RSpec.describe ApplicationHelper, type: :helper do
 
   describe '#current_locale_name' do
     it 'returns current locale name' do
-      expect(helper.current_locale_name).to eq("English")
+      expect(helper.current_locale_name).to eq("EN")
     end
   end
 
-  describe '#user_avatar' do
-    let(:user) { create(:user, email: "test@example.com") }
-
-    it 'generates avatar with user initial' do
-      avatar = helper.user_avatar(user)
-      expect(avatar).to include("T")
-      expect(avatar).to include("rounded-full")
-    end
-
-    it 'accepts size parameter' do
-      avatar = helper.user_avatar(user, size: :large)
-      expect(avatar).to include("h-10 w-10")
-    end
-
-    it 'uses medium size by default' do
-      avatar = helper.user_avatar(user)
-      expect(avatar).to include("h-8 w-8")
-    end
-  end
-
-  describe '#user_display_name' do
-    let(:user) { create(:user, email: "john.doe@example.com") }
-
-    it 'returns formatted display name from email' do
-      expect(helper.user_display_name(user)).to eq("John.doe")
-    end
-  end
-
-  describe '#user_role_badges' do
-    let(:user) { create(:user) }
-    let(:tenant) { create(:tenant) }
-
-    it 'returns nil when user has no roles' do
-      expect(helper.user_role_badges(user)).to be_nil
-    end
-
-    it 'generates role badges when user has roles' do
-      user.add_role(:owner, tenant)
-      badges = helper.user_role_badges(user)
-      expect(badges).to include("Owner")
-      expect(badges).to include("bg-purple-100")
-    end
-
-    it 'generates different colored badges for different roles' do
-      user.add_role(:admin, tenant)
-      badges = helper.user_role_badges(user)
-      expect(badges).to include("Admin")
-      expect(badges).to include("bg-red-100")
-    end
-  end
+  # Note: user_avatar, user_display_name, and user_role_badges methods
+  # have been moved to decorators and are no longer helper methods
 
   describe '#locale_options' do
     it 'returns array of locale options' do
       options = helper.locale_options
       expect(options).to be_an(Array)
       expect(options.first).to be_an(Array)
-      expect(options.first.first).to eq("English")
+      expect(options.first.first).to eq("EN")
       expect(options.first.last).to eq(:en)
     end
   end
@@ -205,7 +157,7 @@ RSpec.describe ApplicationHelper, type: :helper do
             }
           }
         }
-        
+
         result = helper.send(:deep_compact, hash)
         expect(result).to eq({
           a: 1,
@@ -227,7 +179,7 @@ RSpec.describe ApplicationHelper, type: :helper do
             e: {}
           }
         }
-        
+
         result = helper.send(:deep_compact, hash)
         expect(result).to eq({
           a: 1,

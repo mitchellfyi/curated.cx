@@ -3,7 +3,7 @@
 <div class="min-h-screen bg-gray-50 py-12">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     <% if tenant %>
-      <div class="bg-white shadow rounded-lg p-6">
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center space-x-4">
             <%= tenant.logo_image(size: 48) %>
@@ -17,7 +17,7 @@
           </div>
         </div>
 
-        <% if tenant.description.present? %>
+        <% if tenant.description? %>
           <div class="mb-6">
             <h2 class="text-lg font-medium text-gray-900 mb-2">Description</h2>
             <p class="text-gray-700"><%= tenant.display_description %></p>
@@ -77,7 +77,7 @@
                   <div class="mt-1 flex items-center space-x-2">
                     <%= user.platform_admin_badge %>
                     <% if Current.tenant %>
-                      <%= user.role_badges_for_tenant(Current.tenant).join(' ').html_safe %>
+                      <%= safe_join(user.role_badges_for_tenant(Current.tenant), " ") %>
                     <% end %>
                   </div>
                 </div>
@@ -99,11 +99,12 @@
           </div>
         </div>
 
-        <!-- Root tenant: Show tenant directory -->
-        <% if tenant.tenant_directory_partial %>
-          <%= render tenant.tenant_directory_partial, tenant: tenant %>
-        <% end %>
       </div>
+
+      <!-- Root tenant: Show tenant directory -->
+      <% if tenant.tenant_directory_partial %>
+        <%= render tenant.tenant_directory_partial, tenant: tenant %>
+      <% end %>
     <% else %>
       <div class="text-center">
         <div class="bg-red-50 border border-red-200 rounded-lg p-6">

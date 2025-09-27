@@ -1,0 +1,12 @@
+---
+linters:
+  FinalNewline:
+    enabled: true
+  TrailingWhitespace:
+    enabled: true
+  SpaceIndentation:
+    enabled: false  # Too strict for our HTML attribute formatting
+  SpaceInHtmlTag:
+    enabled: false  # Allow flexible HTML tag formatting
+  ErbSafety:
+    enabled: false  # Disable as it requires better_html config

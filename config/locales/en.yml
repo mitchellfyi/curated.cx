@@ -1,51 +1,20 @@
 ---
 en:
-  hello: "Hello world"
-  
-  # Application-wide translations
-  app:
-    name: "Curated"
-    tagline: "Curated content for your audience"
-    
-  # Navigation and common UI elements
   nav:
-    home: "Home"
-    login: "Login"
-    logout: "Logout"
-    sign_up: "Sign up"
-    dashboard: "Dashboard"
-    settings: "Settings"
-    account: "Account"
-    profile: "Profile"
-    
-  # Common actions
-  actions:
-    create: "Create"
-    edit: "Edit"
-    update: "Update"
-    delete: "Delete"
-    cancel: "Cancel"
-    save: "Save"
-    back: "Back"
-    next: "Next"
-    previous: "Previous"
-    
-  # Common messages
-  messages:
-    success: "Operation completed successfully"
-    error: "An error occurred"
-    not_found: "Not found"
-    access_denied: "Access denied"
-    
+    dashboard: Dashboard
+    home: Home
+    login: Login
+    logout: Logout
+    settings: Settings
+    sign_up: Sign up
+  
+  # Application info
+  app:
+    name: Curated
+    tagline: Curated content for your audience
+  
   # Accessibility labels
   a11y:
-    skip_to_content: "Skip to main content"
-    main_navigation: "Main navigation"
-    primary_content: "Primary content"
-    sidebar: "Sidebar"
-    footer: "Footer"
-    
-  # Locale names
-  locales:
-    en: "English"
-    es: "Español"
+    primary_content: Primary content
+    footer: Footer
+    skip_to_content: Skip to main content

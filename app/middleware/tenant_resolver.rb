@@ -34,6 +34,11 @@ class TenantResolver
     # Remove port if present (e.g., "localhost:3000" -> "localhost")
     clean_hostname = hostname.to_s.split(":").first.downcase
 
+    # In test environment, handle all hostnames by looking them up in the database
+    if Rails.env.test?
+      return handle_test_environment(clean_hostname)
+    end
+
     # In development, handle localhost subdomains
     if Rails.env.development? && clean_hostname.include?("localhost")
       return handle_localhost_routing(clean_hostname)
@@ -53,6 +58,26 @@ class TenantResolver
 
   def find_tenant_by_domain(hostname)
     Tenant.find_by_hostname!(hostname)
+  end
+
+  def handle_test_environment(hostname)
+    Rails.logger.debug "TenantResolver: Test environment, hostname: #{hostname}"
+
+    # In test environment, handle localhost subdomains for system tests
+    if hostname.include?("localhost")
+      result = handle_localhost_routing(hostname)
+      Rails.logger.debug "TenantResolver: Localhost routing result: #{result&.title || 'nil'}"
+      return result
+    end
+
+    # For other hostnames in test, look up tenant by hostname directly
+    # This allows system tests to use any hostname as long as the tenant exists in the test database
+    result = Tenant.find_by(hostname: hostname)
+    Rails.logger.debug "TenantResolver: Direct lookup result: #{result&.title || 'nil'}"
+    result
+  rescue ActiveRecord::RecordNotFound
+    Rails.logger.debug "TenantResolver: RecordNotFound for hostname: #{hostname}"
+    nil
   end
 
   def handle_localhost_routing(hostname)

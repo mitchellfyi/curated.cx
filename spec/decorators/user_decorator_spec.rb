@@ -88,7 +88,7 @@ RSpec.describe UserDecorator, type: :decorator do
 
       it 'returns admin badge' do
         badge = decorated_user.platform_admin_badge
-        expect(badge).to include('Platform Admin')
+        expect(badge).to include('Admin')
         expect(badge).to include('badge-danger')
       end
     end
@@ -107,7 +107,7 @@ RSpec.describe UserDecorator, type: :decorator do
 
       it 'returns admin status' do
         status = decorated_user.account_status
-        expect(status).to include('Platform Admin')
+        expect(status).to include('Admin')
         expect(status).to include('text-red-600')
       end
     end

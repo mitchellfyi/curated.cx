@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# Quality Check Script for Curated.cx
+echo "🔍 Running Quality Checks..."
+echo "=============================="
+
+# Initialize counters
+TOTAL_ISSUES=0
+CRITICAL_ISSUES=0
+
+echo
+echo "1️⃣ RuboCop (Ruby Code Style)"
+echo "----------------------------"
+if bundle exec rubocop --format progress; then
+    echo "✅ RuboCop: PASSED"
+else
+    echo "❌ RuboCop: FAILED"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+fi
+
+echo
+echo "2️⃣ Brakeman (Security Analysis)"
+echo "--------------------------------"
+if bundle exec brakeman --no-pager -q; then
+    echo "✅ Brakeman: PASSED (No security issues)"
+else
+    echo "❌ Brakeman: SECURITY ISSUES FOUND"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+fi
+
+echo
+echo "3️⃣ ERB Lint (Template Quality)"
+echo "-------------------------------"
+if bundle exec erb_lint --lint-all --format compact > /dev/null 2>&1; then
+    echo "✅ ERB Lint: PASSED"
+else
+    echo "⚠️  ERB Lint: Issues found (mostly formatting)"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+fi
+
+echo
+echo "4️⃣ Rails Best Practices"
+echo "------------------------"
+RAILS_BP_OUTPUT=$(bundle exec rails_best_practices --silent . 2>/dev/null | tail -1)
+if [[ "$RAILS_BP_OUTPUT" == *"Found 0 warnings"* ]]; then
+    echo "✅ Rails Best Practices: PASSED"
+else
+    echo "⚠️  Rails Best Practices: $RAILS_BP_OUTPUT"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+fi
+
+echo
+echo "5️⃣ Test Suite"
+echo "--------------"
+if bundle exec rspec --format progress > /dev/null 2>&1; then
+    echo "✅ Tests: PASSED"
+else
+    echo "❌ Tests: Some failures"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+fi
+
+echo
+echo "📊 QUALITY SUMMARY"
+echo "=================="
+echo "Total Issues: $TOTAL_ISSUES"
+echo "Critical Issues: $CRITICAL_ISSUES"
+
+if [ $CRITICAL_ISSUES -eq 0 ]; then
+    echo "🎉 Ready to commit! Critical issues resolved."
+    exit 0
+else
+    echo "🚫 Fix critical issues before committing."
+    exit 1
+fi

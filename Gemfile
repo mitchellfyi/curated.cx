@@ -61,6 +61,8 @@ group :development, :test do
   # Code quality and performance tools
   gem "simplecov", require: false
   gem "database_cleaner-active_record", "~> 2.2"
+  gem "rails_best_practices", require: false
+  gem "erb_lint", require: false
 
   # I18n tools
   gem "i18n-tasks", "~> 1.0"

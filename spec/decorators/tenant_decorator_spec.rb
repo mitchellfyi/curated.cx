@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe TenantDecorator, type: :decorator do
-  let(:tenant) { create(:tenant, 
+  let(:tenant) { create(:tenant,
     title: 'Test Tenant',
     description: 'Test description',
     hostname: 'test.example.com',
@@ -90,7 +90,7 @@ RSpec.describe TenantDecorator, type: :decorator do
 
   describe '#enabled_categories_list' do
     context 'when categories are enabled' do
-      before { allow(tenant).to receive(:enabled_categories).and_return(['news', 'apps']) }
+      before { allow(tenant).to receive(:enabled_categories).and_return([ 'news', 'apps' ]) }
 
       it 'returns humanized list' do
         expect(decorated_tenant.enabled_categories_list).to eq('News and Apps')
