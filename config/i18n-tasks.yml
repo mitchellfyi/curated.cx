@@ -1,0 +1,114 @@
+# i18n-tasks configuration for curated.www
+
+# i18n-tasks finds and manages missing and unused translations.
+# https://github.com/glebm/i18n-tasks
+
+# The "main" locale.
+base_locale: en
+# All available locales are inferred from the data by default. Alternatively, specify them explicitly:
+# locales: [es, fr]
+# Reporting locale, default: en. Locale to report missing and unused translations in.
+# E.g. if you want to report in French, set this to: fr
+# internal_locale: en
+
+# Read and write translations.
+data:
+  # Translations are read from the file system. Supported format: YAML, JSON.
+  # Provide a custom adapter:
+  # adapter: I18n::Tasks::Data::FileSystem
+
+  # Locale files or `File.find` patterns where translations are read from:
+  read:
+    # Default:
+    - config/locales/**/*.%{locale}.yml
+    - config/locales/**/*.%{locale}.yaml
+    - config/locales/**/*.%{locale}.json
+    # More files:
+    # - app/views/**/*.%{locale}.html.erb
+
+  # Locale files to write new keys to, based on a list of key pattern => file rules.
+  # Matched from the top, first match wins.
+  # Key pattern is a locale key, may include wildcards (*).
+  # File pattern supports *%{locale}, *%{key}, *%{parentkey} and other named variables.
+  # E.g. a action_* key pattern can be used to extract action-based keys to a separate file.
+  # If no matches, translations are written to the first file:
+  write:
+    # E.g. extract devise-keys to a separate file:
+    # - ['{devise, devise.*}', 'config/locales/devise.%{locale}.yml']
+    # Default catch-all:
+    - config/locales/%{locale}.yml
+
+# Find translate calls
+search:
+  # Paths or `File.find` patterns to search in:
+  # paths:
+  #  - app/
+
+  # Root directories for relative keys resolution.
+  relative_roots:
+    - app/controllers
+    - app/helpers
+    - app/mailers
+    - app/presenters
+    - app/services
+    - app/views
+
+  # Files or `File.fnmatch` patterns to exclude from search. Some files are always excluded regardless of this setting:
+  #   - %w(*.jpg *.png *.gif *.svg *.ico *.eot *.otf *.ttf *.woff *.woff2 *.pdf *.css *.sass *.scss *.less *.coffee *.js *.haml)
+  exclude:
+    - app/assets/images
+    - app/assets/fonts
+    - app/assets/videos
+
+  # Alternatively, the only files or `File.fnmatch patterns` to search in `(default: %w(*.rb *.html.erb *.html.haml *.html.slim))`
+  # only: ['*.rb', '*.html.erb']
+
+  # If `strict` is `false`, guess usages such as t("categories.#{category}.title"). The default is `true`.
+  # strict: true
+
+  # Multiple scanners can be used. Their results are merged.
+  # The options specified above are passed down to each scanner. Per-scanner options can be specified as well.
+  # See this example of a custom scanner: https://github.com/glebm/i18n-tasks/wiki/A-custom-scanner-example
+
+## Google Translate
+# translation:
+#   # Get an API key and set billing info at https://code.google.com/apis/console to use Google Translate
+#   api_key: "AbC-dEf5"
+
+## Do not consider these keys missing:
+ignore_missing:
+  # - 'errors.messages.{accepted,blank,invalid,too_long,too_short,confirmation}'
+  - '{devise,kaminari,will_paginate}.*'
+  - '{date,time,number,datetime,currency,percentage,precision,human}.*'
+  - 'activerecord.*'
+  - 'errors.*'
+
+## Consider these keys used:
+ignore_unused:
+  # - 'activerecord.attributes.*'
+  - '{devise,kaminari,will_paginate}.*'
+  - '{date,time,number,datetime,currency,percentage,precision,human}.*'
+  - 'activerecord.*'
+  - 'helpers.*'
+  - 'errors.*'
+
+## Exclude these keys from the `i18n-tasks eq-base' report:
+# ignore_eq_base:
+#   all:
+#     - common.ok
+#   fr,es:
+#     - common.brand
+
+## Ignore these keys completely:
+# ignore:
+#  - kaminari.*
+
+## Sometimes, it isn't possible for i18n-tasks to match the key correctly. In these cases, use the built-in PatternMapper.
+# <%# I18n::Tasks.add_scanner 'I18n::Tasks::Scanners::PatternMapper',
+#        only: %w(*.html.haml *.html.erb),
+#        patterns: [['= title\s+\'(.*?)\'', '\1']] %>
+
+## Multiple values can be associated with a single key.
+# <%# I18n::Tasks.add_scanner 'I18n::Tasks::Scanners::PatternMapper',
+#        only: %w(*.html.haml *.html.erb),
+#        patterns: [['= link_to_unless_current .*?, \s*\'(.*?)\'', '\1']] %>

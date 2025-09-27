@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+# i18n management script
+
+puts "🌍 Managing i18n translations..."
+puts "=" * 50
+
+def run_command(description, command)
+  puts "\n#{description}"
+  puts "-" * 30
+  system(command)
+end
+
+# Check for missing translations
+run_command("🔍 Checking for missing translations:", "bundle exec i18n-tasks missing")
+
+# Check for unused translations
+run_command("🧹 Checking for unused translations:", "bundle exec i18n-tasks unused")
+
+# Check for inconsistent interpolations
+run_command("🔗 Checking for inconsistent interpolations:", "bundle exec i18n-tasks check-consistent-interpolations")
+
+# Check for keys with the same value as the base locale
+run_command("📋 Checking for keys with same value as base locale:", "bundle exec i18n-tasks eq-base")
+
+# Normalize translation files
+run_command("📝 Normalizing translation files:", "bundle exec i18n-tasks normalize")
+
+puts "\n💡 Available i18n-tasks commands:"
+puts "  bundle exec i18n-tasks missing           # Show missing translations"
+puts "  bundle exec i18n-tasks unused            # Show unused translations"
+puts "  bundle exec i18n-tasks normalize         # Normalize translation files"
+puts "  bundle exec i18n-tasks health            # Overall health check"
+puts "  bundle exec i18n-tasks add-missing       # Add missing keys"
+puts "  bundle exec i18n-tasks remove-unused     # Remove unused keys"
+puts "  bundle exec i18n-tasks translate-missing # Auto-translate missing keys"
+
+puts "\n✅ i18n check complete!"

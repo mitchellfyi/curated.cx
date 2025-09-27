@@ -23,7 +23,7 @@ gem "jbuilder"
 # gem "bcrypt", "~> 3.1.7"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem "tzinfo-data", platforms: %i[windows jruby]
 
 # Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
 gem "solid_cache"
@@ -44,24 +44,59 @@ gem "thruster", require: false
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Test framework and utilities
+  gem "rspec-rails", "~> 7.1"
+  gem "factory_bot_rails", "~> 6.4"
+  gem "faker", "~> 3.5"
+
+  # Code quality and performance tools
+  gem "simplecov", require: false
+  gem "database_cleaner-active_record", "~> 2.2"
+
+  # I18n tools
+  gem "i18n-tasks", "~> 1.0"
 end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # N+1 query detection [https://github.com/flyerhzm/bullet]
+  gem "bullet", "~> 8.0"
+
+  # Database query analysis and optimization
+  gem "prosopite", "~> 1.4"
+
+  # Better error pages [https://github.com/BetterErrors/better_errors]
+  gem "better_errors", "~> 2.10"
+  gem "binding_of_caller", "~> 1.0"
+
+  # Rails application preloader for faster development
+  gem "listen", "~> 3.9"
+
+  # Mail delivery in development
+  gem "letter_opener", "~> 1.10"
+
+  # Annotate models with schema information (Rails 8 compatible fork)
+  gem "annotaterb", "~> 4.19"
 end
 
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+  
+  # Accessibility testing
+  gem "axe-core-rspec", "~> 4.9"
+  gem "axe-core-capybara", "~> 4.9"
 end
 
 gem "devise", "~> 4.9"

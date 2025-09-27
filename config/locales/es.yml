@@ -1,0 +1,48 @@
+es:
+  hello: "Hola mundo"
+  
+  # Application-wide translations
+  app:
+    name: "Curated"
+    tagline: "Contenido curado para tu audiencia"
+    
+  # Navigation and common UI elements
+  nav:
+    home: "Inicio"
+    login: "Iniciar sesión"
+    logout: "Cerrar sesión"
+    sign_up: "Registrarse"
+    dashboard: "Panel de control"
+    settings: "Configuración"
+    
+  # Common actions
+  actions:
+    create: "Crear"
+    edit: "Editar"
+    update: "Actualizar"
+    delete: "Eliminar"
+    cancel: "Cancelar"
+    save: "Guardar"
+    back: "Atrás"
+    next: "Siguiente"
+    previous: "Anterior"
+    
+  # Common messages
+  messages:
+    success: "Operación completada exitosamente"
+    error: "Ha ocurrido un error"
+    not_found: "No encontrado"
+    access_denied: "Acceso denegado"
+    
+  # Accessibility labels
+  a11y:
+    skip_to_content: "Saltar al contenido principal"
+    main_navigation: "Navegación principal"
+    primary_content: "Contenido principal"
+    sidebar: "Barra lateral"
+    footer: "Pie de página"
+    
+  # Locale names
+  locales:
+    en: "English"
+    es: "Español"

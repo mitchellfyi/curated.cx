@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+# Quality check script - runs all code quality tools
+
+require "bundler/inline"
+
+puts "🔍 Running code quality checks..."
+puts "=" * 50
+
+# Run RuboCop
+puts "\n📏 Running RuboCop..."
+system("bundle exec rubocop")
+
+# Run Brakeman security scan
+puts "\n🔒 Running Brakeman security scan..."
+system("bundle exec brakeman -q --format plain")
+
+# Run RSpec tests
+puts "\n🧪 Running RSpec tests..."
+system("bundle exec rspec")
+
+# Run Annotaterb to keep models annotated
+puts "\n📝 Annotating models..."
+system("bundle exec annotaterb models")
+
+# Check i18n translations
+puts "\n🌍 Checking i18n translations..."
+puts "  Missing translations:"
+system("bundle exec i18n-tasks missing")
+puts "  Unused translations:"
+system("bundle exec i18n-tasks unused")
+puts "  Normalizing translation files:"
+system("bundle exec i18n-tasks normalize")
+
+# Run accessibility tests specifically
+puts "\n♿ Running accessibility tests..."
+system("bundle exec rspec spec/system/accessibility_spec.rb")
+
+# Run Rails best practices (if available)
+if system("command -v rails_best_practices > /dev/null")
+  puts "\n📋 Running Rails Best Practices..."
+  system("rails_best_practices .")
+end
+
+puts "\n✅ Quality checks complete!"

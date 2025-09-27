@@ -39,3 +39,8 @@
 /node_modules
 
 .DS_Store
+
+# Development tools
+/coverage/
+/spec/examples.txt
+.brakeman.ignore
