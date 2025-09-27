@@ -70,3 +70,43 @@ tenant_data.each do |attrs|
 end
 
 puts "Tenant seeding complete!"
+
+# Seed users and roles
+puts "Seeding users and roles..."
+
+# Create developer user with platform admin access
+developer_email = Rails.application.credentials.dig(:developer, :email) || "developer@curated.cx"
+developer_password = Rails.application.credentials.dig(:developer, :password) || "password123"
+
+developer = User.find_or_initialize_by(email: developer_email)
+developer.assign_attributes(
+  email: developer_email,
+  password: developer_password,
+  password_confirmation: developer_password,
+  admin: true
+)
+developer.save!
+puts "  ✓ Created/updated developer user: #{developer.email}"
+
+# Create tenant owners
+tenants = Tenant.all
+
+tenants.each do |tenant|
+  owner_email = "owner@#{tenant.hostname}"
+  owner_password = "password123"
+
+  owner = User.find_or_initialize_by(email: owner_email)
+  owner.assign_attributes(
+    email: owner_email,
+    password: owner_password,
+    password_confirmation: owner_password,
+    admin: false
+  )
+  owner.save!
+
+  # Assign owner role to tenant
+  owner.add_role(:owner, tenant) unless owner.has_role?(:owner, tenant)
+  puts "  ✓ Created/updated owner for #{tenant.title}: #{owner.email}"
+end
+
+puts "User and role seeding complete!"

@@ -1,0 +1,61 @@
+# frozen_string_literal: true
+
+# == Schema Information
+#
+# Table name: users
+#
+#  id                     :bigint           not null, primary key
+#  admin                  :boolean          default(FALSE), not null
+#  email                  :string           default(""), not null
+#  encrypted_password     :string           default(""), not null
+#  remember_created_at    :datetime
+#  reset_password_sent_at :datetime
+#  reset_password_token   :string
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#
+# Indexes
+#
+#  index_users_on_email                 (email) UNIQUE
+#  index_users_on_reset_password_token  (reset_password_token) UNIQUE
+#
+class User < ApplicationRecord
+  rolify
+
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable
+
+  # Associations
+  has_and_belongs_to_many :roles, join_table: :users_roles
+
+  # Validations
+  validates :email, presence: true, uniqueness: true
+  validates :admin, inclusion: { in: [ true, false ] }
+
+  # Scopes
+  scope :admins, -> { where(admin: true) }
+
+  # Instance methods
+  def admin?
+    admin == true
+  end
+
+  def has_tenant_role?(role_name, tenant)
+    has_role?(role_name, tenant)
+  end
+
+  def can_access_tenant?(tenant)
+    admin? || [ :owner, :admin, :editor, :viewer ].any? { |role| has_role?(role, tenant) }
+  end
+
+  def tenant_roles(tenant)
+    roles.where(resource: tenant)
+  end
+
+  def highest_tenant_role(tenant)
+    role_hierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 }
+    tenant_roles(tenant).max_by { |role| role_hierarchy[role.name.to_sym] || 0 }
+  end
+end

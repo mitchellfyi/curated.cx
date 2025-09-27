@@ -56,6 +56,7 @@ group :development, :test do
   gem "rspec-rails", "~> 7.1"
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.5"
+  gem "shoulda-matchers", "~> 6.0"
 
   # Code quality and performance tools
   gem "simplecov", require: false
@@ -93,13 +94,15 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
-  
+
   # Accessibility testing
   gem "axe-core-rspec", "~> 4.9"
   gem "axe-core-capybara", "~> 4.9"
 end
 
 gem "devise", "~> 4.9"
+gem "pundit", "~> 2.3"
+gem "rolify", "~> 6.0"
 gem "pg_search", "~> 2.3"
 gem "acts_as_tenant", "~> 1.0"
 gem "mission_control-jobs", "~> 1.1"
