@@ -19,7 +19,7 @@ class TenantsControllerTest < ActionDispatch::IntegrationTest
   test "should render show template" do
     # Test that the controller action exists and renders the show template
     get tenant_path
-    
+
     # The response should be 404 since no tenant is set in test environment
     assert_response :not_found
   end
@@ -50,12 +50,12 @@ class TenantsControllerTest < ActionDispatch::IntegrationTest
     assert @tenant.enabled?
     assert @tenant.publicly_accessible?
     assert_not @tenant.requires_login?
-    
+
     @tenant.update!(status: :disabled)
     assert @tenant.disabled?
     assert_not @tenant.publicly_accessible?
     assert_not @tenant.requires_login?
-    
+
     @tenant.update!(status: :private_access)
     assert @tenant.private_access?
     assert_not @tenant.publicly_accessible?

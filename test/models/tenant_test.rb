@@ -246,25 +246,25 @@ class TenantTest < ActiveSupport::TestCase
     # Use memory store for testing cache functionality
     original_cache = Rails.cache
     Rails.cache = ActiveSupport::Cache::MemoryStore.new
-    
+
     tenant = Tenant.create!(
       hostname: "cache-test.example.com",
       slug: "cache_test",
       title: "Cache Test Tenant",
       settings: { theme: { primary_color: "blue" } }
     )
-    
+
     # Verify cache is populated by calling the method that uses cache
     cached_tenant = Tenant.find_by_hostname!("cache-test.example.com")
     assert_equal tenant, cached_tenant
-    
+
     # Update tenant and verify cache is cleared
     tenant.update!(title: "Updated Cache Test Tenant")
-    
+
     # Cache should be cleared and repopulated
     cached_tenant = Tenant.find_by_hostname!("cache-test.example.com")
     assert_equal "Updated Cache Test Tenant", cached_tenant.title
-    
+
     # Restore original cache
     Rails.cache = original_cache
   end

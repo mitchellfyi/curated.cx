@@ -43,7 +43,7 @@ class TenantResolutionTest < ActionDispatch::IntegrationTest
       title: "Disabled Tenant",
       status: :disabled
     )
-    
+
     # Should find the tenant but it should not be publicly accessible
     # Note: find_by_hostname! only finds enabled tenants, so we need to use find_by
     found_tenant = Tenant.find_by(hostname: "disabled.example.com")
@@ -60,7 +60,7 @@ class TenantResolutionTest < ActionDispatch::IntegrationTest
       title: "Private Tenant",
       status: :private_access
     )
-    
+
     # Should find the tenant but it should require login
     # Note: find_by_hostname! only finds enabled tenants, so we need to use find_by
     found_tenant = Tenant.find_by(hostname: "private.example.com")
@@ -74,7 +74,7 @@ class TenantResolutionTest < ActionDispatch::IntegrationTest
     # Test the localhost subdomain logic
     subdomain = "ai.localhost".split(".").first
     assert_equal "ai", subdomain
-    
+
     # Should find tenant by slug
     found_tenant = Tenant.find_by(slug: subdomain)
     assert_equal @ai_tenant, found_tenant
@@ -83,11 +83,11 @@ class TenantResolutionTest < ActionDispatch::IntegrationTest
   test "should handle localhost root routing" do
     # Test localhost root routing
     hostname = "localhost"
-    if Rails.env.development? && ["localhost", "127.0.0.1", "0.0.0.0"].include?(hostname)
+    if Rails.env.development? && [ "localhost", "127.0.0.1", "0.0.0.0" ].include?(hostname)
       assert_equal @root_tenant, Tenant.root_tenant
     else
       # In test environment, just verify the logic works
-      assert ["localhost", "127.0.0.1", "0.0.0.0"].include?(hostname)
+      assert [ "localhost", "127.0.0.1", "0.0.0.0" ].include?(hostname)
       assert_equal @root_tenant, Tenant.root_tenant
     end
   end

@@ -22,10 +22,10 @@ module I18nHelpers
   # Check for missing interpolation variables
   def check_interpolation(key, variables = {}, locale = I18n.locale)
     translation = I18n.t(key, **variables, locale: locale)
-    
+
     # Check if translation contains untranslated interpolation variables
     untranslated_vars = translation.scan(/%\{([^}]+)\}/).flatten
-    
+
     {
       translation: translation,
       missing_variables: untranslated_vars,
@@ -36,11 +36,11 @@ module I18nHelpers
   # Test pluralization rules
   def test_pluralization(key, locale = I18n.locale)
     results = {}
-    
-    [0, 1, 2, 5].each do |count|
+
+    [ 0, 1, 2, 5 ].each do |count|
       results[count] = I18n.t(key, count: count, locale: locale)
     end
-    
+
     results
   end
 

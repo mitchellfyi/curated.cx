@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'meta-tags'
+require "meta-tags"
 
 # MetaTags configuration
 MetaTags.configure do |config|

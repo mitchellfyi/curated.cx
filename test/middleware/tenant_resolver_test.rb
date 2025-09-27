@@ -77,15 +77,15 @@ class TenantResolverTest < ActiveSupport::TestCase
     Tenant.define_singleton_method(:find_by_hostname!) do |hostname|
       raise ActiveRecord::StatementInvalid, "Database connection lost"
     end
-    
+
     env = { "HTTP_HOST" => "test.example.com" }
     status, headers, body = @middleware.call(env)
-    
+
     # Should fallback to root tenant on error and return 404 since no tenant found
     assert_equal 404, status
     assert_equal "Tenant not found", body.first
     assert_nil Current.tenant
-    
+
     # Restore original method
     Tenant.define_singleton_method(:find_by_hostname!, original_method)
   end

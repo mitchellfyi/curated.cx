@@ -41,7 +41,7 @@ class TenantResolver
 
     # Try to find tenant by hostname first
     tenant = find_tenant_by_domain(clean_hostname)
-    
+
     # Ensure tenant is publicly accessible
     return nil unless tenant&.publicly_accessible?
 

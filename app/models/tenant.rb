@@ -26,17 +26,17 @@ class Tenant < ApplicationRecord
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
 
   # Validations
-  validates :hostname, presence: true, uniqueness: true, format: { 
+  validates :hostname, presence: true, uniqueness: true, format: {
     with: /\A[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?)*\z/i,
     message: "must be a valid domain name"
   }
-  validates :slug, presence: true, uniqueness: true, format: { 
+  validates :slug, presence: true, uniqueness: true, format: {
     with: /\A[a-z0-9_]+\z/,
     message: "must contain only lowercase letters, numbers, and underscores"
   }
   validates :title, presence: true, length: { minimum: 1, maximum: 255 }
   validates :description, length: { maximum: 1000 }, allow_blank: true
-  validates :logo_url, format: { 
+  validates :logo_url, format: {
     with: URI::DEFAULT_PARSER.make_regexp(%w[http https]),
     message: "must be a valid URL"
   }, allow_blank: true
