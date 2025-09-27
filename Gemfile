@@ -63,3 +63,11 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "devise", "~> 4.9"
+gem "pg_search", "~> 2.3"
+gem "acts_as_tenant", "~> 1.0"
+gem "mission_control-jobs", "~> 1.1"
+gem "metainspector", "~> 5.16"
+gem "feedjira", "~> 4.0"
+gem "tailwindcss-rails", "~> 4.3"
