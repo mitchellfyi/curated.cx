@@ -1,4 +1,4 @@
-<nav class="bg-white shadow-sm border-b border-gray-200">
+<nav class="bg-white shadow-sm border-b border-gray-200" data-controller="mobile-menu">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-16">
       <!-- Logo/Brand -->
@@ -33,7 +33,7 @@
                 aria-haspopup="true"
               >
                 <span class="sr-only">Open user menu</span>
-                <%= user_avatar(current_user, size: :medium) %>
+                <%= current_user.decorate.avatar_image(size: 40) %>
                 <span class="ml-2 text-gray-700 text-sm font-medium">
                   <%= current_user.email %>
                 </span>
@@ -55,9 +55,13 @@
                   <div class="px-4 py-2 border-b border-gray-100">
                     <p class="text-sm text-gray-900 font-medium"><%= current_user.email %></p>
                     <% if current_user.admin? %>
-                      <p class="text-xs text-blue-600 font-medium">Platform Admin</p>
+                      <p class="text-xs text-blue-600 font-medium">Admin</p>
                     <% end %>
-                    <%= user_role_badges(current_user) %>
+                    <% if Current.tenant %>
+                      <% current_user.decorate.role_badges_for_tenant(Current.tenant).each do |badge| %>
+                        <%= badge %>
+                      <% end %>
+                    <% end %>
                   </div>
 
                   <!-- Menu Items -->
@@ -94,7 +98,6 @@
           class="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
           data-action="click->mobile-menu#toggle"
           aria-expanded="false"
-          data-controller="mobile-menu"
         >
           <span class="sr-only">Open main menu</span>
           <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -112,11 +115,11 @@
         <% if user_signed_in? %>
           <div class="border-t border-gray-200 pt-4 pb-3">
             <div class="flex items-center px-3">
-              <%= user_avatar(current_user, size: :large) %>
+              <%= current_user.decorate.avatar_image(size: 48) %>
               <div class="ml-3">
                 <div class="text-base font-medium text-gray-800"><%= current_user.email %></div>
                 <% if current_user.admin? %>
-                  <div class="text-sm text-blue-600 font-medium">Platform Admin</div>
+                  <div class="text-sm text-blue-600 font-medium">Admin</div>
                 <% end %>
               </div>
             </div>

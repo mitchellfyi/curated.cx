@@ -83,17 +83,17 @@ RSpec.describe UserDecorator, type: :decorator do
   end
 
   describe '#platform_admin_badge' do
-    context 'when user is platform admin' do
+    context 'when user is admin' do
       let(:user) { create(:user, admin: true) }
 
-      it 'returns platform admin badge' do
+      it 'returns admin badge' do
         badge = decorated_user.platform_admin_badge
         expect(badge).to include('Platform Admin')
         expect(badge).to include('badge-danger')
       end
     end
 
-    context 'when user is not platform admin' do
+    context 'when user is not admin' do
       it 'returns nil' do
         badge = decorated_user.platform_admin_badge
         expect(badge).to be_nil
@@ -102,10 +102,10 @@ RSpec.describe UserDecorator, type: :decorator do
   end
 
   describe '#account_status' do
-    context 'when user is platform admin' do
+    context 'when user is admin' do
       let(:user) { create(:user, admin: true) }
 
-      it 'returns platform admin status' do
+      it 'returns admin status' do
         status = decorated_user.account_status
         expect(status).to include('Platform Admin')
         expect(status).to include('text-red-600')

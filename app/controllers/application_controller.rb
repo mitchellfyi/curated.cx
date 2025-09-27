@@ -16,16 +16,12 @@ class ApplicationController < ActionController::Base
 
   # Pundit authorization callbacks
   after_action :verify_authorized, unless: -> { devise_controller? }
-  after_action :verify_policy_scoped, only: :index, unless: -> { devise_controller? || !has_index_action? }
+  after_action :verify_policy_scoped, if: -> { !devise_controller? && action_name == 'index' }
 
   # Handle Pundit authorization errors
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   private
-
-  def has_index_action?
-    self.class.action_methods.include?('index')
-  end
 
   def setup_draper_context
     # Make current_user available in decorators

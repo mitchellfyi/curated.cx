@@ -122,9 +122,14 @@ RSpec.describe TenantDecorator, type: :decorator do
       expect(decorated_tenant.absolute_url('admin')).to eq('https://test.example.com/admin')
     end
 
-    it 'returns URL with port in development' do
+    it 'returns localhost subdomain URL in development' do
       allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('development'))
-      expect(decorated_tenant.absolute_url).to eq('http://test.example.com:3000')
+      expect(decorated_tenant.absolute_url).to eq('http://test.localhost:3000')
+    end
+
+    it 'returns localhost subdomain URL with path in development' do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('development'))
+      expect(decorated_tenant.absolute_url('/admin')).to eq('http://test.localhost:3000/admin')
     end
   end
 
@@ -132,6 +137,11 @@ RSpec.describe TenantDecorator, type: :decorator do
     it 'returns admin URL' do
       allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
       expect(decorated_tenant.admin_dashboard_url).to eq('https://test.example.com/admin')
+    end
+
+    it 'returns localhost admin URL in development' do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('development'))
+      expect(decorated_tenant.admin_dashboard_url).to eq('http://test.localhost:3000/admin')
     end
   end
 
@@ -171,6 +181,11 @@ RSpec.describe TenantDecorator, type: :decorator do
         allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
         expect(decorated_tenant.social_image_url).to eq('https://test.example.com/og-image.png')
       end
+
+      it 'returns localhost og-image URL in development' do
+        allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('development'))
+        expect(decorated_tenant.social_image_url).to eq('http://test.localhost:3000/og-image.png')
+      end
     end
   end
 
@@ -208,15 +223,15 @@ RSpec.describe TenantDecorator, type: :decorator do
     end
   end
 
-  describe '#tenant_aria_label' do
-    it 'returns proper aria label' do
-      expect(decorated_tenant.tenant_aria_label).to eq('Tenant: Test Tenant')
-    end
-  end
-
   describe '#logo_alt_text' do
     it 'returns proper alt text' do
       expect(decorated_tenant.logo_alt_text).to eq('Test Tenant logo')
+    end
+  end
+
+  describe '#tenant_aria_label' do
+    it 'returns proper aria label' do
+      expect(decorated_tenant.tenant_aria_label).to eq('Tenant: Test Tenant')
     end
   end
 
@@ -263,7 +278,7 @@ RSpec.describe TenantDecorator, type: :decorator do
   describe '#curated_main_url' do
     it 'returns development URL in development' do
       allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('development'))
-      expect(decorated_tenant.curated_main_url).to eq('http://curated.cx:3000')
+      expect(decorated_tenant.curated_main_url).to eq('http://localhost:3000')
     end
 
     it 'returns production URL in production' do
@@ -272,21 +287,19 @@ RSpec.describe TenantDecorator, type: :decorator do
     end
   end
 
-  describe '#powered_by_html' do
+  describe '#powered_by_partial' do
     context 'for root tenant' do
       before { tenant.update!(slug: 'root') }
 
       it 'returns nil' do
-        expect(decorated_tenant.powered_by_html).to be_nil
+        expect(decorated_tenant.powered_by_partial).to be_nil
       end
     end
 
     context 'for non-root tenant' do
-      it 'returns powered by HTML' do
-        html = decorated_tenant.powered_by_html
-        expect(html).to include('Powered by')
-        expect(html).to include('Curated.cx')
-        expect(html).to include('powered-by')
+      it 'returns powered by partial path' do
+        partial = decorated_tenant.powered_by_partial
+        expect(partial).to eq('shared/powered_by_footer')
       end
     end
   end
@@ -302,37 +315,35 @@ RSpec.describe TenantDecorator, type: :decorator do
       expect(decorated_tenant.absolute_url('/admin')).to eq('https://test.example.com/admin')
     end
 
-    it 'returns URL with port in development' do
+    it 'returns localhost subdomain URL in development' do
       allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('development'))
-      expect(decorated_tenant.absolute_url).to eq('http://test.example.com:3000')
+      expect(decorated_tenant.absolute_url).to eq('http://test.localhost:3000')
     end
   end
 
-  describe '#tenant_directory_html' do
+  describe '#tenant_directory_partial' do
     context 'for root tenant' do
       before { tenant.update!(slug: 'root') }
 
       context 'with enabled tenants' do
         let!(:other_tenant) { create(:tenant, title: 'Other Tenant', status: 'enabled') }
 
-        it 'returns tenant directory HTML' do
-          html = decorated_tenant.tenant_directory_html
-          expect(html).to include('Available Platforms')
-          expect(html).to include('Other Tenant')
-          expect(html).to include('tenant-directory')
+        it 'returns tenant directory partial path' do
+          partial = decorated_tenant.tenant_directory_partial
+          expect(partial).to eq('tenants/directory')
         end
       end
 
       context 'with no other enabled tenants' do
         it 'returns nil' do
-          expect(decorated_tenant.tenant_directory_html).to be_nil
+          expect(decorated_tenant.tenant_directory_partial).to be_nil
         end
       end
     end
 
     context 'for non-root tenant' do
       it 'returns nil' do
-        expect(decorated_tenant.tenant_directory_html).to be_nil
+        expect(decorated_tenant.tenant_directory_partial).to be_nil
       end
     end
   end

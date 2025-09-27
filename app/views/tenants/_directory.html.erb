@@ -1,0 +1,34 @@
+<div class="bg-white rounded-lg shadow p-6 mb-8">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-6">Available Platforms</h2>
+  
+  <% if tenant.enabled_tenants_for_directory.any? %>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% tenant.enabled_tenants_for_directory.each do |tenant_item| %>
+        <% decorated_tenant = tenant_item.decorate %>
+        <div class="tenant-card bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+          <div class="flex items-center space-x-3 mb-3">
+            <%= decorated_tenant.logo_image(size: 40) %>
+            <div>
+              <h3 class="font-semibold text-gray-900"><%= decorated_tenant.display_name %></h3>
+              <p class="text-sm text-gray-500"><%= decorated_tenant.hostname %></p>
+            </div>
+          </div>
+          
+          <p class="text-gray-600 text-sm mb-4"><%= decorated_tenant.display_description %></p>
+          
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-gray-500"><%= decorated_tenant.enabled_categories_list %></div>
+            <%= link_to decorated_tenant.absolute_url, 
+                        class: "visit-link inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded text-blue-700 hover:bg-blue-50 transition-colors",
+                        target: "_blank", 
+                        rel: "noopener" do %>
+              Visit →
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-gray-500 text-center py-8">No other platforms are currently available.</p>
+  <% end %>
+</div>

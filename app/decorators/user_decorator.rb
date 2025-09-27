@@ -45,7 +45,7 @@ class UserDecorator < ApplicationDecorator
   def platform_admin_badge
     return nil unless admin?
     
-    h.content_tag :span, "Platform Admin",
+    h.content_tag :span, "Admin",
       class: "badge badge-danger",
       title: "Has access to all tenants and system administration"
   end
@@ -53,7 +53,7 @@ class UserDecorator < ApplicationDecorator
   # Status and metadata
   def account_status
     if admin?
-      h.content_tag :span, "Platform Admin", class: "text-red-600 font-semibold"
+      h.content_tag :span, "Admin", class: "text-red-600 font-semibold"
     else
       h.content_tag :span, "User", class: "text-gray-600"
     end

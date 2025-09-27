@@ -138,9 +138,12 @@ The application uses the **Decorator pattern** via Draper to handle presentation
 - **TenantDecorator**: Logo management, theme variables, social media tags
 - **ApplicationDecorator**: Base decorator with common functionality
 
-### Helpers vs Decorators
-- **Helpers**: General view utilities (accessibility, i18n, forms)
-- **Decorators**: Model-specific presentation logic (avatars, badges, formatting)
+### Tenant Branding System
+- **Root tenant** (`curated.cx`): Shows directory of all enabled platforms  
+- **Other tenants**: Display sticky "Powered by Curated.cx" footer at bottom of page
+- **Development URLs**: Root tenant uses `http://localhost:3000`, child tenants use `http://slug.localhost:3000`
+- **Production URLs**: Uses `https://hostname` for live environments
+- **Responsive design**: Directory grid adapts to different screen sizes
 
 
 # Database Migrations

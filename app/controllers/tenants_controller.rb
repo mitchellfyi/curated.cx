@@ -2,7 +2,7 @@
 
 class TenantsController < ApplicationController
   def index
-    # Only platform admins can list all tenants
+    # Only admins can list all tenants
     authorize Tenant
     @tenants = policy_scope(Tenant)
   end

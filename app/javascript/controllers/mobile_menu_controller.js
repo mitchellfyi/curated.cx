@@ -14,12 +14,14 @@ export default class extends Controller {
 
   toggle(event) {
     event.stopPropagation()
-    this.menuTarget.classList.toggle("hidden")
-    
-    // Update aria-expanded
-    const button = event.currentTarget
-    const isExpanded = !this.menuTarget.classList.contains("hidden")
-    button.setAttribute("aria-expanded", isExpanded)
+    if (this.hasMenuTarget) {
+      this.menuTarget.classList.toggle("hidden")
+      
+      // Update aria-expanded
+      const button = event.currentTarget
+      const isExpanded = !this.menuTarget.classList.contains("hidden")
+      button.setAttribute("aria-expanded", isExpanded)
+    }
   }
 
   closeOnClickOutside(event) {
@@ -29,7 +31,9 @@ export default class extends Controller {
   }
 
   close() {
-    this.menuTarget.classList.add("hidden")
+    if (this.hasMenuTarget) {
+      this.menuTarget.classList.add("hidden")
+    }
     const button = this.element.querySelector('[aria-expanded]')
     if (button) {
       button.setAttribute("aria-expanded", "false")

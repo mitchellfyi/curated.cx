@@ -54,14 +54,37 @@ class TenantDecorator < ApplicationDecorator
     }
   end
   
-  # URLs and navigation
-  def canonical_url(path = nil)
-    base_url = "https://#{hostname}"
+  # Branding and URLs
+  def powered_by_curated?
+    !root_tenant?
+  end
+  
+  def root_tenant?
+    slug == 'root' || hostname == 'curated.cx'
+  end
+  
+  def curated_main_url
+    Rails.env.development? ? 'http://localhost:3000' : 'https://curated.cx'
+  end
+  
+  def powered_by_partial
+    return nil unless powered_by_curated?
+    'shared/powered_by_footer'
+  end
+  
+  # Environment-aware URL generation
+  def absolute_url(path = nil)
+    if Rails.env.development?
+      # In development, use localhost subdomain pattern for proper tenant resolution
+      base_url = "http://#{slug}.localhost:3000"
+    else
+      base_url = "https://#{hostname}"
+    end
     path.present? ? "#{base_url}/#{path.to_s.gsub(/^\//, '')}" : base_url
   end
   
   def admin_dashboard_url
-    canonical_url('admin')
+    absolute_url('admin')
   end
   
   # Social media and SEO
@@ -74,7 +97,7 @@ class TenantDecorator < ApplicationDecorator
   end
   
   def social_image_url
-    logo_url.presence || canonical_url('og-image.png')
+    logo_url.presence || absolute_url('og-image.png')
   end
   
   def twitter_handle
@@ -107,24 +130,20 @@ class TenantDecorator < ApplicationDecorator
     "#{display_name} logo"
   end
   
-  # Statistics and metrics (placeholder for future implementation)
-  def user_count
-    # Would be implemented with actual user counting logic
-    0
+  # Root tenant specific methods
+  def tenant_directory_partial
+    return nil unless root_tenant?
+    
+    enabled_tenants = Tenant.where(status: 'enabled').where.not(slug: 'root')
+    return nil if enabled_tenants.empty?
+    
+    'tenants/directory'
   end
   
-  def content_count
-    # Would be implemented with actual content counting logic  
-    0
+  def enabled_tenants_for_directory
+    return [] unless root_tenant?
+    Tenant.where(status: 'enabled').where.not(slug: 'root')
   end
-  
-  def last_activity
-    updated_at
-  end
-  
-  protected
-
-  # Methods for internal decorator use
   
   private
   

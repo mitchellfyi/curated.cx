@@ -92,12 +92,17 @@
               Multi-tenant platform powered by Rails 8
             </p>
             <div class="flex space-x-4">
-              <% if Current.tenant.root? %>
+              <% if tenant.root_tenant? %>
                 <span class="text-sm text-gray-500">Root Tenant</span>
               <% end %>
             </div>
           </div>
         </div>
+
+        <!-- Root tenant: Show tenant directory -->
+        <% if tenant.tenant_directory_partial %>
+          <%= render tenant.tenant_directory_partial, tenant: tenant %>
+        <% end %>
       </div>
     <% else %>
       <div class="text-center">

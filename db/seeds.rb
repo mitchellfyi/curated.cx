@@ -74,7 +74,7 @@ puts "Tenant seeding complete!"
 # Seed users and roles
 puts "Seeding users and roles..."
 
-# Create developer user with platform admin access
+# Create developer user with admin access
 developer_email = Rails.application.credentials.dig(:developer, :email) || "developer@curated.cx"
 developer_password = Rails.application.credentials.dig(:developer, :password) || "password123"
 

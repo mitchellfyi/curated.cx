@@ -12,17 +12,17 @@ class TenantPolicy < ApplicationPolicy
   end
 
   def create?
-    # Only platform admins can create tenants
+    # Only admins can create tenants
     user&.admin?
   end
 
   def update?
-    # Only platform admins can update tenants
+    # Only admins can update tenants
     user&.admin?
   end
 
   def destroy?
-    # Only platform admins can destroy tenants
+    # Only admins can destroy tenants
     user&.admin?
   end
 

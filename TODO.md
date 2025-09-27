@@ -418,7 +418,7 @@ end
 
 **Context:** We need visibility and controls for background work.
 **Goal:** Expose a jobs dashboard and sane queue settings.
-**Inputs:** Existing jobs; platform admin guard.
+**Inputs:** Existing jobs; admin guard.
 **Tasks:** Configure Solid Queue queues and concurrency; mount Mission Control Jobs behind auth; add recurring schedules.
 **Deliverables:** Initialisers, routes, access control tests.
 **Acceptance:** Root admin can see running/failed jobs and retry; non-admins blocked.
