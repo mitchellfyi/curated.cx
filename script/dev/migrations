@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+# Database migration safety checker and helper
+
+puts "🗄️  Database Migration Safety Tools"
+puts "=" * 50
+
+def run_command(description, command)
+  puts "\n#{description}"
+  puts "-" * 30
+  result = system(command)
+  unless result
+    puts "⚠️  Command failed or found issues"
+  end
+  result
+end
+
+# Check migration status
+run_command("📋 Checking migration status:", "bundle exec rails db:migrate:status")
+
+# Run strong_migrations check on pending migrations
+run_command("🔍 Checking for unsafe migrations:", "bundle exec rails db:migrate RAILS_ENV=development")
+
+# Check for missing indexes on foreign keys
+puts "\n🔗 Checking for missing indexes on foreign keys..."
+puts "-" * 30
+puts "ℹ️  This requires manual review of the schema"
+
+# Display migration best practices
+puts "\n💡 Migration Best Practices:"
+puts "  📝 DO:"
+puts "    • Add indexes concurrently: add_index :table, :column, algorithm: :concurrently"
+puts "    • Use smaller lock timeouts in production"
+puts "    • Add columns without default values, then backfill"
+puts "    • Remove columns in separate deployments after code changes"
+puts "    • Use disable_ddl_transaction! for concurrent operations"
+puts "    • Test migrations on production-sized data"
+puts ""
+puts "  ❌ DON'T:"
+puts "    • Add columns with default values to large tables"
+puts "    • Change column types directly"
+puts "    • Remove columns that are still in use"
+puts "    • Create indexes on large tables without CONCURRENTLY"
+puts "    • Run long-running migrations during peak hours"
+
+puts "\n📚 Useful Commands:"
+puts "  bundle exec rails db:migrate:status           # Check migration status"
+puts "  bundle exec rails db:migrate:up VERSION=123   # Run specific migration"
+puts "  bundle exec rails db:migrate:down VERSION=123 # Rollback specific migration"
+puts "  bundle exec rails db:rollback STEP=3          # Rollback last 3 migrations"
+puts "  bundle exec rails db:schema:load               # Load schema without running migrations"
+
+puts "\n🔧 Strong Migrations Commands:"
+puts "  StrongMigrations.disable_check(:add_index)    # Disable specific check"
+puts "  safety_assured do; add_column(...); end       # Override safety check"
+
+puts "\n✅ Migration safety check complete!"

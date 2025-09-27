@@ -50,6 +50,7 @@ This project includes comprehensive development tools for code quality, security
 - **Listen** - File system change monitoring
 - **Annotaterb** - Annotate models with schema information (Rails 8 compatible)
 - **Meta Tags** - SEO and social media meta tags management
+- **Strong Migrations** - Safe database migration practices
 
 ### Internationalization & Accessibility
 - **i18n-tasks** - Manage missing and unused translations
@@ -75,6 +76,7 @@ bundle exec rspec spec/system/accessibility_spec.rb  # Run accessibility tests
 ./script/dev/quality                 # Run all quality checks
 ./script/dev/i18n                    # Manage i18n translations
 ./script/dev/accessibility           # Run accessibility tests and guidance
+./script/dev/migrations              # Database migration safety tools
 ```
 
 ## Internationalization & Accessibility
@@ -106,6 +108,24 @@ The application is designed with internationalization and accessibility in mind:
 - Locale detection and fallbacks configured in `config/application.rb`
 - Translation files in `config/locales/`
 - Accessibility helpers in `app/helpers/application_helper.rb`
+
+## Database Migrations
+
+The application uses **Strong Migrations** to prevent dangerous database migrations that could cause downtime in production.
+
+### Safe Migration Practices
+- Add columns without defaults, then backfill data
+- Create indexes concurrently on large tables
+- Use multi-step approach for column renames
+- Test migrations on production-sized datasets
+
+### Migration Tools
+```bash
+./script/dev/migrations              # Migration safety checker and helper
+bundle exec rails db:migrate:status  # Check migration status
+```
+
+See `doc/SAFE_MIGRATIONS.md` for detailed examples and best practices.
 
 ## Database
 
