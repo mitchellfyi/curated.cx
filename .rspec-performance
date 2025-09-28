@@ -1,4 +1,4 @@
 --require rails_helper
 --format progress
 --color
---tag ~performance:true
+--tag performance:true

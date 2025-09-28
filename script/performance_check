@@ -1,0 +1,179 @@
+#!/bin/bash
+
+# Performance Check Script for Curated.cx
+# Runs RSpec performance tests and additional performance checks
+
+echo "⚡ Running Performance Checks..."
+echo "================================="
+
+# Create results directory
+mkdir -p tmp/performance-results
+
+echo
+echo "1️⃣ RSpec Performance Tests"
+echo "---------------------------"
+echo "Running performance tests with RSpec..."
+if bundle exec rspec --options .rspec-performance spec/performance/ --format progress --format json --out tmp/performance-results/rspec-performance-results.json; then
+    echo "✅ RSpec Performance Tests: PASSED"
+else
+    echo "❌ RSpec Performance Tests: Some failures"
+    echo "Review tmp/performance-results/rspec-performance-results.json for details"
+fi
+
+echo
+echo "2️⃣ Load Testing (Apache Bench)"
+echo "-------------------------------"
+# Check if Rails server is running for load tests
+if curl -s http://localhost:3000 > /dev/null 2>&1; then
+    if command -v ab > /dev/null; then
+        echo "Testing homepage..."
+        ab -n 100 -c 10 http://localhost:3000/ > tmp/performance-results/load-test-homepage.txt 2>&1
+        
+        echo "Testing tenants page..."
+        ab -n 50 -c 5 http://localhost:3000/tenants > tmp/performance-results/load-test-tenants.txt 2>&1
+        
+        echo "Testing listings page..."
+        ab -n 50 -c 5 http://localhost:3000/listings > tmp/performance-results/load-test-listings.txt 2>&1
+        
+        echo "✅ Load testing completed"
+    else
+        echo "⚠️  Apache Bench not installed. Install with: sudo apt-get install apache2-utils"
+    fi
+else
+    echo "⚠️  Rails server not running on port 3000"
+    echo "Start server with: bundle exec rails server"
+    echo "Skipping load tests..."
+fi
+
+echo
+echo "3️⃣ Database Performance"
+echo "------------------------"
+bundle exec rails runner "
+require 'benchmark'
+
+puts 'Running database performance tests...'
+results = {}
+
+# Test tenant queries
+results[:tenant_queries] = Benchmark.measure do
+  100.times { Tenant.first }
+end
+
+# Test listing queries
+results[:listing_queries] = Benchmark.measure do
+  100.times { Listing.limit(10).to_a }
+end
+
+# Test complex queries
+results[:complex_queries] = Benchmark.measure do
+  10.times { Listing.joins(:category).where(categories: { key: 'news' }).limit(20).to_a }
+end
+
+puts 'Database Performance Results:'
+results.each { |k, v| puts \"#{k}: #{v.real}s\" }
+
+# Save results to file
+File.open('tmp/performance-results/database-performance-results.txt', 'w') do |f|
+  f.puts 'Database Performance Results:'
+  results.each { |k, v| f.puts \"#{k}: #{v.real}s\" }
+end
+"
+
+echo
+echo "4️⃣ Memory Usage Analysis"
+echo "-------------------------"
+if gem list memory_profiler > /dev/null 2>&1; then
+    bundle exec rails runner "
+    require 'memory_profiler'
+    
+    puts 'Running memory profiling...'
+    
+    # Profile a typical request
+    report = MemoryProfiler.report do
+      Tenant.first
+      Listing.limit(10).to_a
+      Category.all.to_a
+    end
+    
+    puts \"Total allocated: #{report.total_allocated_memsize} bytes\"
+    puts \"Total retained: #{report.total_retained_memsize} bytes\"
+    
+    # Save detailed report
+    File.open('tmp/performance-results/memory-profiling-results.txt', 'w') do |f|
+      f.puts 'Memory Profiling Results:'
+      f.puts \"Total allocated: #{report.total_allocated_memsize} bytes\"
+      f.puts \"Total retained: #{report.total_retained_memsize} bytes\"
+      f.puts \"Total objects: #{report.total_allocated}\"
+    end
+    "
+    echo "✅ Memory profiling completed"
+else
+    echo "⚠️  memory_profiler gem not installed. Install with: gem install memory_profiler"
+fi
+
+echo
+echo "5️⃣ Lighthouse Performance Audit"
+echo "--------------------------------"
+if command -v lhci > /dev/null; then
+    echo "Running Lighthouse CI..."
+    lhci autorun --collect.url=http://localhost:3000 --collect.settings.chromeFlags="--no-sandbox" > tmp/performance-results/lighthouse-results.txt 2>&1
+    echo "✅ Lighthouse audit completed"
+else
+    echo "⚠️  Lighthouse CI not installed. Install with: npm install -g @lhci/cli"
+fi
+
+echo
+echo "6️⃣ N+1 Query Detection"
+echo "-----------------------"
+echo "Running N+1 detection with Bullet..."
+bundle exec rails runner "
+# Enable Bullet for N+1 detection
+if defined?(Bullet)
+  Bullet.enable = true
+  Bullet.bullet_logger = true
+  Bullet.console = true
+  Bullet.rails_logger = true
+  
+  # Test common N+1 scenarios
+  puts 'Testing for N+1 queries...'
+  
+  # This should trigger N+1 detection if present
+  listings = Listing.includes(:category).limit(10)
+  listings.each do |listing|
+    puts listing.category.name
+  end
+  
+  puts 'N+1 detection completed'
+else
+  puts 'Bullet gem not available for N+1 detection'
+end
+" > tmp/performance-results/n-plus-one-results.txt 2>&1
+
+echo
+echo "📊 PERFORMANCE SUMMARY"
+echo "======================"
+echo "Results saved to: tmp/performance-results/"
+
+# Display key metrics if available
+if [ -f "tmp/performance-results/rspec-performance-results.json" ]; then
+    echo
+    echo "🧪 RSpec Performance Tests:"
+    echo "  Results saved to tmp/performance-results/rspec-performance-results.json"
+fi
+
+if [ -f "tmp/performance-results/load-test-homepage.txt" ]; then
+    echo
+    echo "🏠 Homepage Performance:"
+    grep "Requests per second" tmp/performance-results/load-test-homepage.txt || echo "  No data available"
+    grep "Time per request" tmp/performance-results/load-test-homepage.txt || echo "  No data available"
+fi
+
+if [ -f "tmp/performance-results/database-performance-results.txt" ]; then
+    echo
+    echo "🗄️  Database Performance:"
+    cat tmp/performance-results/database-performance-results.txt
+fi
+
+echo
+echo "✅ Performance checks completed!"
+echo "Review results in tmp/performance-results/ for detailed analysis"
