@@ -1,0 +1,106 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Listings</h1>
+        <p class="mt-2 text-gray-600">Manage content listings for <%= Current.tenant&.title %></p>
+      </div>
+      <%= link_to new_admin_listing_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+        <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        New Listing
+      <% end %>
+    </div>
+
+    <!-- Category Filter -->
+    <% if @categories.any? %>
+      <div class="mb-6">
+        <div class="flex items-center space-x-2">
+          <%= link_to admin_listings_path, 
+              class: "inline-flex items-center px-3 py-2 text-sm font-medium rounded-md #{params[:category_id].blank? ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border border-gray-300'}" do %>
+            All Categories
+          <% end %>
+          <% @categories.each do |category| %>
+            <%= link_to admin_listings_path(category_id: category.id), 
+                class: "inline-flex items-center px-3 py-2 text-sm font-medium rounded-md #{params[:category_id] == category.id.to_s ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border border-gray-300'}" do %>
+              <%= category.name %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @listings.any? %>
+      <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200">
+          <% @listings.each do |listing| %>
+            <li>
+              <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center mb-2">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <%= listing.category.name %>
+                      </span>
+                      <% if listing.published_at %>
+                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Published
+                        </span>
+                      <% else %>
+                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Draft
+                        </span>
+                      <% end %>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">
+                      <%= link_to listing.title, admin_listing_path(listing), class: "hover:text-blue-600" %>
+                    </h3>
+                    <% if listing.description.present? %>
+                      <p class="mt-1 text-sm text-gray-600 line-clamp-2">
+                        <%= listing.description %>
+                      </p>
+                    <% end %>
+                    <div class="mt-2 flex items-center text-sm text-gray-500">
+                      <span class="font-medium"><%= listing.domain %></span>
+                      <span class="mx-2">•</span>
+                      <time datetime="<%= listing.created_at.iso8601 %>">
+                        <%= time_ago_in_words(listing.created_at) %> ago
+                      </time>
+                    </div>
+                  </div>
+                  <div class="flex-shrink-0 flex items-center space-x-2">
+                    <%= link_to "Edit", edit_admin_listing_path(listing), class: "text-blue-600 hover:text-blue-500 font-medium text-sm" %>
+                    <%= link_to "View", admin_listing_path(listing), class: "text-gray-600 hover:text-gray-500 font-medium text-sm" %>
+                  </div>
+                </div>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3 class="mt-4 text-sm font-medium text-gray-900">No listings</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          <% if params[:category_id].present? %>
+            No listings found in this category.
+          <% else %>
+            Get started by creating a new listing.
+          <% end %>
+        </p>
+        <div class="mt-6">
+          <%= link_to new_admin_listing_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+            <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            New Listing
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
