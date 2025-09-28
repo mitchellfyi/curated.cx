@@ -9,6 +9,21 @@ class TenantsController < ApplicationController
 
   def show
     authorize Current.tenant
-    # Renders app/views/tenants/show.html.erb
+    
+    # Load recent listings for the feed
+    @listings = policy_scope(Listing.includes(:category))
+                    .published
+                    .recent
+                    .limit(20)
+    
+    set_page_meta_tags(
+      title: Current.tenant&.title,
+      description: Current.tenant&.description || t('app.tagline')
+    )
+  end
+
+  def about
+    authorize Current.tenant
+    # Renders app/views/tenants/about.html.erb
   end
 end

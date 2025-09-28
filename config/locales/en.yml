@@ -7,11 +7,42 @@ en:
     logout: Logout
     settings: Settings
     sign_up: Sign up
+    categories: Categories
+    all_categories: All Categories
+    admin: Admin
   
   # Application info
   app:
     name: Curated
     tagline: Curated content for your audience
+  
+  # Categories
+  categories:
+    index:
+      title: Categories
+      description: Browse all categories for %{tenant}
+    show:
+      description: Latest content in %{category} for %{tenant}
+
+  # Listings  
+  listings:
+    index:
+      title: Latest Content
+      description: Browse latest content in %{category} for %{tenant}
+      
+  # Admin
+  admin:
+    dashboard:
+      title: Admin Dashboard
+      description: Manage %{tenant} content and settings
+    categories:
+      created: Category created successfully
+      updated: Category updated successfully
+      deleted: Category deleted successfully
+    listings:
+      created: Listing created successfully
+      updated: Listing updated successfully
+      deleted: Listing deleted successfully
   
   # Accessibility labels
   a11y:

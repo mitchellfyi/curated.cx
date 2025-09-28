@@ -7,3 +7,6 @@ es:
     logout: Logout
     settings: Settings
     sign_up: Sign up
+    categories: Categorías
+    all_categories: Todas las Categorías
+    admin: Administrador

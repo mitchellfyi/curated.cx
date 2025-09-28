@@ -1,0 +1,76 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-8" aria-label="Breadcrumb">
+      <ol class="flex items-center space-x-4">
+        <li>
+          <%= link_to categories_path, class: "text-gray-400 hover:text-gray-500" do %>
+            Categories
+          <% end %>
+        </li>
+        <li class="flex">
+          <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+          </svg>
+          <span class="ml-4 text-sm font-medium text-gray-500"><%= @category.name %></span>
+        </li>
+      </ol>
+    </nav>
+
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900"><%= @category.name %></h1>
+          <p class="mt-2 text-gray-600">
+            <%= pluralize(@listings.length, 'item') %> in this category
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <% if @listings.any? %>
+      <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200">
+          <% @listings.each do |listing| %>
+            <li>
+              <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-lg font-medium text-gray-900 truncate">
+                      <%= link_to listing.title, listing_path(listing), class: "hover:text-blue-600" %>
+                    </p>
+                    <% if listing.description.present? %>
+                      <p class="mt-1 text-sm text-gray-600 line-clamp-2">
+                        <%= listing.description %>
+                      </p>
+                    <% end %>
+                    <div class="mt-2 flex items-center text-sm text-gray-500">
+                      <span><%= listing.domain %></span>
+                      <% if listing.published_at %>
+                        <span class="mx-2">•</span>
+                        <time datetime="<%= listing.published_at.iso8601 %>">
+                          <%= time_ago_in_words(listing.published_at) %> ago
+                        </time>
+                      <% end %>
+                    </div>
+                  </div>
+                  <div class="flex-shrink-0">
+                    <%= link_to "View →", listing_path(listing), class: "text-blue-600 hover:text-blue-500 font-medium" %>
+                  </div>
+                </div>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3 class="mt-4 text-sm font-medium text-gray-900">No content yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Content in this category will appear here.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

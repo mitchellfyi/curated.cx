@@ -26,6 +26,14 @@ class UserDecorator < ApplicationDecorator
   end
 
   # Role-based presentation
+  def admin_badge
+    return nil unless admin?
+    
+    h.content_tag :span, "Admin",
+      class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
+      title: "System administrator with access to all tenants"
+  end
+
   def role_badges_for_tenant(tenant)
     roles = tenant_roles(tenant)
     return [] if roles.empty?
@@ -45,8 +53,8 @@ class UserDecorator < ApplicationDecorator
   def platform_admin_badge
     return nil unless admin?
 
-    h.content_tag :span, "Admin",
-      class: "badge badge-danger",
+    h.content_tag :span, "Platform Admin",
+      class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
       title: "Has access to all tenants and system administration"
   end
 
@@ -88,23 +96,36 @@ class UserDecorator < ApplicationDecorator
       loading: "lazy"
   end
 
+  def avatar_placeholder(size:, name:)
+    initials = name.split.map(&:first).join.upcase[0, 2]
+    
+    h.content_tag :div, initials,
+      class: "inline-flex items-center justify-center rounded-full bg-gray-500 text-white font-medium",
+      style: "width: #{size}px; height: #{size}px; font-size: #{size / 2.5}px; line-height: #{size}px;",
+      title: "#{name}'s avatar",
+      'aria-label': "Avatar placeholder for #{name}"
+  end
+
   def role_badge(role_name, primary: false)
-    css_classes = [ "badge" ]
-    css_classes << (primary ? "badge-primary" : role_badge_class(role_name))
+    css_classes = if primary
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+    else
+      role_badge_class(role_name)
+    end
 
     h.content_tag :span, role_name.humanize,
-      class: css_classes.join(" "),
+      class: css_classes,
       title: role_description(role_name),
       'aria-label': role_aria_label(role_name)
   end
 
   def role_badge_class(role_name)
     case role_name.to_s
-    when "owner" then "badge-success"
-    when "admin" then "badge-warning"
-    when "editor" then "badge-info"
-    when "viewer" then "badge-secondary"
-    else "badge-light"
+    when "owner" then "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+    when "admin" then "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+    when "editor" then "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+    when "viewer" then "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+    else "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
     end
   end
 

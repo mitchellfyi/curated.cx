@@ -71,6 +71,65 @@ end
 
 puts "Tenant seeding complete!"
 
+# Seed categories for each tenant
+puts "Seeding categories..."
+
+category_data = [
+  {
+    key: "news",
+    name: "News",
+    allow_paths: true,
+    shown_fields: {
+      title: true,
+      description: true,
+      image_url: true,
+      site_name: true,
+      published_at: true,
+      ai_summary: false
+    }
+  },
+  {
+    key: "apps",
+    name: "Apps & Tools", 
+    allow_paths: false,
+    shown_fields: {
+      title: true,
+      description: true,
+      image_url: true,
+      site_name: true,
+      ai_summary: true
+    }
+  },
+  {
+    key: "services",
+    name: "Services",
+    allow_paths: false,
+    shown_fields: {
+      title: true,
+      description: true,
+      image_url: true,
+      site_name: true,
+      ai_summary: true
+    }
+  }
+]
+
+Tenant.all.each do |tenant|
+  ActsAsTenant.with_tenant(tenant) do
+    category_data.each do |attrs|
+      # Only create categories enabled in tenant settings
+      if tenant.setting("categories.#{attrs[:key]}.enabled", false)
+        category = Category.find_or_initialize_by(key: attrs[:key])
+        category.assign_attributes(attrs)
+        category.save!
+        puts "  ✓ Created/updated category for #{tenant.title}: #{category.name}"
+      end
+    end
+  end
+end
+
+puts "Category seeding complete!"
+
 # Seed users and roles
 puts "Seeding users and roles..."
 

@@ -6,6 +6,11 @@ class TenantPolicy < ApplicationPolicy
     record.publicly_accessible?
   end
 
+  def about?
+    # Anyone can view tenant about page if the tenant is publicly accessible
+    record.publicly_accessible?
+  end
+
   def index?
     # Only admins can list all tenants
     user&.admin?

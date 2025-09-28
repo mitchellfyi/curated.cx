@@ -20,8 +20,8 @@ RSpec.describe UserDecorator, type: :decorator do
     context 'when user has no avatar_url' do
       it 'returns avatar placeholder' do
         result = decorated_user.avatar_image(size: 40)
-        expect(result).to include('avatar-placeholder')
-        expect(result).to include('John.doe')
+        expect(result).to include('rounded-full')
+        expect(result).to include('J')  # First initial
       end
     end
 
@@ -46,7 +46,7 @@ RSpec.describe UserDecorator, type: :decorator do
         badges = decorated_user.role_badges_for_tenant(tenant)
         expect(badges).to be_an(Array)
         expect(badges.first).to include('Editor')
-        expect(badges.first).to include('badge')
+        expect(badges.first).to include('rounded-full')
       end
     end
 
@@ -70,7 +70,7 @@ RSpec.describe UserDecorator, type: :decorator do
       it 'returns badge for highest role' do
         badge = decorated_user.highest_role_badge_for_tenant(tenant)
         expect(badge).to include('Admin')
-        expect(badge).to include('badge-primary')
+        expect(badge).to include('bg-blue-100')
       end
     end
 
@@ -82,14 +82,33 @@ RSpec.describe UserDecorator, type: :decorator do
     end
   end
 
+  describe '#admin_badge' do
+    context 'when user is admin' do
+      let(:user) { create(:user, admin: true) }
+
+      it 'returns admin badge' do
+        badge = decorated_user.admin_badge
+        expect(badge).to include('Admin')
+        expect(badge).to include('bg-red-100')
+      end
+    end
+
+    context 'when user is not admin' do
+      it 'returns nil' do
+        badge = decorated_user.admin_badge
+        expect(badge).to be_nil
+      end
+    end
+  end
+
   describe '#platform_admin_badge' do
     context 'when user is admin' do
       let(:user) { create(:user, admin: true) }
 
       it 'returns admin badge' do
         badge = decorated_user.platform_admin_badge
-        expect(badge).to include('Admin')
-        expect(badge).to include('badge-danger')
+        expect(badge).to include('Platform Admin')
+        expect(badge).to include('bg-red-100')
       end
     end
 
