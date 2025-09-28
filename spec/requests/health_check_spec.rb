@@ -59,7 +59,7 @@ RSpec.describe "Health Check", type: :request do
         start_time = Time.current
         get "/up"
         end_time = Time.current
-        
+
         expect(end_time - start_time).to be < 1.second
       end
 

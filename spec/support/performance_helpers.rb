@@ -22,7 +22,7 @@ module PerformanceHelpers
     callback = lambda do |*args|
       query_count += 1 unless args.last[:sql].match?(/^(BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)/)
     end
-    
+
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record", &block)
     query_count
   end
@@ -33,7 +33,7 @@ module PerformanceHelpers
     result = block.call
     end_time = Time.current
     execution_time = end_time - start_time
-    
+
     { result: result, execution_time: execution_time }
   end
 
@@ -43,9 +43,9 @@ module PerformanceHelpers
     callback = lambda do |*args|
       queries << args.last[:sql] unless args.last[:sql].match?(/^(BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)/)
     end
-    
+
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record", &block)
-    
+
     # Group queries by table and operation
     grouped_queries = queries.group_by do |sql|
       if sql.match?(/FROM\s+(\w+)/i)
@@ -56,12 +56,12 @@ module PerformanceHelpers
         'unknown'
       end
     end
-    
+
     # Detect potential N+1 patterns
     n_plus_one_issues = grouped_queries.select do |_key, query_list|
       query_list.length > PERFORMANCE_THRESHOLDS[:n_plus_one_threshold]
     end
-    
+
     {
       total_queries: queries.length,
       grouped_queries: grouped_queries,
@@ -74,16 +74,16 @@ module PerformanceHelpers
     result = nil
     query_count = 0
     total_time = 0
-    
+
     callback = lambda do |*args|
       query_count += 1
       total_time += args.last[:duration] unless args.last[:sql].match?(/^(BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)/)
     end
-    
+
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
       result = measure_time(&block)
     end
-    
+
     {
       result: result[:result],
       execution_time: result[:execution_time],
@@ -98,10 +98,10 @@ module PerformanceHelpers
     require 'net/http'
     require 'uri'
     require 'benchmark'
-    
+
     uri = URI(endpoint)
     results = []
-    
+
     Benchmark.measure do
       threads = []
       concurrency.times do
@@ -110,7 +110,7 @@ module PerformanceHelpers
             start_time = Time.current
             response = Net::HTTP.get_response(uri)
             end_time = Time.current
-            
+
             results << {
               response_time: end_time - start_time,
               status_code: response.code.to_i,
@@ -121,7 +121,7 @@ module PerformanceHelpers
       end
       threads.each(&:join)
     end
-    
+
     {
       total_requests: results.length,
       successful_requests: results.count { |r| r[:success] },
@@ -136,7 +136,7 @@ module PerformanceHelpers
   # Performance assertion helpers
   def expect_performance_within_threshold(actual_time, threshold_key)
     threshold = PERFORMANCE_THRESHOLDS[threshold_key]
-    expect(actual_time).to be <= threshold, 
+    expect(actual_time).to be <= threshold,
       "Expected #{threshold_key} to be <= #{threshold}s, but was #{actual_time}s"
   end
 

@@ -65,8 +65,21 @@ group :development, :test do
   gem "rails_best_practices", require: false
   gem "erb_lint", require: false
 
+  # Enhanced quality and automation tools
+  gem "guard", "~> 2.18"
+  gem "guard-rspec", require: false
+  gem "guard-rubocop", require: false
+  gem "guard-brakeman", require: false
+  gem "overcommit", "~> 0.62"  # Advanced git hook management
+  gem "pre-commit", require: false  # Additional pre-commit framework
+  gem "rubycritic", require: false  # Code quality reporting
+  gem "fasterer", require: false    # Performance suggestions
+  gem "reek", require: false        # Code smell detection
+
   # I18n tools
   gem "i18n-tasks", "~> 1.0"
+
+  gem "bundler-audit", "~> 0.9.2"
 end
 
 group :development do

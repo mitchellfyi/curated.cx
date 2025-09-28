@@ -1,56 +1,341 @@
 #!/usr/bin/env ruby
-# Database migration safety checker and helper
+# Enhanced database migration safety checker and analyzer
+# Ensures all migrations are production-safe for multi-tenant Rails app
 
-puts "🗄️  Database Migration Safety Tools"
-puts "=" * 50
+puts "🗄️  Database Migration Safety & Quality Enforcement"
+puts "=" * 60
 
-def run_command(description, command)
-  puts "\n#{description}"
-  puts "-" * 30
+def run_command(description, command, critical: true)
+  puts "\n📋 #{description}"
+  puts "-" * 50
+
   result = system(command)
-  unless result
-    puts "⚠️  Command failed or found issues"
+
+  if result
+    puts "✅ PASS - #{description}"
+  else
+    if critical
+      puts "❌ CRITICAL FAILURE - #{description}"
+      puts "🚫 Fix migration issues before proceeding"
+      exit 1
+    else
+      puts "⚠️  WARNING - #{description}"
+    end
   end
+
   result
 end
 
-# Check migration status
-run_command("📋 Checking migration status:", "bundle exec rails db:migrate:status")
+# 1. Migration Status Check
+run_command(
+  "Migration Status - Pending & Applied",
+  "bundle exec rails db:migrate:status"
+)
 
-# Run strong_migrations check on pending migrations
-run_command("🔍 Checking for unsafe migrations:", "bundle exec rails db:migrate RAILS_ENV=development")
+# 2. Identify Pending Migrations
+puts "\n🔍 Analyzing pending migrations..."
+pending_migrations = `bundle exec rails runner "
+  pending = ActiveRecord::Migration.check_pending!
+  puts 'No pending migrations'
+rescue ActiveRecord::PendingMigrationError => e
+  puts e.message
+" 2>&1`
 
-# Check for missing indexes on foreign keys
-puts "\n🔗 Checking for missing indexes on foreign keys..."
-puts "-" * 30
-puts "ℹ️  This requires manual review of the schema"
+puts pending_migrations
 
-# Display migration best practices
-puts "\n💡 Migration Best Practices:"
-puts "  📝 DO:"
-puts "    • Add indexes concurrently: add_index :table, :column, algorithm: :concurrently"
-puts "    • Use smaller lock timeouts in production"
-puts "    • Add columns without default values, then backfill"
-puts "    • Remove columns in separate deployments after code changes"
-puts "    • Use disable_ddl_transaction! for concurrent operations"
-puts "    • Test migrations on production-sized data"
+# 3. Strong Migrations Safety Check
+puts "\n🛡️  Strong Migrations Safety Analysis..."
+puts "-" * 50
+
+# Check if StrongMigrations is configured
+strong_migrations_config = `bundle exec rails runner "
+  require 'strong_migrations'
+  puts 'StrongMigrations configured'
+
+  # Show current configuration
+  puts \\\"Checks enabled: #{StrongMigrations.checks.join(', ')}\\\"
+  puts \\\"Lock timeout: #{StrongMigrations.lock_timeout}\\\"
+  puts \\\"Statement timeout: #{StrongMigrations.statement_timeout}\\\"
+rescue => e
+  puts \\\"Error: #{e.message}\\\"
+  exit 1
+" 2>&1`
+
+if $?.success?
+  puts "✅ StrongMigrations properly configured"
+  puts strong_migrations_config
+else
+  puts "❌ StrongMigrations configuration error:"
+  puts strong_migrations_config
+  exit 1
+end
+
+# 4. Analyze Recent Migration Files
+puts "\n📄 Analyzing recent migration files..."
+puts "-" * 50
+
+recent_migrations = Dir.glob("db/migrate/*.rb").sort.last(5)
+
+if recent_migrations.any?
+  recent_migrations.each do |migration_file|
+    puts "\n🔍 Analyzing: #{File.basename(migration_file)}"
+
+    content = File.read(migration_file)
+
+    # Check for dangerous patterns
+    dangerous_patterns = {
+      'add_column.*default:' => 'Adding column with default value (can lock table)',
+      'change_column' => 'Changing column type (can cause downtime)',
+      'remove_column' => 'Removing column (ensure code no longer uses it)',
+      'add_index(?!.*concurrently)' => 'Adding index without CONCURRENTLY (can lock table)',
+      'drop_table' => 'Dropping table (ensure no references remain)',
+      'rename_column' => 'Renaming column (deploy in multiple steps)',
+      'rename_table' => 'Renaming table (deploy in multiple steps)'
+    }
+
+    warnings = []
+    dangerous_patterns.each do |pattern, warning|
+      if content.match?(/#{pattern}/i)
+        warnings << warning
+      end
+    end
+
+    if warnings.any?
+      puts "  ⚠️  Potential issues:"
+      warnings.each { |w| puts "    - #{w}" }
+    else
+      puts "  ✅ No obvious safety issues detected"
+    end
+
+    # Check for multi-tenancy compliance
+    if content.match?(/create_table/) && !content.match?(/tenant_id/)
+      puts "  ⚠️  New table may need tenant_id column for multi-tenancy"
+    end
+
+    # Check for proper foreign key constraints
+    if content.match?(/references/) && !content.match?(/foreign_key/)
+      puts "  ⚠️  Consider adding foreign_key: true for referential integrity"
+    end
+  end
+else
+  puts "✅ No recent migrations to analyze"
+end
+
+# 5. Database Schema Validation
+puts "\n🏗️  Database Schema Validation..."
+puts "-" * 50
+
+schema_issues = `bundle exec rails runner "
+  # Check for missing indexes on foreign keys
+  missing_indexes = []
+  inconsistent_constraints = []
+
+  ActiveRecord::Base.connection.tables.each do |table|
+    next if table.start_with?('ar_internal_metadata', 'schema_migrations')
+
+    columns = ActiveRecord::Base.connection.columns(table)
+    indexes = ActiveRecord::Base.connection.indexes(table)
+    foreign_keys = ActiveRecord::Base.connection.foreign_keys(table)
+
+    # Check foreign key columns for indexes
+    fk_columns = columns.select { |c| c.name.end_with?('_id') }
+
+    fk_columns.each do |fk_col|
+      has_index = indexes.any? { |idx| idx.columns.include?(fk_col.name) }
+      unless has_index
+        missing_indexes << \\\"#{table}.#{fk_col.name}\\\"
+      end
+    end
+
+    # Check for tenant_id on tenant-scoped tables
+    if columns.any? { |c| c.name == 'tenant_id' }
+      # Ensure tenant_id is not nullable
+      tenant_col = columns.find { |c| c.name == 'tenant_id' }
+      if tenant_col.null
+        inconsistent_constraints << \\\"#{table}.tenant_id should be NOT NULL\\\"
+      end
+
+      # Ensure tenant_id has proper index
+      tenant_indexed = indexes.any? { |idx| idx.columns.include?('tenant_id') }
+      unless tenant_indexed
+        missing_indexes << \\\"#{table}.tenant_id (multi-tenancy)\\\"
+      end
+    end
+  end
+
+  if missing_indexes.any?
+    puts \\\"Missing indexes on foreign keys:\\\"
+    missing_indexes.each { |idx| puts \\\"  - #{idx}\\\" }
+  end
+
+  if inconsistent_constraints.any?
+    puts \\\"Constraint issues:\\\"
+    inconsistent_constraints.each { |issue| puts \\\"  - #{issue}\\\" }
+  end
+
+  if missing_indexes.empty? && inconsistent_constraints.empty?
+    puts 'All foreign keys properly indexed and constrained'
+  end
+
+  exit(1) if missing_indexes.any? || inconsistent_constraints.any?
+" 2>&1`
+
+if $?.success?
+  puts "✅ Database schema validation passed"
+  puts schema_issues
+else
+  puts "❌ Database schema issues found:"
+  puts schema_issues
+  puts ""
+  puts "💡 Fix these issues by creating appropriate migrations"
+  exit 1
+end
+
+# 6. Multi-tenancy Validation
+puts "\n🏢 Multi-tenancy Schema Validation..."
+puts "-" * 50
+
+tenant_validation = `bundle exec rails runner "
+  # Validate tenant isolation at schema level
+  issues = []
+
+  # Check for models that should have tenant_id but don't
+  model_files = Dir['app/models/**/*.rb']
+
+  models_needing_tenant = []
+
+  model_files.each do |file|
+    model_name = File.basename(file, '.rb').camelize
+    next unless model_name.match?(/^[A-Z]/)
+
+    begin
+      klass = model_name.constantize
+      next unless klass < ActiveRecord::Base
+      next if klass.abstract_class?
+      next if %w[Tenant User].include?(klass.name) # Skip root entities
+
+      # Check if model should be tenant-scoped
+      if klass.column_names.include?('tenant_id')
+        # Verify acts_as_tenant is configured
+        unless klass.respond_to?(:acts_as_tenant_options)
+          models_needing_tenant << klass.name
+        end
+      end
+
+    rescue => e
+      # Skip if model can't be loaded
+      next
+    end
+  end
+
+  if models_needing_tenant.any?
+    puts \\\"Models with tenant_id missing acts_as_tenant:\\\"
+    models_needing_tenant.each { |model| puts \\\"  - #{model}\\\" }
+    exit 1
+  else
+    puts 'All tenant-scoped models properly configured'
+  end
+" 2>&1`
+
+if $?.success?
+  puts "✅ Multi-tenancy validation passed"
+  puts tenant_validation
+else
+  puts "❌ Multi-tenancy issues found:"
+  puts tenant_validation
+  exit 1
+end
+
+# 7. Rollback Safety Check
+puts "\n🔄 Rollback Safety Analysis..."
+puts "-" * 50
+
+recent_migrations.each do |migration_file|
+  content = File.read(migration_file)
+  migration_name = File.basename(migration_file)
+
+  puts "🔍 Checking rollback safety: #{migration_name}"
+
+  has_change_method = content.include?('def change')
+  has_up_down_methods = content.include?('def up') && content.include?('def down')
+
+  if has_change_method
+    # Check if change method operations are reversible
+    irreversible_operations = [
+      'drop_table',
+      'remove_column',
+      'change_column_null.*false',
+      'execute'
+    ]
+
+    irreversible_found = irreversible_operations.any? { |op| content.match?(/#{op}/i) }
+
+    if irreversible_found
+      puts "  ⚠️  Contains potentially irreversible operations - consider up/down methods"
+    else
+      puts "  ✅ Change method appears reversible"
+    end
+  elsif has_up_down_methods
+    puts "  ✅ Has explicit up/down methods for rollback safety"
+  else
+    puts "  ❌ Missing migration methods"
+  end
+end
+
+# 8. Performance Impact Assessment
+puts "\n⚡ Performance Impact Assessment..."
+puts "-" * 50
+
+puts "📊 Database size estimation (for migration timing):"
+size_info = `bundle exec rails runner "
+  begin
+    # Get rough table sizes
+    tables = ActiveRecord::Base.connection.tables
+    puts \\\"Tables in database: #{tables.length}\\\"
+
+    # Check for large tables that might be affected
+    large_table_indicators = %w[listings users tenants]
+
+    large_table_indicators.each do |table|
+      if tables.include?(table)
+        begin
+          count = ActiveRecord::Base.connection.select_value(\\\"SELECT COUNT(*) FROM #{table}\\\")
+          puts \\\"#{table}: ~#{count} rows\\\"
+
+          if count.to_i > 10000
+            puts \\\"  ⚠️  Large table - migrations may take significant time\\\"
+          end
+        rescue => e
+          puts \\\"#{table}: Could not count rows (#{e.message})\\\"
+        end
+      end
+    end
+  rescue => e
+    puts \\\"Error assessing database size: #{e.message}\\\"
+  end
+" 2>&1`
+
+puts size_info
+
+# Summary and Recommendations
+puts "\n" + "=" * 60
+puts "🎉 Migration Safety Analysis Complete!"
 puts ""
-puts "  ❌ DON'T:"
-puts "    • Add columns with default values to large tables"
-puts "    • Change column types directly"
-puts "    • Remove columns that are still in use"
-puts "    • Create indexes on large tables without CONCURRENTLY"
-puts "    • Run long-running migrations during peak hours"
-
-puts "\n📚 Useful Commands:"
-puts "  bundle exec rails db:migrate:status           # Check migration status"
-puts "  bundle exec rails db:migrate:up VERSION=123   # Run specific migration"
-puts "  bundle exec rails db:migrate:down VERSION=123 # Rollback specific migration"
-puts "  bundle exec rails db:rollback STEP=3          # Rollback last 3 migrations"
-puts "  bundle exec rails db:schema:load               # Load schema without running migrations"
-
-puts "\n🔧 Strong Migrations Commands:"
-puts "  StrongMigrations.disable_check(:add_index)    # Disable specific check"
-puts "  safety_assured do; add_column(...); end       # Override safety check"
-
-puts "\n✅ Migration safety check complete!"
+puts "📚 Best Practices Summary:"
+puts "  ✅ Use add_index with algorithm: :concurrently for large tables"
+puts "  ✅ Add columns without defaults, then backfill in separate migration"
+puts "  ✅ Use up/down methods for complex or irreversible operations"
+puts "  ✅ Test migrations on production-sized datasets"
+puts "  ✅ Ensure all tenant-scoped tables have proper tenant_id constraints"
+puts "  ✅ Include foreign_key: true for referential integrity"
+puts ""
+puts "🔧 Quick Commands:"
+puts "  bundle exec rails db:migrate RAILS_ENV=development   # Run pending migrations"
+puts "  bundle exec rails db:rollback STEP=1                # Rollback last migration"
+puts "  bundle exec rails db:migrate:status                 # Check migration status"
+puts ""
+puts "📖 Documentation:"
+puts "  • Strong Migrations: https://github.com/ankane/strong_migrations"
+puts "  • Rails Migration Guide: https://guides.rubyonrails.org/active_record_migrations.html"
+puts ""
+puts "✅ Database migration safety verification complete!"

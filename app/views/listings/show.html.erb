@@ -31,9 +31,9 @@
             <%= @listing.category.name %>
           </span>
         </div>
-        
+
         <h1 class="text-3xl font-bold text-gray-900 mb-4"><%= @listing.title %></h1>
-        
+
         <% if @listing.description.present? %>
           <p class="text-lg text-gray-600 mb-6"><%= @listing.description %></p>
         <% end %>
@@ -53,8 +53,8 @@
             <% end %>
           </div>
 
-          <%= link_to @listing.url_canonical, 
-              target: "_blank", 
+          <%= link_to @listing.url_canonical,
+              target: "_blank",
               rel: "noopener noreferrer",
               class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
             <svg class="mr-2 -ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +76,7 @@
       <% if @listing.body_html.present? %>
         <div class="px-6 py-6">
           <div class="prose max-w-none">
-            <%= raw @listing.body_html %>
+            <%= sanitize(@listing.body_html, tags: %w[p br strong em ul ol li h1 h2 h3 h4 h5 h6 blockquote a], attributes: %w[href]) %>
           </div>
         </div>
       <% elsif @listing.body_text.present? %>

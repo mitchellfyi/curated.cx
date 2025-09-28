@@ -44,3 +44,6 @@
 /coverage/
 /spec/examples.txt
 .brakeman.ignore
+
+# Quality check results
+*-results.json

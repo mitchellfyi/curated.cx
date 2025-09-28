@@ -1,0 +1,233 @@
+#!/usr/bin/env ruby
+# Migration safety checker for individual migration files
+# Usage: ./script/dev/migration-check <migration_file>
+
+migration_file = ARGV[0]
+
+unless migration_file && File.exist?(migration_file)
+  puts "❌ Usage: #{$0} <migration_file>"
+  exit 1
+end
+
+puts "🗄️  Migration Safety Check: #{File.basename(migration_file)}"
+puts "=" * 60
+
+content = File.read(migration_file)
+safety_issues = []
+warnings = []
+suggestions = []
+
+# Check for dangerous patterns
+dangerous_patterns = {
+  'add_column.*default:' => {
+    message: 'Adding column with default value can lock table',
+    severity: :error,
+    suggestion: 'Add column without default, then backfill in separate migration'
+  },
+  'change_column(?!\s+null)' => {
+    message: 'Changing column type can cause downtime',
+    severity: :error,
+    suggestion: 'Use multi-step approach: add new column, migrate data, drop old'
+  },
+  'remove_column' => {
+    message: 'Removing column (ensure code no longer uses it)',
+    severity: :warning,
+    suggestion: 'Deploy code changes first, then remove column in separate deployment'
+  },
+  'add_index(?!.*concurrently)' => {
+    message: 'Adding index without CONCURRENTLY can lock table',
+    severity: :error,
+    suggestion: 'Add algorithm: :concurrently and disable_ddl_transaction!'
+  },
+  'drop_table' => {
+    message: 'Dropping table (ensure no references remain)',
+    severity: :warning,
+    suggestion: 'Verify no code references this table'
+  },
+  'rename_column' => {
+    message: 'Renaming column (deploy in multiple steps)',
+    severity: :warning,
+    suggestion: 'Add new column, dual-write, migrate reads, drop old column'
+  },
+  'rename_table' => {
+    message: 'Renaming table (deploy in multiple steps)',
+    severity: :error,
+    suggestion: 'Create new table, migrate data, update code, drop old table'
+  },
+  'execute.*DROP' => {
+    message: 'Raw SQL DROP statement detected',
+    severity: :error,
+    suggestion: 'Use Rails migration methods when possible'
+  },
+  'execute.*ALTER' => {
+    message: 'Raw SQL ALTER statement detected',
+    severity: :warning,
+    suggestion: 'Consider using Rails migration methods for better rollback support'
+  }
+}
+
+# Analyze migration content
+content.lines.each_with_index do |line, line_num|
+  dangerous_patterns.each do |pattern, info|
+    if line.match?(/#{pattern}/i)
+      issue = {
+        line: line_num + 1,
+        content: line.strip,
+        message: info[:message],
+        severity: info[:severity],
+        suggestion: info[:suggestion]
+      }
+
+      if info[:severity] == :error
+        safety_issues << issue
+      else
+        warnings << issue
+      end
+    end
+  end
+end
+
+# Multi-tenancy specific checks
+unless content.match?(/tenant.*references|references.*tenant/i)
+  if content.match?(/create_table/i)
+    warnings << {
+      line: 'N/A',
+      content: 'create_table',
+      message: 'New table may need tenant_id for multi-tenancy',
+      severity: :warning,
+      suggestion: 't.references :tenant, null: false, foreign_key: true, index: true'
+    }
+  end
+end
+
+# Check for proper foreign key constraints
+if content.match?(/references/) && !content.match?(/foreign_key/)
+  warnings << {
+    line: 'N/A',
+    content: 'references without foreign_key',
+    message: 'Consider adding foreign_key: true for referential integrity',
+    severity: :warning,
+    suggestion: 'Add foreign_key: true to references'
+  }
+end
+
+# Check for rollback safety
+has_change_method = content.include?('def change')
+has_up_down_methods = content.include?('def up') && content.include?('def down')
+
+unless has_change_method || has_up_down_methods
+  safety_issues << {
+    line: 'N/A',
+    content: 'migration structure',
+    message: 'Missing migration methods (change, or up/down)',
+    severity: :error,
+    suggestion: 'Add proper migration methods'
+  }
+end
+
+if has_change_method
+  # Check if change method operations are reversible
+  irreversible_operations = [
+    'drop_table',
+    'remove_column',
+    'change_column_null.*false',
+    'execute'
+  ]
+
+  irreversible_found = irreversible_operations.any? { |op| content.match?(/#{op}/i) }
+
+  if irreversible_found
+    warnings << {
+      line: 'N/A',
+      content: 'change method with irreversible operations',
+      message: 'Change method contains potentially irreversible operations',
+      severity: :warning,
+      suggestion: 'Consider using explicit up/down methods for complex migrations'
+    }
+  end
+end
+
+# Check for Strong Migrations compliance
+unless content.include?('StrongMigrations') || content.include?('safety_assured')
+  if safety_issues.any? || warnings.select { |w| w[:severity] == :error }.any?
+    suggestions << "Consider using safety_assured do ... end to acknowledge risks"
+    suggestions << "Or add StrongMigrations.disable_check(:check_name) if appropriate"
+  end
+end
+
+# Performance considerations
+large_table_operations = []
+if content.match?(/add_index.*(?:listings|users|tenants)/i)
+  large_table_operations << "Index creation on potentially large table"
+end
+
+if content.match?(/add_column.*(?:listings|users|tenants)/i)
+  large_table_operations << "Column addition to potentially large table"
+end
+
+unless large_table_operations.empty?
+  warnings << {
+    line: 'N/A',
+    content: 'large table operations',
+    message: 'Operations on large tables detected',
+    severity: :warning,
+    suggestion: 'Test on production-sized data; consider maintenance window'
+  }
+end
+
+# Report results
+if safety_issues.any?
+  puts "🚫 SAFETY ISSUES FOUND:"
+  puts "=" * 40
+  safety_issues.each do |issue|
+    puts "\n❌ Line #{issue[:line]}: #{issue[:message]}"
+    puts "   Content: #{issue[:content]}"
+    puts "   💡 Suggestion: #{issue[:suggestion]}"
+  end
+  puts "\n🚫 Migration safety check FAILED"
+  puts "Fix the safety issues above before proceeding"
+  exit 1
+end
+
+if warnings.any?
+  puts "⚠️  WARNINGS:"
+  puts "=" * 40
+  warnings.each do |warning|
+    puts "\n⚠️  Line #{warning[:line]}: #{warning[:message]}"
+    puts "   Content: #{warning[:content]}"
+    puts "   💡 Suggestion: #{warning[:suggestion]}"
+  end
+end
+
+unless large_table_operations.empty?
+  puts "\n📊 PERFORMANCE CONSIDERATIONS:"
+  puts "=" * 40
+  large_table_operations.each do |op|
+    puts "⚡ #{op}"
+  end
+  puts "💡 Test migration timing on production-sized data"
+end
+
+unless suggestions.empty?
+  puts "\n💡 SUGGESTIONS:"
+  puts "=" * 40
+  suggestions.each { |s| puts "• #{s}" }
+end
+
+# Best practices reminder
+puts "\n📚 MIGRATION BEST PRACTICES:"
+puts "=" * 40
+puts "✅ Add indexes concurrently: add_index :table, :column, algorithm: :concurrently"
+puts "✅ Add columns without defaults, then backfill"
+puts "✅ Use disable_ddl_transaction! for concurrent operations"
+puts "✅ Test on production-sized data"
+puts "✅ Include tenant_id on new tables for multi-tenancy"
+puts "✅ Add foreign_key: true for referential integrity"
+
+puts "\n✅ Migration safety check completed"
+
+if warnings.any?
+  puts "⚠️  #{warnings.length} warnings found - review before deploying"
+else
+  puts "🎉 No safety issues detected"
+end

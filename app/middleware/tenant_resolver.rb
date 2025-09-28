@@ -28,7 +28,7 @@ class TenantResolver
         @app.call(env)
       else
         puts "TenantResolver: No tenant found for hostname: #{hostname}"
-        # Return 404 for unknown hostnames
+        # Return 404 for unknown hostnames or disabled tenants
         [ 404, { "Content-Type" => "text/html" }, [ "Tenant not found" ] ]
       end
     rescue => e
@@ -65,6 +65,7 @@ class TenantResolver
     Rails.logger.debug "TenantResolver: Attempting to find tenant by hostname: #{clean_hostname}"
     # Try to find tenant by hostname first
     tenant = find_tenant_by_domain(clean_hostname)
+    puts "TenantResolver: Found tenant: #{tenant&.title}, status: #{tenant&.status}, publicly_accessible?: #{tenant&.publicly_accessible?}"
 
     # Ensure tenant is publicly accessible
     return nil unless tenant&.publicly_accessible?
@@ -76,7 +77,7 @@ class TenantResolver
   end
 
   def find_tenant_by_domain(hostname)
-    Tenant.find_by_hostname!(hostname)
+    Tenant.find_by!(hostname: hostname)
   end
 
   def handle_test_environment(hostname)
@@ -101,7 +102,7 @@ class TenantResolver
 
   def handle_localhost_routing(hostname)
     Rails.logger.debug "TenantResolver: handle_localhost_routing called with: #{hostname}"
-    
+
     if Rails.env.development? && [ "localhost", "127.0.0.1", "0.0.0.0" ].include?(hostname)
       Rails.logger.debug "TenantResolver: Plain localhost detected, returning root tenant"
       return Tenant.root_tenant
@@ -110,10 +111,10 @@ class TenantResolver
     # Extract subdomain and use as slug
     subdomain = hostname.split(".").first
     Rails.logger.debug "TenantResolver: Extracted subdomain: #{subdomain} from hostname: #{hostname}"
-    
+
     tenant = Tenant.find_by(slug: subdomain)
     Rails.logger.debug "TenantResolver: Found tenant by slug '#{subdomain}': #{tenant&.title || 'nil'}"
-    
+
     result = tenant || Tenant.root_tenant
     Rails.logger.debug "TenantResolver: Returning tenant: #{result.title}"
     result

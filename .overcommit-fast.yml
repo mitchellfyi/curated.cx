@@ -1,0 +1,131 @@
+# Fast Overcommit Configuration for Development
+# Optimized for speed while maintaining essential quality checks
+# Use: ln -sf .overcommit-fast.yml .overcommit.yml
+
+# Fail fast and early - stop on first failure
+fail_fast: true
+
+# Verify installed gems and plugins
+verify_signatures: false
+
+# Pre-commit hooks - essential checks only
+PreCommit:
+  # Core checks that run fast
+  RuboCop:
+    enabled: true
+    description: 'Quick RuboCop check (changed files only)'
+    required_executable: 'rubocop'
+    flags: ['--display-cop-names', '--format=emacs']
+    on_warn: fail
+    # Only run on staged files for speed
+    include: '{app,lib,config}/**/*.rb'
+
+  # Template quality (fast)
+  ErbLint:
+    enabled: true
+    description: 'Quick ERB lint (changed files only)'
+    required_executable: 'erb_lint'
+    include: 'app/views/**/*.html.erb'
+
+  # Security (reasonably fast)
+  Brakeman:
+    enabled: false  # Too slow for every commit
+    description: 'Security check (disabled for speed)'
+
+  # Bundle check (fast)
+  BundleCheck:
+    enabled: true
+    description: 'Quick bundle check'
+
+  # Quick syntax checks
+  HardTabs:
+    enabled: true
+    description: 'Check for hard tabs'
+    exclude:
+      - '**/Makefile'
+      - '**/*.go'
+      - '**/db/structure.sql'
+
+  TrailingWhitespace:
+    enabled: true
+    description: 'Check for trailing whitespace'
+    exclude:
+      - '**/db/structure.sql'
+      - '**/*-results.json'
+
+  YamlSyntax:
+    enabled: true
+    description: 'Check YAML syntax'
+    include: '**/*.yml'
+
+  # DISABLED FOR SPEED - move to pre-push or CI
+  RSpec:
+    enabled: false
+    description: 'Tests (moved to pre-push for speed)'
+
+  SchemaUpToDate:
+    enabled: false  # Can be slow with large schemas
+    description: 'Schema check (disabled for speed)'
+
+  # Custom scripts disabled for speed
+  CustomScript:
+    enabled: false
+    description: 'Quality script (moved to pre-push)'
+
+# Pre-push hooks - comprehensive checks before sharing code
+PrePush:
+  # Full test suite only before pushing
+  RSpec:
+    enabled: true
+    description: 'Full test suite'
+    command: ['bundle', 'exec', 'rspec', '--format', 'progress']
+
+  # Security scan before push
+  Brakeman:
+    enabled: true
+    description: 'Security scan before push'
+    command: ['bundle', 'exec', 'brakeman', '--quiet']
+
+  # Quality checks before push
+  CustomScript:
+    enabled: false  # Can enable if needed, but very slow
+    description: 'Comprehensive quality (optional)'
+    required_executable: './script/dev/quality-fast'
+
+# Minimal commit message checks
+CommitMsg:
+  EmptyMessage:
+    enabled: true
+    description: 'Check for empty commit message'
+
+  SingleLineSubject:
+    enabled: true
+    description: 'Check subject line length'
+
+  # Disable slower checks
+  CapitalizedSubject:
+    enabled: false
+
+  SpellCheck:
+    enabled: false
+
+  TextWidth:
+    enabled: false
+
+# Post-checkout hooks (minimal)
+PostCheckout:
+  BundleCheck:
+    enabled: true
+    description: 'Bundle check after checkout'
+
+# Post-merge hooks (essential only)
+PostMerge:
+  BundleInstall:
+    enabled: true
+    description: 'Bundle install after merge'
+
+# Post-rewrite hooks (essential only)
+PostRewrite:
+  BundleInstall:
+    enabled: true
+    description: 'Bundle install after rewrite'

@@ -24,7 +24,7 @@ require 'rails_helper'
 
 RSpec.describe Category, type: :model do
   let(:tenant) { create(:tenant) }
-  
+
   describe 'associations' do
     it { should belong_to(:tenant) }
     it { should have_many(:listings).dependent(:destroy) }
@@ -32,11 +32,11 @@ RSpec.describe Category, type: :model do
 
   describe 'validations' do
     subject { build(:category, tenant: tenant) }
-    
+
     it { should validate_presence_of(:key) }
     it { should validate_presence_of(:name) }
     it { should validate_uniqueness_of(:key).scoped_to(:tenant_id) }
-    it { should validate_inclusion_of(:allow_paths).in_array([true, false]) }
+    it { should validate_inclusion_of(:allow_paths).in_array([ true, false ]) }
 
     it 'validates shown_fields is a hash' do
       category = build(:category, tenant: tenant, shown_fields: 'not a hash')
@@ -127,7 +127,7 @@ RSpec.describe Category, type: :model do
       category = create(:category, tenant: tenant, shown_fields: fields)
       expect(category.shown_fields).to eq(fields)
     end
-    
+
     it 'returns empty hash as default from factory' do
       category = create(:category, tenant: tenant)
       expect(category.shown_fields).to be_a(Hash)

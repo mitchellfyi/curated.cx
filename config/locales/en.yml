@@ -1,157 +1,157 @@
 ---
 en:
+  a11y:
+    footer: Site footer
+    primary_content: Primary content
+    skip_to_content: Skip to main content
+  about:
+    description: Description
+    page_title: Page title
+  app:
+    name: Curated
+    description: Curated platform for discovering and sharing content
+  auth:
+    sign_in:
+      title: Sign In
+      description: Sign in to your account to access your dashboard and manage your content
+      button: Sign in
+      sign_out_confirm: Are you sure you want to sign out?
+    sign_up:
+      title: Sign Up
+      description: Create a new account to get started with our platform and access all features
+      button: Create account
+    account:
+      title: Account Settings
+      description: Manage your account settings, update your password, and configure your preferences
+    passwords:
+      new_password: New password
+      confirm_password: Confirm new password
+      change_button: Change my password
+      reset_instructions: Send me reset password instructions
+    confirmations:
+      resend_instructions: Resend confirmation instructions
+    unlocks:
+      resend_instructions: Resend unlock instructions
+    links:
+      forgot_password: Forgot your password?
+      sign_in: Sign in
+      create_account: Create account
+    confirmations:
+      resend_instructions: Didn't receive confirmation instructions?
+      resend_button: Resend confirmation instructions
+    unlocks:
+      resend_instructions: Didn't receive unlock instructions?
+      resend_button: Resend unlock instructions
+    omniauth:
+      sign_in_with: Sign in with %{provider}
+    mailer:
+      confirm_account: Confirm my account
+      change_password: Change my password
+      unlock_account: Unlock my account
+  actions:
+    browse: Browse
+    edit: Edit
+    show: Show
+    view: View
+    view_all: View all
+    manage: Manage
+    view_arrow: View →
+    back: Back
+    create: Create account
+    update: Update Account
+    delete: Delete Account
+    confirm: Are you sure? This action cannot be undone.
+    read_more: Read more
+  admin:
+    categories:
+      created: Created
+      deleted: Deleted
+      description: Description
+      title: Title
+      updated: Updated
+    dashboard:
+      description: Description
+      title: Title
+      view_all_listings: View all listings
+    listings:
+      created: Created
+      deleted: Deleted
+      updated: Updated
+  categories:
+    index:
+      browse_content: Browse content
+      description: Description
+      title: Title
+    show:
+      description: Description
+  counts:
+    item: Item
+    listing: Listing
+  homepage:
+    empty_state:
+      message: Message
+      title: Title
+    latest_content: Latest content
+  listings:
+    index:
+      description: Description
+      title: Title
+      latest_content: Latest content
+      empty:
+        title: "No listings found"
+        description: "There are no published listings available at this time."
   nav:
+    about: About
+    home: Home
+    categories: Categories
+    dashboard: Dashboard
+    all_categories: All categories
+    tenants: Tenants
+    admin: Admin
+    settings: Settings
+    logout: Logout
+    login: Login
+    sign_up: Sign up
+    powered_by: Powered by
+  tenants:
+    index:
+      title: "All Tenants"
+      empty:
+        title: "No tenants found"
+        description: "Get started by creating your first tenant."
+    show:
+      title: "%{name}"
+      description: "Explore %{name}"
+      not_found:
+        title: "Tenant not found"
+        description: "The requested tenant could not be found."
+    actions:
+      new: "New Tenant"
+    attributes:
+      name: "Name"
+      hostname: "Hostname"
+      status: "Status"
+      created_at: "Created"
+    status:
+      enabled: "Enabled"
+      disabled: "Disabled"
+      private: "Private"
+    admin: Admin
+    all_categories: All categories
+    categories: Categories
     dashboard: Dashboard
     home: Home
     login: Login
     logout: Logout
+    powered_by: Powered by
     settings: Settings
     sign_up: Sign up
-    categories: Categories
-    all_categories: All Categories
-    admin: Admin
-    about: About
-    powered_by: "Powered by %{brand}"
-  
-  # Application info
-  app:
-    name: Curated
-    tagline: Curated content for your audience
-  
-  # Common actions
-  actions:
-    view_all: View all
-    browse: "Browse →"
-    edit: Edit
-    delete: Delete
-    create: Create
-    update: Update
-    back: Back
-    show: Show
-    cancel: Cancel
-    save: Save
-    new: New
-    visit: Visit
-    read_more: Read more
-    
-  # Time and counts
+  common:
+    brand_name: Curated.cx
+    powered_by: Powered by
   time:
-    ago: ago
-    
-  counts:
-    item:
-      zero: no items
-      one: "%{count} item"
-      other: "%{count} items"
-    listing:
-      zero: no listings
-      one: "%{count} listing"
-      other: "%{count} listings"
-  
-  # Homepage/Tenant show
-  homepage:
-    latest_content: Latest Content
-    no_content: No content available yet
-    empty_state:
-      title: No listings yet
-      message: Check back later for curated content
-      
-  # Categories
-  categories:
-    index:
-      title: Categories
-      description: Browse all categories for %{tenant}
-      browse_content: Browse content by category on %{tenant}
-      no_categories: No categories available
-    show:
-      description: Latest content in %{category} for %{tenant}
-      back_to_categories: Back to Categories
-
-  # Listings  
-  listings:
-    index:
-      title: Latest Content
-      description: Browse latest content in %{category} for %{tenant}
-      no_listings: No listings available
-      back_to_category: "Back to %{category}"
-    show:
-      description: View listing details for %{title}
-      visit_link: Visit Link
-      back_to_listings: Back to Listings
-      
-  # About page
-  about:
-    title: About %{tenant}
-    page_title: "About %{tenant} | %{tenant}"
-    description: "Learn more about %{tenant} and our curated content platform"
-    tenant_details: Tenant Details
-    slug: Slug
-    created: Created
-    settings: Settings
-    theme: Theme
-    primary: Primary
-    categories: Categories
-    team_members: Team Members
-    users_and_roles: Users and Roles
-    
-  # Admin
-  admin:
-    dashboard:
-      title: Admin Dashboard
-      description: Manage %{tenant} content and settings
-      overview: Overview
-      quick_actions: Quick Actions
-    categories:
-      title: Categories
-      description: Manage content categories for %{tenant}
-      created: Category created successfully
-      updated: Category updated successfully
-      deleted: Category deleted successfully
-      new: New Category
-      edit: Edit Category
-      show: Category Details
-    listings:
-      title: Listings
-      description: Manage content listings for %{tenant}
-      created: Listing created successfully
-      updated: Listing updated successfully
-      deleted: Listing deleted successfully
-      new: New Listing
-      edit: Edit Listing
-      show: Listing Details
-      
-  # User management
-  users:
-    admin_badge: Admin
-    platform_admin_badge: Platform Admin
-    account_status: Account Status
-    last_seen: Last Seen
-    member_since: Member Since
-    never: Never
-    
-  # Tenants
-  tenants:
-    status:
-      enabled: Enabled
-      disabled: Disabled
-      
-  # Forms and validation
-  forms:
-    required_fields: "* Required fields"
-    save_changes: Save Changes
-    cancel_changes: Cancel Changes
-    
-  # Accessibility labels
-  a11y:
-    primary_content: Primary content
-    footer: Footer
-    skip_to_content: Skip to main content
-    navigation: Main navigation
-    user_menu: User menu
-    categories_menu: Categories menu
-    
-  # Meta descriptions and SEO
-  meta:
-    default_description: "Curated content platform for industry professionals"
-    keywords:
-      default: "curated content, industry news, tools, services"
+    ago: "%{time} ago"
+    formats:
+      default: "%B %d, %Y"
+      short: "%b %d"
+      long: "%B %d, %Y at %I:%M %p"

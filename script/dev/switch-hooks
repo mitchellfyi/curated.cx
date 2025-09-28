@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Switch between fast and comprehensive overcommit configurations
+
+set -e
+
+case "${1:-}" in
+  "fast"|"f")
+    echo "🚀 Switching to FAST pre-commit hooks"
+    ln -sf .overcommit-fast.yml .overcommit.yml
+    echo "✅ Now using fast configuration:"
+    echo "   • RuboCop (staged files only)"
+    echo "   • ERB Lint (staged files only)"
+    echo "   • Basic syntax checks"
+    echo "   • Tests moved to pre-push"
+    echo ""
+    echo "💡 For full checks: ./script/dev/quality"
+    ;;
+  "minimal"|"m")
+    echo "⚡ Switching to MINIMAL pre-commit hooks"
+    ln -sf .overcommit-minimal.yml .overcommit.yml
+    echo "✅ Now using minimal configuration:"
+    echo "   • YAML syntax only"
+    echo "   • Trailing whitespace only"
+    echo "   • Everything else moved to pre-push"
+    echo ""
+    echo "⚠️  Make sure to run full checks before pushing!"
+    ;;
+  "full"|"comprehensive"|"c")
+    echo "🔍 Switching to COMPREHENSIVE pre-commit hooks"
+    ln -sf .overcommit-comprehensive.yml .overcommit.yml
+    echo "✅ Now using comprehensive configuration"
+    echo "   • All quality gates enabled"
+    echo "   • Tests run on every commit"
+    echo "   • Anti-pattern detection"
+    echo ""
+    echo "⚠️  Warning: This will be slower"
+    ;;
+  "status"|"s")
+    if [[ -L .overcommit.yml ]]; then
+      target=$(readlink .overcommit.yml)
+      echo "📊 Current configuration: $target"
+      case "$target" in
+        *"minimal"*) echo "⚡ Using MINIMAL mode (~1s)" ;;
+        *"fast"*) echo "🚀 Using FAST mode (~3-8s)" ;;
+        *) echo "🔍 Using COMPREHENSIVE mode (~30-60s)" ;;
+      esac
+    else
+      echo "📊 Using default configuration"
+    fi
+    ;;
+  *)
+    echo "🔧 Overcommit Configuration Manager"
+    echo ""
+    echo "Usage: $0 [minimal|fast|full|status]"
+    echo ""
+    echo "Options:"
+    echo "  minimal, m       Ultra-fast hooks (~1s) - syntax only"
+    echo "  fast, f          Fast hooks (~3-8s) - essential checks"
+    echo "  full, c          Comprehensive hooks (~30-60s) - all checks"
+    echo "  status, s        Show current configuration"
+    echo ""
+    echo "Current status:"
+    $0 status
+    echo ""
+    echo "💡 Recommendations:"
+    echo "   • Use 'minimal' for rapid iteration/debugging"
+    echo "   • Use 'fast' for daily development"
+    echo "   • Use 'full' before important commits"
+    echo "   • CI always runs comprehensive validation"
+    ;;
+esac

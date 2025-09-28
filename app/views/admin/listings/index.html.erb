@@ -17,12 +17,12 @@
     <% if @categories.any? %>
       <div class="mb-6">
         <div class="flex items-center space-x-2">
-          <%= link_to admin_listings_path, 
+          <%= link_to admin_listings_path,
               class: "inline-flex items-center px-3 py-2 text-sm font-medium rounded-md #{params[:category_id].blank? ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border border-gray-300'}" do %>
             All Categories
           <% end %>
           <% @categories.each do |category| %>
-            <%= link_to admin_listings_path(category_id: category.id), 
+            <%= link_to admin_listings_path(category_id: category.id),
                 class: "inline-flex items-center px-3 py-2 text-sm font-medium rounded-md #{params[:category_id] == category.id.to_s ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border border-gray-300'}" do %>
               <%= category.name %>
             <% end %>
@@ -70,8 +70,8 @@
                     </div>
                   </div>
                   <div class="flex-shrink-0 flex items-center space-x-2">
-                    <%= link_to "Edit", edit_admin_listing_path(listing), class: "text-blue-600 hover:text-blue-500 font-medium text-sm" %>
-                    <%= link_to "View", admin_listing_path(listing), class: "text-gray-600 hover:text-gray-500 font-medium text-sm" %>
+                    <%= link_to t('actions.edit'), edit_admin_listing_path(listing), class: "text-blue-600 hover:text-blue-500 font-medium text-sm" %>
+                    <%= link_to t('actions.view'), admin_listing_path(listing), class: "text-gray-600 hover:text-gray-500 font-medium text-sm" %>
                   </div>
                 </div>
               </div>

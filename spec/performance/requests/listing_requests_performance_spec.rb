@@ -108,8 +108,8 @@ RSpec.describe 'Listing Requests Performance', type: :performance, performance: 
   describe 'Complex listing queries' do
     it 'should handle multiple filters efficiently' do
       result = measure_time do
-        get listings_path, params: { 
-          category_id: category.id, 
+        get listings_path, params: {
+          category_id: category.id,
           search: 'test',
           sort: 'created_at',
           direction: 'desc'
@@ -122,7 +122,7 @@ RSpec.describe 'Listing Requests Performance', type: :performance, performance: 
 
     it 'should handle date range filtering efficiently' do
       result = measure_time do
-        get listings_path, params: { 
+        get listings_path, params: {
           start_date: 1.week.ago.to_date,
           end_date: Date.current
         }
@@ -155,7 +155,7 @@ RSpec.describe 'Listing Requests Performance', type: :performance, performance: 
     it 'should handle concurrent listing requests' do
       results = []
       threads = []
-      
+
       5.times do
         threads << Thread.new do
           result = measure_time do
@@ -164,9 +164,9 @@ RSpec.describe 'Listing Requests Performance', type: :performance, performance: 
           results << result
         end
       end
-      
+
       threads.each(&:join)
-      
+
       average_time = results.sum { |r| r[:execution_time] } / results.length
       expect_performance_within_threshold(average_time, :response_time)
     end

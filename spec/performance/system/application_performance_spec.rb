@@ -122,19 +122,19 @@ RSpec.describe 'Application Performance', type: :performance, performance: true 
     it 'should navigate between pages efficiently' do
       # Start at homepage
       visit root_path
-      
+
       # Navigate to tenant page
       result1 = measure_time do
         click_link tenant.name
       end
       expect_performance_within_threshold(result1[:execution_time], :page_load_time)
-      
+
       # Navigate to listings
       result2 = measure_time do
         click_link 'Listings'
       end
       expect_performance_within_threshold(result2[:execution_time], :page_load_time)
-      
+
       # Navigate to individual listing
       result3 = measure_time do
         click_link listings.first.title
@@ -146,16 +146,16 @@ RSpec.describe 'Application Performance', type: :performance, performance: true 
   describe 'Memory usage across page loads' do
     it 'should not accumulate memory across multiple page loads' do
       initial_memory = profile_memory { visit root_path }
-      
+
       # Load multiple pages
       5.times do
         visit listings_path
         visit tenant_path(tenant)
         visit root_path
       end
-      
+
       final_memory = profile_memory { visit root_path }
-      
+
       # Memory usage should not grow significantly
       memory_growth = final_memory.total_allocated_memsize - initial_memory.total_allocated_memsize
       expect(memory_growth).to be < 10.megabytes
@@ -166,7 +166,7 @@ RSpec.describe 'Application Performance', type: :performance, performance: true 
     it 'should handle multiple concurrent page loads' do
       results = []
       threads = []
-      
+
       # Simulate 3 concurrent users
       3.times do
         threads << Thread.new do
@@ -178,9 +178,9 @@ RSpec.describe 'Application Performance', type: :performance, performance: true 
           results << result
         end
       end
-      
+
       threads.each(&:join)
-      
+
       average_time = results.sum { |r| r[:execution_time] } / results.length
       expect_performance_within_threshold(average_time, :page_load_time)
     end
@@ -199,7 +199,7 @@ RSpec.describe 'Application Performance', type: :performance, performance: true 
 
     it 'should handle Turbo navigation efficiently' do
       visit root_path
-      
+
       result = measure_time do
         click_link tenant.name
         # Wait for Turbo to complete

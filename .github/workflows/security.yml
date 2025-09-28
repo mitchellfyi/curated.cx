@@ -69,7 +69,7 @@ jobs:
           script: |
             const fs = require('fs');
             let comment = '## Security Scan Results\n\n';
-            
+
             try {
               const bundleResults = JSON.parse(fs.readFileSync('bundle-audit-results.json', 'utf8'));
               if (bundleResults.vulnerabilities && bundleResults.vulnerabilities.length > 0) {
@@ -85,7 +85,7 @@ jobs:
             } catch (error) {
               comment += '⚠️ Could not parse Ruby gem audit results\n\n';
             }
-            
+
             try {
               const npmResults = JSON.parse(fs.readFileSync('npm-audit-results.json', 'utf8'));
               if (npmResults.vulnerabilities && Object.keys(npmResults.vulnerabilities).length > 0) {
@@ -101,7 +101,7 @@ jobs:
             } catch (error) {
               comment += '⚠️ Could not parse NPM audit results\n\n';
             }
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -213,38 +213,38 @@ jobs:
           echo "## Security Scan Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Scan Type | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
-          
+
           # Check if artifacts exist and report status
           if [ -f "bundle-audit-results/bundle-audit-results.json" ]; then
             echo "| Ruby Dependencies | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Ruby Dependencies | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f "npm-audit-results/npm-audit-results.json" ]; then
             echo "| NPM Dependencies | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| NPM Dependencies | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f "brakeman-results/brakeman-results.json" ]; then
             echo "| Code Security | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Code Security | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f "secrets-scan-results/secrets-results.json" ]; then
             echo "| Secrets Detection | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Secrets Detection | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f "container-security-results/trivy-results.sarif" ]; then
             echo "| Container Security | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Container Security | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Security Best Practices" >> $GITHUB_STEP_SUMMARY
           echo "- Keep dependencies updated" >> $GITHUB_STEP_SUMMARY

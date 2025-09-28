@@ -41,7 +41,7 @@ RSpec.describe "Listings", type: :request do
       it "orders listings by published_at desc" do
         old_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
         new_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
-        
+
         get listings_path
         listings = assigns(:listings)
         expect(listings.first).to eq(new_listing)
@@ -139,7 +139,7 @@ RSpec.describe "Listings", type: :request do
       it "orders listings by published_at desc" do
         old_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
         new_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
-        
+
         get category_listings_path(category1)
         listings = assigns(:listings)
         expect(listings.first).to eq(new_listing)

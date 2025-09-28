@@ -1,0 +1,44 @@
+# Minimal Overcommit Configuration - Ultra Fast
+# Only essential syntax checks, no linting or tests
+# Use: ./script/dev/switch-hooks minimal
+
+fail_fast: true
+verify_signatures: false
+
+PreCommit:
+  # Only syntax checks - super fast
+  YamlSyntax:
+    enabled: true
+    description: 'YAML syntax'
+
+  TrailingWhitespace:
+    enabled: true
+    description: 'Trailing whitespace'
+    exclude:
+      - '**/db/structure.sql'
+      - '**/*-results.json'
+
+  # Everything else disabled for maximum speed
+  RuboCop:
+    enabled: false
+
+  ErbLint:
+    enabled: false
+
+  RSpec:
+    enabled: false
+
+  Brakeman:
+    enabled: false
+
+PrePush:
+  # Full validation before push
+  CustomScript:
+    enabled: true
+    description: 'Full quality check before push'
+    required_executable: './script/dev/quality'
+    command: ['./script/dev/quality']
+
+CommitMsg:
+  EmptyMessage:
+    enabled: true

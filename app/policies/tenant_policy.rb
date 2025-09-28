@@ -37,7 +37,7 @@ class TenantPolicy < ApplicationPolicy
         scope.all
       else
         # Non-admins can only see publicly accessible tenants
-        scope.active
+        scope.where(status: [ :enabled, :private_access ])
       end
     end
   end

@@ -1,35 +1,35 @@
 # frozen_string_literal: true
 
 class ListingsController < ApplicationController
-  before_action :check_tenant_privacy, only: [:index, :show]
-  before_action :set_listing, only: [:show]
-  before_action :set_category, only: [:index]
+  before_action :check_tenant_privacy, only: [ :index, :show ]
+  before_action :set_listing, only: [ :show ]
+  before_action :set_category, only: [ :index ]
 
   def index
     authorize Listing
-    
+
     @listings = if @category
                   # Category-specific listings
                   policy_scope(@category.listings.includes(:category))
-                else
+    else
                   # All listings for tenant
                   policy_scope(Listing.includes(:category))
-                end
+    end
 
     @listings = @listings.recent.limit(20)
 
-    title = @category ? @category.name : t('listings.index.title')
+    title = @category ? @category.name : t("listings.index.title")
     set_page_meta_tags(
       title: title,
-      description: t('listings.index.description', 
-                    category: @category&.name || 'all categories',
+      description: t("listings.index.description",
+                    category: @category&.name || "all categories",
                     tenant: Current.tenant&.title)
     )
   end
 
   def show
     authorize @listing
-    
+
     set_page_meta_tags(
       title: @listing.title,
       description: @listing.description,

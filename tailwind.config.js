@@ -9,7 +9,7 @@ module.exports = {
   safelist: [
     // Dynamic tenant color classes
     'text-blue-600', 'text-blue-100', 'text-blue-800',
-    'text-purple-600', 'text-purple-100', 'text-purple-800', 
+    'text-purple-600', 'text-purple-100', 'text-purple-800',
     'text-amber-600', 'text-amber-100', 'text-amber-800',
     'bg-blue-600', 'bg-blue-100', 'bg-blue-800',
     'bg-purple-600', 'bg-purple-100', 'bg-purple-800',

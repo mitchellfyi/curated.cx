@@ -2,164 +2,16 @@
 
 High‑signal, copy‑pastable steps from multi‑tenancy onward. Rails 8 + Postgres + Hotwire + Tailwind + Devise. Jobs via Solid Queue. Host‑based multi‑tenancy with row scoping. Keep slices small and verifiable.
 
----
+## MANDATORY QUALITY PROTOCOL
 
-## 1) Multi‑tenancy (row‑scoped, host‑based)
+**BEFORE implementing ANY task below:**
+1. ✅ Run `./script/dev/quality` and ensure 100% pass rate
+2. ✅ Review quality standards in `doc/QUALITY_ENFORCEMENT.md`
+3. ✅ Plan implementation with quality gates in mind
+4. ✅ **AFTER each change**: Re-run `./script/dev/quality`
+5. ✅ Only proceed when all quality checks pass
 
-* [ ] Model `Tenant` with: `hostname`, `slug`, `title`, `description`, `logo_url`, `default_locale`, `settings:jsonb`, `active:boolean`.
-* [ ] `Current` context; middleware `TenantResolver` sets `Current.tenant` from `request.host` (fallback to root tenant).
-* [ ] Concern `TenantScoped` - includes `acts_as_tenant(:tenant)`; validates presence of `tenant` on tenant‑owned models.
-* [ ] Add `tenant_id` to all tenant‑owned tables with `null: false` and FKs; add composite unique indexes where needed.
-* [ ] Seed tenants: `curated.cx` (root), `ainews.cx`, `construction.cx`.
-
-**Files**
-
-* `app/models/tenant.rb`
-* `app/models/concerns/tenant_scoped.rb`
-* `app/middleware/tenant_resolver.rb`
-* `config/initializers/current.rb`
-
-**Migrations**
-
-* `db/migrate/*_create_tenants.rb`
-* subsequent migrations add `tenant:references` (FK, index) to models below.
-
-**Seed**
-
-```ruby
-Tenant.upsert_all([
-  {slug: "root", hostname: "curated.cx", title: "Curated Hub", active: true},
-  {slug: "ainews", hostname: "ainews.cx", title: "AI News", active: true},
-  {slug: "construction", hostname: "construction.cx", title: "Construction News", active: true}
-], unique_by: :hostname)
-```
-
-### Agent prompt
-
-**Context:** Shared-schema multi-tenancy with host-based routing. Rails 8, Postgres. We must keep all tenant-owned records row-scoped and fail closed.
-**Goal:** Implement tenant resolution and row scoping with strong DB constraints and a passing system test for host → tenant.
-**Inputs:** Desired tenants (root, ainews, construction). Hostname mapping. Empty app.
-**Tasks:**
-
-1. Create `Tenant` model + migration with fields above, add unique index on `hostname` and `slug`.
-2. Implement `TenantResolver` Rack middleware to set `Current.tenant` by `request.host`, default to root tenant; 404 when unknown.
-3. Add `TenantScoped` concern that calls `acts_as_tenant(:tenant)` and validates presence.
-4. Add FK `tenant_id` (not null) to all tenant-owned tables as they arrive; backfill seeds for three tenants.
-   **Deliverables:** Models, middleware, concern, seeds, indices. System test proving requests on different `Host` map to different tenants.
-   **Acceptance:** Requests with `Host: ainews.cx` render a distinct title; creating a model without `tenant_id` raises; unknown host returns 404.
-
----
-
-## 2) Auth + AuthZ (Devise + Pundit + Rolify)
-
-* [ ] Add Devise for `User`.
-* [ ] Add Rolify roles scoped to `Tenant` (instance-scoped roles: `owner`, `admin`, `editor`, `viewer`).
-* [ ] Add Pundit for authorization. Define base `ApplicationPolicy` + policy scopes.
-* [ ] Replace `Membership` with Rolify (roles grant tenant access). Optional `platform_admin` boolean for root-only ops.
-* [ ] Add a developer user that has access to everything, everywhere. Credentials are available in application config: developer: email and developer: password
-
-**Commands**
-
-```bash
-bin/rails g devise User
-bundle add pundit rolify
-bin/rails g pundit:install
-bin/rails g rolify Role User
-```
-
-**Model wiring**
-
-```ruby
-# app/models/user.rb
-class User < ApplicationRecord
-  rolify
-  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable
-end
-
-# app/models/role.rb
-class Role < ApplicationRecord
-  has_and_belongs_to_many :users, join_table: :users_roles
-  belongs_to :resource, polymorphic: true, optional: true
-  validates :name, presence: true
-  scopify
-end
-```
-
-**Initializer**
-
-```ruby
-# app/controllers/application_controller.rb
-class ApplicationController < ActionController::Base
-  include Pundit::Authorization
-  after_action :verify_authorized, except: :index, unless: -> { devise_controller? }
-  after_action :verify_policy_scoped, only: :index, unless: -> { devise_controller? }
-end
-```
-
-**Example policy skeleton**
-
-```ruby
-# app/policies/application_policy.rb
-class ApplicationPolicy
-  attr_reader :user, :record
-  def initialize(user, record) = (@user, @record) = [user, record]
-  def index? = user.present?
-  def show? = index?
-  def create? = user.has_role?(:editor, Current.tenant) || user.has_role?(:admin, Current.tenant) || user.has_role?(:owner, Current.tenant)
-  def update? = create?
-  def destroy? = user.has_role?(:admin, Current.tenant) || user.has_role?(:owner, Current.tenant)
-  class Scope < Struct.new(:user, :scope)
-    def resolve
-      scope.where(tenant_id: Current.tenant.id)
-    end
-  end
-end
-```
-
-**Agent prompt**
-**Context:** Multi-tenant auth/authorization using Devise (authn), Rolify (tenant-scoped roles), and Pundit (policies/scopes).
-**Goal:** Replace bespoke memberships with instance-scoped roles on `Tenant` and enforce access via Pundit.
-**Inputs:** Roles: owner, admin, editor, viewer. Current tenant context.
-**Tasks:**
-
-1. Install and wire Devise, Pundit, Rolify as above.
-2. Assign roles on user signup/seed: root owner on `curated.cx`; owners for `ainews` and `construction`.
-3. Add Pundit policies for Listing, Source, Category, Bookmark, and Ops::Jobs (dashboard) with policy scopes.
-4. Update controllers to call `authorize(record)` and `policy_scope(Model)`.
-   **Deliverables:** Devise auth, Rolify roles, Pundit policies + scopes, seeds.
-   **Acceptance:** A user without a tenant role cannot access tenant resources; policy scopes limit queries to `Current.tenant`; ops dashboard requires admin/owner on root.
-
----
-
-## 3) Categories & Listings (v0: news)
-
-* [ ] Model `Category` with fields: `key` (`news`, `apps`, `services`), `name`, `allow_paths:boolean`, `shown_fields:jsonb`.
-* [ ] Model `Listing` with URL + metadata fields: `url_raw`, `url_canonical`, `domain`, `title`, `description`, `image_url`, `site_name`, `published_at`, `body_html`, `body_text`, `ai_summaries:jsonb`, `ai_tags:jsonb`, `metadata:jsonb`.
-* [ ] DB: uniqueness `index_listings_on_tenant_and_url_canonical` on `[:tenant_id, :url_canonical]`.
-* [ ] Policy: category‑level rule - root‑domain only if `allow_paths:false`.
-
-**Commands**
-
-```bash
-bin/rails g model Category tenant:references key:string name:string allow_paths:boolean shown_fields:jsonb
-bin/rails g model Listing tenant:references category:references source:references \
-  url_raw:text url_canonical:text domain:string title:string description:text \
-  image_url:text site_name:string published_at:datetime body_html:text body_text:text \
-  ai_summaries:jsonb ai_tags:jsonb metadata:jsonb
-```
-
-### Agent prompt
-
-**Context:** Listings are normalised URLs with metadata; category controls path policy.
-**Goal:** Define schemas and constraints for news listings and categories.
-**Inputs:** Field list above; tenant context; category defaults (news allows paths).
-**Tasks:**
-
-1. Create models/migrations; add composite unique index on `tenant_id, url_canonical`.
-2. Add validations; before_save to set `domain` from canonical URL.
-3. Category seeds: `news` with `allow_paths:true` and a default `shown_fields` set.
-   **Deliverables:** Models, migrations, seeds, basic admin CRUD stubs (scaffold optional).
-   **Acceptance:** Creating two listings with same canonical URL in same tenant fails; different tenants succeed.
+**NO EXCEPTIONS**: Quality failures block all development work.
 
 ---
 
@@ -168,7 +20,7 @@ bin/rails g model Listing tenant:references category:references source:reference
 * [ ] Model `Source`: `kind` enum (`serp_api_google_news`, `rss`), `name`, `config:jsonb`, `schedule:jsonb`, `last_run_at`, `last_status`.
 * [ ] Jobs: `FetchSerpApiNewsJob`, `FetchRssJob`, `UpsertListingsJob`.
 * [ ] Hourly schedule per Source; jitter; enable/disable.
-* [ ] ENV: `SERPAPI_API_KEY`.
+* [ ] rails credentials: serpapi: :api_key
 
 **Commands**
 
@@ -315,7 +167,7 @@ bin/rails g model ListingLink tenant:references from_listing:references to_listi
 
 ```ruby
 include PgSearch::Model
-pg_search_scope :q, 
+pg_search_scope :q,
   against: { title: 'A', description: 'B', body_text: 'C' },
   using: { tsearch: { prefix: true } }
 ```

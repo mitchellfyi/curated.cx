@@ -32,7 +32,7 @@ class Category < ApplicationRecord
   # Validations
   validates :key, presence: true, uniqueness: { scope: :tenant_id }
   validates :name, presence: true
-  validates :allow_paths, inclusion: { in: [true, false] }
+  validates :allow_paths, inclusion: { in: [ true, false ] }
   validate :validate_shown_fields_structure
 
   # Scopes
@@ -52,9 +52,9 @@ class Category < ApplicationRecord
       parsed = URI.parse(url.to_s)
       # Ensure it's a valid HTTP/HTTPS URL with a host
       return false unless parsed.scheme&.match?(/\Ahttps?\z/) && parsed.host.present?
-      
-      path = parsed.path || '/'
-      path == '/' || path.empty?
+
+      path = parsed.path || "/"
+      path == "/" || path.empty?
     rescue URI::InvalidURIError, ArgumentError
       false
     end

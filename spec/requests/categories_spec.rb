@@ -33,7 +33,7 @@ RSpec.describe "Categories", type: :request do
       it "orders categories by name" do
         category_z = create(:category, name: "Z Category", tenant: tenant)
         category_a = create(:category, name: "A Category", tenant: tenant)
-        
+
         get categories_path
         categories = assigns(:categories)
         expect(categories.first).to eq(category_a)
@@ -136,7 +136,7 @@ RSpec.describe "Categories", type: :request do
       it "orders listings by published_at desc" do
         old_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
         new_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
-        
+
         get category_path(category1)
         listings = assigns(:listings)
         expect(listings.first).to eq(new_listing)
@@ -145,7 +145,7 @@ RSpec.describe "Categories", type: :request do
 
       it "only shows published listings" do
         unpublished_listing = create(:listing, :unpublished, tenant: tenant, category: category1)
-        
+
         get category_path(category1)
         expect(assigns(:listings)).not_to include(unpublished_listing)
       end

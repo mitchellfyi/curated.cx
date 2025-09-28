@@ -42,6 +42,18 @@ jobs:
         run: bundle exec rubocop --format progress --format json --out rubocop-results.json
         continue-on-error: true
 
+      - name: Run RubyCritic (Code Quality Analysis)
+        run: bundle exec rubycritic --no-browser app/ lib/ --format json --out rubycritic-results.json
+        continue-on-error: true
+
+      - name: Run Reek (Code Smell Detection)
+        run: bundle exec reek app/ lib/ --format json --out reek-results.json
+        continue-on-error: true
+
+      - name: Run Fasterer (Performance Suggestions)
+        run: bundle exec fasterer app/ lib/ --format json --out fasterer-results.json
+        continue-on-error: true
+
       - name: Run ERB Lint
         run: bundle exec erb_lint --lint-all --format json --out erb-lint-results.json
         continue-on-error: true
@@ -57,6 +69,9 @@ jobs:
           name: lint-results
           path: |
             rubocop-results.json
+            rubycritic-results.json
+            reek-results.json
+            fasterer-results.json
             erb-lint-results.json
 
   security:
@@ -166,8 +181,12 @@ jobs:
         run: bundle exec rspec spec/system/accessibility_spec.rb --format progress --format json --out accessibility-results.json
         continue-on-error: true
 
-      - name: Run i18n tests
-        run: bundle exec rspec spec/i18n_spec.rb --format progress --format json --out i18n-results.json
+      - name: Run Route Testing Validation
+        run: ./script/dev/route-test-check
+        continue-on-error: true
+
+      - name: Run SEO Validation
+        run: bundle exec rails runner "puts 'SEO validation placeholder - implement based on app structure'"
         continue-on-error: true
 
       - name: Upload test results
@@ -247,7 +266,7 @@ jobs:
           script: |
             const fs = require('fs');
             let comment = '## Code Quality Analysis\n\n';
-            
+
             try {
               const bpResults = JSON.parse(fs.readFileSync('rails-bp-results.json', 'utf8'));
               if (bpResults.length > 0) {
@@ -265,7 +284,7 @@ jobs:
             } catch (error) {
               comment += '⚠️ Could not parse Rails Best Practices results\n\n';
             }
-            
+
             try {
               const i18nHealth = JSON.parse(fs.readFileSync('i18n-health-results.json', 'utf8'));
               if (i18nHealth.issues && i18nHealth.issues.length > 0) {
@@ -280,7 +299,7 @@ jobs:
             } catch (error) {
               comment += '⚠️ Could not parse i18n results\n\n';
             }
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -349,38 +368,38 @@ jobs:
           echo "## CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          
+
           # Check job statuses
           if [ "${{ needs.lint-and-format.result }}" == "success" ]; then
             echo "| Lint & Format | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Lint & Format | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ "${{ needs.security.result }}" == "success" ]; then
             echo "| Security | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Security | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ "${{ needs.test.result }}" == "success" ]; then
             echo "| Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ "${{ needs.code-quality.result }}" == "success" ]; then
             echo "| Code Quality | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Code Quality | ⚠️ Issues Found |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ "${{ needs.build.result }}" == "success" ]; then
             echo "| Build | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| Build | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Quality Gates" >> $GITHUB_STEP_SUMMARY
           echo "- **Critical**: Lint, Security, Tests, Build must pass" >> $GITHUB_STEP_SUMMARY

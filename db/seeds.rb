@@ -90,7 +90,7 @@ category_data = [
   },
   {
     key: "apps",
-    name: "Apps & Tools", 
+    name: "Apps & Tools",
     allow_paths: false,
     shown_fields: {
       title: true,
@@ -347,14 +347,14 @@ listings_data = {
 # Create listings for each tenant
 Tenant.all.each do |tenant|
   next unless listings_data[tenant.slug]
-  
+
   ActsAsTenant.with_tenant(tenant) do
     tenant_data = listings_data[tenant.slug]
-    
+
     tenant_data.each do |category_key, listings|
       category = Category.find_by(key: category_key)
       next unless category
-      
+
       listings.each do |listing_attrs|
         listing = Listing.find_or_initialize_by(url_canonical: listing_attrs[:url_raw])
         listing.assign_attributes(

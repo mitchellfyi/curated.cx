@@ -28,7 +28,7 @@ RSpec.describe 'Tenant Requests Performance', type: :performance, performance: t
       # Simulate concurrent requests
       results = []
       threads = []
-      
+
       5.times do
         threads << Thread.new do
           result = measure_time do
@@ -37,9 +37,9 @@ RSpec.describe 'Tenant Requests Performance', type: :performance, performance: t
           results << result
         end
       end
-      
+
       threads.each(&:join)
-      
+
       average_time = results.sum { |r| r[:execution_time] } / results.length
       expect_performance_within_threshold(average_time, :response_time)
     end
@@ -98,7 +98,7 @@ RSpec.describe 'Tenant Requests Performance', type: :performance, performance: t
     it 'should handle load on tenants index' do
       # This would require a running server, so we'll simulate with direct controller calls
       controller = TenantsController.new
-      
+
       results = []
       10.times do
         result = measure_time do
@@ -106,7 +106,7 @@ RSpec.describe 'Tenant Requests Performance', type: :performance, performance: t
         end
         results << result
       end
-      
+
       average_time = results.sum { |r| r[:execution_time] } / results.length
       expect_performance_within_threshold(average_time, :response_time)
     end

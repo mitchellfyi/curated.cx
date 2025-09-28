@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Fast Quality Check Script - Essential checks only
+# For full checks, use ./script/dev/quality
+
+echo "⚡ FAST QUALITY CHECK"
+echo "=============================="
+
+# Check if there are staged files to lint
+staged_ruby_files=$(git diff --cached --name-only --diff-filter=AM | grep '\.rb$' | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+staged_erb_files=$(git diff --cached --name-only --diff-filter=AM | grep '\.erb$' | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+
+if [[ -z "$staged_ruby_files" && -z "$staged_erb_files" ]]; then
+  echo "✅ No staged Ruby/ERB files to check"
+  echo "💡 Run './script/dev/quality' for full validation"
+  exit 0
+fi
+
+exit_code=0
+
+if [[ -n "$staged_ruby_files" ]]; then
+  echo "📋 RuboCop (staged files)"
+  start_time=$(date +%s.%N)
+  if bundle exec rubocop $staged_ruby_files >/dev/null 2>&1; then
+    duration=$(echo "$(date +%s.%N) - $start_time" | bc)
+    echo "✅ RuboCop passed (${duration}s)"
+  else
+    duration=$(echo "$(date +%s.%N) - $start_time" | bc)
+    echo "❌ RuboCop failed (${duration}s)"
+    exit_code=1
+  fi
+fi
+
+if [[ -n "$staged_erb_files" ]]; then
+  echo "📋 ERB Lint (staged files)"
+  start_time=$(date +%s.%N)
+  if bundle exec erb_lint $staged_erb_files >/dev/null 2>&1; then
+    duration=$(echo "$(date +%s.%N) - $start_time" | bc)
+    echo "✅ ERB Lint passed (${duration}s)"
+  else
+    duration=$(echo "$(date +%s.%N) - $start_time" | bc)
+    echo "❌ ERB Lint failed (${duration}s)"
+    exit_code=1
+  fi
+fi
+
+if [[ $exit_code -eq 0 ]]; then
+  echo "✅ Fast checks passed!"
+else
+  echo "💥 Some checks failed - fix and retry"
+fi
+
+echo "💡 Run './script/dev/quality' for full validation"
+exit $exit_code

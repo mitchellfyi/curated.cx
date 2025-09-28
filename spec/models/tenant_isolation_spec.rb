@@ -11,7 +11,7 @@ RSpec.describe 'Tenant Isolation for Categories and Listings', type: :model do
       # Create categories for each tenant
       category1 = nil
       category2 = nil
-      
+
       ActsAsTenant.with_tenant(tenant1) do
         category1 = create(:category, key: 'news', name: 'News')
       end
@@ -25,9 +25,9 @@ RSpec.describe 'Tenant Isolation for Categories and Listings', type: :model do
       # Create first listing in tenant1
       listing1 = nil
       ActsAsTenant.with_tenant(tenant1) do
-        listing1 = create(:listing, 
-          category: category1, 
-          url_raw: url, 
+        listing1 = create(:listing,
+          category: category1,
+          url_raw: url,
           title: 'Test Article 1'
         )
       end
@@ -38,9 +38,9 @@ RSpec.describe 'Tenant Isolation for Categories and Listings', type: :model do
       # Attempt to create duplicate in same tenant should fail
       ActsAsTenant.with_tenant(tenant1) do
         expect {
-          create(:listing, 
-            category: category1, 
-            url_raw: url, 
+          create(:listing,
+            category: category1,
+            url_raw: url,
             title: 'Test Article Duplicate'
           )
         }.to raise_error(ActiveRecord::RecordInvalid, /Url canonical has already been taken/)
@@ -49,9 +49,9 @@ RSpec.describe 'Tenant Isolation for Categories and Listings', type: :model do
       # Creating same URL in different tenant should succeed
       listing2 = nil
       ActsAsTenant.with_tenant(tenant2) do
-        listing2 = create(:listing, 
-          category: category2, 
-          url_raw: url, 
+        listing2 = create(:listing,
+          category: category2,
+          url_raw: url,
           title: 'Test Article 2'
         )
       end

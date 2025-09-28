@@ -1,121 +1,72 @@
-<% tenant = Current.tenant&.decorate %>
+<% content_for :title, @tenant&.title || t('app.tagline') %>
 
-<div class="min-h-screen bg-gray-50 py-12">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <% if tenant %>
-      <div class="space-y-6">
-        <div class="flex items-center justify-between">
-          <h2 class="text-2xl font-bold text-gray-900"><%= t('homepage.latest_content') %></h2>
-          <% if @listings.any? %>
-            <div class="text-sm text-gray-500">
-              <%= t('counts.item', count: @listings.count) %> • 
-              <%= link_to t('actions.view_all'), listings_path, class: "text-blue-600 hover:text-blue-800" %>
-            </div>
+<div class="container mx-auto px-4 py-8">
+  <% if @tenant %>
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">
+        <%= @tenant.title %>
+      </h1>
+
+      <% if @tenant.description.present? %>
+        <p class="text-xl text-gray-600 leading-relaxed">
+          <%= @tenant.description %>
+        </p>
+      <% end %>
+    </div>
+
+    <% if @listings.any? %>
+      <div class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6">
+          <%= t('listings.index.latest_content') %>
+        </h2>
+
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <% @listings.each do |listing| %>
+            <article class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div class="p-6">
+                <div class="flex items-center justify-between mb-3">
+                  <% if listing.category %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <%= listing.category.name %>
+                    </span>
+                  <% end %>
+
+                  <% if listing.published_at %>
+                    <time class="text-sm text-gray-500" datetime="<%= listing.published_at.iso8601 %>">
+                      <%= t('time.ago', time: time_ago_in_words(listing.published_at)) %>
+                    </time>
+                  <% end %>
+                </div>
+
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                  <%= link_to listing.title, listing_path(listing),
+                      class: "hover:text-blue-600 transition-colors" %>
+                </h3>
+
+                <% if listing.description.present? %>
+                  <p class="text-gray-600 text-sm line-clamp-3">
+                    <%= truncate(listing.description, length: 150) %>
+                  </p>
+                <% end %>
+              </div>
+            </article>
           <% end %>
         </div>
-
-        <% if @listings.any? %>
-          <div class="grid gap-6">
-            <% @listings.each do |listing| %>
-              <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                <div class="p-6">
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                      <div class="flex items-center space-x-2 mb-2">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          <%= listing.category.name %>
-                        </span>
-                        <% if listing.published_at %>
-                          <span class="text-xs text-gray-500">
-                            <%= time_ago_in_words(listing.published_at) %> <%= t('time.ago') %>
-                          </span>
-                        <% end %>
-                      </div>
-                      
-                      <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                        <%= link_to listing.title, listing_path(listing), 
-                            class: "hover:text-blue-600 transition-colors" %>
-                      </h3>
-                      
-                      <% if listing.description.present? %>
-                        <p class="text-gray-600 mb-3 line-clamp-3">
-                          <%= truncate(listing.description, length: 200) %>
-                        </p>
-                      <% end %>
-                      
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-4 text-sm text-gray-500">
-                          <% if listing.site_name.present? %>
-                            <span><%= listing.site_name %></span>
-                          <% end %>
-                          <% if listing.domain.present? %>
-                            <span class="font-mono"><%= listing.domain %></span>
-                          <% end %>
-                        </div>
-                        
-                        <div class="flex items-center space-x-2">
-                          <%= link_to "Read more", listing_path(listing), 
-                              class: "inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 hover:bg-gray-50 transition-colors" %>
-                          <%= link_to listing.url_canonical, 
-                              class: "inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 transition-colors",
-                              target: "_blank", rel: "noopener" do %>
-                            Visit Site
-                            <svg class="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                          <% end %>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <% if listing.image_url.present? %>
-                      <div class="ml-6 flex-shrink-0">
-                        <%= image_tag listing.image_url, 
-                            alt: listing.title,
-                            class: "h-20 w-20 object-cover rounded-lg",
-                            loading: "lazy" %>
-                      </div>
-                    <% end %>
-                  </div>
-                </div>
-              </div>
-            <% end %>
-          </div>
-          
-          <div class="text-center pt-6">
-            <%= link_to t('actions.view_all'), listings_path, 
-                class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors" %>
-          </div>
-        <% else %>
-          <div class="text-center py-12">
-            <div class="bg-gray-50 rounded-lg p-8">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t('homepage.empty_state.title') %></h3>
-              <p class="mt-1 text-sm text-gray-500">
-                <%= t('homepage.empty_state.message') %>
-              </p>
-            </div>
-          </div>
-        <% end %>
       </div>
-
-      <!-- Root tenant: Show tenant directory -->
-      <% if tenant.tenant_directory_partial %>
-        <div class="mt-12">
-          <%= render tenant.tenant_directory_partial, tenant: tenant %>
-        </div>
-      <% end %>
     <% else %>
-      <div class="text-center">
-        <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h1 class="text-2xl font-bold text-red-900 mb-2">Tenant Not Found</h1>
-          <p class="text-red-700">
-            No tenant is configured for this hostname.
-          </p>
+      <div class="text-center py-12">
+        <div class="text-gray-500">
+          <p class="text-lg"><%= t('listings.index.empty.title') %></p>
+          <p class="mt-2"><%= t('listings.index.empty.description') %></p>
         </div>
       </div>
     <% end %>
-  </div>
+  <% else %>
+    <div class="text-center py-12">
+      <div class="text-gray-500">
+        <p class="text-lg"><%= t('tenants.show.not_found.title') %></p>
+        <p class="mt-2"><%= t('tenants.show.not_found.description') %></p>
+      </div>
+    </div>
+  <% end %>
 </div>

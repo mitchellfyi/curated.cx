@@ -84,6 +84,16 @@ end
 # Include Devise test helpers
 RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include Devise::Test::ControllerHelpers, type: :controller
+
+  # Ensure Devise mappings are properly set up for tests
+  config.before(:suite) do
+    # Force Devise to reload its mappings if they're empty
+    if Devise.mappings.empty?
+      Rails.application.reload_routes!
+      Devise.regenerate_helpers!
+    end
+  end
 end
 
 # Configure test types
@@ -92,11 +102,11 @@ RSpec.configure do |config|
   config.define_derived_metadata(file_path: %r{/spec/performance/}) do |metadata|
     metadata[:type] = :performance
   end
-  
+
   config.define_derived_metadata(file_path: %r{/spec/i18n}) do |metadata|
     metadata[:type] = :i18n
   end
-  
+
   config.define_derived_metadata(tag: :accessibility) do |metadata|
     metadata[:type] = :accessibility
   end

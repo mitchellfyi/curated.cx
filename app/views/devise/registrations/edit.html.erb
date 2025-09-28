@@ -1,13 +1,13 @@
 <% setup_meta_tags(
-  title: "Account Settings",
-  description: "Manage your account settings, update your password, and configure your preferences"
+  title: t('auth.account.title'),
+  description: t('auth.account.description')
 ) %>
 
 <div class="min-h-screen bg-gray-50 py-12">
   <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="bg-white shadow rounded-lg">
       <div class="px-4 py-5 sm:p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Account Settings</h1>
+        <h1 class="text-2xl font-bold text-gray-900 mb-6"><%= t('auth.account.title') %></h1>
 
         <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-6" }) do |f| %>
           <%= render "devise/shared/error_messages", resource: resource %>
@@ -63,10 +63,10 @@
           </div>
 
           <div class="flex items-center justify-between">
-            <%= f.submit "Update Account",
+            <%= f.submit t('actions.update'),
                 class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
 
-            <%= link_to "Back", :back,
+            <%= link_to t('actions.back'), :back,
                 class: "text-gray-600 hover:text-gray-900 font-medium" %>
           </div>
         <% end %>
@@ -77,11 +77,11 @@
             <p class="text-sm text-red-800 mb-3">
               Once you delete your account, there is no going back. Please be certain.
             </p>
-            <%= button_to "Delete Account",
+            <%= button_to t('actions.delete'),
                 registration_path(resource_name),
                 data: {
-                  confirm: "Are you sure? This action cannot be undone.",
-                  turbo_confirm: "Are you sure? This action cannot be undone."
+                  confirm: t('actions.confirm'),
+                  turbo_confirm: t('actions.confirm')
                 },
                 method: :delete,
                 class: "bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" %>

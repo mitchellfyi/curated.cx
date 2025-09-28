@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 class CategoriesController < ApplicationController
-  before_action :check_tenant_privacy, only: [:index, :show]
-  before_action :set_category, only: [:show]
+  before_action :check_tenant_privacy, only: [ :index, :show ]
+  before_action :set_category, only: [ :show ]
 
   def index
     authorize Category
     @categories = policy_scope(Category).includes(:listings).order(:name)
-    
+
     set_page_meta_tags(
-      title: t('categories.index.title'),
-      description: t('categories.index.description', tenant: Current.tenant&.title)
+      title: t("categories.index.title"),
+      description: t("categories.index.description", tenant: Current.tenant&.title)
     )
   end
 
@@ -22,8 +22,8 @@ class CategoriesController < ApplicationController
 
     set_page_meta_tags(
       title: @category.name,
-      description: t('categories.show.description', 
-                    category: @category.name, 
+      description: t("categories.show.description",
+                    category: @category.name,
                     tenant: Current.tenant&.title)
     )
   end

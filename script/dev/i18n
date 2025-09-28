@@ -1,37 +1,212 @@
 #!/usr/bin/env ruby
-# i18n management script
+# Enhanced i18n management and quality enforcement
+# Ensures complete internationalization compliance
 
-puts "🌍 Managing i18n translations..."
+puts "🌍 Internationalization Quality Enforcement"
 puts "=" * 50
 
-def run_command(description, command)
-  puts "\n#{description}"
-  puts "-" * 30
-  system(command)
+def run_command(description, command, critical: true)
+  puts "\n📋 #{description}"
+  puts "-" * 40
+
+  result = system(command)
+
+  if result
+    puts "✅ PASS - #{description}"
+  else
+    if critical
+      puts "❌ CRITICAL FAILURE - #{description}"
+      puts "🚫 Fix i18n issues before proceeding"
+      exit 1
+    else
+      puts "⚠️  WARNING - #{description}"
+    end
+  end
+
+  result
 end
 
-# Check for missing translations
-run_command("🔍 Checking for missing translations:", "bundle exec i18n-tasks missing")
+# 1. Health Check
+run_command(
+  "i18n Health Check - Overall Translation Status",
+  "bundle exec i18n-tasks health"
+)
 
-# Check for unused translations
-run_command("🧹 Checking for unused translations:", "bundle exec i18n-tasks unused")
+# 2. Missing Translations (Critical)
+puts "\n🔍 Checking for missing translations..."
+missing_output = `bundle exec i18n-tasks missing 2>&1`
+if $?.success? && missing_output.strip.empty?
+  puts "✅ No missing translations found"
+else
+  puts "❌ Missing translations detected:"
+  puts missing_output
+  puts ""
+  puts "💡 Add missing translations to config/locales/en.yml"
+  puts "   Example:"
+  puts "   en:"
+  puts "     pages:"
+  puts "       listings:"
+  puts "         title: 'Latest News'"
+  exit 1
+end
 
-# Check for inconsistent interpolations
-run_command("🔗 Checking for inconsistent interpolations:", "bundle exec i18n-tasks check-consistent-interpolations")
+# 3. Unused Translations (Warning)
+puts "\n🧹 Checking for unused translations..."
+unused_output = `bundle exec i18n-tasks unused 2>&1`
+if $?.success? && unused_output.strip.empty?
+  puts "✅ No unused translations found"
+else
+  puts "⚠️  Unused translations detected:"
+  puts unused_output
+  puts ""
+  puts "💡 Consider removing unused translations:"
+  puts "   bundle exec i18n-tasks remove-unused"
+end
 
-# Check for keys with the same value as the base locale
-run_command("📋 Checking for keys with same value as base locale:", "bundle exec i18n-tasks eq-base")
+# 4. Hardcoded String Detection
+puts "\n🔍 Scanning for hardcoded strings in templates..."
+hardcoded_strings = []
 
-# Normalize translation files
-run_command("📝 Normalizing translation files:", "bundle exec i18n-tasks normalize")
+# Scan ERB templates for hardcoded strings
+Dir.glob("app/views/**/*.html.erb").each do |file|
+  content = File.read(file)
 
-puts "\n💡 Available i18n-tasks commands:"
-puts "  bundle exec i18n-tasks missing           # Show missing translations"
-puts "  bundle exec i18n-tasks unused            # Show unused translations"
-puts "  bundle exec i18n-tasks normalize         # Normalize translation files"
-puts "  bundle exec i18n-tasks health            # Overall health check"
-puts "  bundle exec i18n-tasks add-missing       # Add missing keys"
-puts "  bundle exec i18n-tasks remove-unused     # Remove unused keys"
-puts "  bundle exec i18n-tasks translate-missing # Auto-translate missing keys"
+  # Look for common hardcoded string patterns
+  patterns = [
+    /"[A-Za-z\s]{3,}"(?!\s*%>)/,  # Quoted strings not in ERB tags
+    />([A-Z][a-zA-Z\s]{10,})</,   # Text content in HTML tags
+    /placeholder="[^<]+"/,        # Placeholder attributes
+    /title="[^<]+"/,             # Title attributes
+    /alt="[^<]+"/                # Alt attributes
+  ]
 
-puts "\n✅ i18n check complete!"
+  content.each_line.with_index(1) do |line, line_num|
+    patterns.each do |pattern|
+      if line.match?(pattern) && !line.include?('t(') && !line.include?('<%=') && !line.include?('#{')
+        # Skip obvious non-translatable content
+        next if line.match?(/class=|id=|data-|href=|src=|type=/)
+        next if line.strip.length < 3
+
+        hardcoded_strings << "#{file}:#{line_num}: #{line.strip}"
+      end
+    end
+  end
+end
+
+if hardcoded_strings.any?
+  puts "❌ Potential hardcoded strings found:"
+  hardcoded_strings.each do |str|
+    puts "  #{str}"
+  end
+  puts ""
+  puts "💡 Replace hardcoded strings with i18n keys:"
+  puts "   Before: <h1>Welcome to our site</h1>"
+  puts "   After:  <h1><%= t('welcome.title') %></h1>"
+  puts ""
+  puts "🚫 Fix hardcoded strings before proceeding"
+  exit 1
+else
+  puts "✅ No obvious hardcoded strings detected in templates"
+end
+
+# 5. Translation Key Consistency Check
+puts "\n📊 Analyzing translation key consistency..."
+
+# Load English translations
+en_file = "config/locales/en.yml"
+if File.exist?(en_file)
+  require 'yaml'
+
+  begin
+    en_translations = YAML.load_file(en_file)['en'] || {}
+
+    # Check for proper key organization
+    expected_sections = %w[actions pages models common errors helpers]
+    missing_sections = expected_sections - en_translations.keys
+
+    if missing_sections.any?
+      puts "⚠️  Consider organizing translations with these sections:"
+      missing_sections.each { |section| puts "  - #{section}" }
+    else
+      puts "✅ Translation keys are well organized"
+    end
+
+    # Check for common reusable keys
+    action_keys = en_translations.dig('actions') || {}
+    expected_actions = %w[edit delete save cancel create update view]
+    missing_actions = expected_actions - action_keys.keys
+
+    if missing_actions.any?
+      puts "💡 Consider adding common action keys:"
+      missing_actions.each { |action| puts "  actions.#{action}" }
+    end
+
+  rescue => e
+    puts "⚠️  Could not parse #{en_file}: #{e.message}"
+  end
+else
+  puts "❌ English translation file not found: #{en_file}"
+  exit 1
+end
+
+# 6. Normalize Translation Files
+run_command(
+  "Normalizing Translation Files",
+  "bundle exec i18n-tasks normalize",
+  critical: false
+)
+
+# 7. Consistency with Spanish translations (if available)
+es_file = "config/locales/es.yml"
+if File.exist?(es_file)
+  puts "\n🇪🇸 Checking Spanish translation consistency..."
+
+  run_command(
+    "Spanish Translation Health Check",
+    "bundle exec i18n-tasks health --locales es",
+    critical: false
+  )
+else
+  puts "ℹ️  Spanish translations not available (#{es_file})"
+end
+
+# 8. Integration with Views
+puts "\n🔗 Validating i18n integration in views..."
+
+view_files = Dir.glob("app/views/**/*.html.erb")
+i18n_usage_count = 0
+
+view_files.each do |file|
+  content = File.read(file)
+  i18n_usage_count += content.scan(/\bt\(/).length
+  i18n_usage_count += content.scan(/<%=\s*t\(/).length
+end
+
+puts "📈 Translation usage statistics:"
+puts "  - Template files scanned: #{view_files.length}"
+puts "  - Translation calls found: #{i18n_usage_count}"
+puts "  - Average per template: #{view_files.length > 0 ? (i18n_usage_count.to_f / view_files.length).round(1) : 0}"
+
+if i18n_usage_count < view_files.length * 2
+  puts "⚠️  Consider increasing i18n usage in templates"
+  puts "    Every static string should use a translation key"
+end
+
+# Summary
+puts "\n" + "=" * 50
+puts "🎉 i18n Quality Check Complete!"
+puts ""
+puts "📚 Best Practices:"
+puts "  • Use semantic key names (pages.listings.title)"
+puts "  • Group related translations (actions.*, models.*)"
+puts "  • Reuse common keys when possible"
+puts "  • Use interpolation for dynamic content"
+puts "  • Test translations in different languages"
+puts ""
+puts "🔧 Tools:"
+puts "  • Check health: bundle exec i18n-tasks health"
+puts "  • Find missing: bundle exec i18n-tasks missing"
+puts "  • Remove unused: bundle exec i18n-tasks remove-unused"
+puts "  • Add translation: bundle exec i18n-tasks add-missing"
+puts ""
+puts "✅ i18n enforcement complete!"

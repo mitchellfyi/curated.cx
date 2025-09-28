@@ -59,7 +59,7 @@ class Listing < ApplicationRecord
   scope :published, -> { where.not(published_at: nil) }
   scope :recent, -> { order(published_at: :desc, created_at: :desc) }
   scope :by_domain, ->(domain) { where(domain: domain) }
-  scope :with_content, -> { where.not(body_html: [nil, '']) }
+  scope :with_content, -> { where.not(body_html: [ nil, "" ]) }
 
   def ai_summaries
     super || {}
@@ -82,10 +82,10 @@ class Listing < ApplicationRecord
     return nil unless host
 
     # Simple root domain extraction (could be enhanced with public_suffix gem)
-    parts = host.split('.')
+    parts = host.split(".")
     return host if parts.length <= 2
 
-    parts.last(2).join('.')
+    parts.last(2).join(".")
   rescue URI::InvalidURIError
     nil
   end
@@ -98,25 +98,25 @@ class Listing < ApplicationRecord
     begin
       # Parse and normalize the URL
       uri = URI.parse(url_raw.strip)
-      
+
       # Validate that it's a proper HTTP/HTTPS URL
       unless uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
         errors.add(:url_raw, "must be a valid HTTP or HTTPS URL")
         return
       end
-      
+
       # Ensure it has a host
       unless uri.host.present?
         errors.add(:url_raw, "must include a valid hostname")
         return
       end
-      
+
       # Normalize scheme
       uri.scheme = uri.scheme.downcase
-      
+
       # Normalize host
       uri.host = uri.host.downcase
-      
+
       # Remove common tracking parameters
       if uri.query
         params = URI.decode_www_form(uri.query)
@@ -129,10 +129,10 @@ class Listing < ApplicationRecord
         params = params.reject { |key, _| tracking_params.include?(key.downcase) }
         uri.query = params.empty? ? nil : URI.encode_www_form(params)
       end
-      
+
       # Normalize path (remove trailing slash unless it's root)
-      if uri.path && uri.path != '/'
-        normalized_path = uri.path.gsub(/\/+$/, '')
+      if uri.path && uri.path != "/"
+        normalized_path = uri.path.gsub(/\/+$/, "")
         # Only set path if it's valid
         begin
           uri.path = normalized_path unless normalized_path.empty?
@@ -140,7 +140,7 @@ class Listing < ApplicationRecord
           # Keep original path if normalization fails
         end
       end
-      
+
       self.url_canonical = uri.to_s
     rescue URI::InvalidURIError, ArgumentError => e
       errors.add(:url_raw, "is not a valid URL: #{e.message}")
@@ -165,7 +165,7 @@ class Listing < ApplicationRecord
   end
 
   def validate_jsonb_fields
-    [ai_summaries, ai_tags, metadata].each_with_index do |field, index|
+    [ ai_summaries, ai_tags, metadata ].each_with_index do |field, index|
       field_name = %i[ai_summaries ai_tags metadata][index]
       next if field.blank?
 

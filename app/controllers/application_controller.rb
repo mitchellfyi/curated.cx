@@ -32,7 +32,14 @@ class ApplicationController < ActionController::Base
 
   def user_not_authorized
     flash[:alert] = "You are not authorized to perform this action."
-    redirect_to(request.referrer || root_path)
+
+    # If user is not signed in, redirect to sign in page
+    if !user_signed_in?
+      redirect_to new_user_session_path
+    else
+      # If user is signed in but not authorized, redirect to previous page or root
+      redirect_to(request.referrer || root_path)
+    end
   end
 
   def set_default_meta_tags
@@ -74,7 +81,7 @@ class ApplicationController < ActionController::Base
   # Check if tenant requires authentication for public routes
   def check_tenant_privacy
     return unless Current.tenant&.requires_login?
-    
+
     unless user_signed_in?
       flash[:alert] = "This content requires authentication."
       redirect_to new_user_session_path

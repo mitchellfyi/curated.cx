@@ -28,14 +28,14 @@ RSpec.describe "Admin::Dashboards", type: :request do
           it "only shows data for the current tenant" do
             get admin_dashboard_path
             expect(response).to have_http_status(:success)
-            
+
             # Check that only tenant1 data is shown
             expect(assigns(:categories)).to include(tenant1_category)
             expect(assigns(:categories)).not_to include(tenant2_category)
-            
+
             expect(assigns(:recent_listings)).to include(tenant1_listing)
             expect(assigns(:recent_listings)).not_to include(tenant2_listing)
-            
+
             # Check stats are scoped to current tenant
             stats = assigns(:stats)
             expect(stats[:total_categories]).to eq(1) # Only tenant1_category
@@ -59,14 +59,14 @@ RSpec.describe "Admin::Dashboards", type: :request do
           it "only shows data for the current tenant" do
             get admin_dashboard_path
             expect(response).to have_http_status(:success)
-            
+
             # Check that only tenant2 data is shown
             expect(assigns(:categories)).to include(tenant2_category)
             expect(assigns(:categories)).not_to include(tenant1_category)
-            
+
             expect(assigns(:recent_listings)).to include(tenant2_listing)
             expect(assigns(:recent_listings)).not_to include(tenant1_listing)
-            
+
             # Check stats are scoped to current tenant
             stats = assigns(:stats)
             expect(stats[:total_categories]).to eq(1) # Only tenant2_category
@@ -88,14 +88,14 @@ RSpec.describe "Admin::Dashboards", type: :request do
           it "only shows data for the current tenant" do
             get admin_dashboard_path
             expect(response).to have_http_status(:success)
-            
+
             # Check that only tenant1 data is shown
             expect(assigns(:categories)).to include(tenant1_category)
             expect(assigns(:categories)).not_to include(tenant2_category)
-            
+
             expect(assigns(:recent_listings)).to include(tenant1_listing)
             expect(assigns(:recent_listings)).not_to include(tenant2_listing)
-            
+
             # Check stats are scoped to current tenant
             stats = assigns(:stats)
             expect(stats[:total_categories]).to eq(1)

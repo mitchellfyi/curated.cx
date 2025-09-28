@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Admin::CategoriesController < ApplicationController
-  before_action :set_category, only: [:show, :edit, :update, :destroy]
+  before_action :set_category, only: [ :show, :edit, :update, :destroy ]
   before_action :ensure_admin_access
   skip_after_action :verify_authorized
   skip_after_action :verify_policy_scoped
@@ -23,7 +23,7 @@ class Admin::CategoriesController < ApplicationController
     @category.tenant = Current.tenant
 
     if @category.save
-      redirect_to admin_category_path(@category), notice: t('admin.categories.created')
+      redirect_to admin_category_path(@category), notice: t("admin.categories.created")
     else
       render :new, status: :unprocessable_entity
     end
@@ -34,7 +34,7 @@ class Admin::CategoriesController < ApplicationController
 
   def update
     if @category.update(category_params)
-      redirect_to admin_category_path(@category), notice: t('admin.categories.updated')
+      redirect_to admin_category_path(@category), notice: t("admin.categories.updated")
     else
       render :edit, status: :unprocessable_entity
     end
@@ -42,7 +42,7 @@ class Admin::CategoriesController < ApplicationController
 
   def destroy
     @category.destroy
-    redirect_to admin_categories_path, notice: t('admin.categories.deleted')
+    redirect_to admin_categories_path, notice: t("admin.categories.deleted")
   end
 
   private

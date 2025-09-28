@@ -1,0 +1,264 @@
+#!/usr/bin/env ruby
+# Pre-push quality enforcement - comprehensive checks before pushing to remote
+# This runs more extensive checks than pre-commit since push is less frequent
+
+puts "🚀 Pre-push Quality Enforcement for Curated.www"
+puts "=" * 60
+puts "Running comprehensive checks before pushing to remote..."
+
+def run_check(description, command, critical: true)
+  puts "\n📋 #{description}"
+  puts "-" * 50
+
+  start_time = Time.now
+  result = system(command)
+  duration = (Time.now - start_time).round(2)
+
+  status = result ? "✅ PASS" : "❌ FAIL"
+  puts "#{status} (#{duration}s) - #{description}"
+
+  unless result
+    if critical
+      puts "🚫 CRITICAL FAILURE: Push blocked"
+      puts "💡 Fix the issues above and try pushing again"
+      exit 1
+    else
+      puts "⚠️  WARNING: Issues found but not blocking"
+    end
+  end
+
+  result
+end
+
+# 1. Full Quality Suite (Master Check)
+run_check(
+  "Master Quality Suite - All 12 Gates",
+  "./script/dev/quality"
+)
+
+# 2. Extended Test Suite (Including Performance and Integration)
+run_check(
+  "Extended Test Suite - Performance & Integration",
+  "bundle exec rspec --format progress"
+)
+
+# 3. Code Quality Analysis
+run_check(
+  "Code Quality Analysis - RubyCritic",
+  "bundle exec rubycritic --no-browser app/ lib/ --minimum-score 90",
+  critical: false
+)
+
+# 4. Code Smell Detection
+run_check(
+  "Code Smell Detection - Reek",
+  "bundle exec reek app/ lib/ --no-progress",
+  critical: false
+)
+
+# 5. Performance Suggestions
+run_check(
+  "Performance Suggestions - Fasterer",
+  "bundle exec fasterer app/ lib/",
+  critical: false
+)
+
+# 6. Advanced Security Scan
+run_check(
+  "Advanced Security Scan - Bundle Audit with Update",
+  "bundle exec bundle-audit check --update --verbose"
+)
+
+# 7. Database Schema Validation
+puts "\n📊 Database Schema Validation"
+puts "-" * 50
+
+schema_issues = `bundle exec rails runner "
+  # Advanced schema validation
+  issues = []
+
+  # Check for missing foreign key constraints
+  ActiveRecord::Base.connection.tables.each do |table|
+    next if table.start_with?('ar_internal_metadata', 'schema_migrations')
+
+    columns = ActiveRecord::Base.connection.columns(table)
+    foreign_keys = ActiveRecord::Base.connection.foreign_keys(table)
+
+    # Find columns that look like foreign keys but don't have constraints
+    fk_columns = columns.select { |c| c.name.end_with?('_id') && c.name != 'id' }
+
+    fk_columns.each do |fk_col|
+      has_constraint = foreign_keys.any? { |fk| fk.column == fk_col.name }
+      unless has_constraint
+        # Skip some common exceptions
+        next if ['tenant_id', 'uuid', 'external_id'].include?(fk_col.name.gsub(/_id$/, ''))
+        issues << \\\"Missing foreign key constraint: #{table}.#{fk_col.name}\\\"
+      end
+    end
+  end
+
+  if issues.any?
+    puts \\\"Schema issues found:\\\"
+    issues.each { |issue| puts \\\"  - #{issue}\\\" }
+    exit 1
+  else
+    puts 'Database schema validation passed'
+  end
+" 2>&1`
+
+if $?.success?
+  puts "✅ Database schema validation passed"
+else
+  puts "❌ Database schema issues found:"
+  puts schema_issues
+  puts "💡 Add missing foreign key constraints in migrations"
+  exit 1
+end
+
+# 8. Multi-tenant Data Integrity Check
+puts "\n🏢 Multi-tenant Data Integrity Validation"
+puts "-" * 50
+
+tenant_integrity = `bundle exec rails runner "
+  # Check for tenant data leakage
+  issues = []
+
+  # Get all tenant-scoped models
+  tenant_models = []
+  Dir['app/models/**/*.rb'].each do |file|
+    model_name = File.basename(file, '.rb').camelize
+    next unless model_name.match?(/^[A-Z]/)
+
+    begin
+      klass = model_name.constantize
+      next unless klass < ActiveRecord::Base
+      next if klass.abstract_class?
+
+      if klass.column_names.include?('tenant_id')
+        tenant_models << klass
+      end
+    rescue => e
+      next
+    end
+  end
+
+  # Check each model for potential data leakage
+  tenant_models.each do |model|
+    begin
+      # Check if all records have tenant_id
+      if model.where(tenant_id: nil).exists?
+        issues << \\\"#{model.name} has records without tenant_id\\\"
+      end
+
+      # Check if acts_as_tenant is properly configured
+      unless model.respond_to?(:acts_as_tenant_options)
+        issues << \\\"#{model.name} missing acts_as_tenant configuration\\\"
+      end
+    rescue => e
+      issues << \\\"Error checking #{model.name}: #{e.message}\\\"
+    end
+  end
+
+  if issues.any?
+    puts \\\"Multi-tenant integrity issues:\\\"
+    issues.each { |issue| puts \\\"  - #{issue}\\\" }
+    exit 1
+  else
+    puts \\\"Multi-tenant integrity validation passed (#{tenant_models.length} models checked)\\\"
+  end
+" 2>&1`
+
+if $?.success?
+  puts "✅ Multi-tenant integrity validation passed"
+  puts tenant_integrity
+else
+  puts "❌ Multi-tenant integrity issues found:"
+  puts tenant_integrity
+  exit 1
+end
+
+# 9. Documentation Sync Check
+puts "\n📚 Documentation Synchronization Check"
+puts "-" * 50
+
+doc_sync_issues = []
+
+# Check if quality gates are consistent across documents
+agents_gates = `grep -c "Quality Gate" AGENTS.md 2>/dev/null || echo 0`.to_i
+copilot_gates = `grep -c "Quality Gate" .github/copilot-instructions.md 2>/dev/null || echo 0`.to_i
+quality_doc_gates = `grep -c "Quality Gate" doc/QUALITY_ENFORCEMENT.md 2>/dev/null || echo 0`.to_i
+
+if agents_gates != copilot_gates || agents_gates != quality_doc_gates
+  doc_sync_issues << "Quality gate counts don't match across documentation"
+end
+
+# Check if version numbers are consistent
+readme_version = `grep -o "Rails [0-9.]*" README.md | head -1` rescue ""
+gemfile_version = `grep -o 'rails.*[0-9.]*' Gemfile | head -1` rescue ""
+
+unless readme_version.include?(gemfile_version.split(',').first.gsub(/['"~]/, '').strip)
+  doc_sync_issues << "Rails version mismatch between README and Gemfile"
+end
+
+if doc_sync_issues.any?
+  puts "❌ Documentation synchronization issues:"
+  doc_sync_issues.each { |issue| puts "  - #{issue}" }
+  puts "💡 Update documentation to ensure consistency"
+  exit 1
+else
+  puts "✅ Documentation is properly synchronized"
+end
+
+# 10. Deployment Readiness Check
+puts "\n🚀 Deployment Readiness Validation"
+puts "-" * 50
+
+deployment_issues = []
+
+# Check for required environment variables in production
+required_env_vars = %w[DATABASE_URL SECRET_KEY_BASE RAILS_ENV]
+missing_env_examples = []
+
+required_env_vars.each do |var|
+  env_example_content = File.read(".env.example") rescue ""
+  unless env_example_content.include?(var)
+    missing_env_examples << var
+  end
+end
+
+if missing_env_examples.any?
+  deployment_issues << "Missing environment variables in .env.example: #{missing_env_examples.join(', ')}"
+end
+
+# Check if assets can be precompiled
+unless system("bundle exec rails assets:precompile RAILS_ENV=production SECRET_KEY_BASE=dummy_key > /dev/null 2>&1")
+  deployment_issues << "Asset precompilation fails"
+end
+
+# Clean up assets
+system("bundle exec rails assets:clobber > /dev/null 2>&1")
+
+if deployment_issues.any?
+  puts "❌ Deployment readiness issues:"
+  deployment_issues.each { |issue| puts "  - #{issue}" }
+  exit 1
+else
+  puts "✅ Deployment readiness validated"
+end
+
+# Success Summary
+puts "\n" + "=" * 60
+puts "🎉 Pre-push Quality Enforcement Complete!"
+puts ""
+puts "✅ All critical checks passed - push approved"
+puts "📊 Quality Summary:"
+puts "   • Master quality suite: All 12 gates passed"
+puts "   • Extended test suite: All tests passing"
+puts "   • Security analysis: No vulnerabilities"
+puts "   • Database integrity: Schema and constraints validated"
+puts "   • Multi-tenant isolation: Data integrity confirmed"
+puts "   • Documentation: All docs synchronized"
+puts "   • Deployment readiness: Production build validated"
+puts ""
+puts "🚀 Ready for deployment!"
+puts "=" * 60

@@ -20,8 +20,8 @@ class CreateListings < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :listings, [:tenant_id, :url_canonical], unique: true, name: 'index_listings_on_tenant_and_url_canonical'
-    add_index :listings, [:tenant_id, :category_id]
+    add_index :listings, [ :tenant_id, :url_canonical ], unique: true, name: 'index_listings_on_tenant_and_url_canonical'
+    add_index :listings, [ :tenant_id, :category_id ]
     add_index :listings, :domain
     add_index :listings, :published_at
   end

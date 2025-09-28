@@ -1,0 +1,133 @@
+#!/usr/bin/env ruby
+# File-specific quality check - runs targeted checks on individual files
+# Usage: ./script/dev/quality-check-file <file_path>
+
+file_path = ARGV[0]
+
+unless file_path && File.exist?(file_path)
+  puts "❌ Usage: #{$0} <file_path>"
+  exit 1
+end
+
+puts "🔍 Running targeted quality checks for: #{file_path}"
+
+# Determine file type and run appropriate checks
+case File.extname(file_path)
+when '.rb'
+  puts "\n📏 RuboCop check..."
+  unless system("bundle exec rubocop #{file_path}")
+    puts "❌ RuboCop violations found"
+    exit 1
+  end
+
+  # Check for SOLID principles violations
+  puts "\n🏗️  SOLID principles check..."
+  content = File.read(file_path)
+
+  # Single Responsibility - check class/method size
+  class_lines = content.lines.count
+  if class_lines > 100
+    puts "⚠️  Large file (#{class_lines} lines) - consider splitting responsibilities"
+  end
+
+  # Check for direct database calls if it's a controller
+  if file_path.include?('controllers/')
+    db_calls = content.scan(/\.where\(|\.find\(|\.create\(|\.update\(|\.delete\(/).count
+    tenant_scoped_calls = content.scan(/Current\.tenant\./).count
+
+    if db_calls > tenant_scoped_calls
+      puts "⚠️  Controller contains direct database calls - use services or proper scoping"
+    end
+  end
+
+  # Check for acts_as_tenant if it's a model with tenant_id
+  if file_path.include?('models/') && content.include?('tenant_id')
+    unless content.include?('acts_as_tenant')
+      puts "❌ Model has tenant_id but missing acts_as_tenant"
+      exit 1
+    end
+  end
+
+when '.erb'
+  puts "\n📄 ERB Lint check..."
+  unless system("bundle exec erb_lint #{file_path}")
+    puts "❌ ERB lint violations found"
+    exit 1
+  end
+
+  # Check for hardcoded strings
+  puts "\n🌍 i18n compliance check..."
+  content = File.read(file_path)
+
+  # Look for hardcoded strings
+  hardcoded_patterns = [
+    /"[A-Za-z\s]{3,}"(?!\s*%>)/,
+    />([A-Z][a-zA-Z\s]{10,})</,
+    /placeholder="[^<]+"/,
+    /title="[^<]+"/,
+    /alt="[^<]+"/
+  ]
+
+  violations = []
+  content.lines.each_with_index do |line, index|
+    hardcoded_patterns.each do |pattern|
+      if line.match?(pattern) && !line.include?('t(') && !line.include?('<%=')
+        # Skip obvious non-translatable content
+        next if line.match?(/class=|id=|data-|href=|src=|type=/)
+        violations << "Line #{index + 1}: #{line.strip}"
+      end
+    end
+  end
+
+  if violations.any?
+    puts "❌ Hardcoded strings found:"
+    violations.each { |v| puts "  #{v}" }
+    exit 1
+  end
+
+when '.js', '.ts'
+  puts "\n📄 JavaScript/TypeScript lint check..."
+  unless system("npm run lint -- #{file_path}")
+    puts "❌ JavaScript lint violations found"
+    exit 1
+  end
+
+when '.yml', '.yaml'
+  puts "\n📄 YAML syntax check..."
+  unless system("ruby -c #{file_path} > /dev/null 2>&1")
+    puts "❌ YAML syntax error"
+    exit 1
+  end
+end
+
+# Security check for sensitive content
+puts "\n🔒 Security content check..."
+content = File.read(file_path)
+
+# Check for potential secrets or sensitive information
+sensitive_patterns = [
+  /password\s*=\s*['"][^'"]+['"]/i,
+  /api_key\s*=\s*['"][^'"]+['"]/i,
+  /secret\s*=\s*['"][^'"]+['"]/i,
+  /token\s*=\s*['"][^'"]+['"]/i,
+  /-----BEGIN .* PRIVATE KEY-----/
+]
+
+sensitive_matches = []
+content.lines.each_with_index do |line, index|
+  sensitive_patterns.each do |pattern|
+    if line.match?(pattern)
+      # Skip obvious test/example content
+      next if line.include?('example') || line.include?('test') || line.include?('dummy')
+      sensitive_matches << "Line #{index + 1}: Potential sensitive content"
+    end
+  end
+end
+
+if sensitive_matches.any?
+  puts "⚠️  Potential sensitive content found:"
+  sensitive_matches.each { |match| puts "  #{match}" }
+  puts "💡 Review and ensure no real secrets are committed"
+end
+
+puts "✅ File quality check passed: #{file_path}"

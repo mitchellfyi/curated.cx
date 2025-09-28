@@ -15,7 +15,7 @@ export default class extends Controller {
   toggle(event) {
     event.stopPropagation()
     this.menuTarget.classList.toggle("hidden")
-    
+
     // Update aria-expanded
     const button = event.currentTarget
     const isExpanded = !this.menuTarget.classList.contains("hidden")

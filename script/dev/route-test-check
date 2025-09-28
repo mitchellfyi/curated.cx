@@ -1,0 +1,149 @@
+#!/usr/bin/env ruby
+# Route testing validation - ensures all routes have corresponding tests
+# Usage: ./script/dev/route-test-check
+
+puts "🛣️  Route Testing Validation"
+puts "=" * 50
+
+# Get all defined routes
+routes_output = `bundle exec rails routes 2>/dev/null`
+if $?.success?
+  # Parse routes to extract controller actions
+  routes = []
+  routes_output.lines.each do |line|
+    # Match route format: prefix verb uri controller#action
+    match = line.match(/^\s*\w*\s+(GET|POST|PATCH|PUT|DELETE)\s+([^\s]+)\s+([^#]+)#(\w+)/)
+    next unless match
+
+    verb = match[1]
+    path = match[2]
+    controller = match[3]
+    action = match[4]
+
+    routes << {
+      verb: verb,
+      path: path,
+      controller: controller,
+      action: action,
+      full: "#{controller}##{action}"
+    }
+  end
+
+  puts "📊 Found #{routes.length} routes to validate"
+
+  # Check for corresponding tests
+  missing_tests = []
+  routes_with_tests = []
+
+  routes.each do |route|
+    controller_spec = "spec/controllers/#{route[:controller]}_controller_spec.rb"
+    request_spec = "spec/requests/#{route[:controller]}_spec.rb"
+    routing_spec = "spec/routing/#{route[:controller]}_routing_spec.rb"
+
+    has_controller_test = File.exist?(controller_spec) &&
+                         File.read(controller_spec).include?(route[:action]) rescue false
+    has_request_test = File.exist?(request_spec) &&
+                      File.read(request_spec).include?(route[:action]) rescue false
+    has_routing_test = File.exist?(routing_spec) &&
+                      File.read(routing_spec).include?(route[:action]) rescue false
+
+    if has_controller_test || has_request_test || has_routing_test
+      routes_with_tests << route
+    else
+      missing_tests << route
+    end
+  end
+
+  # Report results
+  puts "\n✅ Routes with tests: #{routes_with_tests.length}"
+  puts "❌ Routes missing tests: #{missing_tests.length}"
+
+  unless missing_tests.empty?
+    puts "\n🚫 Routes missing test coverage:"
+    puts "-" * 40
+
+    missing_tests.group_by { |r| r[:controller] }.each do |controller, controller_routes|
+      puts "\n#{controller}_controller:"
+      controller_routes.each do |route|
+        puts "  #{route[:verb].ljust(6)} #{route[:path].ljust(30)} #{route[:action]}"
+      end
+
+      # Generate test file suggestions
+      puts "\n💡 Create tests in one of these files:"
+      puts "  spec/controllers/#{controller}_controller_spec.rb"
+      puts "  spec/requests/#{controller}_spec.rb"
+      puts "  spec/routing/#{controller}_routing_spec.rb"
+
+      # Generate sample test code
+      puts "\n📝 Sample test code:"
+      puts "```ruby"
+      puts "# spec/requests/#{controller}_spec.rb"
+      puts "RSpec.describe \"#{controller.camelize}\", type: :request do"
+      controller_routes.each do |route|
+        method_name = route[:verb].downcase
+        sample_path = route[:path].gsub(/:(\w+)/, '1')  # Replace :id with 1
+
+        puts "  it \"#{route[:verb]} #{route[:path]}\" do"
+        puts "    #{method_name} \"#{sample_path}\""
+        puts "    expect(response).to have_http_status(:success)"
+        puts "  end"
+        puts ""
+      end
+      puts "end"
+      puts "```"
+    end
+
+    puts "\n" + "=" * 50
+    puts "🚫 Route testing validation FAILED"
+    puts "All routes must have corresponding tests"
+    puts "Add tests for the missing routes above"
+    exit 1
+  end
+
+  # Validate test quality
+  puts "\n🔍 Validating test quality..."
+  test_quality_issues = []
+
+  # Check if routing specs exist and are comprehensive
+  routing_specs = Dir.glob("spec/routing/**/*_routing_spec.rb")
+  controller_count = routes.map { |r| r[:controller] }.uniq.length
+
+  if routing_specs.length < controller_count
+    test_quality_issues << "Missing routing specs for some controllers"
+    test_quality_issues << "Consider adding routing specs: rails g rspec:routing ControllerName"
+  end
+
+  # Check for proper HTTP status testing
+  request_specs = Dir.glob("spec/requests/**/*_spec.rb")
+  request_specs.each do |spec_file|
+    content = File.read(spec_file)
+
+    # Check if tests verify HTTP status
+    unless content.include?('have_http_status') || content.include?('response.status')
+      relative_path = spec_file.sub("#{Dir.pwd}/", "")
+      test_quality_issues << "#{relative_path} should test HTTP response status"
+    end
+
+    # Check if tests are tenant-scoped (for multi-tenant app)
+    if content.include?('ActsAsTenant') || content.include?('Current.tenant')
+      # Good - tenant-aware tests
+    elsif content.include?('create(')  # Has factory usage
+      test_quality_issues << "#{spec_file.sub("#{Dir.pwd}/", "")} may need tenant scoping"
+    end
+  end
+
+  if test_quality_issues.any?
+    puts "⚠️  Test quality suggestions:"
+    test_quality_issues.each { |issue| puts "  - #{issue}" }
+  else
+    puts "✅ Test quality looks good"
+  end
+
+  puts "\n✅ Route testing validation PASSED"
+  puts "All #{routes.length} routes have corresponding tests"
+
+else
+  puts "❌ Failed to load Rails routes"
+  puts "Make sure Rails application is properly configured"
+  exit 1
+end

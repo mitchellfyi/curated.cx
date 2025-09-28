@@ -17,8 +17,8 @@ class Admin::DashboardController < ApplicationController
     }
 
     set_page_meta_tags(
-      title: t('admin.dashboard.title'),
-      description: t('admin.dashboard.description', tenant: @tenant.title)
+      title: t("admin.dashboard.title"),
+      description: t("admin.dashboard.description", tenant: @tenant.title)
     )
   end
 

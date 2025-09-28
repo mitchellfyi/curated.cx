@@ -74,11 +74,94 @@ bundle exec rspec spec/system/accessibility_spec.rb  # Run accessibility tests
 
 ```bash
 ./script/dev/setup                   # Setup development environment
-./script/dev/quality                 # Run all quality checks
+./script/dev/setup-quality-automation # Setup autonomous quality system
+./script/dev/quality                 # **MANDATORY** - Run ALL quality checks
+./script/dev/pre-push-quality        # Extended pre-push validation
+./script/dev/quality-dashboard       # Live quality metrics and status
+./script/dev/quality-check-file      # File-specific quality checks
+./script/dev/i18n-check-file         # i18n compliance for templates
+./script/dev/route-test-check        # Route testing validation
+./script/dev/migration-check         # Migration safety analysis
 ./script/dev/i18n                    # Manage i18n translations
 ./script/dev/accessibility           # Run accessibility tests and guidance
 ./script/dev/migrations              # Database migration safety tools
+bundle exec guard                    # **RECOMMENDED** - Real-time quality monitoring
 ```
+
+## Autonomous Quality Enforcement System (CRITICAL)
+
+**This codebase has a fully autonomous quality enforcement system that prevents poor implementations automatically.**
+
+### 🛡️ **Multi-Layer Protection System**:
+
+#### **Layer 1: Real-time Monitoring**
+```bash
+bundle exec guard  # Monitors files and runs quality checks automatically
+```
+
+#### **Layer 2: Pre-commit Hooks (Overcommit)**
+- **Automatically blocks commits** that fail quality gates
+- **12 comprehensive checks** run before every commit
+- **Zero bypass mechanisms** - quality failures prevent commits
+
+#### **Layer 3: Pre-push Hooks**
+- **Extended validation** before pushing to remote
+- **Database integrity** and schema validation
+- **Documentation synchronization** checks
+- **Deployment readiness** verification
+
+#### **Layer 4: CI/CD Pipeline**
+- **Comprehensive automated testing** on every push
+- **Production build validation**
+- **Security and performance monitoring**
+
+### 🚀 **Getting Started with Autonomous Quality**:
+
+```bash
+# 1. Setup the autonomous system (run once)
+./script/dev/setup-quality-automation
+
+# 2. Start real-time monitoring (run during development)
+bundle exec guard
+
+# 3. Check quality status anytime
+./script/dev/quality-dashboard
+
+# 4. Develop normally - the system guides you automatically
+# Pre-commit and pre-push hooks run automatically
+# Guard provides real-time feedback on file changes
+```
+
+## Quality Enforcement (AUTONOMOUS SYSTEM)
+
+**Every code change is automatically validated by a comprehensive autonomous quality system:**
+
+```bash
+./script/dev/quality  # Must pass 100% - enforced automatically via git hooks
+```
+
+### 🛡️ **The 12 Autonomous Quality Gates**:
+- ✅ **Code Style**: Zero RuboCop violations (Rails Omakase) + SOLID principles
+- ✅ **Security**: Zero Brakeman high/medium issues + Bundle Audit
+- ✅ **Tests**: 100% passing, 80% minimum coverage + Test Pyramid compliance
+- ✅ **Route Testing**: Every route must have corresponding tests (automated check)
+- ✅ **i18n**: All static text uses translation keys (hardcoded string detection)
+- ✅ **Template Quality**: ERB lint compliance + semantic HTML
+- ✅ **SEO**: Meta tags, structured data, XML sitemaps (automated validation)
+- ✅ **Accessibility**: WCAG 2.1 AA compliance via axe-core testing
+- ✅ **Performance**: No N+1 queries + response time monitoring
+- ✅ **Database**: Proper indexes, constraints, migration safety
+- ✅ **Multi-tenant**: acts_as_tenant verification + data isolation
+- ✅ **Documentation**: Synchronization and consistency checks
+
+### 🤖 **Fully Automated Protection**:
+- **Pre-commit hooks** block commits that fail quality gates
+- **Pre-push hooks** run extended validation before pushing
+- **Real-time monitoring** via Guard provides immediate feedback
+- **CI/CD pipeline** ensures production readiness
+- **Quality dashboard** provides live metrics and guidance
+
+**Documentation**: See `doc/QUALITY_AUTOMATION.md` for complete autonomous system guide.
 
 ## Internationalization & Accessibility
 
@@ -139,7 +222,7 @@ The application uses the **Decorator pattern** via Draper to handle presentation
 - **ApplicationDecorator**: Base decorator with common functionality
 
 ### Tenant Branding System
-- **Root tenant** (`curated.cx`): Shows directory of all enabled platforms  
+- **Root tenant** (`curated.cx`): Shows directory of all enabled platforms
 - **Other tenants**: Display sticky "Powered by Curated.cx" footer at bottom of page
 - **Development URLs**: Root tenant uses `http://localhost:3000`, child tenants use `http://slug.localhost:3000`
 - **Production URLs**: Uses `https://hostname` for live environments

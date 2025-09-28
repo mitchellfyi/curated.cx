@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Admin::ListingsController < ApplicationController
-  before_action :set_listing, only: [:show, :edit, :update, :destroy]
+  before_action :set_listing, only: [ :show, :edit, :update, :destroy ]
   before_action :ensure_admin_access
   skip_after_action :verify_authorized
   skip_after_action :verify_policy_scoped
@@ -26,7 +26,7 @@ class Admin::ListingsController < ApplicationController
     @listing.tenant = Current.tenant
 
     if @listing.save
-      redirect_to admin_listing_path(@listing), notice: t('admin.listings.created')
+      redirect_to admin_listing_path(@listing), notice: t("admin.listings.created")
     else
       @categories = Category.where(tenant: Current.tenant).order(:name)
       render :new, status: :unprocessable_entity
@@ -39,7 +39,7 @@ class Admin::ListingsController < ApplicationController
 
   def update
     if @listing.update(listing_params)
-      redirect_to admin_listing_path(@listing), notice: t('admin.listings.updated')
+      redirect_to admin_listing_path(@listing), notice: t("admin.listings.updated")
     else
       @categories = Category.where(tenant: Current.tenant).order(:name)
       render :edit, status: :unprocessable_entity
@@ -48,7 +48,7 @@ class Admin::ListingsController < ApplicationController
 
   def destroy
     @listing.destroy
-    redirect_to admin_listings_path, notice: t('admin.listings.deleted')
+    redirect_to admin_listings_path, notice: t("admin.listings.deleted")
   end
 
   private
@@ -58,9 +58,9 @@ class Admin::ListingsController < ApplicationController
   end
 
   def listing_params
-    params.require(:listing).permit(:category_id, :url_raw, :title, :description, 
-                                   :image_url, :site_name, :published_at, 
-                                   :body_html, :body_text, 
+    params.require(:listing).permit(:category_id, :url_raw, :title, :description,
+                                   :image_url, :site_name, :published_at,
+                                   :body_html, :body_text,
                                    ai_summaries: {}, ai_tags: {}, metadata: {})
   end
 

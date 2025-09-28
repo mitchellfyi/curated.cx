@@ -1,0 +1,333 @@
+#!/usr/bin/env ruby
+# Anti-Pattern Detection Script - Prevents workarounds and shortcuts
+# Ensures all implementations follow project goals and best practices
+
+puts "🚫 Anti-Pattern Detection - No Shortcuts Allowed"
+puts "=" * 60
+
+def check_file(file_path)
+  return unless File.exist?(file_path)
+  content = File.read(file_path)
+  violations = []
+
+  # Ruby-specific anti-patterns
+  if file_path.end_with?('.rb')
+    violations.concat(check_ruby_antipatterns(content, file_path))
+  end
+
+  # ERB-specific anti-patterns
+  if file_path.end_with?('.erb')
+    violations.concat(check_erb_antipatterns(content, file_path))
+  end
+
+  # Test-specific anti-patterns
+  if file_path.include?('spec/') || file_path.include?('test/')
+    violations.concat(check_test_antipatterns(content, file_path))
+  end
+
+  violations
+end
+
+def check_ruby_antipatterns(content, file_path)
+  violations = []
+
+  # Detect quality tool bypasses (FORBIDDEN)
+  bypass_patterns = [
+    /# rubocop:disable/i,
+    /# rubocop:skip/i,
+    /rubocop:todo/i,
+    /safety_assured\s*do/i,
+    /skip.*brakeman/i,
+    /# TODO.*fix.*later/i,
+    /# HACK/i,
+    /# FIXME.*later/i,
+    /\.silence_warnings/,
+    /rescue\s*=>\s*nil\s*$/,  # Swallowing exceptions
+    /rescue.*\n\s*#.*ignore/i
+  ]
+
+  bypass_patterns.each do |pattern|
+    if content.match?(pattern)
+      violations << {
+        type: :forbidden_bypass,
+        message: "Quality tool bypass detected: #{pattern.source}",
+        severity: :critical,
+        fix: "Remove bypass and fix the underlying issue properly"
+      }
+    end
+  end
+
+  # Detect anti-patterns in models
+  if file_path.include?('models/')
+    # Missing acts_as_tenant workaround
+    if content.include?('tenant_id') && !content.include?('acts_as_tenant')
+      unless content.match?(/class.*ApplicationRecord|abstract_class.*true/)
+        violations << {
+          type: :missing_tenant_scoping,
+          message: "Model has tenant_id but uses manual scoping instead of acts_as_tenant",
+          severity: :critical,
+          fix: "Add 'acts_as_tenant :tenant' to properly scope the model"
+        }
+      end
+    end
+
+    # Business logic in models that should be in services
+    if content.match?(/def.*send.*email|def.*process.*payment|def.*generate.*report/i)
+      violations << {
+        type: :business_logic_in_model,
+        message: "Business logic detected in model - should be in service object",
+        severity: :warning,
+        fix: "Extract business logic to dedicated service class"
+      }
+    end
+  end
+
+  # Detect anti-patterns in controllers
+  if file_path.include?('controllers/')
+    # Direct database calls instead of using Current.tenant
+    db_calls = content.scan(/\.(where|find|create|update|destroy)\(/).count
+    tenant_calls = content.scan(/Current\.tenant\./).count
+
+    if db_calls > 0 && tenant_calls == 0
+      violations << {
+        type: :unscoped_database_calls,
+        message: "Direct database calls without tenant scoping",
+        severity: :critical,
+        fix: "Use Current.tenant.model_name for all database operations"
+      }
+    end
+
+    # Business logic in controllers
+    if content.lines.count > 50
+      violations << {
+        type: :fat_controller,
+        message: "Controller is too large - extract logic to services",
+        severity: :warning,
+        fix: "Move business logic to service objects or concerns"
+      }
+    end
+
+    # Missing error handling
+    unless content.include?('rescue') || content.include?('rescue_from')
+      violations << {
+        type: :missing_error_handling,
+        message: "Controller missing proper error handling",
+        severity: :warning,
+        fix: "Add rescue_from blocks or proper error handling"
+      }
+    end
+  end
+
+  # Detect performance anti-patterns
+  performance_issues = [
+    /\.all\.each/,  # N+1 potential
+    /\.find\(\d+\).*\.find\(\d+\)/,  # Multiple finds
+    /User\.where.*\.where/,  # Multiple wheres
+    /sleep\(/,  # Blocking operations
+    /puts.*debug|p\s+\w+/  # Debug statements
+  ]
+
+  performance_issues.each do |pattern|
+    if content.match?(pattern)
+      violations << {
+        type: :performance_antipattern,
+        message: "Performance anti-pattern detected: #{pattern.source}",
+        severity: :warning,
+        fix: "Use proper eager loading, caching, or async processing"
+      }
+    end
+  end
+
+  violations
+end
+
+def check_erb_antipatterns(content, file_path)
+  violations = []
+
+  # Hardcoded strings (i18n bypass)
+  hardcoded_patterns = [
+    /"[A-Za-z\s]{5,}"(?!\s*%>)/,
+    />([A-Z][a-zA-Z\s]{10,})</,
+    /placeholder="[A-Za-z\s]{3,}"/,
+    /title="[A-Za-z\s]{3,}"/
+  ]
+
+  hardcoded_patterns.each do |pattern|
+    matches = content.scan(pattern)
+    if matches.any?
+      violations << {
+        type: :hardcoded_strings,
+        message: "Hardcoded strings found - must use i18n keys",
+        severity: :critical,
+        fix: "Replace with <%= t('appropriate.key') %> and add translation"
+      }
+    end
+  end
+
+  # Inline styles or scripts (should use assets)
+  if content.match?(/<style>|<script>/)
+    violations << {
+      type: :inline_assets,
+      message: "Inline styles/scripts detected - should use asset pipeline",
+      severity: :warning,
+      fix: "Move CSS to stylesheets and JS to stimulus controllers"
+    }
+  end
+
+  # Missing accessibility attributes
+  if content.include?('<img') && !content.match?(/alt=["'][^"']*["']/)
+    violations << {
+      type: :missing_accessibility,
+      message: "Image without alt attribute",
+      severity: :critical,
+      fix: "Add proper alt text for accessibility compliance"
+    }
+  end
+
+  violations
+end
+
+def check_test_antipatterns(content, file_path)
+  violations = []
+
+  # Test bypasses and skips
+  test_bypasses = [
+    /skip.*test|skip.*it/i,
+    /pending.*test|pending.*it/i,
+    /xit\s|xdescribe\s/,
+    /\.skip/,
+    /# TODO.*test/i
+  ]
+
+  test_bypasses.each do |pattern|
+    if content.match?(pattern)
+      violations << {
+        type: :test_bypass,
+        message: "Test bypass detected: #{pattern.source}",
+        severity: :critical,
+        fix: "Fix the test properly instead of skipping it"
+      }
+    end
+  end
+
+  # Poor test practices
+  if content.include?('sleep(') && file_path.include?('spec/')
+    violations << {
+      type: :flaky_test_pattern,
+      message: "Sleep in test - indicates timing dependency",
+      severity: :warning,
+      fix: "Use proper waiting strategies or mocking"
+    }
+  end
+
+  # Missing test coverage indicators
+  unless content.include?('expect') || content.include?('assert')
+    if content.include?('it ') || content.include?('test ')
+      violations << {
+        type: :empty_test,
+        message: "Test without assertions detected",
+        severity: :critical,
+        fix: "Add proper expectations to validate behavior"
+      }
+    end
+  end
+
+  # Anti-pattern: Testing implementation instead of behavior
+  if content.match?(/expect.*\.to receive.*and_return/)
+    count = content.scan(/expect.*\.to receive/).length
+    assertion_count = content.scan(/expect.*\.to eq|expect.*\.to be/).length
+
+    if count > assertion_count
+      violations << {
+        type: :testing_implementation,
+        message: "Over-mocking - test behavior, not implementation",
+        severity: :warning,
+        fix: "Focus on testing outcomes rather than internal method calls"
+      }
+    end
+  end
+
+  violations
+end
+
+# Main execution
+if ARGV.empty?
+  # Check all files
+  files_to_check = Dir.glob("{app,spec,lib,config}/**/*.{rb,erb}")
+else
+  # Check specific files
+  files_to_check = ARGV
+end
+
+all_violations = []
+files_checked = 0
+
+files_to_check.each do |file|
+  next unless File.exist?(file)
+
+  violations = check_file(file)
+  if violations.any?
+    all_violations << { file: file, violations: violations }
+  end
+  files_checked += 1
+end
+
+puts "📊 Checked #{files_checked} files"
+puts ""
+
+if all_violations.empty?
+  puts "✅ No anti-patterns detected - all implementations follow best practices"
+  exit 0
+else
+  puts "🚫 ANTI-PATTERNS DETECTED - SHORTCUTS AND WORKAROUNDS FOUND"
+  puts "=" * 60
+
+  critical_count = 0
+  warning_count = 0
+
+  all_violations.each do |file_violations|
+    puts "\n📁 #{file_violations[:file]}:"
+
+    file_violations[:violations].each do |violation|
+      case violation[:severity]
+      when :critical
+        puts "  ❌ CRITICAL: #{violation[:message]}"
+        critical_count += 1
+      when :warning
+        puts "  ⚠️  WARNING: #{violation[:message]}"
+        warning_count += 1
+      end
+      puts "     💡 Fix: #{violation[:fix]}"
+      puts ""
+    end
+  end
+
+  puts "=" * 60
+  puts "📊 Summary:"
+  puts "  ❌ Critical issues: #{critical_count}"
+  puts "  ⚠️  Warnings: #{warning_count}"
+  puts ""
+  puts "🚫 ANTI-PATTERN ENFORCEMENT:"
+  puts "  • No shortcuts or workarounds allowed"
+  puts "  • Fix the root cause, not the symptom"
+  puts "  • Follow project patterns and best practices"
+  puts "  • Prioritize user experience and maintainability"
+  puts "  • Use proper abstraction layers (services, decorators, etc.)"
+  puts ""
+  puts "📚 Reference:"
+  puts "  • SOLID principles for proper architecture"
+  puts "  • Rails conventions for consistency"
+  puts "  • Multi-tenant patterns for data isolation"
+  puts "  • i18n best practices for accessibility"
+  puts "  • Proper test patterns for reliability"
+
+  if critical_count > 0
+    puts ""
+    puts "🚫 BUILD BLOCKED - Fix critical anti-patterns before proceeding"
+    exit 1
+  else
+    puts ""
+    puts "⚠️  Warnings found - address before committing for best practices"
+    exit 0
+  end
+end

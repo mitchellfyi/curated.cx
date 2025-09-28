@@ -46,7 +46,12 @@ class ApplicationPolicy
       if user&.admin?
         scope.all
       elsif Current.tenant.present?
-        scope.where(tenant_id: Current.tenant.id)
+        # Special handling for Tenant model - don't scope by tenant_id
+        if scope.model == Tenant
+          scope.where(status: [ :enabled, :private_access ])
+        else
+          scope.where(tenant_id: Current.tenant.id)
+        end
       else
         scope.none
       end

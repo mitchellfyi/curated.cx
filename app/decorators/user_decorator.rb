@@ -28,7 +28,7 @@ class UserDecorator < ApplicationDecorator
   # Role-based presentation
   def admin_badge
     return nil unless admin?
-    
+
     h.content_tag :span, "Admin",
       class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
       title: "System administrator with access to all tenants"
@@ -98,7 +98,7 @@ class UserDecorator < ApplicationDecorator
 
   def avatar_placeholder(size:, name:)
     initials = name.split.map(&:first).join.upcase[0, 2]
-    
+
     h.content_tag :div, initials,
       class: "inline-flex items-center justify-center rounded-full bg-gray-500 text-white font-medium",
       style: "width: #{size}px; height: #{size}px; font-size: #{size / 2.5}px; line-height: #{size}px;",

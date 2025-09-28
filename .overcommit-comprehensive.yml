@@ -1,0 +1,170 @@
+# Overcommit Configuration for Curated.www
+# Advanced Git Hook Management with Comprehensive Quality Gates
+# Documentation: https://github.com/sds/overcommit
+
+# Fail fast and early - stop on first failure for immediate feedback
+fail_fast: true
+
+# Verify installed gems and plugins
+verify_signatures: false
+
+# Pre-commit hooks - run before git commit
+PreCommit:
+  # Core quality gates that must pass
+  BundleCheck:
+    enabled: true
+    description: 'Check Bundler dependencies'
+
+  RuboCop:
+    enabled: true
+    description: 'Analyze with RuboCop (Rails Omakase)'
+    required_executable: 'rubocop'
+    flags: ['--display-cop-names', '--format=emacs']
+    on_warn: fail
+
+  Brakeman:
+    enabled: true
+    description: 'Check for security vulnerabilities'
+    required_executable: 'brakeman'
+    flags: ['--quiet', '--format', 'emacs']
+
+  RSpec:
+    enabled: true
+    description: 'Run RSpec test suite'
+    required_executable: 'rspec'
+    flags: ['--format', 'progress']
+
+  # Custom quality script - the master enforcer
+  ExecutePermissions:
+    enabled: true
+    description: 'Check script permissions'
+
+  # Template quality
+  ErbLint:
+    enabled: true
+    description: 'Lint ERB templates'
+    required_executable: 'erb_lint'
+    include: '**/*.html.erb'
+
+  # Internationalization
+  LocalPathsInGemfile:
+    enabled: true
+    description: 'Check for local paths in Gemfile'
+
+  # Database safety
+  SchemaUpToDate:
+    enabled: true
+    description: 'Check if database schema is up to date'
+
+  # Security
+  HardTabs:
+    enabled: true
+    description: 'Check for hard tabs'
+    exclude:
+      - '**/Makefile'
+      - '**/*.go'
+
+  TrailingWhitespace:
+    enabled: true
+    description: 'Check for trailing whitespace'
+    exclude:
+      - '**/db/structure.sql'
+      - '**/*-results.json'
+
+  YamlSyntax:
+    enabled: true
+    description: 'Check YAML syntax'
+    include: '**/*.yml'
+
+  # Custom quality script
+  CustomScript:
+    enabled: true
+    description: 'Run comprehensive quality checks'
+    required_executable: './script/dev/quality'
+    command: ['./script/dev/quality']
+
+  # Anti-pattern detection
+  CustomScript:
+    enabled: true
+    description: 'Detect anti-patterns and shortcuts'
+    required_executable: './script/dev/anti-pattern-detection'
+    command: ['./script/dev/anti-pattern-detection']
+
+# Pre-push hooks - run before git push
+PrePush:
+  RSpec:
+    enabled: true
+    description: 'Run full test suite before push'
+    command: ['bundle', 'exec', 'rspec', '--format', 'progress']
+
+  CustomScript:
+    enabled: true
+    description: 'Run comprehensive pre-push quality checks'
+    required_executable: './script/dev/pre-push-quality'
+    command: ['./script/dev/pre-push-quality']
+
+  AntiPatternCheck:
+    enabled: true
+    description: 'Verify no shortcuts or workarounds used'
+    required_executable: './script/dev/anti-pattern-detection'
+    command: ['./script/dev/anti-pattern-detection']
+
+# Commit message hooks
+CommitMsg:
+  CapitalizedSubject:
+    enabled: true
+    description: 'Check subject capitalization'
+
+  EmptyMessage:
+    enabled: true
+    description: 'Check for empty commit message'
+
+  SingleLineSubject:
+    enabled: true
+    description: 'Check subject line length'
+
+  SpellCheck:
+    enabled: false  # Can be enabled if needed
+    description: 'Check spelling in commit messages'
+
+  TextWidth:
+    enabled: true
+    description: 'Check text width'
+    max_subject_width: 72
+    max_body_width: 80
+
+# Post-checkout hooks
+PostCheckout:
+  BundleCheck:
+    enabled: true
+    description: 'Check bundle after checkout'
+
+  IndexTags:
+    enabled: false  # Can be enabled for ctags support
+    description: 'Generate ctags'
+
+# Post-commit hooks
+PostCommit:
+  GitGuilt:
+    enabled: false
+    description: 'Calculate changes in blame since last commit'
+
+# Post-merge hooks
+PostMerge:
+  BundleInstall:
+    enabled: true
+    description: 'Run bundle install after merge'
+
+  IndexTags:
+    enabled: false
+    description: 'Generate ctags after merge'
+
+# Post-rewrite hooks
+PostRewrite:
+  BundleInstall:
+    enabled: true
+    description: 'Run bundle install after rewrite'
+
+  IndexTags:
+    enabled: false
+    description: 'Generate ctags after rewrite'

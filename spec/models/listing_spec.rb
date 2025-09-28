@@ -55,7 +55,7 @@ RSpec.describe Listing, type: :model do
     it 'validates url_canonical uniqueness within tenant' do
       existing = create(:listing, tenant: tenant, category: category, url_raw: 'https://example.com/test')
       new_listing = build(:listing, tenant: tenant, category: category, url_raw: 'https://example.com/test')
-      
+
       expect(new_listing).not_to be_valid
       expect(new_listing.errors[:url_canonical]).to be_present
     end
@@ -87,8 +87,8 @@ RSpec.describe Listing, type: :model do
 
   describe 'URL canonicalization' do
     it 'canonicalizes URLs on save' do
-      listing = build(:listing, 
-        tenant: tenant, 
+      listing = build(:listing,
+        tenant: tenant,
         category: category,
         url_raw: 'HTTP://EXAMPLE.COM/Article/?utm_source=test&other=keep'
       )

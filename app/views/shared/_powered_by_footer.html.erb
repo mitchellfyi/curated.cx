@@ -8,10 +8,10 @@
           <%= link_to t('nav.categories'), categories_path, class: "text-gray-600 hover:text-gray-800" %>
         <% end %>
       </nav>
-      
+
       <!-- Powered by -->
       <p class="powered-by-text">
-        <%= t('nav.powered_by', brand: link_to("Curated.cx", Current.tenant.decorate.curated_main_url,
+        <%= t('nav.powered_by', brand: link_to(t('common.brand_name'), Current.tenant.decorate.curated_main_url,
                               class: "powered-by-link",
                               target: "_blank",
                               rel: "noopener")).html_safe %>

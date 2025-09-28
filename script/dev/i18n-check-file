@@ -1,0 +1,171 @@
+#!/usr/bin/env ruby
+# i18n file-specific checker - validates individual template files for i18n compliance
+# Usage: ./script/dev/i18n-check-file <erb_file_path>
+
+file_path = ARGV[0]
+
+unless file_path && File.exist?(file_path) && file_path.end_with?('.erb')
+  puts "❌ Usage: #{$0} <erb_file_path>"
+  exit 1
+end
+
+puts "🌍 Running i18n compliance check for: #{file_path}"
+
+content = File.read(file_path)
+violations = []
+suggestions = []
+
+# Enhanced patterns for detecting hardcoded strings
+patterns = {
+  quoted_strings: /"([A-Za-z\s]{3,})"(?!\s*%>)/,
+  html_content: />([A-Z][a-zA-Z\s]{10,})</,
+  form_placeholders: /placeholder=["']([^"']+)["']/,
+  title_attributes: /title=["']([^"']+)["']/,
+  alt_attributes: /alt=["']([^"']+)["']/,
+  button_text: /<button[^>]*>([A-Za-z\s]{3,})<\/button>/,
+  link_text: /<a[^>]*>([A-Za-z\s]{5,})<\/a>/,
+  heading_text: /<h[1-6][^>]*>([A-Za-z\s]{5,})<\/h[1-6]>/,
+  label_text: /<label[^>]*>([A-Za-z\s]{3,})<\/label>/
+}
+
+content.lines.each_with_index do |line, line_num|
+  # Skip lines that already use i18n
+  next if line.include?('t(') || line.include?('<%=') && line.include?('t(')
+
+  # Skip obvious non-translatable content
+  next if line.match?(/class=|id=|data-|href=|src=|type=|method=|action=/)
+  next if line.strip.empty? || line.strip.start_with?('<%', '#', '//')
+
+  patterns.each do |pattern_name, pattern|
+    matches = line.scan(pattern)
+    matches.each do |match|
+      text = match.is_a?(Array) ? match.first : match
+      text = text.strip
+
+      # Skip short strings, numbers, or obvious non-text content
+      next if text.length < 3
+      next if text.match?(/^\d+$/)
+      next if text.match?(/^[[:punct:]]+$/)
+      next if text.match?(/^(true|false|null|undefined)$/i)
+      next if text.match?(/^\w+\.\w+/) # Skip method calls
+
+      violations << {
+        line: line_num + 1,
+        text: text,
+        pattern: pattern_name,
+        full_line: line.strip
+      }
+    end
+  end
+end
+
+# Generate suggestions for i18n keys
+unless violations.empty?
+  puts "❌ Hardcoded strings found that need i18n keys:"
+  puts "=" * 60
+
+  violations.each do |violation|
+    puts "\nLine #{violation[:line]} (#{violation[:pattern]}):"
+    puts "  Text: \"#{violation[:text]}\""
+    puts "  Full: #{violation[:full_line]}"
+
+    # Generate suggested i18n key
+    suggested_key = generate_i18n_key(violation[:text], file_path)
+    puts "  Suggested key: #{suggested_key}"
+    puts "  Add to config/locales/en.yml:"
+    puts "    #{suggested_key}: \"#{violation[:text]}\""
+    puts "  Replace with: <%= t('#{suggested_key}') %>"
+  end
+
+  puts "\n" + "=" * 60
+  puts "💡 i18n Best Practices:"
+  puts "  • Use semantic, hierarchical keys (e.g., 'pages.listings.title')"
+  puts "  • Group related translations under common namespaces"
+  puts "  • Reuse common keys like 'actions.edit', 'actions.delete'"
+  puts "  • Use interpolation for dynamic content: t('message', name: name)"
+  puts "  • Test translations in multiple languages"
+
+  exit 1
+end
+
+# Check for proper i18n usage patterns
+puts "✅ No hardcoded strings found"
+
+# Analyze existing i18n usage
+i18n_calls = content.scan(/t\(['"]([^'"]+)['"]/).flatten
+unless i18n_calls.empty?
+  puts "\n📊 i18n Usage Analysis:"
+  puts "  Found #{i18n_calls.length} translation calls"
+
+  # Check for common patterns
+  action_keys = i18n_calls.select { |key| key.start_with?('actions.') }
+  page_keys = i18n_calls.select { |key| key.start_with?('pages.') }
+  common_keys = i18n_calls.select { |key| key.start_with?('common.') }
+
+  puts "  Action keys: #{action_keys.length}" unless action_keys.empty?
+  puts "  Page keys: #{page_keys.length}" unless page_keys.empty?
+  puts "  Common keys: #{common_keys.length}" unless common_keys.empty?
+
+  # Check for overly long keys
+  long_keys = i18n_calls.select { |key| key.length > 50 }
+  unless long_keys.empty?
+    puts "  ⚠️  Long keys found (consider shortening):"
+    long_keys.each { |key| puts "    - #{key}" }
+  end
+
+  # Check for inconsistent naming
+  inconsistent_keys = i18n_calls.select { |key| key.include?('-') || key.include?(' ') }
+  unless inconsistent_keys.empty?
+    puts "  ⚠️  Inconsistent key naming (use dots and underscores):"
+    inconsistent_keys.each { |key| puts "    - #{key}" }
+  end
+end
+
+puts "✅ i18n compliance check passed: #{file_path}"
+
+def generate_i18n_key(text, file_path)
+  # Extract context from file path
+  if file_path.include?('admin/')
+    namespace = 'admin'
+  elsif file_path.include?('layouts/')
+    namespace = 'layouts'
+  elsif file_path.include?('shared/')
+    namespace = 'shared'
+  else
+    namespace = 'pages'
+  end
+
+  # Extract controller/view context
+  path_parts = file_path.split('/')
+  if path_parts.include?('views')
+    view_index = path_parts.index('views')
+    if view_index && path_parts[view_index + 1]
+      controller = path_parts[view_index + 1]
+      view = File.basename(path_parts.last, '.html.erb') if path_parts.last
+
+      # Generate semantic key
+      key_text = text.downcase
+                     .gsub(/[^a-z0-9\s]/, '')
+                     .strip
+                     .split(/\s+/)
+                     .first(3)  # Take first 3 words
+                     .join('_')
+
+      if view && view != 'index'
+        "#{namespace}.#{controller}.#{view}.#{key_text}"
+      else
+        "#{namespace}.#{controller}.#{key_text}"
+      end
+    end
+  end
+
+  # Fallback
+  key_text = text.downcase
+                 .gsub(/[^a-z0-9\s]/, '')
+                 .strip
+                 .split(/\s+/)
+                 .first(3)
+                 .join('_')
+
+  "#{namespace}.#{key_text}"
+end
