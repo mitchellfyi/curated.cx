@@ -77,7 +77,7 @@ group :development do
   gem "bullet", "~> 8.0"
 
   # Database query analysis and optimization
-  gem "prosopite", "~> 1.4"
+  gem "prosopite", "~> 2.1"
 
   # Better error pages [https://github.com/BetterErrors/better_errors]
   gem "better_errors", "~> 2.10"

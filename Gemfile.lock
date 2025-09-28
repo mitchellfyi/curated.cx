@@ -382,7 +382,7 @@ GEM
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
       rack
-    prosopite (1.4.2)
+    prosopite (2.1.2)
     psych (5.2.6)
       date
       stringio
@@ -654,7 +654,7 @@ DEPENDENCIES
   pg (~> 1.1)
   pg_search (~> 2.3)
   propshaft
-  prosopite (~> 1.4)
+  prosopite (~> 2.1)
   puma (>= 5.0)
   pundit (~> 2.3)
   rails (~> 8.0.3)
