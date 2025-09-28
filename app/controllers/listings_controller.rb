@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class ListingsController < ApplicationController
+  before_action :check_tenant_privacy, only: [:index, :show]
   before_action :set_listing, only: [:show]
   before_action :set_category, only: [:index]
 
@@ -45,10 +46,10 @@ class ListingsController < ApplicationController
   private
 
   def set_listing
-    @listing = policy_scope(Listing).find(params[:id])
+    @listing = policy_scope(Listing).includes(:category, :tenant).find(params[:id])
   end
 
   def set_category
-    @category = policy_scope(Category).find(params[:category_id]) if params[:category_id].present?
+    @category = policy_scope(Category).includes(:tenant).find(params[:category_id]) if params[:category_id].present?
   end
 end

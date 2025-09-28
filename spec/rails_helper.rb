@@ -80,3 +80,8 @@ Shoulda::Matchers.configure do |config|
     with.library :rails
   end
 end
+
+# Include Devise test helpers
+RSpec.configure do |config|
+  config.include Devise::Test::IntegrationHelpers, type: :request
+end

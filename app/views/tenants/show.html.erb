@@ -3,34 +3,6 @@
 <div class="min-h-screen bg-gray-50 py-12">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     <% if tenant %>
-      <!-- Header with tenant info and navigation -->
-      <div class="bg-white shadow rounded-lg p-6 mb-6">
-        <div class="flex items-center justify-between mb-6">
-          <div class="flex items-center space-x-4">
-            <%= tenant.logo_image(size: 48) %>
-            <div>
-              <h1 class="text-3xl font-bold text-gray-900"><%= tenant.display_name %></h1>
-              <p class="mt-1 text-sm text-gray-600">
-                <%= link_to "About", about_path, class: "text-blue-600 hover:text-blue-800" %>
-                <% if tenant.enabled_categories.any? %>
-                  <span class="mx-2">•</span>
-                  <%= link_to "Categories", categories_path, class: "text-blue-600 hover:text-blue-800" %>
-                <% end %>
-              </p>
-            </div>
-          </div>
-          <div class="text-right">
-            <%= tenant.status_badge %>
-          </div>
-        </div>
-
-        <% if tenant.description? %>
-          <div class="mb-4">
-            <p class="text-gray-700"><%= tenant.display_description %></p>
-          </div>
-        <% end %>
-      </div>
-
       <!-- Listings Feed -->
       <div class="space-y-6">
         <div class="flex items-center justify-between">

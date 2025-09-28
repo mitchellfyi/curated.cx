@@ -57,6 +57,7 @@ group :development, :test do
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.5"
   gem "shoulda-matchers", "~> 6.0"
+  gem "rails-controller-testing", "~> 1.0"
 
   # Code quality and performance tools
   gem "simplecov", require: false

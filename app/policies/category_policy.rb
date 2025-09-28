@@ -2,11 +2,15 @@
 
 class CategoryPolicy < ApplicationPolicy
   def index?
-    true # Public access to categories
+    # Allow public access unless tenant requires private access
+    return true unless Current.tenant&.requires_login?
+    user.present?
   end
 
   def show?
-    true # Public access to category
+    # Allow public access unless tenant requires private access
+    return true unless Current.tenant&.requires_login?
+    user.present?
   end
 
   def create?

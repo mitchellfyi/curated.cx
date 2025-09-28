@@ -70,4 +70,14 @@ class ApplicationController < ActionController::Base
     # This can be overridden in individual controllers
     set_meta_tags(options)
   end
+
+  # Check if tenant requires authentication for public routes
+  def check_tenant_privacy
+    return unless Current.tenant&.requires_login?
+    
+    unless user_signed_in?
+      flash[:alert] = "This content requires authentication."
+      redirect_to new_user_session_path
+    end
+  end
 end

@@ -4,7 +4,7 @@ class TenantsController < ApplicationController
   def index
     # Only admins can list all tenants
     authorize Tenant
-    @tenants = policy_scope(Tenant)
+    @tenants = policy_scope(Tenant).includes(:categories)
   end
 
   def show

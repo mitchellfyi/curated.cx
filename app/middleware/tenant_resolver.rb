@@ -12,6 +12,12 @@ class TenantResolver
       hostname = request.host
       puts "TenantResolver: Processing request for hostname: #{hostname}"
 
+      # Skip tenant resolution for health check endpoint
+      if request.path == "/up"
+        puts "TenantResolver: Skipping tenant resolution for health check endpoint"
+        return @app.call(env)
+      end
+
       # Set the current tenant based on hostname
       tenant = resolve_tenant(hostname)
       puts "TenantResolver: Resolved tenant: #{tenant&.title || 'nil'}"

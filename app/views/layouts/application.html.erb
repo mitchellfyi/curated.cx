@@ -63,7 +63,7 @@
     </main>
 
     <footer role="contentinfo" aria-label="<%= t('a11y.footer') %>">
-      <% if Current.tenant && !Current.tenant.decorate.root_tenant? %>
+      <% if Current.tenant %>
         <%= render 'shared/powered_by_footer', tenant: Current.tenant.decorate %>
       <% end %>
     </footer>

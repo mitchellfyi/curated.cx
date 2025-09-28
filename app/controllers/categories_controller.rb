@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class CategoriesController < ApplicationController
+  before_action :check_tenant_privacy, only: [:index, :show]
   before_action :set_category, only: [:show]
 
   def index
@@ -15,7 +16,7 @@ class CategoriesController < ApplicationController
 
   def show
     authorize @category
-    @listings = policy_scope(@category.listings)
+    @listings = policy_scope(@category.listings.includes(:category))
                        .recent
                        .limit(20)
 
@@ -30,6 +31,6 @@ class CategoriesController < ApplicationController
   private
 
   def set_category
-    @category = policy_scope(Category).find(params[:id])
+    @category = policy_scope(Category).includes(:tenant).find(params[:id])
   end
 end

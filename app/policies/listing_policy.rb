@@ -2,11 +2,15 @@
 
 class ListingPolicy < ApplicationPolicy
   def index?
-    true # Public access to listings
+    # Allow public access unless tenant requires private access
+    return true unless Current.tenant&.requires_login?
+    user.present?
   end
 
   def show?
-    true # Public access to listing
+    # Allow public access unless tenant requires private access
+    return true unless Current.tenant&.requires_login?
+    user.present?
   end
 
   def create?
