@@ -2,12 +2,19 @@
   "name": "app",
   "private": true,
   "devDependencies": {
-    "esbuild": "^0.25.10"
+    "esbuild": "^0.25.10",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5"
   },
   "scripts": {
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
     "build:css": "npx @tailwindcss/cli -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/application.css --config ./tailwind.config.js --minify",
-    "lint": "echo 'No JavaScript linting configured yet' && exit 0"
+    "lint": "eslint app/javascript/ --ext .js,.ts --format json --output-file tmp/quality-results/eslint-results.json",
+    "lint:fix": "eslint app/javascript/ --ext .js,.ts --fix",
+    "format": "prettier --write app/javascript/",
+    "format:check": "prettier --check app/javascript/"
   },
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
