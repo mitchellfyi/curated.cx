@@ -2,7 +2,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900"><%= t('categories.index.title') %></h1>
-      <p class="mt-2 text-gray-600">Browse content by category on <%= Current.tenant&.title %></p>
+      <p class="mt-2 text-gray-600"><%= t('categories.index.browse_content', tenant: Current.tenant&.title) %></p>
     </div>
 
     <% if @categories.any? %>
@@ -18,11 +18,11 @@
                 </div>
                 <div class="mt-2">
                 <p class="text-sm text-gray-600">
-                  <%= pluralize(category.listings.size, 'item') %>
+                  <%= t('counts.item', count: category.listings.size) %>
                 </p>
               </div>
               <div class="mt-4">
-                <%= link_to "Browse →", category_path(category), class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
+                <%= link_to t('actions.browse'), category_path(category), class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
               </div>
             </div>
           </div>

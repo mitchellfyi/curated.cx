@@ -10,42 +10,148 @@ en:
     categories: Categories
     all_categories: All Categories
     admin: Admin
+    about: About
+    powered_by: "Powered by %{brand}"
   
   # Application info
   app:
     name: Curated
     tagline: Curated content for your audience
   
+  # Common actions
+  actions:
+    view_all: View all
+    browse: "Browse →"
+    edit: Edit
+    delete: Delete
+    create: Create
+    update: Update
+    back: Back
+    show: Show
+    cancel: Cancel
+    save: Save
+    new: New
+    visit: Visit
+    read_more: Read more
+    
+  # Time and counts
+  time:
+    ago: ago
+    
+  counts:
+    item:
+      zero: no items
+      one: "%{count} item"
+      other: "%{count} items"
+    listing:
+      zero: no listings
+      one: "%{count} listing"
+      other: "%{count} listings"
+  
+  # Homepage/Tenant show
+  homepage:
+    latest_content: Latest Content
+    no_content: No content available yet
+    empty_state:
+      title: No listings yet
+      message: Check back later for curated content
+      
   # Categories
   categories:
     index:
       title: Categories
       description: Browse all categories for %{tenant}
+      browse_content: Browse content by category on %{tenant}
+      no_categories: No categories available
     show:
       description: Latest content in %{category} for %{tenant}
+      back_to_categories: Back to Categories
 
   # Listings  
   listings:
     index:
       title: Latest Content
       description: Browse latest content in %{category} for %{tenant}
+      no_listings: No listings available
+      back_to_category: "Back to %{category}"
+    show:
+      description: View listing details for %{title}
+      visit_link: Visit Link
+      back_to_listings: Back to Listings
       
+  # About page
+  about:
+    title: About %{tenant}
+    page_title: "About %{tenant} | %{tenant}"
+    description: "Learn more about %{tenant} and our curated content platform"
+    tenant_details: Tenant Details
+    slug: Slug
+    created: Created
+    settings: Settings
+    theme: Theme
+    primary: Primary
+    categories: Categories
+    team_members: Team Members
+    users_and_roles: Users and Roles
+    
   # Admin
   admin:
     dashboard:
       title: Admin Dashboard
       description: Manage %{tenant} content and settings
+      overview: Overview
+      quick_actions: Quick Actions
     categories:
+      title: Categories
+      description: Manage content categories for %{tenant}
       created: Category created successfully
       updated: Category updated successfully
       deleted: Category deleted successfully
+      new: New Category
+      edit: Edit Category
+      show: Category Details
     listings:
+      title: Listings
+      description: Manage content listings for %{tenant}
       created: Listing created successfully
       updated: Listing updated successfully
       deleted: Listing deleted successfully
-  
+      new: New Listing
+      edit: Edit Listing
+      show: Listing Details
+      
+  # User management
+  users:
+    admin_badge: Admin
+    platform_admin_badge: Platform Admin
+    account_status: Account Status
+    last_seen: Last Seen
+    member_since: Member Since
+    never: Never
+    
+  # Tenants
+  tenants:
+    status:
+      enabled: Enabled
+      disabled: Disabled
+      
+  # Forms and validation
+  forms:
+    required_fields: "* Required fields"
+    save_changes: Save Changes
+    cancel_changes: Cancel Changes
+    
   # Accessibility labels
   a11y:
     primary_content: Primary content
     footer: Footer
     skip_to_content: Skip to main content
+    navigation: Main navigation
+    user_menu: User menu
+    categories_menu: Categories menu
+    
+  # Meta descriptions and SEO
+  meta:
+    default_description: "Curated content platform for industry professionals"
+    keywords:
+      default: "curated content, industry news, tools, services"

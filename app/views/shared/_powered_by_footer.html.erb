@@ -1,21 +1,20 @@
 <div class="powered-by-footer">
   <div class="powered-by-container">
     <div class="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
-      <!-- Navigation Links -->
       <nav class="flex items-center space-x-4 text-sm">
-        <%= link_to "About", about_path, class: "text-gray-600 hover:text-gray-800" %>
+        <%= link_to t('nav.about'), about_path, class: "text-gray-600 hover:text-gray-800" %>
         <% if Current.tenant&.decorate&.enabled_categories&.any? %>
           <span class="text-gray-400">•</span>
-          <%= link_to "Categories", categories_path, class: "text-gray-600 hover:text-gray-800" %>
+          <%= link_to t('nav.categories'), categories_path, class: "text-gray-600 hover:text-gray-800" %>
         <% end %>
       </nav>
       
       <!-- Powered by -->
       <p class="powered-by-text">
-        Powered by <%= link_to "Curated.cx", Current.tenant.decorate.curated_main_url,
+        <%= t('nav.powered_by', brand: link_to("Curated.cx", Current.tenant.decorate.curated_main_url,
                               class: "powered-by-link",
                               target: "_blank",
-                              rel: "noopener" %>
+                              rel: "noopener")).html_safe %>
       </p>
     </div>
   </div>

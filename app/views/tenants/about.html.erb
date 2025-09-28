@@ -1,8 +1,8 @@
 <% tenant = Current.tenant&.decorate %>
 
 <% setup_meta_tags(
-  title: "About #{tenant&.display_name}",
-  description: "Learn more about #{tenant&.display_name} and our curated content platform"
+  title: t('about.page_title', tenant: tenant&.display_name),
+  description: t('about.description', tenant: tenant&.display_name)
 ) %>
 
 <div class="min-h-screen bg-gray-50 py-12">
@@ -24,7 +24,7 @@
 
         <% if tenant.description? %>
           <div class="mb-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-2">Description</h2>
+            <h2 class="text-lg font-medium text-gray-900 mb-2"><%= t('about.description') %></h2>
             <p class="text-gray-700"><%= tenant.display_description %></p>
           </div>
         <% end %>

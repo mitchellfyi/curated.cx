@@ -3,14 +3,13 @@
 <div class="min-h-screen bg-gray-50 py-12">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     <% if tenant %>
-      <!-- Listings Feed -->
       <div class="space-y-6">
         <div class="flex items-center justify-between">
-          <h2 class="text-2xl font-bold text-gray-900">Latest Content</h2>
+          <h2 class="text-2xl font-bold text-gray-900"><%= t('homepage.latest_content') %></h2>
           <% if @listings.any? %>
             <div class="text-sm text-gray-500">
-              <%= pluralize(@listings.count, 'item') %> • 
-              <%= link_to "View all", listings_path, class: "text-blue-600 hover:text-blue-800" %>
+              <%= t('counts.item', count: @listings.count) %> • 
+              <%= link_to t('actions.view_all'), listings_path, class: "text-blue-600 hover:text-blue-800" %>
             </div>
           <% end %>
         </div>
@@ -28,7 +27,7 @@
                         </span>
                         <% if listing.published_at %>
                           <span class="text-xs text-gray-500">
-                            <%= time_ago_in_words(listing.published_at) %> ago
+                            <%= time_ago_in_words(listing.published_at) %> <%= t('time.ago') %>
                           </span>
                         <% end %>
                       </div>
@@ -84,7 +83,7 @@
           </div>
           
           <div class="text-center pt-6">
-            <%= link_to "View all content", listings_path, 
+            <%= link_to t('actions.view_all'), listings_path, 
                 class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors" %>
           </div>
         <% else %>
@@ -93,9 +92,9 @@
               <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
               </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">No content yet</h3>
+              <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t('homepage.empty_state.title') %></h3>
               <p class="mt-1 text-sm text-gray-500">
-                Check back soon for curated content from <%= tenant.display_name %>.
+                <%= t('homepage.empty_state.message') %>
               </p>
             </div>
           </div>

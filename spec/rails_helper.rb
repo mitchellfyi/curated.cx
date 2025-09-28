@@ -85,3 +85,19 @@ end
 RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
 end
+
+# Configure test types
+RSpec.configure do |config|
+  # Define custom test types
+  config.define_derived_metadata(file_path: %r{/spec/performance/}) do |metadata|
+    metadata[:type] = :performance
+  end
+  
+  config.define_derived_metadata(file_path: %r{/spec/i18n}) do |metadata|
+    metadata[:type] = :i18n
+  end
+  
+  config.define_derived_metadata(tag: :accessibility) do |metadata|
+    metadata[:type] = :accessibility
+  end
+end

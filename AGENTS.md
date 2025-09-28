@@ -6,6 +6,14 @@ PRINCIPLES
 - Everything observable, measurable and trackable.
 - Default to action: if information is missing, propose a safe assumption, note it, and proceed.
 
+## I18N AND LOCALIZATION REQUIREMENT
+- **ALL static text content in views MUST use i18n (internationalization) keys**
+- **NO hardcoded strings in ERB templates** - use `<%= t('key.name') %>` instead
+- Update `config/locales/en.yml` with organized, semantic keys
+- Avoid duplication: reuse keys like `actions.edit`, `actions.delete`, `counts.item` unless context requires different wording
+- Use interpolation for dynamic content: `t('message', name: @user.name)`
+- When adding ANY static text to views, always add the corresponding i18n key first
+
 WHAT I WANT FROM YOU EACH TURN
 1) Read the repo state (assume empty on first run).  
 2) Propose the next smallest valuable increment toward v0 with:
