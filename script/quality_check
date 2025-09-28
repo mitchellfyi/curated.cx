@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Quality Check Script for Curated.cx
+# Matches GitHub Actions CI workflows
+
 echo "🔍 Running Quality Checks..."
 echo "=============================="
 
@@ -8,10 +10,13 @@ echo "=============================="
 TOTAL_ISSUES=0
 CRITICAL_ISSUES=0
 
+# Create results directory
+mkdir -p tmp/quality-results
+
 echo
 echo "1️⃣ RuboCop (Ruby Code Style)"
 echo "----------------------------"
-if bundle exec rubocop --format progress; then
+if bundle exec rubocop --format progress --format json --out tmp/quality-results/rubocop-results.json; then
     echo "✅ RuboCop: PASSED"
 else
     echo "❌ RuboCop: FAILED"
@@ -20,9 +25,19 @@ else
 fi
 
 echo
-echo "2️⃣ Brakeman (Security Analysis)"
+echo "2️⃣ ERB Lint (Template Quality)"
+echo "-------------------------------"
+if bundle exec erb_lint --lint-all --format json --out tmp/quality-results/erb-lint-results.json; then
+    echo "✅ ERB Lint: PASSED"
+else
+    echo "⚠️  ERB Lint: Issues found"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+fi
+
+echo
+echo "3️⃣ Brakeman (Security Analysis)"
 echo "--------------------------------"
-if bundle exec brakeman --no-pager -q; then
+if bundle exec brakeman --format json --output tmp/quality-results/brakeman-results.json; then
     echo "✅ Brakeman: PASSED (No security issues)"
 else
     echo "❌ Brakeman: SECURITY ISSUES FOUND"
@@ -31,30 +46,40 @@ else
 fi
 
 echo
-echo "3️⃣ ERB Lint (Template Quality)"
-echo "-------------------------------"
-if bundle exec erb_lint --lint-all --format compact > /dev/null 2>&1; then
-    echo "✅ ERB Lint: PASSED"
+echo "4️⃣ Bundle Audit (Dependency Security)"
+echo "--------------------------------------"
+if bundle exec bundle-audit check --update; then
+    echo "✅ Bundle Audit: PASSED"
 else
-    echo "⚠️  ERB Lint: Issues found (mostly formatting)"
+    echo "❌ Bundle Audit: VULNERABILITIES FOUND"
     TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
 fi
 
 echo
-echo "4️⃣ Rails Best Practices"
+echo "5️⃣ Rails Best Practices"
 echo "------------------------"
-RAILS_BP_OUTPUT=$(bundle exec rails_best_practices --silent . 2>/dev/null | tail -1)
-if [[ "$RAILS_BP_OUTPUT" == *"Found 0 warnings"* ]]; then
+if bundle exec rails_best_practices --format json --output tmp/quality-results/rails-bp-results.json; then
     echo "✅ Rails Best Practices: PASSED"
 else
-    echo "⚠️  Rails Best Practices: $RAILS_BP_OUTPUT"
+    echo "⚠️  Rails Best Practices: Issues found"
     TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
 fi
 
 echo
-echo "5️⃣ Test Suite"
+echo "6️⃣ i18n Tests"
+echo "-------------"
+if bundle exec rspec spec/i18n_integrated_spec.rb --format progress; then
+    echo "✅ i18n Tests: PASSED"
+else
+    echo "⚠️  i18n Tests: Issues found"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+fi
+
+echo
+echo "7️⃣ Test Suite"
 echo "--------------"
-if bundle exec rspec --format progress > /dev/null 2>&1; then
+if bundle exec rspec --exclude-pattern "spec/{performance,system/accessibility_integrated_spec.rb,i18n_integrated_spec.rb}" --format progress --format json --out tmp/quality-results/rspec-results.json; then
     echo "✅ Tests: PASSED"
 else
     echo "❌ Tests: Some failures"
@@ -63,10 +88,31 @@ else
 fi
 
 echo
+echo "8️⃣ Accessibility Tests"
+echo "----------------------"
+if bundle exec rspec spec/system/accessibility_integrated_spec.rb --format progress; then
+    echo "✅ Accessibility Tests: PASSED"
+else
+    echo "⚠️  Accessibility Tests: Issues found"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+fi
+
+echo
+echo "9️⃣ Performance Tests"
+echo "--------------------"
+if bundle exec rspec --options .rspec-performance spec/performance/ --format progress; then
+    echo "✅ Performance Tests: PASSED"
+else
+    echo "⚠️  Performance Tests: Issues found"
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+fi
+
+echo
 echo "📊 QUALITY SUMMARY"
 echo "=================="
 echo "Total Issues: $TOTAL_ISSUES"
 echo "Critical Issues: $CRITICAL_ISSUES"
+echo "Results saved to: tmp/quality-results/"
 
 if [ $CRITICAL_ISSUES -eq 0 ]; then
     echo "🎉 Ready to commit! Critical issues resolved."

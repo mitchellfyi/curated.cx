@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# Verification script for CI/CD optimization
+# Tests that all components are working correctly
+
+echo "🔍 Verifying CI/CD Optimization..."
+echo "=================================="
+
+# Initialize counters
+TOTAL_CHECKS=0
+PASSED_CHECKS=0
+
+# Function to run checks
+run_check() {
+    local check_name="$1"
+    local check_command="$2"
+    
+    echo
+    echo "🔍 Checking $check_name..."
+    
+    if eval "$check_command"; then
+        echo "✅ $check_name: PASSED"
+        TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+        PASSED_CHECKS=$((PASSED_CHECKS + 1))
+    else
+        echo "❌ $check_name: FAILED"
+        TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+    fi
+}
+
+# 1. Check workflow files exist
+run_check "CI Workflow" "test -f .github/workflows/ci.yml"
+run_check "Security Workflow" "test -f .github/workflows/security.yml"
+run_check "No Redundant Workflows" "test ! -f .github/workflows/code-quality.yml && test ! -f .github/workflows/accessibility.yml && test ! -f .github/workflows/i18n.yml"
+
+# 2. Check test files exist
+run_check "Performance Test Structure" "test -d spec/performance && test -d spec/performance/models && test -d spec/performance/requests && test -d spec/performance/system"
+run_check "Accessibility Tests" "test -f spec/system/accessibility_integrated_spec.rb"
+run_check "i18n Tests" "test -f spec/i18n_integrated_spec.rb"
+run_check "Performance Helpers" "test -f spec/support/performance_helpers.rb"
+
+# 3. Check configuration files
+run_check "RSpec Performance Config" "test -f .rspec-performance"
+run_check "RSpec Configuration" "test -f .rspec"
+
+# 4. Check scripts are executable
+run_check "Quality Check Script" "test -x script/quality_check"
+run_check "Test Runner Script" "test -x script/test_runner"
+run_check "Security Check Script" "test -x script/security_check"
+run_check "Performance Check Script" "test -x script/performance_check"
+
+# 5. Check RSpec can load the new test types
+run_check "RSpec Performance Tests" "bundle exec rspec --options .rspec-performance --dry-run spec/performance/ 2>&1 | grep -q 'examples'"
+run_check "RSpec Accessibility Tests" "bundle exec rspec --dry-run spec/system/accessibility_integrated_spec.rb 2>&1 | grep -q 'examples'"
+run_check "RSpec i18n Tests" "bundle exec rspec --dry-run spec/i18n_integrated_spec.rb 2>&1 | grep -q 'examples'"
+
+# 6. Check that performance helpers are properly configured
+run_check "Performance Helpers Content" "test -f spec/support/performance_helpers.rb && grep -q 'def detect_n_plus_one' spec/support/performance_helpers.rb"
+
+# 7. Check documentation exists
+run_check "Optimization Documentation" "test -f CI_OPTIMIZATION_SUMMARY.md && test -f OPTIMIZATION_COMPLETE.md"
+
+echo
+echo "📊 VERIFICATION SUMMARY"
+echo "======================="
+echo "Total Checks: $TOTAL_CHECKS"
+echo "Passed Checks: $PASSED_CHECKS"
+echo "Failed Checks: $((TOTAL_CHECKS - PASSED_CHECKS))"
+
+if [ $PASSED_CHECKS -eq $TOTAL_CHECKS ]; then
+    echo
+    echo "🎉 All verification checks passed!"
+    echo "✅ CI/CD optimization is complete and ready for use"
+    exit 0
+else
+    echo
+    echo "❌ Some verification checks failed"
+    echo "Please review the failed checks and fix any issues"
+    exit 1
+fi

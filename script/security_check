@@ -1,0 +1,147 @@
+#!/bin/bash
+
+# Security Check Script for Curated.cx
+# Matches GitHub Actions security workflow
+
+echo "🔒 Running Security Checks..."
+echo "=============================="
+
+# Create results directory
+mkdir -p tmp/security-results
+
+echo
+echo "1️⃣ Brakeman Security Scan"
+echo "--------------------------"
+if bundle exec brakeman --format json --output tmp/security-results/brakeman-results.json; then
+    echo "✅ Brakeman: No security issues found"
+else
+    echo "❌ Brakeman: Security issues detected"
+    echo "Review tmp/security-results/brakeman-results.json for details"
+fi
+
+echo
+echo "2️⃣ Bundle Audit (Ruby Dependencies)"
+echo "------------------------------------"
+if bundle exec bundle-audit check --update --format json --output tmp/security-results/bundle-audit-results.json; then
+    echo "✅ Bundle Audit: No vulnerabilities found"
+else
+    echo "❌ Bundle Audit: Vulnerabilities detected"
+    echo "Review tmp/security-results/bundle-audit-results.json for details"
+fi
+
+echo
+echo "3️⃣ NPM Audit (JavaScript Dependencies)"
+echo "---------------------------------------"
+if command -v npm > /dev/null; then
+    if npm audit --audit-level=moderate --json > tmp/security-results/npm-audit-results.json; then
+        echo "✅ NPM Audit: No vulnerabilities found"
+    else
+        echo "❌ NPM Audit: Vulnerabilities detected"
+        echo "Review tmp/security-results/npm-audit-results.json for details"
+    fi
+else
+    echo "⚠️  NPM not available"
+fi
+
+echo
+echo "4️⃣ Secrets Detection"
+echo "--------------------"
+if command -v gitleaks > /dev/null; then
+    if gitleaks detect --source . --report-format json --report-path tmp/security-results/gitleaks-results.json; then
+        echo "✅ GitLeaks: No secrets detected"
+    else
+        echo "❌ GitLeaks: Potential secrets detected"
+        echo "Review tmp/security-results/gitleaks-results.json for details"
+    fi
+else
+    echo "⚠️  GitLeaks not installed. Install with: brew install gitleaks"
+fi
+
+echo
+echo "5️⃣ Configuration Security Check"
+echo "--------------------------------"
+echo "Checking for common security misconfigurations..."
+
+# Check for hardcoded secrets in config files
+echo "Checking for hardcoded secrets..."
+if grep -r "password\|secret\|key\|token" config/ --exclude-dir=credentials 2>/dev/null | grep -v "example\|dummy\|test" > tmp/security-results/hardcoded-secrets.txt; then
+    echo "⚠️  Potential hardcoded secrets found"
+    echo "Review tmp/security-results/hardcoded-secrets.txt"
+else
+    echo "✅ No obvious hardcoded secrets found"
+fi
+
+# Check for insecure configurations
+echo "Checking for insecure configurations..."
+cat > tmp/security-results/config-security-check.txt << EOF
+Configuration Security Check Results:
+====================================
+
+1. Force SSL Check:
+$(grep -r "force_ssl" config/ || echo "  No force_ssl configuration found")
+
+2. CSRF Protection Check:
+$(grep -r "protect_from_forgery" config/ || echo "  No CSRF protection configuration found")
+
+3. Content Security Policy Check:
+$(grep -r "content_security_policy" config/ || echo "  No CSP configuration found")
+
+4. Database Configuration Check:
+$(grep -r "password" config/database.yml || echo "  Database password configuration found")
+
+5. Session Configuration Check:
+$(grep -r "session_store" config/ || echo "  Session store configuration found")
+EOF
+
+echo "✅ Configuration security check completed"
+
+echo
+echo "6️⃣ Docker Security Scan"
+echo "------------------------"
+if [ -f "Dockerfile" ]; then
+    if command -v trivy > /dev/null; then
+        echo "Scanning Docker image for vulnerabilities..."
+        if docker build -t curated-app:security-scan . > /dev/null 2>&1; then
+            trivy image curated-app:security-scan --format json --output tmp/security-results/trivy-results.json
+            echo "✅ Docker security scan completed"
+        else
+            echo "⚠️  Could not build Docker image for scanning"
+        fi
+    else
+        echo "⚠️  Trivy not installed. Install with: brew install trivy"
+    fi
+else
+    echo "⚠️  No Dockerfile found"
+fi
+
+echo
+echo "📊 SECURITY SUMMARY"
+echo "==================="
+echo "Results saved to: tmp/security-results/"
+
+# Count critical issues
+CRITICAL_ISSUES=0
+
+if [ -f "tmp/security-results/brakeman-results.json" ]; then
+    BRAKEMAN_ISSUES=$(jq '.warnings | length' tmp/security-results/brakeman-results.json 2>/dev/null || echo "0")
+    if [ "$BRAKEMAN_ISSUES" -gt 0 ]; then
+        CRITICAL_ISSUES=$((CRITICAL_ISSUES + BRAKEMAN_ISSUES))
+    fi
+fi
+
+if [ -f "tmp/security-results/bundle-audit-results.json" ]; then
+    BUNDLE_ISSUES=$(jq '.vulnerabilities | length' tmp/security-results/bundle-audit-results.json 2>/dev/null || echo "0")
+    if [ "$BUNDLE_ISSUES" -gt 0 ]; then
+        CRITICAL_ISSUES=$((CRITICAL_ISSUES + BUNDLE_ISSUES))
+    fi
+fi
+
+echo "Critical Security Issues: $CRITICAL_ISSUES"
+
+if [ $CRITICAL_ISSUES -eq 0 ]; then
+    echo "🎉 No critical security issues found!"
+    exit 0
+else
+    echo "🚫 Critical security issues detected. Review results before proceeding."
+    exit 1
+fi

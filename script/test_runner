@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# Comprehensive Test Runner for Curated.cx
+# Runs all test types with proper organization
+
+echo "🧪 Running Comprehensive Test Suite..."
+echo "======================================"
+
+# Create results directory
+mkdir -p tmp/test-results
+
+# Initialize counters
+TOTAL_TESTS=0
+FAILED_TESTS=0
+
+# Function to run tests and track results
+run_test_suite() {
+    local test_name="$1"
+    local test_command="$2"
+    local test_type="$3"
+    
+    echo
+    echo "🔍 Running $test_name..."
+    echo "------------------------"
+    
+    if eval "$test_command"; then
+        echo "✅ $test_name: PASSED"
+        TOTAL_TESTS=$((TOTAL_TESTS + 1))
+    else
+        echo "❌ $test_name: FAILED"
+        TOTAL_TESTS=$((TOTAL_TESTS + 1))
+        FAILED_TESTS=$((FAILED_TESTS + 1))
+    fi
+}
+
+# 1. Standard RSpec Tests (models, requests, helpers, policies)
+run_test_suite "Standard Tests" \
+    "bundle exec rspec --exclude-pattern 'spec/{performance,system/accessibility_integrated_spec.rb,i18n_integrated_spec.rb}' --format progress --format json --out tmp/test-results/standard-results.json" \
+    "standard"
+
+# 2. Performance Tests
+run_test_suite "Performance Tests" \
+    "bundle exec rspec --options .rspec-performance spec/performance/ --format progress --format json --out tmp/test-results/performance-results.json" \
+    "performance"
+
+# 3. Accessibility Tests
+run_test_suite "Accessibility Tests" \
+    "bundle exec rspec spec/system/accessibility_integrated_spec.rb --format progress --format json --out tmp/test-results/accessibility-results.json" \
+    "accessibility"
+
+# 4. i18n Tests
+run_test_suite "i18n Tests" \
+    "bundle exec rspec spec/i18n_integrated_spec.rb --format progress --format json --out tmp/test-results/i18n-results.json" \
+    "i18n"
+
+# 5. System Tests (excluding accessibility)
+run_test_suite "System Tests" \
+    "bundle exec rspec spec/system/ --exclude-pattern 'spec/system/accessibility_integrated_spec.rb' --format progress --format json --out tmp/test-results/system-results.json" \
+    "system"
+
+echo
+echo "📊 TEST SUMMARY"
+echo "==============="
+echo "Total Test Suites: $TOTAL_TESTS"
+echo "Failed Test Suites: $FAILED_TESTS"
+echo "Passed Test Suites: $((TOTAL_TESTS - FAILED_TESTS))"
+echo "Results saved to: tmp/test-results/"
+
+# Display detailed results if available
+if [ -f "tmp/test-results/standard-results.json" ]; then
+    echo
+    echo "📋 Standard Tests Results:"
+    jq -r '.summary | "  Examples: \(.example_count), Failures: \(.failure_count), Pending: \(.pending_count)"' tmp/test-results/standard-results.json 2>/dev/null || echo "  Results available in JSON format"
+fi
+
+if [ -f "tmp/test-results/performance-results.json" ]; then
+    echo
+    echo "⚡ Performance Tests Results:"
+    jq -r '.summary | "  Examples: \(.example_count), Failures: \(.failure_count), Pending: \(.pending_count)"' tmp/test-results/performance-results.json 2>/dev/null || echo "  Results available in JSON format"
+fi
+
+if [ -f "tmp/test-results/accessibility-results.json" ]; then
+    echo
+    echo "♿ Accessibility Tests Results:"
+    jq -r '.summary | "  Examples: \(.example_count), Failures: \(.failure_count), Pending: \(.pending_count)"' tmp/test-results/accessibility-results.json 2>/dev/null || echo "  Results available in JSON format"
+fi
+
+if [ -f "tmp/test-results/i18n-results.json" ]; then
+    echo
+    echo "🌍 i18n Tests Results:"
+    jq -r '.summary | "  Examples: \(.example_count), Failures: \(.failure_count), Pending: \(.pending_count)"' tmp/test-results/i18n-results.json 2>/dev/null || echo "  Results available in JSON format"
+fi
+
+if [ -f "tmp/test-results/system-results.json" ]; then
+    echo
+    echo "🖥️  System Tests Results:"
+    jq -r '.summary | "  Examples: \(.example_count), Failures: \(.failure_count), Pending: \(.pending_count)"' tmp/test-results/system-results.json 2>/dev/null || echo "  Results available in JSON format"
+fi
+
+echo
+if [ $FAILED_TESTS -eq 0 ]; then
+    echo "🎉 All test suites passed!"
+    exit 0
+else
+    echo "❌ $FAILED_TESTS test suite(s) failed. Check results in tmp/test-results/"
+    exit 1
+fi

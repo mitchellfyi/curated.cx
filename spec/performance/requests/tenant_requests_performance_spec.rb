@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe 'Tenant Requests Performance', type: :performance do
+RSpec.describe 'Tenant Requests Performance', type: :performance, performance: true do
   let!(:tenant) { create(:tenant) }
   let!(:categories) { create_list(:category, 5, tenant: tenant) }
   let!(:listings) { create_list(:listing, 20, tenant: tenant, category: categories.sample) }
