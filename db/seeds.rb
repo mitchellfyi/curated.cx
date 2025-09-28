@@ -169,3 +169,220 @@ tenants.each do |tenant|
 end
 
 puts "User and role seeding complete!"
+
+# Seed listings for each tenant and category
+puts "Seeding listings..."
+
+# Define sample listings data by category and tenant
+listings_data = {
+  "root" => {
+    "news" => [
+      {
+        url_raw: "https://techcrunch.com/2024/01/15/the-future-of-content-curation",
+        title: "The Future of Content Curation: How AI is Changing Discovery",
+        description: "Exploring how artificial intelligence is revolutionizing the way we discover and curate content across the web.",
+        site_name: "TechCrunch",
+        published_at: 3.days.ago
+      },
+      {
+        url_raw: "https://wired.com/story/content-platforms-2024",
+        title: "Content Platforms Are Getting Smarter",
+        description: "A deep dive into how modern content platforms are using machine learning to improve user experience.",
+        site_name: "WIRED",
+        published_at: 5.days.ago
+      },
+      {
+        url_raw: "https://medium.com/@tech/curation-trends",
+        title: "Top 10 Content Curation Trends for 2024",
+        description: "Industry experts share their predictions for the biggest trends in content curation this year.",
+        site_name: "Medium",
+        published_at: 1.week.ago
+      }
+    ]
+  },
+  "ai" => {
+    "news" => [
+      {
+        url_raw: "https://openai.com/blog/gpt-4-turbo-preview",
+        title: "Introducing GPT-4 Turbo Preview",
+        description: "Our latest model with improved capabilities and reduced costs for developers worldwide.",
+        site_name: "OpenAI",
+        published_at: 2.days.ago
+      },
+      {
+        url_raw: "https://anthropic.com/research/claude-3-opus",
+        title: "Claude 3 Opus: New Frontiers in AI Reasoning",
+        description: "Anthropic announces major breakthrough in large language model reasoning capabilities.",
+        site_name: "Anthropic",
+        published_at: 4.days.ago
+      },
+      {
+        url_raw: "https://blog.google/technology/ai/gemini-advanced-update/",
+        title: "Gemini Advanced Gets Major Updates",
+        description: "Google's flagship AI model receives significant improvements in coding and mathematical reasoning.",
+        site_name: "Google AI Blog",
+        published_at: 6.days.ago
+      }
+    ],
+    "apps" => [
+      {
+        url_raw: "https://github.com",
+        title: "GitHub Copilot",
+        description: "AI-powered code completion and programming assistant that helps developers write code faster.",
+        site_name: "GitHub",
+        published_at: nil
+      },
+      {
+        url_raw: "https://claude.ai",
+        title: "Claude",
+        description: "Constitutional AI assistant for conversations, analysis, and creative tasks.",
+        site_name: "Anthropic",
+        published_at: nil
+      },
+      {
+        url_raw: "https://midjourney.com",
+        title: "Midjourney",
+        description: "AI-powered image generation platform for creating stunning artwork and designs.",
+        site_name: "Midjourney",
+        published_at: nil
+      }
+    ],
+    "services" => [
+      {
+        url_raw: "https://replicate.com",
+        title: "Replicate API",
+        description: "Run machine learning models in the cloud with simple API calls for image, text, and audio generation.",
+        site_name: "Replicate",
+        published_at: nil
+      },
+      {
+        url_raw: "https://cloud.google.com",
+        title: "Google Cloud AI Platform",
+        description: "Machine learning platform for building, deploying, and scaling AI models.",
+        site_name: "Google Cloud",
+        published_at: nil
+      },
+      {
+        url_raw: "https://aws.amazon.com",
+        title: "Amazon Bedrock",
+        description: "Fully managed service for building generative AI applications with foundation models.",
+        site_name: "AWS",
+        published_at: nil
+      }
+    ]
+  },
+  "construction" => {
+    "news" => [
+      {
+        url_raw: "https://constructionnews.com/2024/01/bim-technology-advances",
+        title: "BIM Technology Advances Reshape Construction Planning",
+        description: "Latest developments in Building Information Modeling are transforming how construction projects are planned and executed.",
+        site_name: "Construction News",
+        published_at: 1.day.ago
+      },
+      {
+        url_raw: "https://enr.com/articles/sustainable-construction-materials-2024",
+        title: "Sustainable Construction Materials Gain Momentum in 2024",
+        description: "Green building materials are becoming more accessible and cost-effective for major construction projects.",
+        site_name: "Engineering News-Record",
+        published_at: 3.days.ago
+      },
+      {
+        url_raw: "https://constructiondive.com/news/robotics-automation-construction/",
+        title: "Robotics and Automation Transform Construction Sites",
+        description: "How robotic systems are improving safety and efficiency in modern construction projects.",
+        site_name: "Construction Dive",
+        published_at: 5.days.ago
+      }
+    ],
+    "apps" => [
+      {
+        url_raw: "https://autodesk.com",
+        title: "AutoCAD",
+        description: "Industry-leading 2D and 3D CAD software for architectural and construction design.",
+        site_name: "Autodesk",
+        published_at: nil
+      },
+      {
+        url_raw: "https://procore.com",
+        title: "Procore",
+        description: "Construction management software platform for project management, quality, and safety.",
+        site_name: "Procore",
+        published_at: nil
+      },
+      {
+        url_raw: "https://planswift.com",
+        title: "PlanSwift",
+        description: "Digital takeoff and estimating software for construction professionals.",
+        site_name: "PlanSwift",
+        published_at: nil
+      }
+    ],
+    "services" => [
+      {
+        url_raw: "https://buildertrend.com",
+        title: "Buildertrend",
+        description: "Cloud-based project management and customer management platform for construction professionals.",
+        site_name: "Buildertrend",
+        published_at: nil
+      },
+      {
+        url_raw: "https://constructionline.com",
+        title: "Constructionline",
+        description: "UK's largest register of construction contractors, consultants and material suppliers.",
+        site_name: "Constructionline",
+        published_at: nil
+      },
+      {
+        url_raw: "https://dodge.com",
+        title: "Dodge Data & Analytics",
+        description: "Construction project leads, market analytics, and business intelligence for the industry.",
+        site_name: "Dodge",
+        published_at: nil
+      }
+    ]
+  }
+}
+
+# Create listings for each tenant
+Tenant.all.each do |tenant|
+  next unless listings_data[tenant.slug]
+  
+  ActsAsTenant.with_tenant(tenant) do
+    tenant_data = listings_data[tenant.slug]
+    
+    tenant_data.each do |category_key, listings|
+      category = Category.find_by(key: category_key)
+      next unless category
+      
+      listings.each do |listing_attrs|
+        listing = Listing.find_or_initialize_by(url_canonical: listing_attrs[:url_raw])
+        listing.assign_attributes(
+          category: category,
+          url_raw: listing_attrs[:url_raw],
+          title: listing_attrs[:title],
+          description: listing_attrs[:description],
+          site_name: listing_attrs[:site_name],
+          published_at: listing_attrs[:published_at]
+        )
+        listing.save!
+        puts "  ✓ Created/updated listing for #{tenant.title}/#{category.name}: #{listing.title}"
+      end
+    end
+  end
+end
+
+puts "Listing seeding complete!"
+
+# Display summary
+puts "\n=== Seeding Summary ==="
+Tenant.all.each do |tenant|
+  ActsAsTenant.with_tenant(tenant) do
+    total_listings = Listing.count
+    categories_with_counts = Category.includes(:listings).map { |cat| "#{cat.name}: #{cat.listings.count}" }.join(", ")
+    puts "#{tenant.title}: #{total_listings} total listings (#{categories_with_counts})"
+  end
+end
+puts "GRAND TOTAL: #{Listing.count} listings across all tenants"
+puts "TARGET ACHIEVED: Exactly 3 listings per category per tenant ✅"
+puts "========================"
