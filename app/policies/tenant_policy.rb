@@ -3,12 +3,20 @@
 class TenantPolicy < ApplicationPolicy
   def show?
     # Anyone can view tenant information if the tenant is publicly accessible
-    record.publicly_accessible?
+    # For private access tenants, users with appropriate roles can access them
+    return true if record.publicly_accessible?
+    return false unless record.private_access?
+
+    user_has_tenant_role?([ :viewer, :editor, :admin, :owner ])
   end
 
   def about?
     # Anyone can view tenant about page if the tenant is publicly accessible
-    record.publicly_accessible?
+    # For private access tenants, users with appropriate roles can access them
+    return true if record.publicly_accessible?
+    return false unless record.private_access?
+
+    user_has_tenant_role?([ :viewer, :editor, :admin, :owner ])
   end
 
   def index?

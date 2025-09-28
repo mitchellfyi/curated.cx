@@ -17,6 +17,7 @@ class CategoriesController < ApplicationController
   def show
     authorize @category
     @listings = policy_scope(@category.listings.includes(:category))
+                       .published
                        .recent
                        .limit(20)
 

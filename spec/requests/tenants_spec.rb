@@ -131,9 +131,8 @@ RSpec.describe "Tenants", type: :request do
       end
 
       it "returns not found" do
-        expect {
-          get tenant_path(disabled_tenant)
-        }.to raise_error(ActiveRecord::RecordNotFound)
+        get tenant_path(disabled_tenant)
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -205,9 +204,8 @@ RSpec.describe "Tenants", type: :request do
       end
 
       it "returns not found" do
-        expect {
-          get about_path
-        }.to raise_error(ActiveRecord::RecordNotFound)
+        get about_path
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -284,9 +282,8 @@ RSpec.describe "Tenants", type: :request do
       end
 
       it "returns not found" do
-        expect {
-          get root_path
-        }.to raise_error(ActiveRecord::RecordNotFound)
+        get root_path
+        expect(response).to have_http_status(:not_found)
       end
     end
   end
@@ -335,20 +332,18 @@ RSpec.describe "Tenants", type: :request do
 
   describe "error handling" do
     context "when tenant does not exist" do
-      it "raises ActiveRecord::RecordNotFound" do
-        expect {
-          get tenant_path(999999)
-        }.to raise_error(ActiveRecord::RecordNotFound)
+      it "returns not found" do
+        get tenant_path(999999)
+        expect(response).to have_http_status(:not_found)
       end
     end
 
     context "when hostname does not match any tenant" do
       before { host! "nonexistent.example.com" }
 
-      it "raises ActiveRecord::RecordNotFound" do
-        expect {
-          get root_path
-        }.to raise_error(ActiveRecord::RecordNotFound)
+      it "returns not found" do
+        get root_path
+        expect(response).to have_http_status(:not_found)
       end
     end
   end

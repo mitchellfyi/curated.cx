@@ -16,7 +16,7 @@ class ListingsController < ApplicationController
                   policy_scope(Listing.includes(:category))
     end
 
-    @listings = @listings.recent.limit(20)
+    @listings = @listings.published.recent.limit(20)
 
     title = @category ? @category.name : t("listings.index.title")
     set_page_meta_tags(

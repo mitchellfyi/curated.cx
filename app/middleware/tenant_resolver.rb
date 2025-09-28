@@ -65,10 +65,9 @@ class TenantResolver
     Rails.logger.debug "TenantResolver: Attempting to find tenant by hostname: #{clean_hostname}"
     # Try to find tenant by hostname first
     tenant = find_tenant_by_domain(clean_hostname)
-    puts "TenantResolver: Found tenant: #{tenant&.title}, status: #{tenant&.status}, publicly_accessible?: #{tenant&.publicly_accessible?}"
 
-    # Ensure tenant is publicly accessible
-    return nil unless tenant&.publicly_accessible?
+    # Ensure tenant is not disabled (allow enabled and private_access)
+    return nil if tenant&.disabled?
 
     tenant
   rescue ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid => e
@@ -94,6 +93,10 @@ class TenantResolver
     # This allows system tests to use any hostname as long as the tenant exists in the test database
     result = Tenant.find_by(hostname: hostname)
     Rails.logger.debug "TenantResolver: Direct lookup result: #{result&.title || 'nil'}"
+
+    # Ensure tenant is not disabled (allow enabled and private_access)
+    return nil if result&.disabled?
+
     result
   rescue ActiveRecord::RecordNotFound
     Rails.logger.debug "TenantResolver: RecordNotFound for hostname: #{hostname}"

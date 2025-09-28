@@ -104,9 +104,8 @@ RSpec.describe "Listings", type: :request do
       before { host! disabled_tenant.hostname }
 
       it "returns not found" do
-        expect {
-          get listings_path
-        }.to raise_error(ActiveRecord::RecordNotFound)
+        get listings_path
+        expect(response).to have_http_status(:not_found)
       end
     end
   end
@@ -132,8 +131,9 @@ RSpec.describe "Listings", type: :request do
       end
 
       it "includes category in the query to prevent N+1" do
-        expect_any_instance_of(ActiveRecord::Relation).to receive(:includes).with(:category).and_call_original
         get category_listings_path(category1)
+        # Verify that the category association is loaded to prevent N+1 queries
+        expect(assigns(:listings).first.association(:category)).to be_loaded
       end
 
       it "orders listings by published_at desc" do
@@ -163,21 +163,19 @@ RSpec.describe "Listings", type: :request do
         expect(response.body).to include(tenant.title)
       end
 
-      context "when category belongs to different tenant" do
-        it "returns not found" do
-          expect {
+        context "when category belongs to different tenant" do
+          it "returns not found" do
             get category_listings_path(other_tenant_category)
-          }.to raise_error(ActiveRecord::RecordNotFound)
+            expect(response).to have_http_status(:not_found)
+          end
         end
-      end
 
-      context "when category does not exist" do
-        it "returns not found" do
-          expect {
+        context "when category does not exist" do
+          it "returns not found" do
             get category_listings_path(999999)
-          }.to raise_error(ActiveRecord::RecordNotFound)
+            expect(response).to have_http_status(:not_found)
+          end
         end
-      end
     end
 
     context "when user is not signed in" do
@@ -218,9 +216,8 @@ RSpec.describe "Listings", type: :request do
       before { host! disabled_tenant.hostname }
 
       it "returns not found" do
-        expect {
-          get category_listings_path(other_tenant_category)
-        }.to raise_error(ActiveRecord::RecordNotFound)
+        get category_listings_path(other_tenant_category)
+        expect(response).to have_http_status(:not_found)
       end
     end
   end
@@ -263,21 +260,19 @@ RSpec.describe "Listings", type: :request do
         expect(response.body).to include(listing1.image_url) if listing1.image_url.present?
       end
 
-      context "when listing belongs to different tenant" do
-        it "returns not found" do
-          expect {
+        context "when listing belongs to different tenant" do
+          it "returns not found" do
             get listing_path(other_tenant_listing)
-          }.to raise_error(ActiveRecord::RecordNotFound)
+            expect(response).to have_http_status(:not_found)
+          end
         end
-      end
 
-      context "when listing does not exist" do
-        it "returns not found" do
-          expect {
+        context "when listing does not exist" do
+          it "returns not found" do
             get listing_path(999999)
-          }.to raise_error(ActiveRecord::RecordNotFound)
+            expect(response).to have_http_status(:not_found)
+          end
         end
-      end
     end
 
     context "when user is not signed in" do
@@ -317,9 +312,8 @@ RSpec.describe "Listings", type: :request do
       before { host! disabled_tenant.hostname }
 
       it "returns not found" do
-        expect {
-          get listing_path(other_tenant_listing)
-        }.to raise_error(ActiveRecord::RecordNotFound)
+        get listing_path(other_tenant_listing)
+        expect(response).to have_http_status(:not_found)
       end
     end
   end
@@ -381,34 +375,31 @@ RSpec.describe "Listings", type: :request do
     before { sign_in regular_user }
 
     context "when listing does not exist" do
-      it "raises ActiveRecord::RecordNotFound" do
-        expect {
-          get listing_path(999999)
-        }.to raise_error(ActiveRecord::RecordNotFound)
+      it "returns not found" do
+        get listing_path(999999)
+        expect(response).to have_http_status(:not_found)
       end
     end
 
     context "when listing belongs to different tenant" do
-      it "raises ActiveRecord::RecordNotFound" do
-        expect {
-          get listing_path(other_tenant_listing)
-        }.to raise_error(ActiveRecord::RecordNotFound)
+      it "returns not found" do
+        get listing_path(other_tenant_listing)
+        expect(response).to have_http_status(:not_found)
       end
     end
 
     context "when category does not exist" do
-      it "raises ActiveRecord::RecordNotFound" do
-        expect {
-          get category_listings_path(999999)
-        }.to raise_error(ActiveRecord::RecordNotFound)
+      it "returns not found" do
+        get category_listings_path(999999)
+        expect(response).to have_http_status(:not_found)
       end
     end
   end
 
   describe "tenant isolation" do
-    let(:other_tenant) { create(:tenant, :enabled) }
-    let(:other_category) { create(:category, tenant: other_tenant) }
-    let(:other_listing) { create(:listing, :published, tenant: other_tenant, category: other_category) }
+    let!(:other_tenant) { create(:tenant, :enabled) }
+    let!(:other_category) { create(:category, tenant: other_tenant) }
+    let!(:other_listing) { create(:listing, :published, tenant: other_tenant, category: other_category) }
 
     before { sign_in regular_user }
 
