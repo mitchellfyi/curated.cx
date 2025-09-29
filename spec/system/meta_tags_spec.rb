@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe 'Meta Tags', type: :system, js: false do
+RSpec.describe 'Meta Tags', type: :system do
   include Devise::Test::IntegrationHelpers
   let(:tenant) {
     tenant = create(:tenant,

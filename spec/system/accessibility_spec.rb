@@ -10,8 +10,6 @@ RSpec.describe 'Accessibility', type: :system do
   }
 
   before do
-    driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
-
     # Set up the tenant in the database so the tenant resolver can find it
     tenant.save!
     # Clear current tenant before the test

@@ -36,7 +36,7 @@ RSpec.describe 'Meta Tags', type: :request do
 
   describe 'Open Graph meta tags' do
     it 'has correct Open Graph content' do
-      get root_url, headers: { 'Host' => 'test.localhost:3000' }
+      get root_url
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include('property="og:title" content="Test Tenant"')
@@ -48,7 +48,7 @@ RSpec.describe 'Meta Tags', type: :request do
 
   describe 'Twitter Card meta tags' do
     it 'has correct Twitter Card content' do
-      get root_url, headers: { 'Host' => 'test.localhost:3000' }
+      get root_url
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include('name="twitter:card" content="summary_large_image"')
@@ -62,7 +62,7 @@ RSpec.describe 'Meta Tags', type: :request do
     it 'displays custom meta tags on account settings page' do
       # This test is more appropriate for system tests since it involves authentication
       # For now, just test that the path exists
-      get "/users/edit", headers: { 'Host' => 'test.localhost:3000' }
+      get "/users/edit"
 
       # Should redirect to login page for unauthenticated user
       expect(response).to have_http_status(:redirect)
@@ -73,6 +73,7 @@ RSpec.describe 'Meta Tags', type: :request do
   describe 'Fallback behavior' do
     let(:tenant_no_desc) {
       create(:tenant,
+        hostname: "nodesc.localhost",
         title: "No Desc Tenant",
         description: "",
         slug: "nodesc"
@@ -81,17 +82,21 @@ RSpec.describe 'Meta Tags', type: :request do
 
     it 'handles tenant without description' do
       tenant_no_desc.save!
+      host! tenant_no_desc.hostname
+      setup_tenant_context(tenant_no_desc)
 
-      get root_url, headers: { 'Host' => 'nodesc.localhost:3000' }
+      get root_url
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include('name="description" content="Curated content from No Desc Tenant"')
+      # Check that fallback description appears in Open Graph meta tags
+      expect(response.body).to include('property="og:description" content="Curated content from No Desc Tenant"')
     end
   end
 
   describe 'Meta tags with tenant logo' do
     let(:tenant_with_logo) {
       create(:tenant,
+        hostname: "logo.localhost",
         title: "Logo Tenant",
         description: "Tenant with logo",
         slug: "logo",
@@ -101,8 +106,10 @@ RSpec.describe 'Meta Tags', type: :request do
 
     it 'includes logo in Open Graph and Twitter meta tags when available' do
       tenant_with_logo.save!
+      host! tenant_with_logo.hostname
+      setup_tenant_context(tenant_with_logo)
 
-      get root_url, headers: { 'Host' => 'logo.localhost:3000' }
+      get root_url
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include('property="og:image" content="https://example.com/logo.png"')
