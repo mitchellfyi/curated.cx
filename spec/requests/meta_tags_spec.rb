@@ -5,6 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Meta Tags', type: :request do
   let(:tenant) {
     create(:tenant,
+      hostname: "test.localhost",
       title: "Test Tenant",
       description: "Test tenant description",
       slug: "test"
@@ -18,11 +19,13 @@ RSpec.describe 'Meta Tags', type: :request do
 
   before do
     tenant.save!
+    host! tenant.hostname
+    setup_tenant_context(tenant)
   end
 
   describe 'Basic meta tags' do
     it 'includes essential meta tags' do
-      get root_url, headers: { 'Host' => 'test.localhost:3000' }
+      get root_url
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include('<title>Test Tenant</title>')

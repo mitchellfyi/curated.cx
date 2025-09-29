@@ -39,7 +39,7 @@ class Category < ApplicationRecord
   scope :root_domain_only, -> { where(allow_paths: false) }
 
   def shown_fields
-    jsonb_field(:shown_fields)
+    super || {}
   end
 
   # Check if a URL is allowed based on category rules

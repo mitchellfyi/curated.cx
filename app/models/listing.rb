@@ -61,15 +61,15 @@ class Listing < ApplicationRecord
   scope :with_content, -> { where.not(body_html: [ nil, "" ]) }
 
   def ai_summaries
-    jsonb_field(:ai_summaries)
+    super || {}
   end
 
   def ai_tags
-    jsonb_field(:ai_tags)
+    super || {}
   end
 
   def metadata
-    jsonb_field(:metadata)
+    super || {}
   end
 
   # Get root domain from canonical URL

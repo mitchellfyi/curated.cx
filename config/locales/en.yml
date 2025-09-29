@@ -11,6 +11,11 @@ en:
     name: Curated
     description: Curated platform for discovering and sharing content
     tagline: The central hub for curated industry content
+  welcome_message: "Welcome, %{name}!"
+  items_count:
+    zero: "No items"
+    one: "1 item"
+    other: "%{count} items"
   auth:
     sign_in:
       title: Sign In
@@ -114,6 +119,7 @@ en:
     login: Login
     sign_up: Sign up
     powered_by: Powered by
+    main_navigation: Main navigation
   tenants:
     index:
       title: "All Tenants"

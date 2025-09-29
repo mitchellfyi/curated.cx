@@ -46,6 +46,6 @@ module TenantScoped
 
   # Common JSONB field accessors with fallback to empty hash
   def jsonb_field(field_name)
-    send(field_name) || {}
+    read_attribute(field_name) || {}
   end
 end

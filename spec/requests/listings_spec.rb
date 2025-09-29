@@ -11,12 +11,15 @@ RSpec.describe "Listings", type: :request do
   let!(:other_tenant_category) { create(:category, tenant: disabled_tenant) }
   let!(:private_tenant_category) { create(:category, tenant: private_tenant) }
   let!(:listing1) { create(:listing, :published, tenant: tenant, category: category1) }
-  let!(:listing2) { create(:listing, :app_listing, :published, tenant: tenant) }
+  let!(:listing2) { create(:listing, :app_listing, :published, tenant: tenant, category: category2) }
   let!(:unpublished_listing) { create(:listing, :unpublished, tenant: tenant, category: category1) }
   let!(:other_tenant_listing) { create(:listing, :published, tenant: disabled_tenant, category: other_tenant_category) }
   let!(:private_tenant_listing) { create(:listing, :published, tenant: private_tenant, category: private_tenant_category) }
 
-  before { host! tenant.hostname }
+  before do
+    host! tenant.hostname
+    setup_tenant_context(tenant)
+  end
 
   describe "GET /listings" do
     context "when user is signed in" do
@@ -397,15 +400,42 @@ RSpec.describe "Listings", type: :request do
   end
 
   describe "tenant isolation" do
-    let!(:other_tenant) { create(:tenant, :enabled) }
-    let!(:other_category) { create(:category, tenant: other_tenant) }
-    let!(:other_listing) { create(:listing, :published, tenant: other_tenant, category: other_category) }
+    let!(:other_tenant) do
+      # Clear tenant context for clean creation
+      Current.reset_tenant!
+      ActsAsTenant.current_tenant = nil
+      create(:tenant, :enabled)
+    end
 
-    before { sign_in regular_user }
+    let!(:other_category) do
+      # Clear tenant context and create category explicitly for other_tenant
+      Current.reset_tenant!
+      ActsAsTenant.current_tenant = nil
+      create(:category, tenant: other_tenant)
+    end
+
+    let!(:other_listing) do
+      # Clear tenant context and create listing explicitly for other_tenant and other_category
+      Current.reset_tenant!
+      ActsAsTenant.current_tenant = nil
+      create(:listing, :published, tenant: other_tenant, category: other_category)
+    end
+
+    before do
+      sign_in regular_user
+      clear_tenant_context  # Clear the main test setup tenant context
+    end
 
     it "does not show listings from other tenants" do
+      # Make sure the associations are correct
+      expect(other_listing.tenant_id).to eq(other_tenant.id)
+      expect(other_category.tenant_id).to eq(other_tenant.id)
+      expect(other_listing.category_id).to eq(other_category.id)
+
       host! other_tenant.hostname
+
       get listings_path
+      expect(response).to have_http_status(:success)
       expect(assigns(:listings)).to include(other_listing)
       expect(assigns(:listings)).not_to include(listing1, listing2)
     end
