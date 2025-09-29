@@ -23,7 +23,6 @@ RSpec.describe 'Meta Tags', type: :system do
     # Use localhost with tenant slug as subdomain for system tests
     # This avoids DNS resolution issues while still testing the tenant resolver
     Capybara.app_host = "http://#{tenant.slug}.localhost:3000"
-    puts "Test setup: Tenant slug=#{tenant.slug}, host=#{Capybara.app_host}"
 
     # Since the tenant resolver middleware is not working in system tests,
     # we need to set the current tenant manually
@@ -60,10 +59,6 @@ RSpec.describe 'Meta Tags', type: :system do
     it 'includes essential meta tags' do
       visit root_path
 
-      # Debug: Print the actual page title
-      puts "Actual page title: '#{page.title}'"
-      puts "Current tenant: #{Current.tenant&.title || 'nil'}"
-      puts "Page source: #{page.html[0..500]}"
 
       # Check for viewport meta tag
       expect(page).to have_css('meta[name="viewport"]', visible: false)

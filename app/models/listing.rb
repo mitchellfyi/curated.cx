@@ -61,6 +61,11 @@ class Listing < ApplicationRecord
   scope :by_domain, ->(domain) { where(domain: domain) }
   scope :with_content, -> { where.not(body_html: [ nil, "" ]) }
 
+  # Published status
+  def published?
+    published_at.present?
+  end
+
   def ai_summaries
     super || {}
   end

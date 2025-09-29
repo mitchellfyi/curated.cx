@@ -6,9 +6,6 @@ begin
     config.include AxeRspec::API, type: :system
     config.include AxeRspec::API, type: :feature
   end
-rescue LoadError, NameError => e
-  # Skip accessibility testing if axe-rspec is not available
-  puts "Warning: axe-rspec not available, skipping accessibility configuration: #{e.message}"
 end
 
 # Custom accessibility matcher

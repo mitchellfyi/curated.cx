@@ -22,6 +22,10 @@
 #  index_tenants_on_status    (status)
 #
 class Tenant < ApplicationRecord
+  # Associations
+  has_many :categories, dependent: :destroy
+  has_many :listings, dependent: :destroy
+
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
 

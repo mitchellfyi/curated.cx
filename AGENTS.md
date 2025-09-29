@@ -42,6 +42,7 @@ SECURITY & COST
 - Use proper logging levels: `Rails.logger.info`, `Rails.logger.warn`, `Rails.logger.error` instead of `puts`
 - Debug statements are only acceptable in development/test environments and must be removed before committing
 - If temporary debug code is needed, add a TODO comment with removal date
+- **MANDATORY**: Always remove debug code after completing any task - this is enforced by the quality system
 
 ## MANDATORY QUALITY ENFORCEMENT
 
