@@ -28,13 +28,13 @@ if curl -s http://localhost:3000 > /dev/null 2>&1; then
     if command -v ab > /dev/null; then
         echo "Testing homepage..."
         ab -n 100 -c 10 http://localhost:3000/ > tmp/performance-results/load-test-homepage.txt 2>&1
-        
+
         echo "Testing tenants page..."
         ab -n 50 -c 5 http://localhost:3000/tenants > tmp/performance-results/load-test-tenants.txt 2>&1
-        
+
         echo "Testing listings page..."
         ab -n 50 -c 5 http://localhost:3000/listings > tmp/performance-results/load-test-listings.txt 2>&1
-        
+
         echo "✅ Load testing completed"
     else
         echo "⚠️  Apache Bench not installed. Install with: sudo apt-get install apache2-utils"
@@ -85,19 +85,19 @@ echo "-------------------------"
 if gem list memory_profiler > /dev/null 2>&1; then
     bundle exec rails runner "
     require 'memory_profiler'
-    
+
     puts 'Running memory profiling...'
-    
+
     # Profile a typical request
     report = MemoryProfiler.report do
       Tenant.first
       Listing.limit(10).to_a
       Category.all.to_a
     end
-    
+
     puts \"Total allocated: #{report.total_allocated_memsize} bytes\"
     puts \"Total retained: #{report.total_retained_memsize} bytes\"
-    
+
     # Save detailed report
     File.open('tmp/performance-results/memory-profiling-results.txt', 'w') do |f|
       f.puts 'Memory Profiling Results:'
@@ -133,16 +133,16 @@ if defined?(Bullet)
   Bullet.bullet_logger = true
   Bullet.console = true
   Bullet.rails_logger = true
-  
+
   # Test common N+1 scenarios
   puts 'Testing for N+1 queries...'
-  
+
   # This should trigger N+1 detection if present
   listings = Listing.includes(:category).limit(10)
   listings.each do |listing|
     puts listing.category.name
   end
-  
+
   puts 'N+1 detection completed'
 else
   puts 'Bullet gem not available for N+1 detection'
