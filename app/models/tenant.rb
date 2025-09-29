@@ -54,7 +54,7 @@ class Tenant < ApplicationRecord
   # Class methods
   def self.find_by_hostname!(hostname)
     Rails.cache.fetch("tenant:hostname:#{hostname}", expires_in: 1.hour) do
-      find_by!(hostname: hostname, status: :enabled)
+      find_by!(hostname: hostname)
     end
   end
 

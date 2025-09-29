@@ -38,10 +38,9 @@
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 class Listing < ApplicationRecord
-  acts_as_tenant :tenant
+  include TenantScoped
 
   # Associations
-  belongs_to :tenant
   belongs_to :category
 
   # Validations
@@ -62,15 +61,15 @@ class Listing < ApplicationRecord
   scope :with_content, -> { where.not(body_html: [ nil, "" ]) }
 
   def ai_summaries
-    super || {}
+    jsonb_field(:ai_summaries)
   end
 
   def ai_tags
-    super || {}
+    jsonb_field(:ai_tags)
   end
 
   def metadata
-    super || {}
+    jsonb_field(:metadata)
   end
 
   # Get root domain from canonical URL

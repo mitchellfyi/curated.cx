@@ -23,10 +23,9 @@
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 class Category < ApplicationRecord
-  acts_as_tenant :tenant
+  include TenantScoped
 
   # Associations
-  belongs_to :tenant
   has_many :listings, dependent: :destroy
 
   # Validations
@@ -40,7 +39,7 @@ class Category < ApplicationRecord
   scope :root_domain_only, -> { where(allow_paths: false) }
 
   def shown_fields
-    super || {}
+    jsonb_field(:shown_fields)
   end
 
   # Check if a URL is allowed based on category rules

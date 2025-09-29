@@ -43,4 +43,9 @@ module TenantScoped
       raise "Record belongs to different tenant than Current.tenant"
     end
   end
+
+  # Common JSONB field accessors with fallback to empty hash
+  def jsonb_field(field_name)
+    send(field_name) || {}
+  end
 end
