@@ -96,8 +96,9 @@ class TenantResolverTest < ActiveSupport::TestCase
 
     status, _, body = @middleware.call(env)
 
-    # Should fallback to root tenant on error
-    assert_equal 200, status
-    assert_equal @root_tenant, Current.tenant
+    # Should return 404 for missing host - no fallback
+    assert_equal 404, status
+    assert_equal "Tenant not found", body.first
+    assert_nil Current.tenant
   end
 end
