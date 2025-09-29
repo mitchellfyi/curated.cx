@@ -44,6 +44,7 @@ class Listing < ApplicationRecord
   belongs_to :category
 
   # Validations
+  validates :category, presence: true
   validates :url_raw, presence: true
   validates :url_canonical, presence: true, uniqueness: { scope: :tenant_id }
   validates :title, presence: true
