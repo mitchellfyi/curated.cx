@@ -9,6 +9,7 @@ Capybara.configure do |config|
   config.javascript_driver = :selenium_chrome_headless
   config.default_max_wait_time = 5
   config.server = :puma, { Silent: true }
+  config.server_port = 3001  # Use a different port to avoid conflicts
 end
 
 # Ensure system tests go through the full Rails middleware stack

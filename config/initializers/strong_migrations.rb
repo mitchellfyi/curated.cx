@@ -71,7 +71,7 @@ StrongMigrations.add_check do |method, args|
 
   # Ensure tenant_id is properly indexed for multi-tenant tables
   if method == :create_table && args[1]&.key?(:tenant)
-    puts "⚠️  Remember to add an index on tenant_id for #{args[0]} table for optimal multi-tenant performance"
+    Rails.logger.warn "⚠️  Remember to add an index on tenant_id for #{args[0]} table for optimal multi-tenant performance"
   end
 end
 

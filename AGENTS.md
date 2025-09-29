@@ -35,7 +35,13 @@ DELIVERABLE STYLE
 SECURITY & COST
 - Respect API quotas; backoff and cap AI per tenant.
 - Never block the request cycle on AI; everything async.
-- Log only what’s needed; no secrets, no PII beyond email for auth.
+- Log only what's needed; no secrets, no PII beyond email for auth.
+
+## DEBUG CODE MANAGEMENT
+- **REMOVE ALL DEBUG CODE** after use - no `puts`, `p`, `console.log`, `debugger`, `binding.pry`, or `Rails.logger.debug` statements in production code
+- Use proper logging levels: `Rails.logger.info`, `Rails.logger.warn`, `Rails.logger.error` instead of `puts`
+- Debug statements are only acceptable in development/test environments and must be removed before committing
+- If temporary debug code is needed, add a TODO comment with removal date
 
 ## MANDATORY QUALITY ENFORCEMENT
 
