@@ -110,9 +110,9 @@ RSpec.describe "Admin::Categories", type: :request do
                     shown_fields: { title: true }
                   }
                 }
-              }.to change { Category.where(tenant: tenant1).count }.by(1)
+              }.to change { tenant1.categories.count }.by(1)
 
-              new_category = Category.where(tenant: tenant1).last
+              new_category = tenant1.categories.last
               expect(new_category.key).to eq("new_category")
               expect(new_category.name).to eq("New Category")
               expect(new_category.tenant).to eq(tenant1)

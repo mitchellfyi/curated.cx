@@ -6,7 +6,7 @@ class Admin::CategoriesController < ApplicationController
   before_action :set_category, only: [ :show, :edit, :update, :destroy ]
 
   def index
-    @categories = Category.where(tenant: Current.tenant).includes(:listings).order(:name)
+    @categories = categories_service.all_categories
   end
 
   def show
@@ -47,7 +47,11 @@ class Admin::CategoriesController < ApplicationController
   private
 
   def set_category
-    @category = Category.where(tenant: Current.tenant).find(params[:id])
+    @category = categories_service.find_category(params[:id])
+  end
+
+  def categories_service
+    @categories_service ||= Admin::CategoriesService.new(Current.tenant)
   end
 
   def category_params
