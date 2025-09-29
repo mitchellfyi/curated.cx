@@ -120,7 +120,7 @@ RSpec.describe "Admin::Listings", type: :request do
         end
 
         describe "POST /admin/listings" do
-        it "creates listing for current tenant" do
+          it "creates listing for current tenant" do
           expect {
             post admin_listings_path, params: {
               listing: {
@@ -130,13 +130,13 @@ RSpec.describe "Admin::Listings", type: :request do
                 description: "Test description"
               }
             }
-          }.to change { Listing.where(tenant: tenant1).count }.by(1)
+          }.to change { tenant1.listings.count }.by(1)
 
-          new_listing = Listing.where(tenant: tenant1).last
+          new_listing = tenant1.listings.last
           expect(new_listing.title).to eq("Test Listing")
           expect(new_listing.category).to eq(@tenant1_category)
           expect(new_listing.tenant).to eq(tenant1)
-        end
+          end
         end
       end
     end
