@@ -8,8 +8,8 @@ Capybara.configure do |config|
   # Always use Chromium for all system tests
   config.default_driver = :selenium_chrome_headless
   config.javascript_driver = :selenium_chrome_headless
-  config.default_max_wait_time = 5
-  config.server = :puma, { Silent: true }
+  config.default_max_wait_time = 10
+  config.server = :puma, { Silent: true, Threads: "0:1" }
   config.server_port = 0  # Let Capybara choose an available port automatically
 
   # Ensure we always use Chromium, never rack-test

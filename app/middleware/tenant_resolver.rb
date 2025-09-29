@@ -22,11 +22,15 @@ class TenantResolver
       [ 404, { "Content-Type" => "text/html" }, [ "Tenant not found" ] ]
     end
   rescue => e
-    Rails.logger.error("TenantResolver error: #{e.message}")
-    Rails.logger.error(e.backtrace.join("\n"))
-
-    # Return 404 on error - no fallbacks
-    [ 404, { "Content-Type" => "text/html" }, [ "Tenant not found" ] ]
+    # Only catch tenant resolution errors, not application errors
+    if e.message.include?("TenantResolver") || e.is_a?(ActiveRecord::RecordNotFound)
+      Rails.logger.error("TenantResolver error: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      [ 404, { "Content-Type" => "text/html" }, [ "Tenant not found" ] ]
+    else
+      # Re-raise application errors
+      raise
+    end
   end
 
   private
