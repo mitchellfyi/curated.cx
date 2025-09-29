@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 class Admin::CategoriesController < ApplicationController
+  include AdminAccess
+
   before_action :set_category, only: [ :show, :edit, :update, :destroy ]
-  before_action :ensure_admin_access
-  skip_after_action :verify_authorized
-  skip_after_action :verify_policy_scoped
 
   def index
     @categories = Category.where(tenant: Current.tenant).includes(:listings).order(:name)
@@ -53,12 +52,5 @@ class Admin::CategoriesController < ApplicationController
 
   def category_params
     params.require(:category).permit(:key, :name, :allow_paths, shown_fields: {})
-  end
-
-  def ensure_admin_access
-    unless current_user&.admin? || (Current.tenant && current_user&.has_role?(:owner, Current.tenant))
-      flash[:alert] = "Access denied. Admin privileges required."
-      redirect_to root_path
-    end
   end
 end

@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 class Admin::ListingsController < ApplicationController
+  include AdminAccess
+
   before_action :set_listing, only: [ :show, :edit, :update, :destroy ]
-  before_action :ensure_admin_access
-  skip_after_action :verify_authorized
-  skip_after_action :verify_policy_scoped
 
   def index
     @listings = Listing.where(tenant: Current.tenant).includes(:category).recent
@@ -62,12 +61,5 @@ class Admin::ListingsController < ApplicationController
                                    :image_url, :site_name, :published_at,
                                    :body_html, :body_text,
                                    ai_summaries: {}, ai_tags: {}, metadata: {})
-  end
-
-  def ensure_admin_access
-    unless current_user&.admin? || (Current.tenant && current_user&.has_role?(:owner, Current.tenant))
-      flash[:alert] = "Access denied. Admin privileges required."
-      redirect_to root_path
-    end
   end
 end

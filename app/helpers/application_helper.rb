@@ -77,8 +77,17 @@ module ApplicationHelper
     flash.map do |type, message|
       next if message.blank?
 
+      flash_message_classes = case type
+      when "notice"
+        "bg-green-50 border border-green-200 text-green-800"
+      when "alert"
+        "bg-red-50 border border-red-200 text-red-800"
+      else
+        "bg-blue-50 border border-blue-200 text-blue-800"
+      end
+
       content_tag :div, message,
-        class: "flash-message flash-#{type}",
+        class: "px-4 py-3 rounded-md mx-4 mt-4 #{flash_message_classes}",
         role: "alert",
         'aria-live': type == "alert" ? "assertive" : "polite"
     end.compact.join.html_safe
