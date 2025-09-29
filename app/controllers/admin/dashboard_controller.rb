@@ -5,13 +5,13 @@ class Admin::DashboardController < ApplicationController
 
   def index
     @tenant = Current.tenant.decorate
-    @categories = Category.where(tenant: Current.tenant).includes(:listings)
-    @recent_listings = Listing.where(tenant: Current.tenant).includes(:category).recent.limit(10)
+    @categories = categories_service.all_categories
+    @recent_listings = listings_service.all_listings(limit: 10)
     @stats = {
       total_categories: @categories.count,
-      total_listings: Listing.where(tenant: Current.tenant).count,
-      published_listings: Listing.where(tenant: Current.tenant).published.count,
-      listings_today: Listing.where(tenant: Current.tenant, created_at: Time.current.beginning_of_day..Time.current.end_of_day).count
+      total_listings: Listing.count,
+      published_listings: Listing.published.count,
+      listings_today: Listing.where(created_at: Time.current.beginning_of_day..Time.current.end_of_day).count
     }
 
     set_page_meta_tags(
@@ -21,4 +21,12 @@ class Admin::DashboardController < ApplicationController
   end
 
   private
+
+  def categories_service
+    @categories_service ||= Admin::CategoriesService.new(Current.tenant)
+  end
+
+  def listings_service
+    @listings_service ||= Admin::ListingsService.new(Current.tenant)
+  end
 end
