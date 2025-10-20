@@ -90,7 +90,7 @@ group :development do
   gem "letter_opener", "~> 1.10"
 
   # Annotate models with schema information (Rails 8 compatible fork)
-  gem "annotaterb", "~> 4.19"
+  gem "annotaterb", "~> 4.20"
 end
 
 group :test do
