@@ -44,7 +44,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Bundle Audit results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: bundle-audit-results
@@ -56,7 +56,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload npm audit results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: npm-audit-results
@@ -128,7 +128,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Brakeman results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: brakeman-results
@@ -144,7 +144,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Semgrep results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: semgrep-results

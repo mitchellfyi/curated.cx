@@ -51,7 +51,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload lint results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: lint-results
@@ -96,7 +96,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload security results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: security-results
@@ -171,7 +171,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: test-results
@@ -182,7 +182,7 @@ jobs:
             i18n-results.json
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: coverage-reports
@@ -228,7 +228,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload code quality results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: code-quality-results
@@ -327,7 +327,7 @@ jobs:
           SECRET_KEY_BASE: dummy_key_for_build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-artifacts
           path: |
