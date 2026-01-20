@@ -1,0 +1,15 @@
+---
+$schema: dk://schemas/v1/flow
+id: generate-mission-tasks
+name: Generate Mission Tasks
+description: Analyze MISSION.md and codebase to generate comprehensive task list
+steps:
+  - id: analyze
+    name: Analyze Mission and Codebase
+    prompt: .doyaken/prompts/mission-tasks.md
+    description: Read MISSION.md and current codebase to identify gaps and create tasks
+    inputs:
+      - MISSION.md
+      - Current codebase structure
+    outputs:
+      - Comprehensive task list organized by mission area

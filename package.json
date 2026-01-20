@@ -2,6 +2,7 @@
   "name": "app",
   "private": true,
   "devDependencies": {
+    "@mitchellfyi/doyaken": "github:mitchellfyi/doyaken",
     "esbuild": "^0.25.10",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
@@ -14,7 +15,10 @@
     "lint": "eslint app/javascript/ --ext .js,.ts --format json --output-file tmp/quality-results/eslint-results.json",
     "lint:fix": "eslint app/javascript/ --ext .js,.ts --fix",
     "format": "prettier --write app/javascript/",
-    "format:check": "prettier --check app/javascript/"
+    "format:check": "prettier --check app/javascript/",
+    "dk": "npx --yes dk",
+    "dk:init": "npx --yes dk init",
+    "dk:install": "npx --yes dk install"
   },
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
