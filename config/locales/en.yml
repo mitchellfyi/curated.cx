@@ -17,6 +17,8 @@ en:
     one: "1 item"
     other: "%{count} items"
   auth:
+    unauthorized: "You are not authorized to perform this action."
+    requires_authentication: "This content requires authentication."
     sign_in:
       title: Sign In
       description: Sign in to your account to access your dashboard and manage your content

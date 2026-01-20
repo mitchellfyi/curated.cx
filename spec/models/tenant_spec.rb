@@ -1,5 +1,27 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: tenants
+#
+#  id          :bigint           not null, primary key
+#  description :text
+#  hostname    :string           not null
+#  logo_url    :string
+#  settings    :jsonb            not null
+#  slug        :string           not null
+#  status      :integer          default("enabled"), not null
+#  title       :string           not null
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#
+# Indexes
+#
+#  index_tenants_on_hostname         (hostname) UNIQUE
+#  index_tenants_on_slug             (slug) UNIQUE
+#  index_tenants_on_status           (status)
+#  index_tenants_on_status_hostname  (status,hostname)
+#
 require 'rails_helper'
 
 RSpec.describe Tenant, type: :model do

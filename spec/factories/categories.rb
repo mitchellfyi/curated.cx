@@ -15,6 +15,7 @@
 #
 #  index_categories_on_tenant_id          (tenant_id)
 #  index_categories_on_tenant_id_and_key  (tenant_id,key) UNIQUE
+#  index_categories_on_tenant_name        (tenant_id,name)
 #
 # Foreign Keys
 #

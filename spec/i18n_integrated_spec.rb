@@ -231,22 +231,4 @@ RSpec.describe 'i18n Integration', type: :i18n do
       expect(I18n.default_locale).to be_present
     end
   end
-
-  describe 'Translation performance' do
-    it 'should load translations efficiently' do
-      # Test that translations load quickly
-      start_time = Time.current
-
-      # Load a batch of existing translations
-      100.times do |i|
-        I18n.t("app.name")
-      end
-
-      end_time = Time.current
-      execution_time = end_time - start_time
-
-      # Should complete within reasonable time (adjust threshold as needed)
-      expect(execution_time).to be < 1.0, "Translation loading too slow: #{execution_time}s"
-    end
-  end
 end

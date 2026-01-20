@@ -23,6 +23,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_27_172112) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["tenant_id", "key"], name: "index_categories_on_tenant_id_and_key", unique: true
+    t.index ["tenant_id", "name"], name: "index_categories_on_tenant_name"
     t.index ["tenant_id"], name: "index_categories_on_tenant_id"
   end
 
@@ -44,10 +45,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_27_172112) do
     t.jsonb "metadata", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["category_id", "published_at"], name: "index_listings_on_category_published"
     t.index ["category_id"], name: "index_listings_on_category_id"
     t.index ["domain"], name: "index_listings_on_domain"
     t.index ["published_at"], name: "index_listings_on_published_at"
     t.index ["tenant_id", "category_id"], name: "index_listings_on_tenant_id_and_category_id"
+    t.index ["tenant_id", "domain", "published_at"], name: "index_listings_on_tenant_domain_published"
+    t.index ["tenant_id", "published_at", "created_at"], name: "index_listings_on_tenant_published_created"
+    t.index ["tenant_id", "title"], name: "index_listings_on_tenant_title"
     t.index ["tenant_id", "url_canonical"], name: "index_listings_on_tenant_and_url_canonical", unique: true
     t.index ["tenant_id"], name: "index_listings_on_tenant_id"
   end
@@ -74,6 +79,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_27_172112) do
     t.datetime "updated_at", null: false
     t.index ["hostname"], name: "index_tenants_on_hostname", unique: true
     t.index ["slug"], name: "index_tenants_on_slug", unique: true
+    t.index ["status", "hostname"], name: "index_tenants_on_status_hostname"
     t.index ["status"], name: "index_tenants_on_status"
   end
 

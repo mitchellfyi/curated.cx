@@ -9,9 +9,9 @@ class Admin::DashboardController < ApplicationController
     @recent_listings = listings_service.all_listings(limit: 10)
     @stats = {
       total_categories: @categories.count,
-      total_listings: Listing.count,
-      published_listings: Listing.published.count,
-      listings_today: Listing.where(created_at: Time.current.beginning_of_day..Time.current.end_of_day).count
+      total_listings: Current.tenant.listings.count,
+      published_listings: Current.tenant.listings.published.count,
+      listings_today: Current.tenant.listings.where(created_at: Time.current.beginning_of_day..Time.current.end_of_day).count
     }
 
     set_page_meta_tags(

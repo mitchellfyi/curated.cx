@@ -15,17 +15,38 @@ A multi-tenant curated content platform built with Rails 8.
 
 ```bash
 # Setup development environment
-./script/dev/setup
+./bin/setup
 
-# Start the development server
-rails server
+# Start the development server (includes quality automation via Guard)
+./bin/dev
 
 # Run tests
 bundle exec rspec
 
 # Run code quality checks
-./script/dev/quality
+./bin/quality
 ```
+
+### Multi-Tenant Local Domains
+
+This is a multi-tenant application. In development, you can access different tenants using local domain patterns:
+
+**Root Tenant (Hub)**
+- `http://localhost:3000` - Access the root tenant (slug: `root`)
+
+**Subdomain Tenants**
+- `http://ai.localhost:3000` - Access the AI News tenant (slug: `ai`)
+- `http://construction.localhost:3000` - Access the Construction tenant (slug: `construction`)
+
+To use subdomain.localhost patterns, you may need to configure your `/etc/hosts` file (optional but recommended):
+
+```bash
+# Add to /etc/hosts for easier subdomain access
+127.0.0.1 ai.localhost
+127.0.0.1 construction.localhost
+```
+
+**Note:** The tenant resolver automatically handles `localhost`, `127.0.0.1`, and subdomain patterns like `subdomain.localhost` in development mode. Plain `localhost` resolves to the root tenant, while `subdomain.localhost` resolves to the tenant matching that slug.
 
 ## Development Tools
 
@@ -53,10 +74,8 @@ This project includes comprehensive development tools for code quality, security
 - **Strong Migrations** - Safe database migration practices
 - **Draper** - Object-oriented presentation logic with decorators
 
-### Internationalization & Accessibility
+### Internationalization
 - **i18n-tasks** - Manage missing and unused translations
-- **Axe-core RSpec** - Automated accessibility testing
-- **Axe-core Capybara** - Accessibility testing in system tests
 
 ### Running Tools Individually
 
@@ -67,15 +86,14 @@ bundle exec rubocop                  # Code style check
 bundle exec bullet                   # N+1 query detection (via web interface)
 bundle exec annotaterb models        # Annotate models with schema info
 bundle exec i18n-tasks health        # Check i18n translation health
-bundle exec rspec spec/system/accessibility_spec.rb  # Run accessibility tests
 ```
 
 ### Development Scripts
 
 ```bash
-./script/dev/setup                   # Setup development environment
+./bin/setup                           # Setup development environment
 ./script/dev/setup-quality-automation # Setup autonomous quality system
-./script/dev/quality                 # **MANDATORY** - Run ALL quality checks
+./bin/quality                        # **MANDATORY** - Run ALL quality checks
 ./script/dev/pre-push-quality        # Extended pre-push validation
 ./script/dev/quality-dashboard       # Live quality metrics and status
 ./script/dev/quality-check-file      # File-specific quality checks
@@ -83,7 +101,6 @@ bundle exec rspec spec/system/accessibility_spec.rb  # Run accessibility tests
 ./script/dev/route-test-check        # Route testing validation
 ./script/dev/migration-check         # Migration safety analysis
 ./script/dev/i18n                    # Manage i18n translations
-./script/dev/accessibility           # Run accessibility tests and guidance
 ./script/dev/migrations              # Database migration safety tools
 bundle exec guard                    # **RECOMMENDED** - Real-time quality monitoring
 ```
@@ -113,7 +130,7 @@ bundle exec guard  # Monitors files and runs quality checks automatically
 #### **Layer 4: CI/CD Pipeline**
 - **Comprehensive automated testing** on every push
 - **Production build validation**
-- **Security and performance monitoring**
+- **Security monitoring**
 
 ### 🚀 **Getting Started with Autonomous Quality**:
 
@@ -137,7 +154,7 @@ bundle exec guard
 **Every code change is automatically validated by a comprehensive autonomous quality system:**
 
 ```bash
-./script/dev/quality  # Must pass 100% - enforced automatically via git hooks
+./bin/quality  # Must pass 100% - enforced automatically via git hooks
 ```
 
 ### 🛡️ **The 12 Autonomous Quality Gates**:
@@ -165,7 +182,7 @@ bundle exec guard
 
 ## Internationalization & Accessibility
 
-The application is designed with internationalization and accessibility in mind:
+The application is designed with internationalization in mind:
 
 ### Supported Locales
 - **English (en)** - Default locale
@@ -180,18 +197,9 @@ The application is designed with internationalization and accessibility in mind:
 - Skip links for improved navigation
 - Reduced motion support for accessibility preferences
 
-### SEO & Meta Tags
-- **Meta Tags Gem** - Comprehensive meta tag management
-- Open Graph tags for social media sharing
-- Twitter Card support for rich Twitter previews
-- Canonical URLs for SEO optimization
-- Structured data ready (JSON-LD support)
-- Multi-language SEO support
-
 ### Configuration
 - Locale detection and fallbacks configured in `config/application.rb`
 - Translation files in `config/locales/`
-- Accessibility helpers in `app/helpers/application_helper.rb`
 
 ## Architecture Patterns
 

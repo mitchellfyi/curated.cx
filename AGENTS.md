@@ -70,7 +70,7 @@ The system automatically detects and blocks:
 Every code change, however small, MUST pass comprehensive quality gates:
 
 **WHEN**: After ANY major/multiple code change (multiple lines, method, file, feature)
-**HOW**: Automated via git hooks + manual validation via `./script/dev/quality`
+**HOW**: Automated via git hooks + manual validation via `./bin/quality`
 **ENFORCEMENT**: Zero exceptions, zero workarounds, zero "temporary" bypasses
 
 ### AUTONOMOUS QUALITY SYSTEM:
@@ -97,7 +97,7 @@ Every code change, however small, MUST pass comprehensive quality gates:
 ### BEFORE COMMITTING:
 - **Pre-commit hooks run automatically**: Overcommit validates all changes
 - **All 12 gates must pass**: No exceptions or bypasses allowed
-- **Manual verification**: Run `./script/dev/quality` if needed
+- **Manual verification**: Run `./bin/quality` if needed
 
 ### BEFORE PUSHING:
 - **Pre-push hooks run automatically**: Extended validation executes
@@ -120,7 +120,7 @@ Every code change, however small, MUST pass comprehensive quality gates:
 12. **Database** - All foreign keys present, proper indexes (automated validation)
 
 ### AUTONOMOUS TOOLS AVAILABLE:
-- `./script/dev/quality` - Master quality enforcement script
+- `./bin/quality` - Master quality enforcement script
 - `./script/dev/anti-pattern-detection` - **CRITICAL** - Prevents shortcuts and workarounds
 - `./script/dev/pre-push-quality` - Extended pre-push validation
 - `./script/dev/quality-check-file <file>` - File-specific quality checks

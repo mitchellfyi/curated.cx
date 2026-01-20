@@ -118,7 +118,7 @@ Devise.setup do |config|
   # with the hashed password. This allows you to change the stretches without
   # invalidating existing passwords.
   #
-  # Limiting the stretches to just one in testing will increase the performance of
+  # Limiting the stretches to just one in testing will speed up
   # your test suite dramatically. However, it is STRONGLY RECOMMENDED to not use
   # a value less than 10 in other environments. Note that, for bcrypt (the default
   # algorithm), the cost increases exponentially with the number of stretches (e.g.

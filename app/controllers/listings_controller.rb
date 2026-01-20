@@ -11,18 +11,18 @@ class ListingsController < ApplicationController
     @listings = if @category
                   # Category-specific listings
                   policy_scope(@category.listings.includes(:category))
+                            .published_recent
+                            .limit(20)
     else
-                  # All listings for tenant
-                  policy_scope(Listing.includes(:category))
+                  # All listings for tenant using cached method
+                  Listing.recent_published_for_tenant(Current.tenant.id, limit: 20)
     end
-
-    @listings = @listings.published.recent.limit(20)
 
     title = @category ? @category.name : t("listings.index.title")
     set_page_meta_tags(
       title: title,
       description: t("listings.index.description",
-                    category: @category&.name || "all categories",
+                    category: @category&.name || t("nav.all_categories"),
                     tenant: Current.tenant&.title)
     )
   end

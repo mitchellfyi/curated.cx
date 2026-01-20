@@ -13,18 +13,21 @@ PreCommit:
   # Core checks that run fast
   RuboCop:
     enabled: true
-    description: 'Quick RuboCop check (changed files only)'
+    description: 'Quick RuboCop check (changed files only) with auto-fix'
     required_executable: 'rubocop'
-    flags: ['--display-cop-names', '--format=emacs']
+    flags: ['--autocorrect', '--display-cop-names', '--format=emacs']
     on_warn: fail
+    include_git_dir: true  # Allow staging of fixed files
     # Only run on staged files for speed
     include: '{app,lib,config}/**/*.rb'
 
   # Template quality (fast)
   ErbLint:
     enabled: true
-    description: 'Quick ERB lint (changed files only)'
+    description: 'Quick ERB lint (changed files only) with auto-fix'
     required_executable: 'erb_lint'
+    flags: ['--fix']
+    include_git_dir: true  # Allow staging of fixed files
     include: 'app/views/**/*.html.erb'
 
   # Security (reasonably fast)
@@ -40,7 +43,8 @@ PreCommit:
   # Quick syntax checks
   HardTabs:
     enabled: true
-    description: 'Check for hard tabs'
+    description: 'Remove hard tabs (auto-fixes)'
+    include_git_dir: true  # Allow staging of fixed files
     exclude:
       - '**/Makefile'
       - '**/*.go'
@@ -48,7 +52,8 @@ PreCommit:
 
   TrailingWhitespace:
     enabled: true
-    description: 'Check for trailing whitespace'
+    description: 'Remove trailing whitespace (auto-fixes)'
+    include_git_dir: true  # Allow staging of fixed files
     exclude:
       - '**/db/structure.sql'
       - '**/*-results.json'

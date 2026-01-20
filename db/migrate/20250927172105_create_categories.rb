@@ -11,5 +11,6 @@ class CreateCategories < ActiveRecord::Migration[8.0]
     end
 
     add_index :categories, [ :tenant_id, :key ], unique: true
+    add_index :categories, [:tenant_id, :name], name: 'index_categories_on_tenant_name'
   end
 end

@@ -23,11 +23,6 @@ class ApplicationDecorator < Draper::Decorator
     h.content_tag(:span, status.humanize, class: "badge badge-#{status}")
   end
 
-  # Common accessibility helpers
-  def aria_label_for(action)
-    "#{action.humanize} #{object.class.model_name.human.downcase}"
-  end
-
   # Avatar/image placeholder helper
   def avatar_placeholder(size: 40, name: nil)
     name ||= display_name || "User"

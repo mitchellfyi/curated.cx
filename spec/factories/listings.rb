@@ -24,11 +24,15 @@
 # Indexes
 #
 #  index_listings_on_category_id                (category_id)
+#  index_listings_on_category_published         (category_id,published_at)
 #  index_listings_on_domain                     (domain)
 #  index_listings_on_published_at               (published_at)
 #  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
+#  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
 #  index_listings_on_tenant_id                  (tenant_id)
 #  index_listings_on_tenant_id_and_category_id  (tenant_id,category_id)
+#  index_listings_on_tenant_published_created   (tenant_id,published_at,created_at)
+#  index_listings_on_tenant_title               (tenant_id,title)
 #
 # Foreign Keys
 #

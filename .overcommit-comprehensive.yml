@@ -17,10 +17,11 @@ PreCommit:
 
   RuboCop:
     enabled: true
-    description: 'Analyze with RuboCop (Rails Omakase)'
+    description: 'Analyze with RuboCop (Rails Omakase) with auto-fix'
     required_executable: 'rubocop'
-    flags: ['--display-cop-names', '--format=emacs']
+    flags: ['--autocorrect', '--display-cop-names', '--format=emacs']
     on_warn: fail
+    include_git_dir: true  # Allow staging of fixed files
 
   Brakeman:
     enabled: true
@@ -42,8 +43,10 @@ PreCommit:
   # Template quality
   ErbLint:
     enabled: true
-    description: 'Lint ERB templates'
+    description: 'Lint ERB templates with auto-fix'
     required_executable: 'erb_lint'
+    flags: ['--fix']
+    include_git_dir: true  # Allow staging of fixed files
     include: '**/*.html.erb'
 
   # Internationalization
@@ -59,14 +62,16 @@ PreCommit:
   # Security
   HardTabs:
     enabled: true
-    description: 'Check for hard tabs'
+    description: 'Remove hard tabs (auto-fixes)'
+    include_git_dir: true  # Allow staging of fixed files
     exclude:
       - '**/Makefile'
       - '**/*.go'
 
   TrailingWhitespace:
     enabled: true
-    description: 'Check for trailing whitespace'
+    description: 'Remove trailing whitespace (auto-fixes)'
+    include_git_dir: true  # Allow staging of fixed files
     exclude:
       - '**/db/structure.sql'
       - '**/*-results.json'

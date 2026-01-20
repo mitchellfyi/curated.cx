@@ -11,11 +11,8 @@ class TenantsController < ApplicationController
     authorize Current.tenant
     @tenant = Current.tenant
 
-    # Load recent listings for the feed
-    @listings = policy_scope(Listing.includes(:category))
-                    .published
-                    .recent
-                    .limit(20)
+    # Load recent listings for the feed using cached method
+    @listings = Listing.recent_published_for_tenant(Current.tenant.id, limit: 20)
 
     set_page_meta_tags(
       title: Current.tenant&.title,

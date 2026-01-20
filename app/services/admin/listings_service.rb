@@ -7,13 +7,15 @@ module Admin
     end
 
     def all_listings(category_id: nil, limit: 50)
-      listings = Listing.includes(:category).recent
-      listings = listings.where(category_id: category_id) if category_id.present?
-      listings.limit(limit)
+      PerformanceOptimizer.load_listings_with_associations(
+        @tenant.id,
+        category_id: category_id,
+        limit: limit
+      )
     end
 
     def find_listing(id)
-      Listing.find(id)
+      Listing.includes(:category, :tenant).find(id)
     end
 
     def create_listing(attributes)

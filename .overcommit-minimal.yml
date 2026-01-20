@@ -13,7 +13,8 @@ PreCommit:
 
   TrailingWhitespace:
     enabled: true
-    description: 'Trailing whitespace'
+    description: 'Remove trailing whitespace (auto-fixes)'
+    include_git_dir: true  # Allow staging of fixed files
     exclude:
       - '**/db/structure.sql'
       - '**/*-results.json'

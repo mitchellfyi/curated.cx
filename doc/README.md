@@ -33,11 +33,11 @@ This directory contains comprehensive documentation for the Curated.www Rails 8 
 
 ### Quality Scripts
 ```bash
-./script/dev/quality        # Master quality enforcement script
+./bin/quality               # Master quality enforcement script
 ./script/dev/i18n          # Internationalization checks
 ./script/dev/migrations     # Database migration safety
 ./script/dev/accessibility  # Accessibility testing
-./script/dev/setup         # Development environment setup
+./bin/setup                 # Development environment setup
 ```
 
 ### Pre-commit Integration
@@ -85,7 +85,7 @@ This directory contains comprehensive documentation for the Curated.www Rails 8 
 10. ✅ **Database** - Proper indexes and constraints
 
 ### Monitoring Dashboard
-- Local quality metrics: `./script/dev/quality`
+- Local quality metrics: `./bin/quality`
 - CI/CD results: GitHub Actions with detailed artifacts
 - Coverage reports: SimpleCov with 80% minimum threshold
 - Security scanning: Brakeman with zero tolerance policy
@@ -138,7 +138,7 @@ This directory contains comprehensive documentation for the Curated.www Rails 8 
 1. **Understand Standards**: Review quality documentation thoroughly
 2. **Plan Changes**: Consider quality impact in all planning
 3. **Implement Safely**: Make smallest possible changes
-4. **Verify Quality**: Run `./script/dev/quality` before committing
+4. **Verify Quality**: Run `./bin/quality` before committing
 5. **Document Changes**: Update relevant documentation
 6. **Review Process**: Comprehensive code review with quality focus
 

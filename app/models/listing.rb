@@ -26,11 +26,15 @@
 # Indexes
 #
 #  index_listings_on_category_id                (category_id)
+#  index_listings_on_category_published         (category_id,published_at)
 #  index_listings_on_domain                     (domain)
 #  index_listings_on_published_at               (published_at)
 #  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
+#  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
 #  index_listings_on_tenant_id                  (tenant_id)
 #  index_listings_on_tenant_id_and_category_id  (tenant_id,category_id)
+#  index_listings_on_tenant_published_created   (tenant_id,published_at,created_at)
+#  index_listings_on_tenant_title               (tenant_id,title)
 #
 # Foreign Keys
 #
@@ -54,12 +58,38 @@ class Listing < ApplicationRecord
   # Callbacks
   before_validation :canonicalize_url, if: :url_raw_changed?
   before_validation :extract_domain_from_canonical, if: :url_canonical_changed?
+  after_save :clear_listing_cache
+  after_destroy :clear_listing_cache
 
   # Scopes
   scope :published, -> { where.not(published_at: nil) }
   scope :recent, -> { order(published_at: :desc, created_at: :desc) }
   scope :by_domain, ->(domain) { where(domain: domain) }
   scope :with_content, -> { where.not(body_html: [ nil, "" ]) }
+  scope :by_tenant_and_category, ->(tenant_id, category_id) {
+    where(tenant_id: tenant_id, category_id: category_id)
+  }
+  scope :published_recent, -> { published.recent }
+
+  # Class methods for common queries
+  def self.recent_published_for_tenant(tenant_id, limit: 20)
+    Rails.cache.fetch("listings:recent:#{tenant_id}:#{limit}", expires_in: 5.minutes) do
+      includes(:category, :tenant)
+        .where(tenant_id: tenant_id)
+        .published_recent
+        .limit(limit)
+        .to_a
+    end
+  end
+
+  def self.count_by_category_for_tenant(tenant_id)
+    Rails.cache.fetch("listings:count_by_category:#{tenant_id}", expires_in: 10.minutes) do
+      where(tenant_id: tenant_id)
+        .joins(:category)
+        .group('categories.name')
+        .count
+    end
+  end
 
   # Published status
   def published?
@@ -96,6 +126,12 @@ class Listing < ApplicationRecord
   end
 
   private
+
+  def clear_listing_cache
+    # Clear specific cache keys more efficiently
+    Rails.cache.delete_matched("listings:recent:#{tenant_id}:*")
+    Rails.cache.delete_matched("listings:count_by_category:#{tenant_id}:*")
+  end
 
   def canonicalize_url
     return unless url_raw.present?

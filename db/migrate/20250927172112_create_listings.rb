@@ -24,5 +24,10 @@ class CreateListings < ActiveRecord::Migration[8.0]
     add_index :listings, [ :tenant_id, :category_id ]
     add_index :listings, :domain
     add_index :listings, :published_at
+    # Performance indexes for common queries
+    add_index :listings, [:tenant_id, :published_at, :created_at], name: 'index_listings_on_tenant_published_created'
+    add_index :listings, [:tenant_id, :title], name: 'index_listings_on_tenant_title'
+    add_index :listings, [:tenant_id, :domain, :published_at], name: 'index_listings_on_tenant_domain_published'
+    add_index :listings, [:category_id, :published_at], name: 'index_listings_on_category_published'
   end
 end

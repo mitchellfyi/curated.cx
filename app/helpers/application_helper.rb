@@ -1,11 +1,6 @@
 module ApplicationHelper
   # General purpose helpers - model-specific logic moved to decorators
 
-  # Accessibility helpers
-  def skip_link(target = "#main-content", text = t("a11y.skip_to_content"))
-    link_to text, target, class: "skip-link sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2 z-50 focus:z-50"
-  end
-
   # Internationalization helpers
   def current_locale_name
     I18n.t("locales.#{I18n.locale}", default: I18n.locale.to_s.upcase)
@@ -19,15 +14,6 @@ module ApplicationHelper
 
   def rtl_locale?
     %i[ar he].include?(I18n.locale)
-  end
-
-  # ARIA helpers
-  def aria_label(key, options = {})
-    { 'aria-label': t(key, **options) }
-  end
-
-  def aria_describedby(id)
-    { 'aria-describedby': id }
   end
 
   def sr_only(text)

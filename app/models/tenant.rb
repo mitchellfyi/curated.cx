@@ -17,9 +17,10 @@
 #
 # Indexes
 #
-#  index_tenants_on_hostname  (hostname) UNIQUE
-#  index_tenants_on_slug      (slug) UNIQUE
-#  index_tenants_on_status    (status)
+#  index_tenants_on_hostname         (hostname) UNIQUE
+#  index_tenants_on_slug             (slug) UNIQUE
+#  index_tenants_on_status           (status)
+#  index_tenants_on_status_hostname  (status,hostname)
 #
 class Tenant < ApplicationRecord
   # Associations

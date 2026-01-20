@@ -33,7 +33,7 @@ end
 # 1. Full Quality Suite (Master Check)
 run_check(
   "Master Quality Suite - All 12 Gates",
-  "./script/dev/quality"
+  "./bin/quality"
 )
 
 # 2. Extended Test Suite (Including Performance and Integration)

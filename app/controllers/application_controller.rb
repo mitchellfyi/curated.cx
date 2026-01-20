@@ -31,7 +31,7 @@ class ApplicationController < ActionController::Base
   end
 
   def user_not_authorized
-    flash[:alert] = "You are not authorized to perform this action."
+    flash[:alert] = t("auth.unauthorized")
 
     # If user is not signed in, redirect to sign in page
     if !user_signed_in?
@@ -83,7 +83,7 @@ class ApplicationController < ActionController::Base
     return unless Current.tenant&.requires_login?
 
     unless user_signed_in?
-      flash[:alert] = "This content requires authentication."
+      flash[:alert] = t("auth.requires_authentication")
       redirect_to new_user_session_path
     end
   end

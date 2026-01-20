@@ -447,4 +447,3 @@ This will:
 - Analyze recent migrations for safety issues
 - Validate multi-tenant compliance
 - Check database schema integrity
-- Assess performance impact

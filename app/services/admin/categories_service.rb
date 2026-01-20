@@ -7,11 +7,12 @@ module Admin
     end
 
     def all_categories
-      Category.includes(:listings).order(:name)
+      PerformanceOptimizer.load_categories_with_counts(@tenant.id)
+                          .map { |data| data[:category] }
     end
 
     def find_category(id)
-      Category.find(id)
+      Category.includes(:tenant).find(id)
     end
   end
 end

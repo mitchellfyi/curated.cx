@@ -17,8 +17,7 @@ class CategoriesController < ApplicationController
   def show
     authorize @category
     @listings = policy_scope(@category.listings.includes(:category))
-                       .published
-                       .recent
+                       .published_recent
                        .limit(20)
 
     set_page_meta_tags(

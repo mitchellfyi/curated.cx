@@ -38,13 +38,6 @@ RSpec.describe 'Meta Tags', type: :system do
       expect(page).to have_css('body')
     end
 
-    it 'includes skip link for accessibility' do
-      visit root_path
-
-      # Skip link should be present but hidden by default
-      expect(page).to have_css('a[href="#main-content"]', visible: false)
-    end
-
     it 'includes proper landmark elements' do
       visit root_path
 
