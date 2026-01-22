@@ -1,0 +1,281 @@
+#!/usr/bin/env bash
+#
+# bin/agent - Run Claude agent for N tasks
+#
+# Usage:
+#   ./bin/agent        # Run 5 tasks (default)
+#   ./bin/agent 3      # Run 3 tasks
+#   ./bin/agent 1      # Run 1 task
+#
+# Environment variables:
+#   CLAUDE_MODEL      - Model to use (default: opus)
+#   CLAUDE_TIMEOUT    - Timeout per task in seconds (default: 600)
+#   AGENT_DRY_RUN     - If set to 1, preview without executing
+#   AGENT_VERBOSE     - If set to 1, show more output
+#
+set -euo pipefail
+
+# ============================================================================
+# Configuration
+# ============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+TASKS_DIR="$REPO_ROOT/.claude/tasks"
+LOGS_DIR="$REPO_ROOT/.claude/logs/claude-loop"
+SCRIPTS_DIR="$REPO_ROOT/.claude/scripts"
+
+# Defaults
+NUM_TASKS="${1:-5}"
+CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
+CLAUDE_TIMEOUT="${CLAUDE_TIMEOUT:-600}"
+AGENT_DRY_RUN="${AGENT_DRY_RUN:-0}"
+AGENT_VERBOSE="${AGENT_VERBOSE:-0}"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+# ============================================================================
+# Logging
+# ============================================================================
+
+RUN_TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
+RUN_LOG_DIR="$LOGS_DIR/$RUN_TIMESTAMP"
+
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+log_step() {
+    echo -e "${CYAN}[STEP]${NC} $1"
+}
+
+log_header() {
+    echo ""
+    echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
+    echo -e "${BOLD} $1${NC}"
+    echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
+}
+
+# ============================================================================
+# Validation
+# ============================================================================
+
+validate_environment() {
+    log_step "Validating environment..."
+
+    # Check we're in the right directory
+    if [ ! -f "$REPO_ROOT/CLAUDE.md" ]; then
+        log_error "CLAUDE.md not found. Are you in the right repository?"
+        exit 1
+    fi
+
+    # Check task directories exist
+    for dir in todo doing done _templates; do
+        if [ ! -d "$TASKS_DIR/$dir" ]; then
+            log_warn "Creating missing directory: $TASKS_DIR/$dir"
+            mkdir -p "$TASKS_DIR/$dir"
+        fi
+    done
+
+    # Check logs directory exists
+    mkdir -p "$RUN_LOG_DIR"
+
+    # Check Claude CLI is available
+    if ! command -v claude &> /dev/null; then
+        log_error "Claude CLI not found. Please install it first."
+        log_info "See: https://docs.anthropic.com/claude-code"
+        exit 1
+    fi
+
+    # Validate NUM_TASKS is a number
+    if ! [[ "$NUM_TASKS" =~ ^[0-9]+$ ]]; then
+        log_error "Invalid number of tasks: $NUM_TASKS"
+        echo "Usage: $0 [number_of_tasks]"
+        exit 1
+    fi
+
+    if [ "$NUM_TASKS" -lt 1 ] || [ "$NUM_TASKS" -gt 50 ]; then
+        log_error "Number of tasks must be between 1 and 50"
+        exit 1
+    fi
+
+    log_success "Environment validated"
+}
+
+# ============================================================================
+# Task Management
+# ============================================================================
+
+count_tasks() {
+    local state="$1"
+    find "$TASKS_DIR/$state" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' '
+}
+
+get_doing_task() {
+    find "$TASKS_DIR/doing" -maxdepth 1 -name "*.md" 2>/dev/null | head -1
+}
+
+get_next_todo_task() {
+    find "$TASKS_DIR/todo" -maxdepth 1 -name "*.md" 2>/dev/null | sort | head -1
+}
+
+show_task_summary() {
+    log_info "Task Summary:"
+    echo "  - Todo:  $(count_tasks todo)"
+    echo "  - Doing: $(count_tasks doing)"
+    echo "  - Done:  $(count_tasks done)"
+}
+
+# ============================================================================
+# Agent Execution
+# ============================================================================
+
+run_agent_iteration() {
+    local iteration="$1"
+    local task_log="$RUN_LOG_DIR/task-$iteration.log"
+
+    log_header "Task $iteration of $NUM_TASKS"
+
+    # Show current state
+    show_task_summary
+
+    # Check for task in doing
+    local doing_task
+    doing_task=$(get_doing_task)
+
+    if [ -n "$doing_task" ]; then
+        log_info "Resuming task: $(basename "$doing_task")"
+    else
+        local next_task
+        next_task=$(get_next_todo_task)
+        if [ -n "$next_task" ]; then
+            log_info "Next task from todo: $(basename "$next_task")"
+        else
+            log_info "No tasks in queue - agent will create one from MISSION.md"
+        fi
+    fi
+
+    if [ "$AGENT_DRY_RUN" = "1" ]; then
+        log_warn "DRY RUN - would execute agent here"
+        return 0
+    fi
+
+    log_step "Running Claude agent..."
+    echo "  Log: $task_log"
+    echo ""
+
+    # Build the prompt
+    local prompt="continue working"
+
+    # Execute Claude with timeout
+    # The agent should read CLAUDE.md and follow the operating loop
+    local exit_code=0
+
+    # Use timeout if available
+    if command -v timeout &> /dev/null; then
+        timeout "${CLAUDE_TIMEOUT}s" claude --dangerously-skip-permissions -p "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+    elif command -v gtimeout &> /dev/null; then
+        gtimeout "${CLAUDE_TIMEOUT}s" claude --dangerously-skip-permissions -p "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+    else
+        # No timeout available, run directly
+        claude --dangerously-skip-permissions -p "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+    fi
+
+    # Check exit code
+    if [ $exit_code -eq 124 ]; then
+        log_error "Task timed out after ${CLAUDE_TIMEOUT}s"
+        return 1
+    elif [ $exit_code -ne 0 ]; then
+        log_error "Agent exited with code $exit_code"
+        return 1
+    fi
+
+    log_success "Task iteration completed"
+    return 0
+}
+
+# ============================================================================
+# Main
+# ============================================================================
+
+main() {
+    log_header "Claude Agent Runner"
+    echo ""
+    echo "  Tasks to run: $NUM_TASKS"
+    echo "  Model: $CLAUDE_MODEL"
+    echo "  Timeout: ${CLAUDE_TIMEOUT}s per task"
+    echo "  Log dir: $RUN_LOG_DIR"
+    echo ""
+
+    # Validate environment
+    validate_environment
+
+    # Track results
+    local completed=0
+    local failed=0
+
+    # Run agent for N iterations
+    for ((i=1; i<=NUM_TASKS; i++)); do
+        if run_agent_iteration "$i"; then
+            ((completed++))
+        else
+            ((failed++))
+            log_warn "Continuing to next task despite failure..."
+        fi
+
+        # Small pause between iterations
+        if [ "$i" -lt "$NUM_TASKS" ]; then
+            sleep 2
+        fi
+    done
+
+    # Generate taskboard
+    log_step "Regenerating taskboard..."
+    if [ -x "$SCRIPTS_DIR/taskboard.sh" ]; then
+        "$SCRIPTS_DIR/taskboard.sh"
+    else
+        log_warn "taskboard.sh not executable, skipping"
+    fi
+
+    # Final summary
+    log_header "Run Complete"
+    echo ""
+    echo "  Completed: $completed"
+    echo "  Failed: $failed"
+    echo "  Logs: $RUN_LOG_DIR"
+    echo ""
+    show_task_summary
+
+    if [ "$failed" -gt 0 ]; then
+        exit 1
+    fi
+}
+
+# ============================================================================
+# Entry Point
+# ============================================================================
+
+# Change to repo root
+cd "$REPO_ROOT"
+
+# Run main
+main "$@"
