@@ -17,15 +17,15 @@ module TenantResourcePolicy
     end
 
     def create?
-      admin_or_tenant_owner?
+      admin_or_editor?
     end
 
     def update?
-      admin_or_tenant_owner?
+      admin_or_editor?
     end
 
     def destroy?
-      admin_or_tenant_owner?
+      admin_or_owner_only?
     end
 
     class Scope < ApplicationPolicy::Scope
@@ -38,7 +38,20 @@ module TenantResourcePolicy
 
   private
 
-  def admin_or_tenant_owner?
-    user&.admin? || (Current.tenant && user&.has_role?(:owner, Current.tenant))
+  def admin_or_editor?
+    return true if user&.admin?
+    return false unless Current.tenant && user
+
+    user.has_role?(:owner, Current.tenant) ||
+      user.has_role?(:admin, Current.tenant) ||
+      user.has_role?(:editor, Current.tenant)
+  end
+
+  def admin_or_owner_only?
+    return true if user&.admin?
+    return false unless Current.tenant && user
+
+    user.has_role?(:owner, Current.tenant) ||
+      user.has_role?(:admin, Current.tenant)
   end
 end

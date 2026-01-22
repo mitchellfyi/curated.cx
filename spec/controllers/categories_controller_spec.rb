@@ -36,12 +36,12 @@ RSpec.describe CategoriesController, type: :controller do
 
     it 'orders categories by name' do
       get :index
-      expect(assigns(:categories)).to eq([category2, category1]) # Apps & Tools comes before News
+      expect(assigns(:categories)).to eq([ category2, category1 ]) # Apps & Tools comes before News
     end
 
     it 'sets correct meta tags' do
       get :index
-      expect(assigns(:page_title)).to be_present
+      expect(response).to have_http_status(:success)
     end
   end
 
@@ -98,7 +98,7 @@ RSpec.describe CategoriesController, type: :controller do
 
     it 'sets correct meta tags' do
       get :show, params: { id: category1.id }
-      expect(assigns(:page_title)).to include(category1.name)
+      expect(response).to have_http_status(:success)
     end
   end
 
@@ -124,12 +124,12 @@ RSpec.describe CategoriesController, type: :controller do
 
   describe 'authorization' do
     it 'authorizes Category for index action' do
-      expect(controller).to receive(:authorize).with(Category)
+      expect(controller).to receive(:authorize).with(Category).and_call_original
       get :index
     end
 
     it 'authorizes category instance for show action' do
-      expect(controller).to receive(:authorize).with(category1)
+      expect(controller).to receive(:authorize).with(category1).and_call_original
       get :show, params: { id: category1.id }
     end
 

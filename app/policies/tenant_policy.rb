@@ -7,7 +7,7 @@ class TenantPolicy < ApplicationPolicy
     return true if record.publicly_accessible?
     return false unless record.private_access?
 
-    user_has_tenant_role?([ :viewer, :editor, :admin, :owner ])
+    user_has_role_on_record?([ :viewer, :editor, :admin, :owner ])
   end
 
   def about?
@@ -16,12 +16,12 @@ class TenantPolicy < ApplicationPolicy
     return true if record.publicly_accessible?
     return false unless record.private_access?
 
-    user_has_tenant_role?([ :viewer, :editor, :admin, :owner ])
+    user_has_role_on_record?([ :viewer, :editor, :admin, :owner ])
   end
 
   def index?
     # Only admins can list all tenants
-    user&.admin?
+    !!user&.admin?
   end
 
   def create?
@@ -48,5 +48,14 @@ class TenantPolicy < ApplicationPolicy
         scope.where(status: [ :enabled, :private_access ])
       end
     end
+  end
+
+  private
+
+  def user_has_role_on_record?(role_names)
+    return false unless user.present?
+    return true if user.admin?
+
+    role_names.any? { |role| user.has_role?(role, record) }
   end
 end

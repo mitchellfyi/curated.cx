@@ -26,6 +26,7 @@ require 'rails_helper'
 
 RSpec.describe Tenant, type: :model do
   describe 'associations' do
+    it { should have_many(:sites).dependent(:destroy) }
     it { should have_many(:categories).dependent(:destroy) }
     it { should have_many(:listings).dependent(:destroy) }
   end

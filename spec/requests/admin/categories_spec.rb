@@ -3,6 +3,8 @@ require 'rails_helper'
 RSpec.describe "Admin::Categories", type: :request do
   let!(:tenant1) { create(:tenant, :ai_news) }
   let!(:tenant2) { create(:tenant, :construction) }
+  let!(:site1) { create(:site, tenant: tenant1, slug: 'ai_site', name: 'AI Site') }
+  let!(:site2) { create(:site, tenant: tenant2, slug: 'construction_site', name: 'Construction Site') }
   let(:admin_user) { create(:user, :admin) }
   let(:tenant1_owner) { create(:user) }
   let(:tenant2_owner) { create(:user) }
@@ -15,8 +17,8 @@ RSpec.describe "Admin::Categories", type: :request do
 
       describe "tenant scoping" do
         before do
-          @tenant1_category = create(:category, :news, tenant_id: tenant1.id)
-          @tenant2_category = create(:category, :news, tenant_id: tenant2.id)
+          @tenant1_category = create(:category, :news, tenant: tenant1, site: site1)
+          @tenant2_category = create(:category, :news, tenant: tenant2, site: site2)
         end
 
     context "when accessing as admin user" do

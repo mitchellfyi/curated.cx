@@ -13,7 +13,10 @@ RSpec.describe "Categories", type: :request do
   let!(:listings1) { create_list(:listing, 3, :published, tenant: tenant, category: category1) }
   let!(:listings2) { create_list(:listing, 2, :app_listing, :published, tenant: tenant) }
 
-  before { host! tenant.hostname }
+  before do
+    host! tenant.hostname
+    setup_tenant_context(tenant)
+  end
 
   describe "GET /categories" do
     context "when user is signed in" do
@@ -53,7 +56,8 @@ RSpec.describe "Categories", type: :request do
       it "sets correct meta tags" do
         get categories_path
         expect(response.body).to include(I18n.t('categories.index.title'))
-        expect(response.body).to include(tenant.title)
+        # Tenant title may contain special characters that get HTML-encoded
+        expect(response.body).to include(ERB::Util.html_escape(tenant.title))
       end
     end
 
@@ -71,7 +75,10 @@ RSpec.describe "Categories", type: :request do
     end
 
     context "when tenant requires private access" do
-      before { host! private_tenant.hostname }
+      before do
+        host! private_tenant.hostname
+        setup_tenant_context(private_tenant)
+      end
 
       context "when user is not signed in" do
         it "redirects to sign in" do
@@ -92,7 +99,10 @@ RSpec.describe "Categories", type: :request do
     end
 
     context "when tenant is disabled" do
-      before { host! disabled_tenant.hostname }
+      before do
+        host! disabled_tenant.hostname
+        setup_tenant_context(disabled_tenant)
+      end
 
       it "returns not found" do
         get categories_path
@@ -157,8 +167,9 @@ RSpec.describe "Categories", type: :request do
 
       it "sets correct meta tags" do
         get category_path(category1)
-        expect(response.body).to include(category1.name)
-        expect(response.body).to include(tenant.title)
+        # Category name and tenant title may contain special characters that get HTML-encoded
+        expect(response.body).to include(ERB::Util.html_escape(category1.name))
+        expect(response.body).to include(ERB::Util.html_escape(tenant.title))
       end
 
         context "when category belongs to different tenant" do
@@ -189,7 +200,10 @@ RSpec.describe "Categories", type: :request do
     end
 
     context "when tenant requires private access" do
-      before { host! private_tenant.hostname }
+      before do
+        host! private_tenant.hostname
+        setup_tenant_context(private_tenant)
+      end
 
       context "when user is not signed in" do
         it "redirects to sign in" do
@@ -210,7 +224,10 @@ RSpec.describe "Categories", type: :request do
     end
 
     context "when tenant is disabled" do
-      before { host! disabled_tenant.hostname }
+      before do
+        host! disabled_tenant.hostname
+        setup_tenant_context(disabled_tenant)
+      end
 
       it "returns not found" do
         get category_path(other_tenant_category)
@@ -255,13 +272,15 @@ RSpec.describe "Categories", type: :request do
     it "sets correct meta tags for index action" do
       get categories_path
       expect(response.body).to include(I18n.t('categories.index.title'))
-      expect(response.body).to include(I18n.t('categories.index.description', tenant: tenant.title))
+      # Names may contain special characters that get HTML-encoded
+      expect(response.body).to include(ERB::Util.html_escape(I18n.t('categories.index.description', tenant: tenant.title)))
     end
 
     it "sets correct meta tags for show action" do
       get category_path(category1)
-      expect(response.body).to include(category1.name)
-      expect(response.body).to include(I18n.t('categories.show.description', category: category1.name, tenant: tenant.title))
+      # Category name and tenant title may contain special characters that get HTML-encoded
+      expect(response.body).to include(ERB::Util.html_escape(category1.name))
+      expect(response.body).to include(ERB::Util.html_escape(I18n.t('categories.show.description', category: category1.name, tenant: tenant.title)))
     end
   end
 
@@ -284,13 +303,21 @@ RSpec.describe "Categories", type: :request do
   end
 
   describe "tenant isolation" do
-    let(:other_tenant) { create(:tenant, :enabled) }
-    let(:other_category) { create(:category, tenant: other_tenant) }
+    let!(:other_tenant) do
+      ActsAsTenant.without_tenant { create(:tenant, :enabled) }
+    end
+    let!(:other_site) do
+      ActsAsTenant.without_tenant { create(:site, tenant: other_tenant, slug: other_tenant.slug) }
+    end
+    let!(:other_category) do
+      ActsAsTenant.without_tenant { create(:category, tenant: other_tenant, site: other_site) }
+    end
 
     before { sign_in regular_user }
 
     it "does not show categories from other tenants" do
       host! other_tenant.hostname
+      setup_tenant_context(other_tenant)
       get categories_path
       expect(assigns(:categories)).to include(other_category)
       expect(assigns(:categories)).not_to include(category1, category2)
@@ -298,6 +325,7 @@ RSpec.describe "Categories", type: :request do
 
     it "does not show listings from other tenants" do
       host! other_tenant.hostname
+      setup_tenant_context(other_tenant)
       get category_path(other_category)
       expect(assigns(:listings)).to be_empty
     end

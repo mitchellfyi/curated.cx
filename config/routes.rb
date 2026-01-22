@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   # Admin routes with proper RESTful routing
   namespace :admin do
@@ -5,8 +7,14 @@ Rails.application.routes.draw do
     root "dashboard#index"
     resources :categories
     resources :listings
+    resources :sites do
+      resources :domains, except: [ :index ] do
+        member do
+          post :check_dns
+        end
+      end
+    end
   end
-
   devise_for :users
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -35,4 +43,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "tenants#show"
+
+  # Domain not connected error page (handled by middleware)
+  get "domain_not_connected", to: "domain_not_connected#show"
 end

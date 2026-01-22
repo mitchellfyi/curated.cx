@@ -19,6 +19,8 @@
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  category_id   :bigint           not null
+#  site_id       :bigint           not null
+#  source_id     :bigint
 #  tenant_id     :bigint           not null
 #
 # Indexes
@@ -27,23 +29,30 @@
 #  index_listings_on_category_published         (category_id,published_at)
 #  index_listings_on_domain                     (domain)
 #  index_listings_on_published_at               (published_at)
+#  index_listings_on_site_id                    (site_id)
+#  index_listings_on_site_id_and_url_canonical  (site_id,url_canonical) UNIQUE
+#  index_listings_on_source_id                  (source_id)
 #  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
 #  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
 #  index_listings_on_tenant_id                  (tenant_id)
 #  index_listings_on_tenant_id_and_category_id  (tenant_id,category_id)
+#  index_listings_on_tenant_id_and_source_id    (tenant_id,source_id)
 #  index_listings_on_tenant_published_created   (tenant_id,published_at,created_at)
 #  index_listings_on_tenant_title               (tenant_id,title)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (category_id => categories.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (source_id => sources.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 FactoryBot.define do
   factory :listing do
     tenant
-    category
-    sequence(:url_raw) { |n| "https://example#{n}.com/article" }
+    site { tenant&.sites&.first || association(:site, tenant: tenant) }
+    category { tenant&.categories&.first || association(:category, tenant: tenant, site: site) }
+    sequence(:url_raw) { |n| "https://example#{n}.com" }
     sequence(:title) { |n| "Article Title #{n}" }
     description { Faker::Lorem.paragraph }
     image_url { Faker::Internet.url(host: 'images.example.com', path: '/image.jpg') }
@@ -54,6 +63,17 @@ FactoryBot.define do
     ai_summaries { {} }
     ai_tags { {} }
     metadata { {} }
+
+    after(:build) do |listing|
+      listing.created_at ||= 2.days.ago
+
+      if listing.category.nil? && listing.tenant
+        listing.site ||= listing.tenant.sites.first || create(:site, tenant: listing.tenant)
+        listing.category = listing.tenant.categories.find_by(site: listing.site) || create(:category, tenant: listing.tenant, site: listing.site)
+      elsif listing.category && listing.site.nil?
+        listing.site = listing.category.site
+      end
+    end
 
     trait :with_ai_content do
       ai_summaries do

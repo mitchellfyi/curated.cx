@@ -91,39 +91,39 @@ end
 guard :shell, all_on_start: true do
   # Custom quality checks including anti-pattern detection
   watch(%r{^app/(.+)\.rb$}) do |m|
-    puts "🔍 Running targeted quality checks for #{m[0]}"
+    puts "[QUALITY] Running targeted quality checks for #{m[0]}"
     system("./script/dev/quality-check-file #{m[0]}")
     system("./script/dev/anti-pattern-detection #{m[0]}")
   end
 
   # Watch for view changes
   watch(%r{^app/views/.+\.erb$}) do |m|
-    puts "🔍 Running i18n check for #{m[0]}"
+    puts "[I18N] Running i18n check for #{m[0]}"
     system("./script/dev/i18n-check-file #{m[0]}")
     system("./script/dev/anti-pattern-detection #{m[0]}")
   end
 
   # Watch for migration changes
   watch(%r{^db/migrate/.+\.rb$}) do |m|
-    puts "🔍 Running migration safety check for #{m[0]}"
+    puts "[MIGRATION] Running migration safety check for #{m[0]}"
     system("./script/dev/migration-check #{m[0]}")
   end
 
   # Watch for route changes
   watch(%r{^config/routes\.rb$}) do |m|
-    puts "🔍 Running route testing validation"
+    puts "[ROUTES] Running route testing validation"
     system("./script/dev/route-test-check")
   end
 
   # Watch for test changes - prevent test shortcuts
   watch(%r{^spec/.+_spec\.rb$}) do |m|
-    puts "🔍 Running anti-pattern check for test #{m[0]}"
+    puts "[TEST] Running anti-pattern check for test #{m[0]}"
     system("./script/dev/anti-pattern-detection #{m[0]}")
   end
 
   # Watch for dependency changes
   watch(%r{^Gemfile$}) do |m|
-    puts "🔍 Running dependency security check"
+    puts "[DEPS] Running dependency security check"
     system("bundle audit --update")
   end
 end

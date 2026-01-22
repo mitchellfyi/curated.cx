@@ -5,7 +5,7 @@
       <ol class="flex items-center space-x-4">
         <li>
           <%= link_to categories_path, class: "text-gray-400 hover:text-gray-500" do %>
-            Categories
+            <%= t('nav.categories') %>
           <% end %>
         </li>
         <% if @category %>
@@ -21,7 +21,7 @@
             <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
           </svg>
           <span class="ml-4 text-sm font-medium text-gray-500">
-            <% if @category %>Listings<% else %>All Listings<% end %>
+            <% if @category %><%= t('listings.index.breadcrumb_listings') %><% else %><%= t('listings.index.all_listings') %><% end %>
           </span>
         </li>
       </ol>
@@ -30,17 +30,17 @@
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900">
         <% if @category %>
-          <%= @category.name %> Listings
+          <%= t('listings.index.category_listings', category: @category.name) %>
         <% else %>
-          All Listings
+          <%= t('listings.index.title') %>
         <% end %>
       </h1>
       <p class="mt-2 text-gray-600">
-        <%= pluralize(@listings.length, 'item') %>
+        <%= t('listings.index.item_count', count: @listings.length) %>
         <% if @category %>
-          in <%= @category.name %>
+          <%= t('listings.index.in_category', category: @category.name) %>
         <% else %>
-          across all categories
+          <%= t('listings.index.across_categories') %>
         <% end %>
       </p>
     </div>
@@ -71,7 +71,7 @@
                       <% if listing.published_at %>
                         <span class="mx-2">•</span>
                         <time datetime="<%= listing.published_at.iso8601 %>">
-                          <%= time_ago_in_words(listing.published_at) %> ago
+                          <%= t('time.ago', time: time_ago_in_words(listing.published_at)) %>
                         </time>
                       <% end %>
                       <% if listing.site_name.present? && listing.site_name != listing.domain %>
@@ -83,7 +83,7 @@
                   <div class="flex-shrink-0 ml-6">
                     <%= link_to listing_path(listing),
                         class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
-                      View Details
+                      <%= t('listings.index.view_details') %>
                     <% end %>
                   </div>
                 </div>
@@ -97,12 +97,12 @@
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
-        <h3 class="mt-4 text-sm font-medium text-gray-900">No listings yet</h3>
+        <h3 class="mt-4 text-sm font-medium text-gray-900"><%= t('listings.index.no_listings_yet') %></h3>
         <p class="mt-1 text-sm text-gray-500">
           <% if @category %>
-            No content has been added to this category yet.
+            <%= t('listings.index.empty.no_content_in_category') %>
           <% else %>
-            No content has been added yet.
+            <%= t('listings.index.empty.no_category_content') %>
           <% end %>
         </p>
       </div>

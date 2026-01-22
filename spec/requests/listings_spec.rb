@@ -83,7 +83,10 @@ RSpec.describe "Listings", type: :request do
     end
 
     context "when tenant requires private access" do
-      before { host! private_tenant.hostname }
+      before do
+        host! private_tenant.hostname
+        setup_tenant_context(private_tenant)
+      end
 
       context "when user is not signed in" do
         it "redirects to sign in" do
@@ -104,7 +107,10 @@ RSpec.describe "Listings", type: :request do
     end
 
     context "when tenant is disabled" do
-      before { host! disabled_tenant.hostname }
+      before do
+        host! disabled_tenant.hostname
+        setup_tenant_context(disabled_tenant)
+      end
 
       it "returns not found" do
         get listings_path
@@ -195,7 +201,10 @@ RSpec.describe "Listings", type: :request do
     end
 
     context "when tenant requires private access" do
-      before { host! private_tenant.hostname }
+      before do
+        host! private_tenant.hostname
+        setup_tenant_context(private_tenant)
+      end
 
       context "when user is not signed in" do
         it "redirects to sign in" do
@@ -216,7 +225,10 @@ RSpec.describe "Listings", type: :request do
     end
 
     context "when tenant is disabled" do
-      before { host! disabled_tenant.hostname }
+      before do
+        host! disabled_tenant.hostname
+        setup_tenant_context(disabled_tenant)
+      end
 
       it "returns not found" do
         get category_listings_path(other_tenant_category)
@@ -291,7 +303,10 @@ RSpec.describe "Listings", type: :request do
     end
 
     context "when tenant requires private access" do
-      before { host! private_tenant.hostname }
+      before do
+        host! private_tenant.hostname
+        setup_tenant_context(private_tenant)
+      end
 
       context "when user is not signed in" do
         it "redirects to sign in" do
@@ -312,7 +327,10 @@ RSpec.describe "Listings", type: :request do
     end
 
     context "when tenant is disabled" do
-      before { host! disabled_tenant.hostname }
+      before do
+        host! disabled_tenant.hostname
+        setup_tenant_context(disabled_tenant)
+      end
 
       it "returns not found" do
         get listing_path(other_tenant_listing)
@@ -357,7 +375,7 @@ RSpec.describe "Listings", type: :request do
     it "sets correct meta tags for index action" do
       get listings_path
       expect(response.body).to include(I18n.t('listings.index.title'))
-      expect(response.body).to include(I18n.t('listings.index.description', category: 'all categories', tenant: tenant.title))
+      expect(response.body).to include(I18n.t('listings.index.description', category: I18n.t('nav.all_categories'), tenant: tenant.title))
     end
 
     it "sets correct meta tags for category listings" do
@@ -402,23 +420,31 @@ RSpec.describe "Listings", type: :request do
   describe "tenant isolation" do
     let!(:other_tenant) do
       # Clear tenant context for clean creation
-      Current.reset_tenant!
+      Current.reset!
       ActsAsTenant.current_tenant = nil
       create(:tenant, :enabled)
     end
 
+    let!(:other_site) do
+      Current.reset!
+      ActsAsTenant.current_tenant = nil
+      site = create(:site, tenant: other_tenant, slug: other_tenant.slug, name: other_tenant.title)
+      create(:domain, :primary, :verified, site: site, hostname: other_tenant.hostname)
+      site
+    end
+
     let!(:other_category) do
       # Clear tenant context and create category explicitly for other_tenant
-      Current.reset_tenant!
+      Current.reset!
       ActsAsTenant.current_tenant = nil
-      create(:category, tenant: other_tenant)
+      create(:category, tenant: other_tenant, site: other_site)
     end
 
     let!(:other_listing) do
       # Clear tenant context and create listing explicitly for other_tenant and other_category
-      Current.reset_tenant!
+      Current.reset!
       ActsAsTenant.current_tenant = nil
-      create(:listing, :published, tenant: other_tenant, category: other_category)
+      create(:listing, :published, tenant: other_tenant, site: other_site, category: other_category)
     end
 
     before do
@@ -433,6 +459,7 @@ RSpec.describe "Listings", type: :request do
       expect(other_listing.category_id).to eq(other_category.id)
 
       host! other_tenant.hostname
+      setup_tenant_context(other_tenant)
 
       get listings_path
       expect(response).to have_http_status(:success)
@@ -442,6 +469,7 @@ RSpec.describe "Listings", type: :request do
 
     it "does not show category listings from other tenants" do
       host! other_tenant.hostname
+      setup_tenant_context(other_tenant)
       get category_listings_path(other_category)
       expect(assigns(:listings)).to include(other_listing)
       expect(assigns(:listings)).not_to include(listing1, listing2)
@@ -449,6 +477,7 @@ RSpec.describe "Listings", type: :request do
 
     it "does not show individual listings from other tenants" do
       host! other_tenant.hostname
+      setup_tenant_context(other_tenant)
       get listing_path(other_listing)
       expect(assigns(:listing)).to eq(other_listing)
     end

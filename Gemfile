@@ -42,7 +42,7 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 1.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -72,6 +72,7 @@ group :development, :test do
   gem "guard-rspec", require: false
   gem "guard-rubocop", require: false
   gem "guard-brakeman", require: false
+  gem "guard-shell", require: false
   gem "overcommit", "~> 0.62"  # Advanced git hook management
   gem "pre-commit", require: false  # Additional pre-commit framework
   gem "rubycritic", require: false  # Code quality reporting

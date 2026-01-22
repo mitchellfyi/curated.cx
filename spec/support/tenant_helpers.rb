@@ -4,13 +4,22 @@
 module TenantTestHelpers
   # Set up tenant context for tests
   def setup_tenant_context(tenant)
-    Current.tenant = tenant
+    site = tenant.sites.first || create(:site, tenant: tenant, slug: tenant.slug, name: tenant.title)
+    tenant.sites.reload  # Reload association so Current.tenant= doesn't try to create another site
+    Current.site = site
     ActsAsTenant.current_tenant = tenant
+
+    # For controller specs, ensure Current remains set even if reset callbacks run
+    if defined?(RSpec) && respond_to?(:allow)
+      allow(Current).to receive(:site).and_return(site)
+      allow(Current).to receive(:tenant).and_return(tenant)
+    end
   end
 
   # Clear tenant context after tests
   def clear_tenant_context
     Current.tenant = nil
+    Current.site = nil
     ActsAsTenant.current_tenant = nil
   end
 
@@ -58,6 +67,7 @@ RSpec.configure do |config|
   config.include TenantTestHelpers, type: :request
   config.include TenantTestHelpers, type: :controller
   config.include TenantTestHelpers, type: :system
+  config.include TenantTestHelpers, type: :model
 
   # Set up tenant context for request specs
   config.before(:each, type: :request) do
@@ -67,6 +77,10 @@ RSpec.configure do |config|
 
   config.after(:each, type: :request) do
     # Clear tenant context after each test
+    clear_tenant_context
+  end
+
+  config.after(:each, type: :controller) do
     clear_tenant_context
   end
 end

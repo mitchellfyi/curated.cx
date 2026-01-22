@@ -24,6 +24,7 @@ RSpec.describe 'i18n Integration', type: :i18n do
           next if string.match?(/^[Mm]\d+[\d\s\-.,LlHhVvCcSsQqTtAaZz]*$/) # SVG path data
           next if string.match?(/^Content-Type$/) # Email headers
           next if string.match?(/^Breadcrumb$/) # Screen reader labels (should be translated though)
+          next if string.match?(/^(Segoe UI|Helvetica|Helvetica Neue|Arial|sans-serif)$/i) # Font names
 
           missing_translations << "#{file}: #{string}"
         end

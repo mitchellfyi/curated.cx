@@ -3,6 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Admin::DashboardController, type: :controller do
+  render_views
   let(:tenant) { create(:tenant, :enabled) }
   let(:admin_user) { create(:user, :admin) }
   let(:regular_user) { create(:user) }
@@ -105,8 +106,10 @@ RSpec.describe Admin::DashboardController, type: :controller do
     context 'when user is regular user' do
       before { sign_in regular_user }
 
-      it 'raises authorization error' do
-        expect { get :index }.to raise_error(Pundit::NotAuthorizedError)
+      it 'redirects with access denied' do
+        get :index
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to eq("Access denied. Admin privileges required.")
       end
     end
 
@@ -130,10 +133,54 @@ RSpec.describe Admin::DashboardController, type: :controller do
 
   describe 'tenant scoping' do
     let!(:other_tenant) { create(:tenant) }
-    let!(:other_tenant_category) { create(:category, tenant: other_tenant) }
-    let!(:other_tenant_listing) { create(:listing, tenant: other_tenant) }
+    let!(:other_site) do
+      clear_tenant_context
+      Site.create!(
+        tenant: other_tenant,
+        slug: "other_#{other_tenant.slug}",
+        name: "Other #{other_tenant.title}",
+        description: "Test site for scoping",
+        config: {},
+        status: :enabled
+      )
+    end
+    let!(:other_tenant_category) do
+      ActsAsTenant.with_tenant(other_tenant) do
+        Current.site = other_site
+        ActsAsTenant.current_tenant = other_tenant
+        Category.create!(
+          tenant: other_tenant,
+          site: other_site,
+          key: "other-category",
+          name: "Other Category",
+          shown_fields: {},
+          allow_paths: true
+        )
+      end
+    end
+    let!(:other_tenant_listing) do
+      ActsAsTenant.with_tenant(other_tenant) do
+        Current.site = other_site
+        ActsAsTenant.current_tenant = other_tenant
+        Listing.create!(
+          tenant: other_tenant,
+          site: other_site,
+          category: other_tenant_category,
+          url_raw: "https://other.example.com/#{SecureRandom.hex(4)}",
+          url_canonical: "https://other.example.com/#{SecureRandom.hex(6)}",
+          title: "Other Listing",
+          domain: "other.example.com",
+          metadata: {},
+          ai_summaries: {},
+          ai_tags: {}
+        )
+      end
+    end
 
-    before { sign_in admin_user }
+    before do
+      sign_in admin_user
+      setup_tenant_context(tenant)
+    end
 
     it 'only shows data for current tenant' do
       get :index

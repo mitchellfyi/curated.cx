@@ -3,73 +3,20 @@ en:
   a11y:
     footer: Site footer
     primary_content: Primary content
-    skip_to_content: Skip to main content
   about:
     description: Description
     page_title: Page title
-  app:
-    name: Curated
-    description: Curated platform for discovering and sharing content
-    tagline: The central hub for curated industry content
-  welcome_message: "Welcome, %{name}!"
-  items_count:
-    zero: "No items"
-    one: "1 item"
-    other: "%{count} items"
-  auth:
-    unauthorized: "You are not authorized to perform this action."
-    requires_authentication: "This content requires authentication."
-    sign_in:
-      title: Sign In
-      description: Sign in to your account to access your dashboard and manage your content
-      button: Sign in
-      sign_out_confirm: Are you sure you want to sign out?
-    sign_up:
-      title: Sign Up
-      description: Create a new account to get started with our platform and access all features
-      button: Create account
-    account:
-      title: Account Settings
-      description: Manage your account settings, update your password, and configure your preferences
-    passwords:
-      new_password: New password
-      confirm_password: Confirm new password
-      change_button: Change my password
-      reset_instructions: Send me reset password instructions
-    confirmations:
-      resend_instructions: Resend confirmation instructions
-    unlocks:
-      resend_instructions: Resend unlock instructions
-    links:
-      forgot_password: Forgot your password?
-      sign_in: Sign in
-      create_account: Create account
-    confirmations:
-      resend_instructions: Didn't receive confirmation instructions?
-      resend_button: Resend confirmation instructions
-    unlocks:
-      resend_instructions: Didn't receive unlock instructions?
-      resend_button: Resend unlock instructions
-    omniauth:
-      sign_in_with: Sign in with %{provider}
-    mailer:
-      confirm_account: Confirm my account
-      change_password: Change my password
-      unlock_account: Unlock my account
   actions:
-    browse: Browse
-    edit: Edit
-    show: Show
-    view: View
-    view_all: View all
-    manage: Manage
-    view_arrow: View →
     back: Back
-    create: Create account
-    update: Update Account
-    delete: Delete Account
+    browse: Browse
     confirm: Are you sure? This action cannot be undone.
-    read_more: Read more
+    delete: Delete Account
+    edit: Edit
+    manage: Manage
+    show: Show
+    update: Update Account
+    view: View
+    view_arrow: View →
   admin:
     categories:
       created: Created
@@ -80,11 +27,88 @@ en:
     dashboard:
       description: Description
       title: Title
+      uncategorized: Uncategorized
       view_all_listings: View all listings
+    domains:
+      created: Domain added successfully
+      deleted: Domain deleted successfully
+      just_now: Just now
+      new:
+        cancel: Cancel
+        domain_label: Domain
+        set_as_primary: Set as primary domain
+        sites_breadcrumb: Sites
+        submit: Add Domain
+      show:
+        back_to_site: Back to Site
+        sites_breadcrumb: Sites
+      updated: Domain updated successfully
     listings:
       created: Created
       deleted: Deleted
       updated: Updated
+    sites:
+      created: Site created successfully
+      deleted: Site deleted successfully
+      edit:
+        cancel: Cancel
+        submit: Update Site
+        topic_tags: Topic Tags
+      index:
+        no_description: No description
+      new:
+        cancel: Cancel
+        description_placeholder: A brief description of your site
+        submit: Create Site
+        topic_tags: Topic Tags
+      show:
+        back_to_sites: Back to Sites
+        edit: Edit
+        no_description: No description
+      updated: Site updated successfully
+  app:
+    description: Curated platform for discovering and sharing content
+    name: Curated
+    tagline: The central hub for curated industry content
+  auth:
+    account:
+      description: Manage your account settings, update your password, and configure
+        your preferences
+      title: Account Settings
+    confirmations:
+      resend_button: Resend confirmation instructions
+      resend_instructions: Didn't receive confirmation instructions?
+    links:
+      create_account: Create account
+      forgot_password: Forgot your password?
+      sign_in: Sign in
+    mailer:
+      change_password: Change my password
+      confirm_account: Confirm my account
+      unlock_account: Unlock my account
+    omniauth:
+      sign_in_with: Sign in with %{provider}
+    passwords:
+      change_button: Change my password
+      confirm_password: Confirm new password
+      new_password: New password
+      reset_instructions: Send me reset password instructions
+    requires_authentication: This content requires authentication.
+    sign_in:
+      button: Sign in
+      description: Sign in to your account to access your dashboard and manage your
+        content
+      sign_out_confirm: Are you sure you want to sign out?
+      title: Sign In
+    sign_up:
+      button: Create account
+      description: Create a new account to get started with our platform and access
+        all features
+      title: Sign Up
+    unauthorized: You are not authorized to perform this action.
+    unlocks:
+      resend_button: Resend unlock instructions
+      resend_instructions: Didn't receive unlock instructions?
   categories:
     index:
       browse_content: Browse content
@@ -92,75 +116,66 @@ en:
       title: Title
     show:
       description: Description
+  common:
+    brand_name: Curated.cx
   counts:
     item: Item
     listing: Listing
-  homepage:
-    empty_state:
-      message: Message
-      title: Title
-    latest_content: Latest content
   listings:
     index:
-      description: Description
-      title: Title
-      latest_content: Latest content
+      across_categories: across all categories
+      all_listings: All Listings
+      breadcrumb_listings: Listings
+      category_listings: "%{category} Listings"
+      description: Browse %{category} from %{tenant}
       empty:
-        title: "No listings found"
-        description: "There are no published listings available at this time."
+        description: There are no published listings available at this time.
+        no_category_content: No content has been added yet.
+        no_content_in_category: No content has been added to this category yet.
+        title: No listings found
+      in_category: in %{category}
+      item_count:
+        one: "%{count} item"
+        other: "%{count} items"
+      latest_content: Latest content
+      no_listings_yet: No listings yet
+      title: All Listings
+      view_details: View Details
   nav:
     about: About
-    home: Home
+    admin: Admin
+    all_categories: All categories
     categories: Categories
     dashboard: Dashboard
-    all_categories: All categories
-    tenants: Tenants
-    admin: Admin
-    settings: Settings
-    logout: Logout
+    home: Home
     login: Login
-    sign_up: Sign up
-    powered_by: Powered by
+    logout: Logout
     main_navigation: Main navigation
-  tenants:
-    index:
-      title: "All Tenants"
-      empty:
-        title: "No tenants found"
-        description: "Get started by creating your first tenant."
-    show:
-      title: "%{name}"
-      description: "Explore %{name}"
-      not_found:
-        title: "Tenant not found"
-        description: "The requested tenant could not be found."
-    actions:
-      new: "New Tenant"
-    attributes:
-      name: "Name"
-      hostname: "Hostname"
-      status: "Status"
-      created_at: "Created"
-    status:
-      enabled: "Enabled"
-      disabled: "Disabled"
-      private: "Private"
-    admin: Admin
-    all_categories: All categories
-    categories: Categories
-    dashboard: Dashboard
-    home: Home
-    login: Login
-    logout: Logout
     powered_by: Powered by
     settings: Settings
     sign_up: Sign up
-  common:
-    brand_name: Curated.cx
-    powered_by: Powered by
+  tenants:
+    attributes:
+      created_at: Created
+      hostname: Hostname
+      name: Name
+      status: Status
+    index:
+      empty:
+        description: Get started by creating your first tenant.
+        title: No tenants found
+      title: All Tenants
+    show:
+      not_found:
+        description: The requested tenant could not be found.
+        title: Tenant not found
+    status:
+      disabled: Disabled
+      enabled: Enabled
+      private: Private
   time:
     ago: "%{time} ago"
     formats:
       default: "%B %d, %Y"
-      short: "%b %d"
       long: "%B %d, %Y at %I:%M %p"
+      short: "%b %d"

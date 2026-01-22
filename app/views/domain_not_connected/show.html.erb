@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Domain Not Connected - Curated.cx</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+      }
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        max-width: 600px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #1a202c;
+      }
+      p {
+        font-size: 1.125rem;
+        color: #4a5568;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+      .hostname {
+        font-family: monospace;
+        background: #f7fafc;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        display: inline-block;
+        margin: 0.5rem 0;
+        color: #2d3748;
+        font-weight: 600;
+      }
+      .help-text {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e2e8f0;
+        font-size: 0.875rem;
+        color: #718096;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Domain Not Connected</h1>
+      <p>
+        The domain <span class="hostname"><%= @hostname %></span> is not currently connected to any site.
+      </p>
+      <p>
+        If you're the owner of this domain, please check your domain settings or contact support.
+      </p>
+      <div class="help-text">
+        <p>This domain needs to be configured in the Curated.cx admin panel before it can be used.</p>
+      </div>
+    </div>
+  </body>
+</html>

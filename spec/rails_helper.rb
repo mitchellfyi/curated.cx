@@ -9,10 +9,13 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 # return unless Rails.env.test?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
-
-# Require additional testing gems
 require 'factory_bot_rails'
 require 'database_cleaner/active_record'
+require 'shoulda/matchers'
+require 'devise'
+
+# Ensure routes (including Devise mappings) are loaded for tests
+Rails.application.reload_routes!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -42,35 +45,25 @@ RSpec.configure do |config|
     Rails.root.join('spec/fixtures')
   ]
 
-  # If you're not using ActiveRecord, or you'd prefer not to run each of your
-  # examples within a transaction, remove the following line or assign false
-  # instead of true.
-  config.use_transactional_fixtures = true
+  # Database Cleaner manages transactions for us
+  config.use_transactional_fixtures = false
 
-  # You can uncomment this line to turn off ActiveRecord support entirely.
-  # config.use_active_record = false
-
-  # RSpec Rails uses metadata to mix in different behaviours to your tests,
-  # for example enabling you to call `get` and `post` in request specs. e.g.:
-  #
-  #     RSpec.describe UsersController, type: :request do
-  #       # ...
-  #     end
-  #
-  # The different available types are documented in the features, such as in
-  # https://rspec.info/features/7-1/rspec-rails
-  #
-  # You can also this infer these behaviours automatically by location, e.g.
-  # /spec/models would pull in the same behaviour as `type: :model` but this
-  # behaviour is considered legacy and will be removed in a future version.
-  #
-  # To enable this behaviour uncomment the line below.
+  # Enable inference of spec types from file location
   config.infer_spec_type_from_file_location!
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
-  # arbitrary gems may also be filtered via:
-  # config.filter_gems_from_backtrace("gem name")
+
+  # Devise helpers
+  config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include Devise::Test::ControllerHelpers, type: :controller
+
+  config.before(:each, type: :controller) do
+    @request.env["devise.mapping"] = Devise.mappings[:user] if defined?(@request)
+  end
+
+  # FactoryBot shortcuts
+  config.include FactoryBot::Syntax::Methods
 end
 
 # Configure shoulda-matchers
@@ -78,28 +71,5 @@ Shoulda::Matchers.configure do |config|
   config.integrate do |with|
     with.test_framework :rspec
     with.library :rails
-  end
-end
-
-# Include Devise test helpers
-RSpec.configure do |config|
-  config.include Devise::Test::IntegrationHelpers, type: :request
-  config.include Devise::Test::ControllerHelpers, type: :controller
-
-  # Ensure Devise mappings are properly set up for tests
-  config.before(:suite) do
-    # Force Devise to reload its mappings if they're empty
-    if Devise.mappings.empty?
-      Rails.application.reload_routes!
-      Devise.regenerate_helpers!
-    end
-  end
-end
-
-# Configure test types
-RSpec.configure do |config|
-  # Define custom test types
-  config.define_derived_metadata(file_path: %r{/spec/i18n}) do |metadata|
-    metadata[:type] = :i18n
   end
 end

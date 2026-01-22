@@ -16,11 +16,28 @@ system("rails db:create db:migrate db:seed") or exit(1)
 puts "\n📦 Installing JavaScript dependencies..."
 system("yarn install") or exit(1)
 
-# Precompile assets for development
-puts "\n🎨 Precompiling assets..."
-system("rails assets:precompile") or exit(1)
+# Build assets once (without watch mode)
+puts "\n🎨 Building assets..."
+system("yarn build:once && yarn build:css:once") or exit(1)
 
-puts "\n✅ Development setup complete!"
-puts "\n💡 You can now run:"
-puts "   ./bin/dev      # Start the development server"
-puts "   ./bin/quality  # Run code quality checks"
+# Set up Overcommit git hooks
+puts "\n🔧 Setting up git hooks (Overcommit)..."
+if system("bundle exec overcommit --install")
+  system("bundle exec overcommit --sign")
+  puts "✅ Git hooks installed - quality checks will run on commit/push"
+else
+  puts "⚠️  Could not install git hooks (non-fatal)"
+end
+
+# Run quality checks
+puts "\n🔍 Running quality checks..."
+quality_passed = system("./bin/quality")
+
+puts "\n" + "=" * 50
+if quality_passed
+  puts "✅ Development setup complete! All quality checks passed."
+else
+  puts "⚠️  Development setup complete, but some quality checks failed."
+  puts "   Review the output above and fix any issues."
+end
+puts "\n💡 Next step: Run ./bin/dev to start the development server"

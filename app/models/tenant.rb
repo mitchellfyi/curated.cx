@@ -24,6 +24,7 @@
 #
 class Tenant < ApplicationRecord
   # Associations
+  has_many :sites, dependent: :destroy
   has_many :categories, dependent: :destroy
   has_many :listings, dependent: :destroy
 

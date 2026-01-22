@@ -1,0 +1,139 @@
+# frozen_string_literal: true
+
+# == Schema Information
+#
+# Table name: sources
+#
+#  id          :bigint           not null, primary key
+#  config      :jsonb            not null
+#  enabled     :boolean          default(TRUE), not null
+#  kind        :integer          not null
+#  last_run_at :datetime
+#  last_status :string
+#  name        :string           not null
+#  schedule    :jsonb            not null
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#  site_id     :bigint           not null
+#  tenant_id   :bigint           not null
+#
+# Indexes
+#
+#  index_sources_on_site_id                (site_id)
+#  index_sources_on_site_id_and_name       (site_id,name) UNIQUE
+#  index_sources_on_tenant_id              (tenant_id)
+#  index_sources_on_tenant_id_and_enabled  (tenant_id,enabled)
+#  index_sources_on_tenant_id_and_kind     (tenant_id,kind)
+#  index_sources_on_tenant_id_and_name     (tenant_id,name) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (tenant_id => tenants.id)
+#
+class Source < ApplicationRecord
+  include TenantScoped
+  include SiteScoped
+
+  # Associations
+  belongs_to :tenant # Keep for backward compatibility
+  has_many :listings, dependent: :nullify
+  has_many :import_runs, dependent: :destroy
+  has_many :content_items, dependent: :destroy
+
+  # Enums
+  enum :kind, {
+    serp_api_google_news: 0,
+    rss: 1,
+    api: 2,
+    web_scraper: 3
+  }
+
+  # Validations
+  validates :name, presence: true, uniqueness: { scope: :site_id }
+  validates :kind, presence: true
+  validates :enabled, inclusion: { in: [ true, false ] }
+  validate :validate_config_structure
+  validate :validate_schedule_structure
+  validate :ensure_site_tenant_consistency
+
+  # Scopes
+  scope :enabled, -> { where(enabled: true) }
+  scope :disabled, -> { where(enabled: false) }
+  scope :by_kind, ->(kind) { where(kind: kind) }
+  scope :due_for_run, -> {
+    where(enabled: true)
+      .where("last_run_at IS NULL OR last_run_at < ?", 1.hour.ago)
+  }
+
+  # Class methods
+  def self.for_site(site)
+    where(site: site)
+  end
+
+  # Legacy method for backward compatibility
+  def self.for_tenant(tenant)
+    joins(:site).where(sites: { tenant: tenant })
+  end
+
+  # Instance methods
+  def config
+    super || {}
+  end
+
+  def schedule
+    super || {}
+  end
+
+  def run_due?
+    return true if last_run_at.nil?
+    return false unless enabled?
+
+    interval = schedule_interval_seconds
+    return false if interval.nil?
+
+    last_run_at < interval.seconds.ago
+  end
+
+  def schedule_interval_seconds
+    schedule["interval_seconds"] || schedule[:interval_seconds]
+  end
+
+  def update_run_status(status)
+    update_columns(
+      last_run_at: Time.current,
+      last_status: status.to_s
+    )
+  end
+
+  # Callbacks
+  before_validation :set_tenant_from_site, on: :create
+
+  private
+
+  def set_tenant_from_site
+    self.tenant = site.tenant if site.present? && tenant.nil?
+  end
+
+  def ensure_site_tenant_consistency
+    if site.present? && tenant.present? && site.tenant != tenant
+      errors.add(:site, "must belong to the same tenant")
+    end
+  end
+
+  def validate_config_structure
+    return if config.blank?
+
+    unless config.is_a?(Hash)
+      errors.add(:config, "must be a valid JSON object")
+    end
+  end
+
+  def validate_schedule_structure
+    return if schedule.blank?
+
+    unless schedule.is_a?(Hash)
+      errors.add(:schedule, "must be a valid JSON object")
+    end
+  end
+end

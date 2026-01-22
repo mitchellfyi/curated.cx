@@ -17,6 +17,6 @@ class CreateTenants < ActiveRecord::Migration[8.0]
     add_index :tenants, :hostname, unique: true
     add_index :tenants, :slug, unique: true
     add_index :tenants, :status
-    add_index :tenants, [:status, :hostname], name: 'index_tenants_on_status_hostname'
+    add_index :tenants, [ :status, :hostname ], name: 'index_tenants_on_status_hostname'
   end
 end

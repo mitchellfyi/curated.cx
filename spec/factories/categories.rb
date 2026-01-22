@@ -9,21 +9,27 @@
 #  shown_fields :jsonb            not null
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
+#  site_id      :bigint           not null
 #  tenant_id    :bigint           not null
 #
 # Indexes
 #
+#  index_categories_on_site_id            (site_id)
+#  index_categories_on_site_id_and_key    (site_id,key) UNIQUE
+#  index_categories_on_site_id_and_name   (site_id,name)
 #  index_categories_on_tenant_id          (tenant_id)
 #  index_categories_on_tenant_id_and_key  (tenant_id,key) UNIQUE
 #  index_categories_on_tenant_name        (tenant_id,name)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 FactoryBot.define do
   factory :category do
     tenant
+    site { Current.site || tenant&.sites&.first || association(:site, tenant: tenant) }
     sequence(:key) { |n| "category_#{n}" }
     sequence(:name) { |n| "Category #{n}" }
     allow_paths { true }

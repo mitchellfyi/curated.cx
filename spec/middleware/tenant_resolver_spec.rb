@@ -9,20 +9,21 @@ RSpec.describe TenantResolver do
 
   before do
     allow(app).to receive(:call).and_return([ 200, {}, [ 'OK' ] ])
-    Current.reset_tenant!
+    Current.reset!
   end
 
   describe '#call' do
     context 'with valid tenant hostname' do
       let(:hostname) { 'ainews.cx' }
       let(:tenant) { create(:tenant, hostname: 'ainews.cx', slug: 'ai') }
+      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug) }
+      let!(:domain) { create(:domain, site: site, hostname: 'ainews.cx', primary: true) }
 
-      before { tenant }
-
-      it 'sets the current tenant and calls the app' do
+      it 'sets the current site and calls the app' do
         status, _, _ = middleware.call(env)
 
         expect(status).to eq(200)
+        expect(Current.site).to eq(site)
         expect(Current.tenant).to eq(tenant)
         expect(app).to have_received(:call).with(env)
       end
@@ -31,56 +32,54 @@ RSpec.describe TenantResolver do
     context 'with hostname that has port' do
       let(:hostname) { 'ainews.cx:3000' }
       let(:tenant) { create(:tenant, hostname: 'ainews.cx', slug: 'ai') }
+      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug) }
+      let!(:domain) { create(:domain, site: site, hostname: 'ainews.cx', primary: true) }
 
-      before { tenant }
-
-      it 'strips the port and resolves the tenant' do
+      it 'strips the port and resolves the site' do
         status, _ = middleware.call(env)
 
         expect(status).to eq(200)
-        expect(Current.tenant).to eq(tenant)
+        expect(Current.site).to eq(site)
       end
     end
 
     context 'with unknown hostname' do
       let(:hostname) { 'unknown.example.com' }
 
-      it 'returns 404' do
-        status, headers, body = middleware.call(env)
+      it 'redirects to domain not connected page' do
+        middleware.call(env)
 
-        expect(status).to eq(404)
-        expect(headers['Content-Type']).to eq('text/html')
-        expect(body).to eq([ 'Tenant not found' ])
-        expect(Current.tenant).to be_nil
+        expect(env['PATH_INFO']).to eq('/domain_not_connected')
+        expect(env['X_DOMAIN_NOT_CONNECTED']).to eq('unknown.example.com')
+        expect(app).to have_received(:call)
       end
     end
 
-    context 'with disabled tenant' do
+    context 'with disabled site' do
       let(:hostname) { 'disabled.example.com' }
       let(:tenant) { create(:tenant, hostname: 'disabled.example.com', slug: 'disabled', status: :disabled) }
+      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug, status: :disabled) }
+      let!(:domain) { create(:domain, site: site, hostname: 'disabled.example.com', primary: true) }
 
-      before { tenant }
+      it 'redirects to domain not connected page' do
+        middleware.call(env)
 
-      it 'returns 404' do
-        status, _, body = middleware.call(env)
-
-        expect(status).to eq(404)
-        expect(body).to eq([ 'Tenant not found' ])
-        expect(Current.tenant).to be_nil
+        expect(env['PATH_INFO']).to eq('/domain_not_connected')
+        expect(env['X_DOMAIN_NOT_CONNECTED']).to eq('disabled.example.com')
       end
     end
 
     context 'with private_access tenant' do
       let(:hostname) { 'private.example.com' }
       let(:tenant) { create(:tenant, hostname: 'private.example.com', slug: 'private', status: :private_access) }
+      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug, status: :private_access) }
+      let!(:domain) { create(:domain, site: site, hostname: 'private.example.com', primary: true) }
 
-      before { tenant }
-
-      it 'allows access to private_access tenants' do
+      it 'allows access to private_access sites' do
         status, _ = middleware.call(env)
 
         expect(status).to eq(200)
-        expect(Current.tenant).to eq(tenant)
+        expect(Current.site).to eq(site)
       end
     end
 
@@ -88,11 +87,11 @@ RSpec.describe TenantResolver do
       let(:hostname) { 'ainews.cx' }
       let(:env) { { 'HTTP_HOST' => hostname, 'PATH_INFO' => '/up' } }
 
-      it 'skips tenant resolution' do
+      it 'skips site resolution' do
         status, _ = middleware.call(env)
 
         expect(status).to eq(200)
-        expect(Current.tenant).to be_nil
+        expect(Current.site).to be_nil
         expect(app).to have_received(:call).with(env)
       end
     end
@@ -100,13 +99,15 @@ RSpec.describe TenantResolver do
     context 'with localhost in development' do
       let(:hostname) { 'localhost' }
       let(:root_tenant) { create(:tenant, hostname: 'curated.cx', slug: 'root') }
+      let!(:root_site) { create(:site, tenant: root_tenant, slug: root_tenant.slug) }
+      let!(:root_domain) { create(:domain, site: root_site, hostname: 'curated.cx', primary: true) }
 
       before do
-        root_tenant
+        allow(Tenant).to receive(:root_tenant).and_return(root_tenant)
         allow(Rails.env).to receive(:development?).and_return(true)
       end
 
-      it 'resolves to root tenant' do
+      it 'resolves to root tenant site' do
         status, _ = middleware.call(env)
 
         expect(status).to eq(200)
@@ -118,30 +119,29 @@ RSpec.describe TenantResolver do
       let(:hostname) { 'ai.localhost' }
       let(:tenant) { create(:tenant, hostname: 'ainews.cx', slug: 'ai') }
       let(:root_tenant) { create(:tenant, hostname: 'curated.cx', slug: 'root') }
+      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug) }
+      let!(:domain) { create(:domain, site: site, hostname: 'ainews.cx', primary: true) }
 
       before do
-        tenant
-        root_tenant
+        allow(Tenant).to receive(:root_tenant).and_return(root_tenant)
         allow(Rails.env).to receive(:development?).and_return(true)
       end
 
-      it 'resolves tenant by subdomain slug' do
+      it 'resolves site by subdomain slug' do
         status, _ = middleware.call(env)
 
         expect(status).to eq(200)
-        expect(Current.tenant).to eq(tenant)
+        expect(Current.site).to eq(site)
       end
     end
 
     context 'with missing HTTP_HOST' do
       let(:env) { {} }
 
-      it 'handles gracefully' do
-        status, _, body = middleware.call(env)
+      it 'handles gracefully by redirecting to domain not connected' do
+        middleware.call(env)
 
-        expect(status).to eq(404)
-        expect(body).to eq([ 'Tenant not found' ])
-        expect(Current.tenant).to be_nil
+        expect(env['PATH_INFO']).to eq('/domain_not_connected')
       end
     end
 
@@ -149,15 +149,13 @@ RSpec.describe TenantResolver do
       let(:hostname) { 'test.example.com' }
 
       before do
-        allow(Tenant).to receive(:find_by_hostname!).and_raise(ActiveRecord::StatementInvalid, 'Database error')
+        allow(Domain).to receive(:find_by_hostname).and_raise(ActiveRecord::StatementInvalid, 'Database error')
       end
 
-      it 'handles the error gracefully' do
-        status, _, body = middleware.call(env)
+      it 'handles the error gracefully by redirecting' do
+        middleware.call(env)
 
-        expect(status).to eq(404)
-        expect(body).to eq([ 'Tenant not found' ])
-        expect(Current.tenant).to be_nil
+        expect(env['PATH_INFO']).to eq('/domain_not_connected')
       end
     end
   end

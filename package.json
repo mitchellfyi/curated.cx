@@ -10,8 +10,10 @@
     "prettier": "^3.2.5"
   },
   "scripts": {
-    "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
-    "build:css": "npx @tailwindcss/cli -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/application.css --config ./tailwind.config.js --minify",
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets --watch=forever",
+    "build:once": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
+    "build:css": "npx @tailwindcss/cli -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/application.css --config ./tailwind.config.js --minify --watch",
+    "build:css:once": "npx @tailwindcss/cli -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/application.css --config ./tailwind.config.js --minify",
     "lint": "eslint app/javascript/ --ext .js,.ts --format json --output-file tmp/quality-results/eslint-results.json",
     "lint:fix": "eslint app/javascript/ --ext .js,.ts --fix",
     "format": "prettier --write app/javascript/",
@@ -23,7 +25,9 @@
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.18",
+    "@rails/actiontext": "^8.1.200",
     "@tailwindcss/cli": "^4.1.13",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "trix": "^2.1.16"
   }
 }

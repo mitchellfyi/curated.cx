@@ -1,136 +1,63 @@
-# Fast Overcommit Configuration for Development
-# Optimized for speed while maintaining essential quality checks
-# Use: ln -sf .overcommit-fast.yml .overcommit.yml
+# Overcommit configuration for Curated.www
+# Git hooks for quality enforcement
+# See: https://github.com/sds/overcommit
 
-# Fail fast and early - stop on first failure
-fail_fast: true
+# Verify signature of the file to ensure it hasn't been tampered with
+verify_signatures: true
 
-# Verify installed gems and plugins
-verify_signatures: false
-
-# Pre-commit hooks - essential checks only
 PreCommit:
-  # Core checks that run fast
+  ALL:
+    problem_on_unmodified_line: warn
+    required: false
+    quiet: false
+
   RuboCop:
     enabled: true
-    description: 'Quick RuboCop check (changed files only) with auto-fix'
-    required_executable: 'rubocop'
-    flags: ['--autocorrect', '--display-cop-names', '--format=emacs']
     on_warn: fail
-    include_git_dir: true  # Allow staging of fixed files
-    # Only run on staged files for speed
-    include: '{app,lib,config}/**/*.rb'
+    command: ['bundle', 'exec', 'rubocop']
+    flags: ['--format', 'emacs', '--force-exclusion', '--display-cop-names']
+    problem_on_unmodified_line: warn
 
-  # Template quality (fast)
   ErbLint:
     enabled: true
-    description: 'Quick ERB lint (changed files only) with auto-fix'
-    required_executable: 'erb_lint'
-    flags: ['--fix']
-    include_git_dir: true  # Allow staging of fixed files
-    include: 'app/views/**/*.html.erb'
-
-  # Security (reasonably fast)
-  Brakeman:
-    enabled: false  # Too slow for every commit
-    description: 'Security check (disabled for speed)'
-
-  # Bundle check (fast)
-  BundleCheck:
-    enabled: true
-    description: 'Quick bundle check'
-
-  # Quick syntax checks
-  HardTabs:
-    enabled: true
-    description: 'Remove hard tabs (auto-fixes)'
-    include_git_dir: true  # Allow staging of fixed files
-    exclude:
-      - '**/Makefile'
-      - '**/*.go'
-      - '**/db/structure.sql'
+    on_warn: fail
+    command: ['bundle', 'exec', 'erb_lint']
 
   TrailingWhitespace:
     enabled: true
-    description: 'Remove trailing whitespace (auto-fixes)'
-    include_git_dir: true  # Allow staging of fixed files
     exclude:
       - '**/db/structure.sql'
-      - '**/*-results.json'
+      - '**/vendor/**/*'
 
-  YamlSyntax:
+  MergeConflicts:
     enabled: true
-    description: 'Check YAML syntax'
-    include: '**/*.yml'
+    required: true
 
-  # DISABLED FOR SPEED - move to pre-push or CI
-  RSpec:
-    enabled: false
-    description: 'Tests (moved to pre-push for speed)'
-
-  SchemaUpToDate:
-    enabled: false  # Can be slow with large schemas
-    description: 'Schema check (disabled for speed)'
-
-  # Custom scripts disabled for speed
-  CustomScript:
-    enabled: false
-    description: 'Quality script (moved to pre-push)'
-
-# Pre-push hooks - comprehensive checks before sharing code
-PrePush:
-  # Full test suite only before pushing
-  RSpec:
-    enabled: true
-    description: 'Full test suite'
-    command: ['bundle', 'exec', 'rspec', '--format', 'progress']
-
-  # Security scan before push
-  Brakeman:
-    enabled: true
-    description: 'Security scan before push'
-    command: ['bundle', 'exec', 'brakeman', '--quiet']
-
-  # Quality checks before push
-  CustomScript:
-    enabled: false  # Can enable if needed, but very slow
-    description: 'Comprehensive quality (optional)'
-    required_executable: './script/dev/quality-fast'
-
-# Minimal commit message checks
 CommitMsg:
-  EmptyMessage:
-    enabled: true
-    description: 'Check for empty commit message'
-
-  SingleLineSubject:
-    enabled: true
-    description: 'Check subject line length'
-
-  # Disable slower checks
-  CapitalizedSubject:
-    enabled: false
-
-  SpellCheck:
-    enabled: false
+  ALL:
+    required: false
 
   TextWidth:
-    enabled: false
-
-# Post-checkout hooks (minimal)
-PostCheckout:
-  BundleCheck:
     enabled: true
-    description: 'Bundle check after checkout'
+    max_subject_width: 72
+    max_body_width: 80
 
-# Post-merge hooks (essential only)
-PostMerge:
-  BundleInstall:
+  HardTabs:
     enabled: true
-    description: 'Bundle install after merge'
 
-# Post-rewrite hooks (essential only)
-PostRewrite:
-  BundleInstall:
+PrePush:
+  ALL:
+    required: false
+    quiet: false
+
+  Brakeman:
     enabled: true
-    description: 'Bundle install after rewrite'
+    on_warn: warn
+    command: ['bundle', 'exec', 'brakeman']
+    flags: ['--quiet', '--no-pager', '--exit-on-warn']
+
+  RSpec:
+    enabled: true
+    on_warn: fail
+    command: ['bundle', 'exec', 'rspec']
+    flags: ['--format', 'progress', '--exclude-pattern', 'spec/system/**/*_spec.rb']

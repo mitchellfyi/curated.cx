@@ -85,8 +85,11 @@ RSpec.describe "Tenants", type: :request do
       end
 
       it "includes category in listings query to prevent N+1" do
-        expect_any_instance_of(ActiveRecord::Relation).to receive(:includes).with(:category).and_call_original
         get tenant_path(tenant)
+        # Verify category association is loaded to prevent N+1 queries
+        assigns(:listings).each do |listing|
+          expect(listing.association(:category)).to be_loaded
+        end
       end
 
       it "limits listings to 20" do
@@ -119,8 +122,9 @@ RSpec.describe "Tenants", type: :request do
 
       it "sets correct meta tags" do
         get tenant_path(tenant)
-        expect(response.body).to include(tenant.title)
-        expect(response.body).to include(tenant.description)
+        # Tenant title/description may contain special characters that get HTML-encoded
+        expect(response.body).to include(ERB::Util.html_escape(tenant.title))
+        expect(response.body).to include(ERB::Util.html_escape(tenant.description))
       end
     end
 
@@ -193,7 +197,8 @@ RSpec.describe "Tenants", type: :request do
 
       it "sets correct meta tags" do
         get about_path
-        expect(response.body).to include(tenant.title)
+        # Tenant title may contain special characters that get HTML-encoded
+        expect(response.body).to include(ERB::Util.html_escape(tenant.title))
       end
     end
 
@@ -320,13 +325,15 @@ RSpec.describe "Tenants", type: :request do
 
     it "sets default meta tags for show action" do
       get tenant_path(tenant)
-      expect(response.body).to include(tenant.title)
-      expect(response.body).to include(tenant.description)
+      # Tenant title/description may contain special characters that get HTML-encoded
+      expect(response.body).to include(ERB::Util.html_escape(tenant.title))
+      expect(response.body).to include(ERB::Util.html_escape(tenant.description))
     end
 
     it "sets default meta tags for about action" do
       get about_path
-      expect(response.body).to include(tenant.title)
+      # Tenant title may contain special characters that get HTML-encoded
+      expect(response.body).to include(ERB::Util.html_escape(tenant.title))
     end
   end
 

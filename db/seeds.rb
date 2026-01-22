@@ -67,6 +67,22 @@ tenant_data.each do |attrs|
   tenant.assign_attributes(attrs)
   tenant.save!
   puts "  ✓ Created/updated tenant: #{tenant.title} (#{tenant.hostname})"
+
+  # Ensure each tenant has a primary site
+  site = Site.find_or_initialize_by(tenant: tenant, slug: tenant.slug)
+  site.assign_attributes(
+    name: tenant.title,
+    description: tenant.description,
+    config: tenant.settings,
+    status: tenant.status
+  )
+  site.save!
+
+  # Ensure primary domain exists and is verified
+  primary_domain = site.domains.find_or_initialize_by(hostname: tenant.hostname)
+  primary_domain.assign_attributes(primary: true, verified: true, status: :active, verified_at: Time.current)
+  primary_domain.save!
+  puts "    ↳ Site ready with domain #{primary_domain.hostname}"
 end
 
 puts "Tenant seeding complete!"
@@ -115,16 +131,16 @@ category_data = [
 ]
 
 Tenant.all.each do |tenant|
-  ActsAsTenant.with_tenant(tenant) do
-    category_data.each do |attrs|
-      # Only create categories enabled in tenant settings
-      if tenant.setting("categories.#{attrs[:key]}.enabled", false)
-        category = Category.find_or_initialize_by(key: attrs[:key])
-        category.assign_attributes(attrs)
-        category.save!
-        puts "  ✓ Created/updated category for #{tenant.title}: #{category.name}"
-      end
-    end
+  site = tenant.sites.find_by(slug: tenant.slug) || tenant.sites.first
+  next unless site
+
+  category_data.each do |attrs|
+    next unless tenant.setting("categories.#{attrs[:key]}.enabled", false)
+
+    category = Category.find_or_initialize_by(site: site, key: attrs[:key])
+    category.assign_attributes(attrs.merge(tenant: tenant, site: site))
+    category.save!
+    puts "  ✓ Created/updated category for #{tenant.title}: #{category.name}"
   end
 end
 
@@ -348,26 +364,32 @@ listings_data = {
 Tenant.all.each do |tenant|
   next unless listings_data[tenant.slug]
 
-  ActsAsTenant.with_tenant(tenant) do
-    tenant_data = listings_data[tenant.slug]
+  site = tenant.sites.find_by(slug: tenant.slug) || tenant.sites.first
+  next unless site
 
-    tenant_data.each do |category_key, listings|
-      category = Category.find_by(key: category_key)
-      next unless category
+  tenant_listing_data = listings_data[tenant.slug]
 
-      listings.each do |listing_attrs|
-        listing = Listing.find_or_initialize_by(url_canonical: listing_attrs[:url_raw])
-        listing.assign_attributes(
-          category: category,
-          url_raw: listing_attrs[:url_raw],
-          title: listing_attrs[:title],
-          description: listing_attrs[:description],
-          site_name: listing_attrs[:site_name],
-          published_at: listing_attrs[:published_at]
-        )
-        listing.save!
-        puts "  ✓ Created/updated listing for #{tenant.title}/#{category.name}: #{listing.title}"
-      end
+  tenant_listing_data.each do |category_key, listings|
+    category = Category.find_by(site: site, key: category_key)
+    next unless category
+
+    listings.each do |listing_attrs|
+      canonical_url = UrlCanonicaliser.canonicalize(listing_attrs[:url_raw]) rescue listing_attrs[:url_raw]
+
+      listing = Listing.find_or_initialize_by(site: site, url_canonical: canonical_url)
+      listing.assign_attributes(
+        tenant: tenant,
+        category: category,
+        site: site,
+        url_raw: listing_attrs[:url_raw],
+        url_canonical: canonical_url,
+        title: listing_attrs[:title],
+        description: listing_attrs[:description],
+        site_name: listing_attrs[:site_name],
+        published_at: listing_attrs[:published_at]
+      )
+      listing.save!
+      puts "  ✓ Created/updated listing for #{tenant.title}/#{category.name}: #{listing.title}"
     end
   end
 end
@@ -377,12 +399,16 @@ puts "Listing seeding complete!"
 # Display summary
 puts "\n=== Seeding Summary ==="
 Tenant.all.each do |tenant|
-  ActsAsTenant.with_tenant(tenant) do
-    total_listings = Listing.count
-    categories_with_counts = Category.includes(:listings).map { |cat| "#{cat.name}: #{cat.listings.count}" }.join(", ")
-    puts "#{tenant.title}: #{total_listings} total listings (#{categories_with_counts})"
-  end
+  site = tenant.sites.find_by(slug: tenant.slug) || tenant.sites.first
+  next unless site
+
+  Current.site = site
+
+  total_listings = Listing.count
+  categories_with_counts = Category.includes(:listings).map { |cat| "#{cat.name}: #{cat.listings.count}" }.join(", ")
+  puts "#{tenant.title}: #{total_listings} total listings (#{categories_with_counts})"
 end
+Current.site = nil
 puts "GRAND TOTAL: #{Listing.count} listings across all tenants"
 puts "TARGET ACHIEVED: Exactly 3 listings per category per tenant ✅"
 puts "========================"

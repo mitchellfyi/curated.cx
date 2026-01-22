@@ -16,8 +16,22 @@ module ApplicationHelper
     %i[ar he].include?(I18n.locale)
   end
 
+  # ARIA accessibility helpers
+  def aria_label(key, options = {})
+    { 'aria-label': I18n.t(key, **options) }
+  end
+
+  def aria_describedby(id)
+    { 'aria-describedby': id }
+  end
+
   def sr_only(text)
     content_tag :span, text, class: "sr-only"
+  end
+
+  # Skip link for accessibility
+  def skip_link(target = "#main-content", text = "Skip to main content")
+    link_to text, target, class: "skip-link"
   end
 
   # Icon with accessibility text

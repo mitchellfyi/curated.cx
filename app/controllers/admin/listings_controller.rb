@@ -17,12 +17,13 @@ class Admin::ListingsController < ApplicationController
   end
 
   def new
-    @listing = listings_service.create_listing(listing_params)
+    @listing = Listing.new
   end
 
   def create
     @listing = listings_service.create_listing(listing_params)
-    @listing.tenant = Current.tenant
+    @listing.site = Current.site
+    @listing.tenant = Current.tenant # Set tenant for backward compatibility
 
     if @listing.save
       redirect_to admin_listing_path(@listing), notice: t("admin.listings.created")

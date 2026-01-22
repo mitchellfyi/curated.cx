@@ -1,0 +1,10 @@
+# Copy this file to terraform.tfvars and fill in your values
+# terraform.tfvars is gitignored - never commit secrets
+
+do_token    = "your-digitalocean-api-token-here"
+ssh_key_id  = "your-ssh-key-fingerprint-or-id"
+droplet_name = "curated-prod"
+droplet_size = "s-2vcpu-4gb"  # Adjust based on your needs
+droplet_region = "nyc1"  # Choose your preferred region
+app_domain   = "curated.cx"  # Your primary domain
+admin_email  = "admin@curated.cx"  # Email for Let's Encrypt

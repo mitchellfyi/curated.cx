@@ -19,7 +19,8 @@ class Admin::CategoriesController < ApplicationController
 
   def create
     @category = Category.new(category_params)
-    @category.tenant = Current.tenant
+    @category.site = Current.site
+    @category.tenant = Current.tenant # Set tenant for backward compatibility
 
     if @category.save
       redirect_to admin_category_path(@category), notice: t("admin.categories.created")

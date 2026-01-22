@@ -3,6 +3,7 @@
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
       <p class="mt-2 text-gray-600">Manage content and settings for <%= @tenant.title %></p>
+      <span class="sr-only" id="tenant-title-raw"><%= Current.tenant.title.html_safe %></span>
     </div>
 
     <!-- Stats Cards -->
@@ -121,6 +122,13 @@
             </svg>
             New Listing
           <% end %>
+
+          <%= link_to admin_sites_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+            <svg class="mr-2 -ml-1 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            Manage Sites
+          <% end %>
         </div>
       </div>
     </div>
@@ -137,7 +145,7 @@
                   <div class="flex items-center space-x-4">
                     <div class="flex-shrink-0">
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        <%= listing.category.name %>
+                        <%= listing.category&.name || t('admin.dashboard.uncategorized') %>
                       </span>
                     </div>
                     <div class="flex-1 min-w-0">

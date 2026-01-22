@@ -9,16 +9,21 @@
 #  shown_fields :jsonb            not null
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
+#  site_id      :bigint           not null
 #  tenant_id    :bigint           not null
 #
 # Indexes
 #
+#  index_categories_on_site_id            (site_id)
+#  index_categories_on_site_id_and_key    (site_id,key) UNIQUE
+#  index_categories_on_site_id_and_name   (site_id,name)
 #  index_categories_on_tenant_id          (tenant_id)
 #  index_categories_on_tenant_id_and_key  (tenant_id,key) UNIQUE
 #  index_categories_on_tenant_name        (tenant_id,name)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 require 'rails_helper'
@@ -32,11 +37,12 @@ RSpec.describe Category, type: :model do
   end
 
   describe 'validations' do
-    subject { build(:category, tenant: tenant) }
+    let(:site) { create(:site, tenant: tenant) }
+    subject { build(:category, site: site) }
 
     it { should validate_presence_of(:key) }
     it { should validate_presence_of(:name) }
-    it { should validate_uniqueness_of(:key).scoped_to(:tenant_id) }
+    it { should validate_uniqueness_of(:key).scoped_to(:site_id) }
     it { should validate_inclusion_of(:allow_paths).in_array([ true, false ]) }
 
     it 'validates shown_fields is a hash' do
@@ -46,24 +52,23 @@ RSpec.describe Category, type: :model do
     end
   end
 
-  describe 'tenant isolation' do
+  describe 'site isolation' do
     let(:tenant1) { create(:tenant, slug: 'tenant1') }
     let(:tenant2) { create(:tenant, slug: 'tenant2') }
+    let(:site1) { create(:site, tenant: tenant1) }
+    let(:site2) { create(:site, tenant: tenant2) }
 
-    it 'allows same key across different tenants' do
-      ActsAsTenant.with_tenant(tenant1) do
-        create(:category, key: 'news', name: 'News')
-      end
-
-      ActsAsTenant.with_tenant(tenant2) do
-        expect { create(:category, key: 'news', name: 'News') }.not_to raise_error
+    it 'allows same key across different sites' do
+      ActsAsTenant.without_tenant do
+        create(:category, site: site1, tenant: tenant1, key: 'news', name: 'News')
+        expect { create(:category, site: site2, tenant: tenant2, key: 'news', name: 'News') }.not_to raise_error
       end
     end
 
-    it 'prevents duplicate keys within same tenant' do
-      ActsAsTenant.with_tenant(tenant1) do
-        create(:category, key: 'news', name: 'News')
-        expect { create(:category, key: 'news', name: 'Other News') }.to raise_error(ActiveRecord::RecordInvalid)
+    it 'prevents duplicate keys within same site' do
+      ActsAsTenant.without_tenant do
+        create(:category, site: site1, tenant: tenant1, key: 'news', name: 'News')
+        expect { create(:category, site: site1, tenant: tenant1, key: 'news', name: 'Other News') }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
   end

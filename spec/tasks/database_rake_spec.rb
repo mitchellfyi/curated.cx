@@ -53,7 +53,7 @@ RSpec.describe 'Database Rake Tasks' do
       ]
 
       expected_tasks.each do |task_name|
-        expect(Rake::Task.task_defined?(task_name)).to be true, "Task #{task_name} should be defined"
+        expect(Rake::Task.task_defined?(task_name)).to be(true), "Task #{task_name} should be defined"
       end
     end
   end

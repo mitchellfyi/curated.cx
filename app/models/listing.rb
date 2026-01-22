@@ -21,6 +21,8 @@
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  category_id   :bigint           not null
+#  site_id       :bigint           not null
+#  source_id     :bigint
 #  tenant_id     :bigint           not null
 #
 # Indexes
@@ -29,33 +31,44 @@
 #  index_listings_on_category_published         (category_id,published_at)
 #  index_listings_on_domain                     (domain)
 #  index_listings_on_published_at               (published_at)
+#  index_listings_on_site_id                    (site_id)
+#  index_listings_on_site_id_and_url_canonical  (site_id,url_canonical) UNIQUE
+#  index_listings_on_source_id                  (source_id)
 #  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
 #  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
 #  index_listings_on_tenant_id                  (tenant_id)
 #  index_listings_on_tenant_id_and_category_id  (tenant_id,category_id)
+#  index_listings_on_tenant_id_and_source_id    (tenant_id,source_id)
 #  index_listings_on_tenant_published_created   (tenant_id,published_at,created_at)
 #  index_listings_on_tenant_title               (tenant_id,title)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (category_id => categories.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (source_id => sources.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 class Listing < ApplicationRecord
   include TenantScoped
+  include SiteScoped
 
   # Associations
+  belongs_to :tenant # Keep for backward compatibility and data access
   belongs_to :category
+  belongs_to :source, optional: true
 
   # Validations
   validates :category, presence: true
   validates :url_raw, presence: true
-  validates :url_canonical, presence: true, uniqueness: { scope: :tenant_id }
+  validates :url_canonical, presence: true, uniqueness: { scope: :site_id }
   validates :title, presence: true
   validate :validate_url_against_category_rules
   validate :validate_jsonb_fields
+  validate :ensure_site_tenant_consistency
 
   # Callbacks
+  before_validation :set_tenant_from_site, on: :create
   before_validation :canonicalize_url, if: :url_raw_changed?
   before_validation :extract_domain_from_canonical, if: :url_canonical_changed?
   after_save :clear_listing_cache
@@ -70,25 +83,41 @@ class Listing < ApplicationRecord
     where(tenant_id: tenant_id, category_id: category_id)
   }
   scope :published_recent, -> { published.recent }
+  scope :by_source, ->(source) { where(source: source) }
+  scope :without_source, -> { where(source_id: nil) }
 
   # Class methods for common queries
-  def self.recent_published_for_tenant(tenant_id, limit: 20)
-    Rails.cache.fetch("listings:recent:#{tenant_id}:#{limit}", expires_in: 5.minutes) do
-      includes(:category, :tenant)
-        .where(tenant_id: tenant_id)
+  def self.recent_published_for_site(site_id, limit: 20)
+    Rails.cache.fetch("listings:recent:#{site_id}:#{limit}", expires_in: 5.minutes) do
+      includes(:category, :site)
+        .where(site_id: site_id)
         .published_recent
         .limit(limit)
         .to_a
     end
   end
 
-  def self.count_by_category_for_tenant(tenant_id)
-    Rails.cache.fetch("listings:count_by_category:#{tenant_id}", expires_in: 10.minutes) do
-      where(tenant_id: tenant_id)
+  def self.count_by_category_for_site(site_id)
+    Rails.cache.fetch("listings:count_by_category:#{site_id}", expires_in: 10.minutes) do
+      where(site_id: site_id)
         .joins(:category)
-        .group('categories.name')
+        .group("categories.name")
         .count
     end
+  end
+
+  # Legacy method for backward compatibility
+  def self.recent_published_for_tenant(tenant_id, limit: 20)
+    recent_published_for_site(
+      Site.where(tenant_id: tenant_id).pluck(:id).first || tenant_id,
+      limit: limit
+    )
+  end
+
+  def self.count_by_category_for_tenant(tenant_id)
+    count_by_category_for_site(
+      Site.where(tenant_id: tenant_id).pluck(:id).first || tenant_id
+    )
   end
 
   # Published status
@@ -128,63 +157,28 @@ class Listing < ApplicationRecord
   private
 
   def clear_listing_cache
-    # Clear specific cache keys more efficiently
-    Rails.cache.delete_matched("listings:recent:#{tenant_id}:*")
-    Rails.cache.delete_matched("listings:count_by_category:#{tenant_id}:*")
+    # Clear specific cache keys more efficiently (use site_id for isolation)
+    Rails.cache.delete_matched("listings:recent:#{site_id}:*")
+    Rails.cache.delete_matched("listings:count_by_category:#{site_id}:*")
+  end
+
+  def set_tenant_from_site
+    self.tenant = site.tenant if site.present? && tenant.nil?
+  end
+
+  def ensure_site_tenant_consistency
+    if site.present? && tenant.present? && site.tenant != tenant
+      errors.add(:site, "must belong to the same tenant")
+    end
   end
 
   def canonicalize_url
     return unless url_raw.present?
 
     begin
-      # Parse and normalize the URL
-      uri = URI.parse(url_raw.strip)
-
-      # Validate that it's a proper HTTP/HTTPS URL
-      unless uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
-        errors.add(:url_raw, "must be a valid HTTP or HTTPS URL")
-        return
-      end
-
-      # Ensure it has a host
-      unless uri.host.present?
-        errors.add(:url_raw, "must include a valid hostname")
-        return
-      end
-
-      # Normalize scheme
-      uri.scheme = uri.scheme.downcase
-
-      # Normalize host
-      uri.host = uri.host.downcase
-
-      # Remove common tracking parameters
-      if uri.query
-        params = URI.decode_www_form(uri.query)
-        # Remove common tracking parameters
-        tracking_params = %w[
-          utm_source utm_medium utm_campaign utm_term utm_content
-          fbclid gclid mc_cid mc_eid
-          ref source campaign
-        ]
-        params = params.reject { |key, _| tracking_params.include?(key.downcase) }
-        uri.query = params.empty? ? nil : URI.encode_www_form(params)
-      end
-
-      # Normalize path (remove trailing slash unless it's root)
-      if uri.path && uri.path != "/"
-        normalized_path = uri.path.gsub(/\/+$/, "")
-        # Only set path if it's valid
-        begin
-          uri.path = normalized_path unless normalized_path.empty?
-        rescue URI::InvalidComponentError
-          # Keep original path if normalization fails
-        end
-      end
-
-      self.url_canonical = uri.to_s
-    rescue URI::InvalidURIError, ArgumentError => e
-      errors.add(:url_raw, "is not a valid URL: #{e.message}")
+      self.url_canonical = UrlCanonicaliser.canonicalize(url_raw)
+    rescue UrlCanonicaliser::InvalidUrlError => e
+      errors.add(:url_raw, e.message)
     end
   end
 

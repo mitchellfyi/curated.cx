@@ -6,7 +6,8 @@
 # The "main" locale.
 base_locale: en
 # All available locales are inferred from the data by default. Alternatively, specify them explicitly:
-# locales: [es, fr]
+# Only check English for now, as other locales are incomplete
+locales: [en]
 # Reporting locale, default: en. Locale to report missing and unused translations in.
 # E.g. if you want to report in French, set this to: fr
 # internal_locale: en
@@ -20,6 +21,7 @@ data:
   # Locale files or `File.find` patterns where translations are read from:
   read:
     # Default:
+    - config/locales/%{locale}.yml
     - config/locales/**/*.%{locale}.yml
     - config/locales/**/*.%{locale}.yaml
     - config/locales/**/*.%{locale}.json
@@ -59,6 +61,7 @@ search:
     - app/assets/images
     - app/assets/fonts
     - app/assets/videos
+    - app/assets/builds/**
 
   # Alternatively, the only files or `File.fnmatch patterns` to search in `(default: %w(*.rb *.html.erb *.html.haml *.html.slim))`
   # only: ['*.rb', '*.html.erb']

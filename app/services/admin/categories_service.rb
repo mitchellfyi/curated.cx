@@ -7,8 +7,13 @@ module Admin
     end
 
     def all_categories
-      PerformanceOptimizer.load_categories_with_counts(@tenant.id)
-                          .map { |data| data[:category] }
+      target_tenant = @tenant || Current.tenant
+
+      scope = Category.without_site_scope.includes(:listings).where(tenant: target_tenant)
+      active_site = Current.site || target_tenant&.sites&.first
+      scope = scope.where(site: active_site) if active_site
+      scope = scope.where(id: Current.tenant.categories.select(:id)) if Current.tenant
+      scope.order(:name)
     end
 
     def find_category(id)

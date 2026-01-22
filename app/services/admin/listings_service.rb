@@ -7,11 +7,14 @@ module Admin
     end
 
     def all_listings(category_id: nil, limit: 50)
-      PerformanceOptimizer.load_listings_with_associations(
-        @tenant.id,
-        category_id: category_id,
-        limit: limit
-      )
+      target_tenant = @tenant || Current.tenant
+      scope = Listing.without_site_scope.includes(:category)
+      scope = scope.where(tenant: target_tenant) if target_tenant
+      active_site = Current.site || target_tenant&.sites&.first
+      scope = scope.where(site: active_site) if active_site
+      scope = scope.where(category_id: category_id) if category_id
+      scope = scope.where.not(category_id: nil)
+      scope.order(created_at: :desc).limit(limit)
     end
 
     def find_listing(id)

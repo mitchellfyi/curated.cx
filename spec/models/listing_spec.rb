@@ -19,6 +19,8 @@
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  category_id   :bigint           not null
+#  site_id       :bigint           not null
+#  source_id     :bigint
 #  tenant_id     :bigint           not null
 #
 # Indexes
@@ -27,16 +29,22 @@
 #  index_listings_on_category_published         (category_id,published_at)
 #  index_listings_on_domain                     (domain)
 #  index_listings_on_published_at               (published_at)
+#  index_listings_on_site_id                    (site_id)
+#  index_listings_on_site_id_and_url_canonical  (site_id,url_canonical) UNIQUE
+#  index_listings_on_source_id                  (source_id)
 #  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
 #  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
 #  index_listings_on_tenant_id                  (tenant_id)
 #  index_listings_on_tenant_id_and_category_id  (tenant_id,category_id)
+#  index_listings_on_tenant_id_and_source_id    (tenant_id,source_id)
 #  index_listings_on_tenant_published_created   (tenant_id,published_at,created_at)
 #  index_listings_on_tenant_title               (tenant_id,title)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (category_id => categories.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (source_id => sources.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 require 'rails_helper'
@@ -84,7 +92,7 @@ RSpec.describe Listing, type: :model do
     it 'prevents duplicate canonical URLs within same tenant' do
       ActsAsTenant.with_tenant(tenant1) do
         create(:listing, category: category1, url_raw: 'https://example.com/article')
-        expect { create(:listing, category: category1, url_raw: 'https://example.com/article') }.to raise_error(ActiveRecord::RecordInvalid)
+        expect { create(:listing, category: category1, url_raw: 'https://example.com/article') }.to raise_error(ActiveRecord::RecordNotUnique)
       end
     end
   end

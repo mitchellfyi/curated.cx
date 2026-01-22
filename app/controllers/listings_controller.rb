@@ -14,8 +14,10 @@ class ListingsController < ApplicationController
                             .published_recent
                             .limit(20)
     else
-                  # All listings for tenant using cached method
-                  Listing.recent_published_for_tenant(Current.tenant.id, limit: 20)
+                  # All listings for current site
+                  policy_scope(Listing.includes(:category))
+                            .published_recent
+                            .limit(20)
     end
 
     title = @category ? @category.name : t("listings.index.title")

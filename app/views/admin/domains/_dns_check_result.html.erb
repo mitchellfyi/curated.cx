@@ -1,0 +1,39 @@
+<div id="dns-check-result" class="bg-white shadow rounded-lg">
+  <div class="px-4 py-5 sm:p-6">
+    <h2 class="text-lg font-medium text-gray-900 mb-4">DNS Check Results</h2>
+    <div class="space-y-2">
+      <p class="text-sm text-gray-600">
+        <strong>Checked at:</strong> <%= @domain.last_checked_at&.strftime("%Y-%m-%d %H:%M:%S UTC") || t('admin.domains.just_now') %>
+      </p>
+      <% if @dns_result[:verified] %>
+        <div class="rounded-md bg-green-50 p-4">
+          <p class="text-sm text-green-800"><strong>✓ DNS verification successful</strong></p>
+          <% if @dns_result[:records].present? %>
+            <div class="mt-2">
+              <p class="text-sm font-medium text-green-900">Resolved records:</p>
+              <ul class="list-disc list-inside text-sm text-green-800">
+                <% @dns_result[:records].each do |value| %>
+                  <li><%= value %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+          <p class="text-sm text-green-700 mt-2">
+            Domain status updated to: <strong><%= @domain.status.humanize %></strong>
+          </p>
+        </div>
+      <% else %>
+        <div class="rounded-md bg-red-50 p-4">
+          <p class="text-sm text-red-800"><strong>✗ DNS verification failed</strong></p>
+          <% if @domain.last_error.present? %>
+            <p class="text-sm text-red-700 mt-1"><strong>Error:</strong> <%= @domain.last_error %></p>
+          <% end %>
+          <p class="text-sm text-red-700 mt-2">
+            Domain status: <strong><%= @domain.status.humanize %></strong>
+          </p>
+          <p class="text-sm text-red-700 mt-1">Please verify your DNS settings match the instructions above.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

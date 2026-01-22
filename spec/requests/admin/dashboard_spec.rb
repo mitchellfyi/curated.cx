@@ -13,10 +13,10 @@ RSpec.describe "Admin::Dashboards", type: :request do
   describe "tenant scoping" do
     let!(:tenant1_category) { create(:category, :news, tenant: tenant1) }
     let!(:tenant2_category) { create(:category, :news, tenant: tenant2) }
-    let!(:tenant1_listing) { create(:listing, category: tenant1_category, tenant: tenant1, published_at: 1.day.ago) }
-    let!(:tenant1_listing_today) { create(:listing, category: tenant1_category, tenant: tenant1, published_at: Time.current) }
-    let!(:tenant2_listing) { create(:listing, category: tenant2_category, tenant: tenant2, published_at: 1.day.ago) }
-    let!(:tenant2_listing_yesterday) { create(:listing, category: tenant2_category, tenant: tenant2, published_at: 2.days.ago) }
+    let!(:tenant1_listing) { create(:listing, category: tenant1_category, tenant: tenant1, published_at: 1.day.ago, created_at: Time.current) }
+    let!(:tenant1_listing_today) { create(:listing, category: tenant1_category, tenant: tenant1, published_at: Time.current, created_at: Time.current) }
+    let!(:tenant2_listing) { create(:listing, category: tenant2_category, tenant: tenant2, published_at: 1.day.ago, created_at: Time.current) }
+    let!(:tenant2_listing_yesterday) { create(:listing, category: tenant2_category, tenant: tenant2, published_at: 2.days.ago, created_at: Time.current) }
 
     context "when accessing as admin user" do
       before { sign_in admin_user }

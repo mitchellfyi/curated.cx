@@ -31,13 +31,17 @@ class ApplicationController < ActionController::Base
   end
 
   def user_not_authorized
-    flash[:alert] = t("auth.unauthorized")
-
     # If user is not signed in, redirect to sign in page
     if !user_signed_in?
+      flash[:alert] = t("auth.unauthorized")
       redirect_to new_user_session_path
+    elsif params[:controller].to_s.start_with?("admin/")
+      # For admin controllers, redirect with admin-specific message
+      flash[:alert] = "Access denied. Admin privileges required."
+      redirect_to root_path
     else
       # If user is signed in but not authorized, redirect to previous page or root
+      flash[:alert] = t("auth.unauthorized")
       redirect_to(request.referrer || root_path)
     end
   end

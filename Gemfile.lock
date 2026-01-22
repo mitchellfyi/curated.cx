@@ -291,6 +291,9 @@ GEM
     guard-rubocop (1.5.0)
       guard (~> 2.0)
       rubocop (< 2.0)
+    guard-shell (0.7.2)
+      guard (>= 2.0.0)
+      guard-compat (~> 1.0)
     highline (3.1.2)
       reline
     http-cookie (1.0.8)
@@ -309,6 +312,9 @@ GEM
       ruby-progressbar (~> 1.8, >= 1.8.1)
       terminal-table (>= 1.5.1)
     ice_nine (0.11.2)
+    image_processing (1.14.0)
+      mini_magick (>= 4.9.5, < 6)
+      ruby-vips (>= 2.0.17, < 3)
     importmap-rails (2.2.2)
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -375,6 +381,8 @@ GEM
       nesty (~> 1.0)
       nokogiri (~> 1.18.8)
     method_source (1.1.0)
+    mini_magick (5.3.1)
+      logger
     mini_mime (1.1.5)
     minitest (5.25.5)
     mission_control-jobs (1.1.0)
@@ -469,7 +477,7 @@ GEM
       activesupport (>= 3.0.0)
     raabro (1.4.0)
     racc (1.8.1)
-    rack (3.2.1)
+    rack (3.2.4)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -598,6 +606,9 @@ GEM
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
+    ruby-vips (2.2.5)
+      ffi (~> 1.12)
+      logger
     ruby2_keywords (0.0.5)
     ruby_parser (3.21.1)
       racc (~> 1.5)
@@ -692,7 +703,7 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.1.0)
     uniform_notifier (1.18.0)
-    uri (1.0.3)
+    uri (1.1.1)
     useragent (0.16.11)
     virtus (2.0.0)
       axiom-types (~> 0.1)
@@ -751,7 +762,9 @@ DEPENDENCIES
   guard-brakeman
   guard-rspec
   guard-rubocop
+  guard-shell
   i18n-tasks (~> 1.0)
+  image_processing (~> 1.2)
   jbuilder
   jsbundling-rails
   kamal
