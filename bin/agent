@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 #
-# bin/agent - Run Claude agent for N tasks
+# bin/agent - Run Claude agent for N tasks (FULLY AUTONOMOUS)
+#
+# This script runs Claude in DANGEROUS MODE - all permissions bypassed,
+# no confirmations, no asks. The agent operates fully autonomously.
 #
 # Usage:
 #   ./bin/agent        # Run 5 tasks (default)
@@ -12,6 +15,9 @@
 #   CLAUDE_TIMEOUT    - Timeout per task in seconds (default: 600)
 #   AGENT_DRY_RUN     - If set to 1, preview without executing
 #   AGENT_VERBOSE     - If set to 1, show more output
+#   AGENT_CONTINUE    - If set to 1, continue last session instead of new
+#
+# WARNING: This script bypasses ALL safety checks. Only use in trusted repos.
 #
 set -euo pipefail
 
@@ -31,6 +37,7 @@ CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
 CLAUDE_TIMEOUT="${CLAUDE_TIMEOUT:-600}"
 AGENT_DRY_RUN="${AGENT_DRY_RUN:-0}"
 AGENT_VERBOSE="${AGENT_VERBOSE:-0}"
+AGENT_CONTINUE="${AGENT_CONTINUE:-0}"
 
 # Colors
 RED='\033[0;31m'
@@ -179,25 +186,51 @@ run_agent_iteration() {
         return 0
     fi
 
-    log_step "Running Claude agent..."
+    log_step "Running Claude agent (DANGEROUS MODE - all permissions bypassed)..."
     echo "  Log: $task_log"
+    echo "  Model: $CLAUDE_MODEL"
     echo ""
 
     # Build the prompt
     local prompt="continue working"
 
+    # Build Claude CLI arguments for FULLY AUTONOMOUS operation
+    # --dangerously-skip-permissions: Bypass ALL permission checks
+    # --permission-mode bypassPermissions: Additional bypass mode
+    # -p: Print mode (non-interactive, useful for pipes/scripts)
+    # --model: Specify the model to use
+    # --verbose: Show more output if requested
+    local claude_args=(
+        "--dangerously-skip-permissions"
+        "--permission-mode" "bypassPermissions"
+        "-p"
+        "--model" "$CLAUDE_MODEL"
+    )
+
+    # Add continue flag if requested
+    if [ "$AGENT_CONTINUE" = "1" ]; then
+        claude_args+=("--continue")
+    fi
+
+    # Add verbose if requested
+    if [ "$AGENT_VERBOSE" = "1" ]; then
+        claude_args+=("--verbose")
+    fi
+
     # Execute Claude with timeout
     # The agent should read CLAUDE.md and follow the operating loop
     local exit_code=0
 
-    # Use timeout if available
-    if command -v timeout &> /dev/null; then
-        timeout "${CLAUDE_TIMEOUT}s" claude --dangerously-skip-permissions -p "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
-    elif command -v gtimeout &> /dev/null; then
-        gtimeout "${CLAUDE_TIMEOUT}s" claude --dangerously-skip-permissions -p "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+    log_info "Executing: claude ${claude_args[*]} \"$prompt\""
+
+    # Use timeout if available (prefer gtimeout on macOS)
+    if command -v gtimeout &> /dev/null; then
+        gtimeout "${CLAUDE_TIMEOUT}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+    elif command -v timeout &> /dev/null; then
+        timeout "${CLAUDE_TIMEOUT}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
     else
         # No timeout available, run directly
-        claude --dangerously-skip-permissions -p "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+        claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
     fi
 
     # Check exit code

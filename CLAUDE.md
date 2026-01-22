@@ -113,11 +113,16 @@ cat package.json 2>/dev/null | grep -E '"(test|lint|format)"'
 
 ### This Repository's Tools
 
-Detected tools for this repo (update this list when tools change):
+**Primary Quality Command (ALWAYS USE THIS):**
+```bash
+./bin/quality  # Runs ALL 12 quality gates - MANDATORY before commit
+```
+
+#### Quality & Testing Tools
 
 | Category | Tool | Command |
 |----------|------|---------|
-| Quality (All) | Full Suite | `bin/quality` |
+| **Quality (All)** | Full Suite | `./bin/quality` |
 | Ruby Style | RuboCop | `bundle exec rubocop` |
 | Ruby Style Fix | RuboCop | `bundle exec rubocop -A` |
 | ERB Style | ERB Lint | `bundle exec erb_lint --lint-all` |
@@ -128,10 +133,47 @@ Detected tools for this repo (update this list when tools change):
 | JS Lint | ESLint | `npm run lint` |
 | JS Format | Prettier | `npm run format:check` |
 | i18n | i18n-tasks | `bundle exec i18n-tasks health` |
+| Model Annotations | Annotaterb | `bundle exec annotaterb models` |
+
+#### Development Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `./bin/setup` | Setup development environment |
+| `./bin/dev` | Start development server with Guard |
+| `./bin/quality` | **MANDATORY** - Run ALL quality checks |
+| `bundle exec guard` | Real-time quality monitoring |
+| `./script/dev/setup-quality-automation` | Setup autonomous quality system |
+| `./script/dev/pre-push-quality` | Extended pre-push validation |
+| `./script/dev/quality-dashboard` | Live quality metrics and status |
+| `./script/dev/quality-check-file` | File-specific quality checks |
+| `./script/dev/i18n-check-file` | i18n compliance for templates |
+| `./script/dev/route-test-check` | Route testing validation |
+| `./script/dev/migration-check` | Migration safety analysis |
+| `./script/dev/i18n` | Manage i18n translations |
+| `./script/dev/migrations` | Database migration safety tools |
+| `./script/dev/anti-pattern-detection` | Detect code anti-patterns |
+
+#### The 12 Autonomous Quality Gates
+
+The `./bin/quality` script enforces these gates:
+
+1. **Code Style**: Zero RuboCop violations (Rails Omakase) + SOLID principles
+2. **Security**: Zero Brakeman high/medium issues + Bundle Audit
+3. **Tests**: 100% passing, 80% minimum coverage + Test Pyramid compliance
+4. **Route Testing**: Every route must have corresponding tests
+5. **i18n**: All static text uses translation keys
+6. **Template Quality**: ERB lint compliance + semantic HTML
+7. **SEO**: Meta tags, structured data, XML sitemaps
+8. **Accessibility**: WCAG 2.1 AA compliance via axe-core testing
+9. **Performance**: No N+1 queries + response time monitoring
+10. **Database**: Proper indexes, constraints, migration safety
+11. **Multi-tenant**: acts_as_tenant verification + data isolation
+12. **Documentation**: Synchronization and consistency checks
 
 ### Discovery Priority
 
-1. **Always run**: bin/quality (if exists) - comprehensive check
+1. **Always run**: `./bin/quality` - comprehensive 12-gate check
 2. **Quick feedback**: RuboCop, ESLint, Prettier - fast style checks
 3. **Safety critical**: Brakeman, bundle-audit - security before commit
 4. **Validation**: RSpec tests - must pass before done
@@ -380,7 +422,7 @@ Run `.claude/scripts/taskboard.sh` to regenerate `TASKBOARD.md`:
 
 ### bin/agent
 
-Main entry point for autonomous operation.
+Main entry point for **FULLY AUTONOMOUS** operation. Runs Claude in dangerous mode with all permissions bypassed.
 
 ```bash
 # Run 5 tasks (default)
@@ -389,15 +431,38 @@ Main entry point for autonomous operation.
 # Run specific number of tasks
 ./bin/agent 3
 
-# Environment variables:
-CLAUDE_MODEL=opus     # Model to use
-CLAUDE_TIMEOUT=300    # Timeout per task in seconds
-AGENT_DRY_RUN=1       # Preview without executing
+# Run 1 task
+./bin/agent 1
+```
+
+**Environment Variables:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CLAUDE_MODEL` | `opus` | Model to use (opus, sonnet, haiku) |
+| `CLAUDE_TIMEOUT` | `600` | Timeout per task in seconds |
+| `AGENT_DRY_RUN` | `0` | Set to 1 to preview without executing |
+| `AGENT_VERBOSE` | `0` | Set to 1 for more output |
+| `AGENT_CONTINUE` | `0` | Set to 1 to continue last session |
+
+**CLI Flags Used (Dangerous Mode):**
+
+```bash
+claude \
+  --dangerously-skip-permissions \   # Bypass ALL permission checks
+  --permission-mode bypassPermissions \  # Additional bypass mode
+  -p \                                # Non-interactive print mode
+  --model opus \                      # Specify model
+  "continue working"                  # The prompt
 ```
 
 ### .claude/scripts/taskboard.sh
 
 Generates TASKBOARD.md from task files.
+
+```bash
+.claude/scripts/taskboard.sh
+```
 
 ---
 
