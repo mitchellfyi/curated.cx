@@ -84,6 +84,30 @@ en:
       created: Created
       deleted: Deleted
       updated: Updated
+      featured: Listing has been featured
+      unfeatured: Listing is no longer featured
+      expiry_extended: Listing expiry has been extended
+      form:
+        listing_type: Listing Type
+        affiliate_settings: Affiliate Settings
+        affiliate_url_template: Affiliate URL Template
+        affiliate_url_template_hint: 'Use {url}, {title}, {id} as placeholders'
+        featured_settings: Featured Settings
+        featured_from: Featured From
+        featured_until: Featured Until
+        job_settings: Job Settings
+        company: Company
+        location: Location
+        salary_range: Salary Range
+        apply_url: Apply URL
+        expires_at: Expires At
+        payment_settings: Payment Settings
+        paid: Paid
+        payment_reference: Payment Reference
+      listing_types:
+        tool: Tool
+        job: Job
+        service: Service
     sites:
       created: Site created successfully
       deleted: Site deleted successfully
@@ -415,6 +439,19 @@ en:
     banned: You are banned from voting on this site
     rate_limited: You're voting too quickly. Please wait before voting again.
     sign_in_to_vote: Sign in to vote
+  affiliate:
+    listing_not_found: The requested listing could not be found.
+  monetisation:
+    badges:
+      featured: Featured
+      sponsored: Sponsored
+    job:
+      apply: Apply
+      expires: Expires
+      expired: Expired
+      salary: Salary
+    featured_section:
+      title: Featured
   time:
     ago: "%{time} ago"
     formats:
