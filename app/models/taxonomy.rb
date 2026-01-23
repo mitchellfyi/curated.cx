@@ -18,7 +18,6 @@ class Taxonomy < ApplicationRecord
 
   # Callbacks
   before_validation :generate_slug_from_name, if: -> { slug.blank? && name.present? }
-  before_validation :set_tenant_from_site, on: :create
 
   # Scopes
   scope :roots, -> { where(parent_id: nil) }
@@ -56,9 +55,5 @@ class Taxonomy < ApplicationRecord
 
   def generate_slug_from_name
     self.slug = name.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/^-|-$/, "")
-  end
-
-  def set_tenant_from_site
-    self.tenant = site.tenant if site.present? && tenant.nil?
   end
 end

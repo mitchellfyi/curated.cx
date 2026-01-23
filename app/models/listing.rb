@@ -89,10 +89,8 @@ class Listing < ApplicationRecord
   validates :title, presence: true
   validate :validate_url_against_category_rules
   validate :validate_jsonb_fields
-  validate :ensure_site_tenant_consistency
 
   # Callbacks
-  before_validation :set_tenant_from_site, on: :create
   before_validation :canonicalize_url, if: :url_raw_changed?
   before_validation :extract_domain_from_canonical, if: :url_canonical_changed?
   after_save :clear_listing_cache
@@ -239,16 +237,6 @@ class Listing < ApplicationRecord
     # Clear specific cache keys more efficiently (use site_id for isolation)
     Rails.cache.delete_matched("listings:recent:#{site_id}:*")
     Rails.cache.delete_matched("listings:count_by_category:#{site_id}:*")
-  end
-
-  def set_tenant_from_site
-    self.tenant = site.tenant if site.present? && tenant.nil?
-  end
-
-  def ensure_site_tenant_consistency
-    if site.present? && tenant.present? && site.tenant != tenant
-      errors.add(:site, "must belong to the same tenant")
-    end
   end
 
   def canonicalize_url

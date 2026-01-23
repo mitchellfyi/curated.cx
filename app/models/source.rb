@@ -58,7 +58,6 @@ class Source < ApplicationRecord
             allow_nil: true
   validate :validate_config_structure
   validate :validate_schedule_structure
-  validate :ensure_site_tenant_consistency
 
   # Scopes
   scope :enabled, -> { where(enabled: true) }
@@ -114,20 +113,7 @@ class Source < ApplicationRecord
     config["editorialise"] == true || config[:editorialise] == true
   end
 
-  # Callbacks
-  before_validation :set_tenant_from_site, on: :create
-
   private
-
-  def set_tenant_from_site
-    self.tenant = site.tenant if site.present? && tenant.nil?
-  end
-
-  def ensure_site_tenant_consistency
-    if site.present? && tenant.present? && site.tenant != tenant
-      errors.add(:site, "must belong to the same tenant")
-    end
-  end
 
   def validate_config_structure
     return if config.blank?

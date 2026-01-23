@@ -17,9 +17,6 @@ class TaggingRule < ApplicationRecord
   validates :rule_type, presence: true
   validates :enabled, inclusion: { in: [ true, false ] }
 
-  # Callbacks
-  before_validation :set_tenant_from_site, on: :create
-
   # Scopes
   scope :enabled, -> { where(enabled: true) }
   scope :by_priority, -> { order(priority: :asc) }
@@ -45,10 +42,6 @@ class TaggingRule < ApplicationRecord
   end
 
   private
-
-  def set_tenant_from_site
-    self.tenant = site.tenant if site.present? && tenant.nil?
-  end
 
   def no_match
     { match: false, confidence: 0.0, reason: nil }
