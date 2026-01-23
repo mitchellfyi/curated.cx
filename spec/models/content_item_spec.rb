@@ -267,4 +267,93 @@ RSpec.describe ContentItem, type: :model do
       expect(item.raw_payload["original_title"]).to eq("Test Article")
     end
   end
+
+  describe "editorialisation integration" do
+    include ActiveJob::TestHelper
+
+    let(:site) { create(:site) }
+
+    describe "#editorialised?" do
+      let(:source) { create(:source, site: site) }
+
+      it "returns true when editorialised_at is present" do
+        content_item = build(:content_item, site: site, source: source)
+        content_item.editorialised_at = Time.current
+
+        expect(content_item.editorialised?).to be true
+      end
+
+      it "returns false when editorialised_at is nil" do
+        content_item = build(:content_item, site: site, source: source, editorialised_at: nil)
+
+        expect(content_item.editorialised?).to be false
+      end
+    end
+
+    describe "#ai_summary" do
+      let(:source) { create(:source, site: site) }
+
+      it "returns nil when not editorialised" do
+        content_item = build(:content_item, site: site, source: source)
+
+        expect(content_item.ai_summary).to be_nil
+      end
+    end
+
+    describe "#ai_suggested_tags" do
+      let(:source) { create(:source, site: site) }
+
+      it "returns empty array by default" do
+        content_item = build(:content_item, site: site, source: source)
+
+        expect(content_item.ai_suggested_tags).to eq([])
+      end
+    end
+
+    describe "after_create :enqueue_editorialisation" do
+      context "when source has editorialisation enabled" do
+        let(:source) { create(:source, site: site, config: { "editorialise" => true }) }
+
+        it "enqueues EditorialiseContentItemJob" do
+          expect {
+            create(:content_item, site: site, source: source)
+          }.to have_enqueued_job(EditorialiseContentItemJob)
+        end
+
+        it "passes the content item id to the job" do
+          content_item = create(:content_item, site: site, source: source)
+
+          expect(EditorialiseContentItemJob).to have_been_enqueued.with(content_item.id)
+        end
+      end
+
+      context "when source has editorialisation disabled" do
+        let(:source) { create(:source, site: site, config: { "editorialise" => false }) }
+
+        it "does not enqueue EditorialiseContentItemJob" do
+          expect {
+            create(:content_item, site: site, source: source)
+          }.not_to have_enqueued_job(EditorialiseContentItemJob)
+        end
+      end
+
+      context "when source has no editorialise config" do
+        let(:source) { create(:source, site: site, config: {}) }
+
+        it "does not enqueue EditorialiseContentItemJob" do
+          expect {
+            create(:content_item, site: site, source: source)
+          }.not_to have_enqueued_job(EditorialiseContentItemJob)
+        end
+      end
+
+      context "when source is nil" do
+        it "does not raise error" do
+          expect {
+            build(:content_item, site: site, source: nil)
+          }.not_to raise_error
+        end
+      end
+    end
+  end
 end

@@ -190,4 +190,44 @@ RSpec.describe Source, type: :model do
       expect { create(:source, site: site1, name: 'My Source') }.to raise_error(ActiveRecord::RecordInvalid)
     end
   end
+
+  describe '#editorialisation_enabled?' do
+    context 'with string key' do
+      it 'returns true when config["editorialise"] is true' do
+        source = create(:source, site: site, config: { "editorialise" => true })
+        expect(source.editorialisation_enabled?).to be true
+      end
+
+      it 'returns false when config["editorialise"] is false' do
+        source = create(:source, site: site, config: { "editorialise" => false })
+        expect(source.editorialisation_enabled?).to be false
+      end
+    end
+
+    context 'with symbol key' do
+      it 'returns true when config[:editorialise] is true' do
+        source = create(:source, site: site, config: { editorialise: true })
+        expect(source.editorialisation_enabled?).to be true
+      end
+
+      it 'returns false when config[:editorialise] is false' do
+        source = create(:source, site: site, config: { editorialise: false })
+        expect(source.editorialisation_enabled?).to be false
+      end
+    end
+
+    context 'when editorialise key is missing' do
+      it 'returns false' do
+        source = create(:source, site: site, config: {})
+        expect(source.editorialisation_enabled?).to be false
+      end
+    end
+
+    context 'when config is empty' do
+      it 'returns false' do
+        source = create(:source, site: site, config: {})
+        expect(source.editorialisation_enabled?).to be false
+      end
+    end
+  end
 end

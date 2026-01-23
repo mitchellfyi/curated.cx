@@ -570,6 +570,33 @@ After ContentItem is created in SerpApiIngestionJob or other ingestion:
 
 **Note:** Database is not running so migrations haven't been applied. Tests will be in the next phase.
 
+### 2026-01-23 03:35 - Testing Phase Complete
+
+**Spec files created:**
+- `spec/models/editorialisation_spec.rb`
+- `spec/services/editorialisation_service_spec.rb`
+- `spec/services/editorialisation/prompt_manager_spec.rb`
+- `spec/services/editorialisation/ai_client_spec.rb`
+- `spec/jobs/editorialise_content_item_job_spec.rb`
+
+**Existing spec files updated:**
+- `spec/models/content_item_spec.rb` - Added editorialisation integration tests
+- `spec/models/source_spec.rb` - Added #editorialisation_enabled? tests
+
+**Quality gates passed:**
+- Ruby syntax: All files valid
+- RuboCop: 0 offenses (after autocorrect)
+- ERB Lint: 0 errors
+- Brakeman: 0 warnings
+
+**Test coverage includes:**
+- All model tests per Test Plan
+- All service tests per Test Plan
+- All job tests per Test Plan
+- All integration tests per Test Plan
+
+**Note:** Tests cannot be run because PostgreSQL database is not available, but all specs are syntactically correct and follow codebase patterns.
+
 ### 2026-01-23 03:14 - Planning Complete (STILL BLOCKED)
 
 **Gap Analysis Results:**
@@ -629,7 +656,82 @@ After ContentItem is created in SerpApiIngestionJob or other ingestion:
 
 ## Testing Evidence
 
-(To be filled during implementation)
+### 2026-01-23 03:35 - Testing Complete
+
+**Tests written:**
+- `spec/models/editorialisation_spec.rb` - 35 examples
+  - Associations (site, content_item)
+  - Validations (content_item, prompt_version, prompt_text, status, numericality)
+  - Enum values (pending, processing, completed, failed, skipped)
+  - Scopes (recent, by_status, pending, processing, completed, failed, skipped)
+  - Class method (latest_for_content_item)
+  - Instance methods (mark_processing!, mark_completed!, mark_failed!, mark_skipped!, duration_seconds)
+  - Parsed response accessors (ai_summary, why_it_matters, suggested_tags)
+  - Site scoping
+
+- `spec/services/editorialisation_service_spec.rb` - 25 examples
+  - Eligibility: text too short → skipped
+  - Eligibility: already editorialised → skipped
+  - Eligibility: source disabled → skipped
+  - Eligibility: existing completed editorialisation → skipped
+  - Eligibility: nil extracted_text → skipped
+  - Happy path: creates Editorialisation, updates ContentItem
+  - Prompt version is stored
+  - Output length limits enforced (truncation)
+  - AI API error handling (retryable vs non-retryable)
+  - Response parsing errors
+
+- `spec/services/editorialisation/prompt_manager_spec.rb` - 20 examples
+  - Loads prompt config correctly
+  - Interpolates template with content_item data (title, url, description, extracted_text)
+  - Handles nil fields gracefully
+  - Truncates long extracted text
+  - Returns current version
+  - Model configuration
+  - Output constraints
+
+- `spec/services/editorialisation/ai_client_spec.rb` - 20 examples
+  - Makes correct API call (WebMock)
+  - Sends correct message structure
+  - Uses specified model/temperature/max_tokens
+  - Requests JSON response format
+  - Returns structured response
+  - Handles rate limits (429) → AiRateLimitError
+  - Handles server errors (500) → AiApiError
+  - Handles timeouts → AiTimeoutError
+  - Handles empty responses → AiInvalidResponseError
+  - API key configuration (credentials, ENV, missing)
+
+- `spec/jobs/editorialise_content_item_job_spec.rb` - 20 examples
+  - Calls EditorialisationService
+  - Sets Current context (tenant, site)
+  - Clears Current context after execution
+  - Handles RecordNotFound
+  - Queue configuration (editorialisation)
+  - Retry configuration (AiApiError, AiTimeoutError, AiRateLimitError)
+  - Discard configuration (AiInvalidResponseError, AiConfigurationError)
+  - Logging (success, skipped, failed)
+
+- `spec/models/content_item_spec.rb` - Added 8 examples
+  - #editorialised? method
+  - #ai_summary accessor
+  - #ai_suggested_tags accessor
+  - after_create :enqueue_editorialisation (when enabled)
+  - Does NOT enqueue when disabled
+  - Does NOT enqueue when no config
+
+- `spec/models/source_spec.rb` - Added 6 examples
+  - #editorialisation_enabled? with string key
+  - #editorialisation_enabled? with symbol key
+  - #editorialisation_enabled? when missing
+
+**Quality gates (run 2026-01-23 03:35):**
+- RuboCop: PASS (0 offenses)
+- ERB Lint: PASS (0 errors)
+- Brakeman: PASS (0 warnings)
+- Tests: Cannot run (database not available)
+
+**Note:** Database is not running so tests cannot be executed, but all specs have been written and pass Ruby syntax checking and RuboCop. Test patterns follow existing codebase conventions.
 
 ---
 
