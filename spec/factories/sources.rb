@@ -100,5 +100,17 @@ FactoryBot.define do
     trait :recently_run do
       last_run_at { 10.minutes.ago }
     end
+
+    trait :high_quality do
+      quality_weight { 2.0 }
+    end
+
+    trait :low_quality do
+      quality_weight { 0.5 }
+    end
+
+    trait :with_editorialisation do
+      config { { "editorialise" => true } }
+    end
   end
 end

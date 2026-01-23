@@ -55,5 +55,71 @@ FactoryBot.define do
     trait :unpublished do
       published_at { nil }
     end
+
+    trait :published do
+      published_at { 1.hour.ago }
+    end
+
+    trait :recent do
+      published_at { 1.hour.ago }
+    end
+
+    trait :old do
+      published_at { 1.week.ago }
+    end
+
+    trait :with_engagement do
+      transient do
+        upvotes { 10 }
+        comments { 5 }
+      end
+
+      after(:create) do |item, evaluator|
+        item.update_columns(
+          upvotes_count: evaluator.upvotes,
+          comments_count: evaluator.comments
+        )
+      end
+    end
+
+    trait :high_engagement do
+      after(:create) do |item|
+        item.update_columns(upvotes_count: 100, comments_count: 50)
+      end
+    end
+
+    trait :low_engagement do
+      after(:create) do |item|
+        item.update_columns(upvotes_count: 0, comments_count: 0)
+      end
+    end
+
+    trait :with_ai_content do
+      after(:create) do |item|
+        item.update_columns(
+          ai_summary: Faker::Lorem.paragraph,
+          why_it_matters: Faker::Lorem.paragraph,
+          editorialised_at: Time.current
+        )
+      end
+    end
+
+    trait :article do
+      after(:create) do |item|
+        item.update_columns(content_type: "article")
+      end
+    end
+
+    trait :video do
+      after(:create) do |item|
+        item.update_columns(content_type: "video")
+      end
+    end
+
+    trait :tagged_tech do
+      after(:create) do |item|
+        item.update_columns(topic_tags: [ "tech", "technology" ])
+      end
+    end
   end
 end
