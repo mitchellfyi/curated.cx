@@ -4,7 +4,11 @@
 class ScrapeMetadataJob < ApplicationJob
   queue_as :scraping
 
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  # Retry on transient network errors (timeouts, connection failures)
+  retry_on ExternalServiceError, wait: :exponentially_longer, attempts: 3
+
+  # Discard if the listing was deleted before we could scrape
+  # (inherited from ApplicationJob via discard_on ActiveRecord::RecordNotFound)
 
   def perform(listing_id)
     listing = Listing.find(listing_id)
@@ -30,10 +34,13 @@ class ScrapeMetadataJob < ApplicationJob
     )
 
     listing
+  rescue ExternalServiceError
+    # Let retry_on handle this - just re-raise
+    raise
   rescue StandardError => e
-    Rails.logger.error("Error in ScrapeMetadataJob for listing #{listing_id}: #{e.class} - #{e.message}")
-    # Don't re-raise - we don't want to block the job queue for scraping failures
-    nil
+    # Log with structured context and re-raise for visibility
+    log_job_error(e, listing_id: listing_id)
+    raise
   ensure
     Current.tenant = nil
     Current.site = nil
@@ -44,7 +51,7 @@ class ScrapeMetadataJob < ApplicationJob
   def fetch_page_metadata(url)
     require "metainspector"
 
-    page = MetaInspector.new(
+    MetaInspector.new(
       url,
       timeout: 20,
       retries: 2,
@@ -52,11 +59,12 @@ class ScrapeMetadataJob < ApplicationJob
         "User-Agent" => "Mozilla/5.0 (compatible; Curated.cx Metadata Scraper)"
       }
     )
-
-    page
   rescue MetaInspector::TimeoutError, MetaInspector::RequestError => e
-    Rails.logger.warn("Failed to fetch metadata for #{url}: #{e.message}")
-    raise
+    # Wrap in ExternalServiceError for retry handling
+    raise ExternalServiceError.new(
+      "Failed to fetch metadata for #{url}: #{e.message}",
+      context: { url: url, original_error: e.class.name }
+    )
   end
 
   def extract_text_from_html(html)
@@ -65,8 +73,9 @@ class ScrapeMetadataJob < ApplicationJob
     require "nokogiri"
     doc = Nokogiri::HTML(html)
     doc.text.strip
-  rescue StandardError => e
-    Rails.logger.warn("Failed to extract text from HTML: #{e.message}")
+  rescue Nokogiri::SyntaxError => e
+    # HTML parsing errors are expected for malformed content
+    log_job_warning("Failed to extract text from HTML: #{e.message}")
     nil
   end
 
@@ -90,6 +99,7 @@ class ScrapeMetadataJob < ApplicationJob
 
     nil
   rescue ArgumentError, TypeError
+    # Invalid date format - return nil
     nil
   end
 
@@ -104,11 +114,13 @@ class ScrapeMetadataJob < ApplicationJob
       data = JSON.parse(script.text)
       return data if data["datePublished"] || data[:datePublished]
     rescue JSON::ParserError
+      # Malformed JSON-LD is common, skip this script tag
       next
     end
 
     nil
-  rescue StandardError
+  rescue Nokogiri::SyntaxError
+    # HTML parsing errors for malformed content
     nil
   end
 end
