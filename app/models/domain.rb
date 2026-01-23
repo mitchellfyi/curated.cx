@@ -262,7 +262,9 @@ class Domain < ApplicationRecord
 
   def clear_domain_cache
     Rails.cache.delete("site:hostname:#{hostname}")
-    Rails.cache.delete_matched("site:*")
+
+    # Clear only the associated site's scoped cache entries (multi-tenant safe)
+    Rails.cache.delete_matched("site:#{site_id}:*")
   end
 
   def ensure_single_primary_per_site
