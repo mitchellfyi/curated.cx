@@ -49,7 +49,9 @@ FactoryBot.define do
           api_key: "test_api_key",
           query: "AI news",
           location: "United States",
-          language: "en"
+          language: "en",
+          max_results: 50,
+          rate_limit_per_hour: 10
         }
       end
     end
