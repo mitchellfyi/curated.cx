@@ -64,9 +64,6 @@ LOGS_DIR="$REPO_ROOT/.claude/logs/claude-loop"
 SCRIPTS_DIR="$REPO_ROOT/.claude/scripts"
 STATE_DIR="$REPO_ROOT/.claude/state"
 LOCKS_DIR="$REPO_ROOT/.claude/locks"
-SESSION_FILE="$STATE_DIR/current-session"
-HEALTH_FILE="$STATE_DIR/health"
-
 # Defaults
 NUM_TASKS="${1:-5}"
 CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
@@ -117,7 +114,6 @@ CURRENT_MODEL="$CLAUDE_MODEL"
 MODEL_FALLBACK_TRIGGERED=0
 
 # Generate unique agent ID with nicer default
-HOSTNAME_SHORT=$(hostname -s 2>/dev/null || hostname | cut -d. -f1)
 if [ -z "${AGENT_NAME:-}" ]; then
   # Auto-generate worker name based on existing agents
   WORKER_NUM=1
@@ -974,7 +970,6 @@ run_with_retry() {
 run_agent_iteration() {
   local iteration="$1"
   local attempt="${2:-1}"
-  local task_log="$RUN_LOG_DIR/task-$iteration-attempt-$attempt.log"
   local session_id
 
   # Generate or reuse session ID
@@ -999,11 +994,9 @@ run_agent_iteration() {
   else
     local task_id
     task_id=$(get_task_id_from_file "$task_file")
-    local is_doing=0
 
     # Check if already in doing/
     if [[ "$task_file" == *"/doing/"* ]]; then
-      is_doing=1
       log_info "Resuming task: $task_id"
     else
       log_info "Picking up task: $task_id"
