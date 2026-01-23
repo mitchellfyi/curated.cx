@@ -1,0 +1,200 @@
+name: Deploy to Dokku
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      skip_migrations:
+        description: 'Skip database migrations'
+        required: false
+        default: 'false'
+        type: boolean
+      force_deploy:
+        description: 'Force deploy even if health check fails'
+        required: false
+        default: 'false'
+        type: boolean
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  APP_NAME: curated
+  DOKKU_HOST: ${{ secrets.DOKKU_HOST }}
+  APP_URL: ${{ secrets.APP_URL || 'https://curated.cx' }}
+
+jobs:
+  # Run CI checks first (optional - uncomment to require CI to pass)
+  # ci:
+  #   uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    # needs: [ci]  # Uncomment to require CI to pass first
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better git push
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+
+      - name: Add Dokku to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.DOKKU_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Pre-deployment health check
+        id: pre_health
+        continue-on-error: true
+        run: |
+          echo "Checking if app is currently running..."
+          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.APP_URL }}/up" --max-time 10 || echo "000")
+          echo "health_status=$HEALTH_STATUS" >> $GITHUB_OUTPUT
+          if [ "$HEALTH_STATUS" = "200" ]; then
+            echo "✅ App is healthy (HTTP $HEALTH_STATUS)"
+          else
+            echo "⚠️ App returned HTTP $HEALTH_STATUS (may be first deploy)"
+          fi
+
+      - name: Backup database before deploy
+        if: inputs.skip_migrations != 'true'
+        continue-on-error: true
+        run: |
+          echo "Creating database backup before deployment..."
+          BACKUP_NAME="pre-deploy-$(date +%Y%m%d-%H%M%S)"
+          ssh -o StrictHostKeyChecking=no dokku@${{ secrets.DOKKU_HOST }} postgres:export ${{ env.APP_NAME }}-db > /tmp/db-backup-$BACKUP_NAME.dump 2>/dev/null || echo "Backup skipped (no existing database or first deploy)"
+          echo "Backup created: $BACKUP_NAME"
+
+      - name: Deploy to Dokku
+        id: deploy
+        run: |
+          echo "🚀 Deploying to Dokku..."
+          git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:${{ env.APP_NAME }} 2>/dev/null || git remote set-url dokku dokku@${{ secrets.DOKKU_HOST }}:${{ env.APP_NAME }}
+
+          # Push with force to handle any divergent histories
+          if git push dokku HEAD:main --force 2>&1 | tee /tmp/deploy.log; then
+            echo "deploy_success=true" >> $GITHUB_OUTPUT
+            echo "✅ Code pushed successfully"
+          else
+            echo "deploy_success=false" >> $GITHUB_OUTPUT
+            echo "❌ Deploy failed"
+            cat /tmp/deploy.log
+            exit 1
+          fi
+        env:
+          GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+
+      - name: Wait for app to start
+        run: |
+          echo "Waiting for app to start..."
+          sleep 10
+
+      - name: Run database migrations
+        if: inputs.skip_migrations != 'true'
+        id: migrations
+        run: |
+          echo "Running database migrations..."
+          if ssh -o StrictHostKeyChecking=no dokku@${{ secrets.DOKKU_HOST }} run ${{ env.APP_NAME }} rails db:migrate 2>&1 | tee /tmp/migrate.log; then
+            echo "migration_success=true" >> $GITHUB_OUTPUT
+            echo "✅ Migrations completed"
+          else
+            echo "migration_success=false" >> $GITHUB_OUTPUT
+            echo "❌ Migration failed"
+            cat /tmp/migrate.log
+            exit 1
+          fi
+
+      - name: Post-deployment health check
+        id: post_health
+        run: |
+          echo "Running post-deployment health check..."
+          MAX_RETRIES=6
+          RETRY_DELAY=10
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.APP_URL }}/up" --max-time 15 || echo "000")
+            echo "Attempt $i: HTTP $HEALTH_STATUS"
+
+            if [ "$HEALTH_STATUS" = "200" ]; then
+              echo "health_check=passed" >> $GITHUB_OUTPUT
+              echo "✅ Health check passed!"
+              exit 0
+            fi
+
+            if [ $i -lt $MAX_RETRIES ]; then
+              echo "Waiting ${RETRY_DELAY}s before retry..."
+              sleep $RETRY_DELAY
+            fi
+          done
+
+          echo "health_check=failed" >> $GITHUB_OUTPUT
+          echo "❌ Health check failed after $MAX_RETRIES attempts"
+
+          if [ "${{ inputs.force_deploy }}" = "true" ]; then
+            echo "⚠️ Force deploy enabled, continuing despite health check failure"
+            exit 0
+          fi
+          exit 1
+
+      - name: Rollback on failure
+        if: failure() && steps.pre_health.outputs.health_status == '200'
+        run: |
+          echo "🔄 Attempting rollback..."
+          # Get the previous release
+          PREVIOUS_TAG=$(ssh -o StrictHostKeyChecking=no dokku@${{ secrets.DOKKU_HOST }} tags:list ${{ env.APP_NAME }} 2>/dev/null | tail -2 | head -1 || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "Rolling back to $PREVIOUS_TAG..."
+            ssh -o StrictHostKeyChecking=no dokku@${{ secrets.DOKKU_HOST }} tags:deploy ${{ env.APP_NAME }} $PREVIOUS_TAG || echo "Rollback command failed"
+          else
+            echo "No previous release found, cannot rollback"
+          fi
+
+      - name: Get deployment info
+        if: success()
+        run: |
+          echo "📊 Deployment Summary"
+          echo "===================="
+          ssh -o StrictHostKeyChecking=no dokku@${{ secrets.DOKKU_HOST }} ps:report ${{ env.APP_NAME }}
+          echo ""
+          echo "🔗 App URL: ${{ env.APP_URL }}"
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          echo "App: ${{ env.APP_NAME }}"
+          echo "URL: ${{ env.APP_URL }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Deployed by: ${{ github.actor }}"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          echo "App: ${{ env.APP_NAME }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Check the logs above for details."
+
+  # Optional: Slack notification job
+  # notify-slack:
+  #   needs: [deploy]
+  #   if: always()
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Send Slack notification
+  #       uses: 8398a7/action-slack@v3
+  #       with:
+  #         status: ${{ needs.deploy.result }}
+  #         fields: repo,message,commit,author,action,eventName,ref,workflow
+  #       env:
+  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
