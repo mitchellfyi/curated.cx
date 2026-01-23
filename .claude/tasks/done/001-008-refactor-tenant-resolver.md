@@ -525,6 +525,38 @@ Middleware should not create database records. This makes testing difficult and 
 **Summary**:
 The TenantResolver middleware has been successfully refactored from 178 to 74 lines (58% reduction). All domain resolution logic is now encapsulated in the read-only DomainResolver service. Site auto-creation has been removed from the middleware and Current.tenant= setter, replaced by an explicit rake task (`tenants:ensure_default_sites`) with proper advisory locks to prevent race conditions. The refactoring follows the same pattern established in task 001-005 (DomainDnsVerifier extraction).
 
+### 2026-01-23 03:11 - Verification Complete
+
+Task location: done/
+Status field: matches (done)
+Acceptance criteria: 8/8 checked
+
+**Verification Checklist**:
+- [x] Task file exists in correct location (`done/`)
+- [x] Status field is `done`
+- [x] Started timestamp is set (`2026-01-23 02:55`)
+- [x] Completed timestamp is set (`2026-01-23 03:12`)
+- [x] All acceptance criteria are checked (8/8)
+- [x] Work Log has entries from all phases (Triage, Plan, Implement, Test, Docs, Review)
+- [x] Assigned To/At fields are cleared
+
+**Implementation Verification**:
+- [x] `app/services/domain_resolver.rb` exists (110 lines)
+- [x] `spec/services/domain_resolver_spec.rb` exists (330 lines)
+- [x] `lib/tasks/tenants.rake` exists (79 lines)
+- [x] `app/middleware/tenant_resolver.rb` is 74 lines (down from 178)
+- [x] Site creation methods removed from TenantResolver (0 occurrences)
+
+Issues found:
+- None
+
+Actions taken:
+- Verified task file state is correct
+- Confirmed all files created/modified as planned
+- Work Log chronology verified
+
+Task verified: PASS
+
 ### 2026-01-23 02:55 - Triage Complete
 
 - Dependencies: None specified, none required

@@ -133,9 +133,27 @@ schedule: "*/15 * * * *"  # Every 15 minutes
 - **Action**: Writes log entry and database record
 - **Verification**: Check `heartbeat_logs` table
 
+**Process Due Sources** (Every 15 minutes):
+- **Purpose**: Trigger ingestion for sources that are due
+- **Class**: `ProcessDueSourcesJob`
+- **Queue**: `default`
+
 **Clear Finished Jobs** (Every hour at minute 12):
 - **Purpose**: Clean up completed job records
 - **Command**: `SolidQueue::Job.clear_finished_in_batches`
+
+### On-Demand Jobs
+
+**Editorialise Content Item**:
+- **Class**: `EditorialiseContentItemJob`
+- **Queue**: `editorialisation`
+- **Trigger**: `ContentItem` after_create callback (when source has editorialisation enabled)
+- **Purpose**: Generate AI summary, "why it matters" context, and suggested tags
+- **Retry Behavior**:
+  - `AiApiError`, `AiTimeoutError`: Exponential backoff, 3 attempts
+  - `AiRateLimitError`: 60s wait, 5 attempts
+  - `AiInvalidResponseError`, `AiConfigurationError`: Discarded (no retry)
+- **Documentation**: See [docs/editorialisation.md](editorialisation.md)
 
 ---
 
@@ -427,4 +445,4 @@ cron: rails runner "HeartbeatJob.perform_now"
 
 ---
 
-*Last Updated: 2025-01-20*
+*Last Updated: 2026-01-23*

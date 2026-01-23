@@ -30,6 +30,9 @@ This directory contains comprehensive documentation for the Curated.www Rails 8 
 ### Connectors
 - **[connectors/serpapi.md](connectors/serpapi.md)** - SerpApi Google News ingestion connector
 
+### AI Features
+- **[editorialisation.md](../docs/editorialisation.md)** - AI editorialisation for content summaries and context
+
 ### GitHub Integration
 - **[.github/copilot-instructions.md](../.github/copilot-instructions.md)** - GitHub Copilot configuration
 - **[.github/workflows/ci.yml](../.github/workflows/ci.yml)** - Comprehensive CI/CD pipeline

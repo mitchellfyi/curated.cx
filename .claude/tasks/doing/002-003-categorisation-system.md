@@ -11,8 +11,8 @@
 | Started | `2026-01-23 03:01` |
 | Completed | |
 | Blocked By | `002-001-ingestion-storage-model` |
-| Assigned To | `worker-2` |
-| Assigned At | `2026-01-23 03:01` |
+| Assigned To | |
+| Assigned At | |
 | Blocks | `002-004-ai-editorialisation` |
 
 ---
@@ -55,383 +55,314 @@ The system must be explainable - users should understand why content was tagged 
 
 ## Plan
 
-### Implementation Plan (Generated 2026-01-23 03:05)
+### Implementation Plan (Updated 2026-01-23 PLANNING PHASE)
 
 #### Gap Analysis
 
 | Criterion | Status | Gap |
 |-----------|--------|-----|
-| Taxonomy model (site-scoped, hierarchical) | NOT EXISTS | Create from scratch |
-| TaggingRule model | NOT EXISTS | Create from scratch |
-| ContentItem tagging fields | NOT EXISTS | Add via migration |
-| URL pattern matching rule | NOT EXISTS | Implement in TaggingService |
-| Source-based rule | NOT EXISTS | Implement in TaggingService |
-| Keyword matching rule | NOT EXISTS | Implement in TaggingService |
-| Domain matching rule | NOT EXISTS | Implement in TaggingService |
-| Priority-ordered evaluation | NOT EXISTS | Implement in TaggingService |
-| Confidence scoring | NOT EXISTS | Implement in TaggingService |
-| Tagging after ingestion | NOT EXISTS | Add callback to ContentItem |
-| Admin UI for taxonomy | NOT EXISTS | Create controller/views |
-| Admin UI for tagging rules | NOT EXISTS | Create controller/views |
-| Tests for all rule types | NOT EXISTS | Create spec files |
-| Tests for confidence scoring | NOT EXISTS | Create spec files |
-| docs/tagging.md | NOT EXISTS | Create documentation |
+| Taxonomy model (site-scoped, hierarchical) | ✅ COMPLETE | app/models/taxonomy.rb exists with parent/children |
+| TaggingRule model | ✅ COMPLETE | app/models/tagging_rule.rb exists with all rule types |
+| ContentItem tagging fields | ⚠️ MIGRATION EXISTS | Migration exists but NOT RUN (fields not in schema.rb) |
+| URL pattern matching rule | ✅ COMPLETE | Implemented in TaggingRule#matches? |
+| Source-based rule | ✅ COMPLETE | Implemented in TaggingRule#matches? |
+| Keyword matching rule | ✅ COMPLETE | Implemented in TaggingRule#matches? |
+| Domain matching rule | ✅ COMPLETE | Implemented in TaggingRule#matches? |
+| Priority-ordered evaluation | ✅ COMPLETE | TaggingService fetches by_priority |
+| Confidence scoring | ✅ COMPLETE | url=1.0, source=0.9, domain=0.85, keyword=0.7-0.9 |
+| Tagging after ingestion | ✅ COMPLETE | ContentItem#after_create :apply_tagging_rules |
+| Admin UI for taxonomy | ✅ COMPLETE | Controller, views, routes in place |
+| Admin UI for tagging rules | ✅ COMPLETE | Controller, views, routes, test action in place |
+| Tests for all rule types | ✅ COMPLETE | 7 spec files with ~150 examples total |
+| Tests for confidence scoring | ✅ COMPLETE | Covered in spec/services/tagging_service_spec.rb |
+| docs/tagging.md | ❌ MISSING | Must be created |
+| Quality gates pass | ⚠️ NEEDS VERIFICATION | ./bin/quality not yet run this session |
+| Changes committed with task reference | ✅ COMPLETE | 12 commits from 61d49f1 to 83cea8c |
 
-**Key Observations:**
-- ContentItem model exists with SiteScoped concern - only site_id, no tenant_id
-- Source model has both TenantScoped and SiteScoped
-- Admin UI pattern: Controller → Service → Model (see Admin::CategoriesController)
-- No tree/hierarchy gem currently in Gemfile - use simple parent_id with self-join
-- Factory pattern uses `association :source; site { source.site }`
+**Summary:**
+- Implementation is 90%+ complete from previous sessions
+- Migrations exist but are NOT applied to database
+- Documentation is missing
+
+---
+
+#### Remaining Work (Priority Order)
+
+**1. Run Database Migrations**
+```bash
+bundle exec rails db:migrate
+```
+- `20260123030621_create_taxonomies.rb`
+- `20260123030622_create_tagging_rules.rb`
+- `20260123030623_add_tagging_fields_to_content_items.rb`
+
+**2. Create Documentation**
+Create `doc/tagging.md` with:
+- System overview (purpose, architecture)
+- Rule types explained (url_pattern, source, keyword, domain)
+- Confidence scoring algorithm (url=1.0, source=0.9, domain=0.85, keyword=0.7-0.9)
+- How to add new rule types (extensibility guide)
+- Admin UI usage guide
+- Troubleshooting common issues
+
+**3. Run Tests**
+```bash
+bundle exec rspec spec/models/taxonomy_spec.rb spec/models/tagging_rule_spec.rb \
+  spec/services/tagging_service_spec.rb spec/services/admin/taxonomies_service_spec.rb \
+  spec/services/admin/tagging_rules_service_spec.rb spec/requests/admin/taxonomies_spec.rb \
+  spec/requests/admin/tagging_rules_spec.rb
+```
+
+**4. Run Quality Gates**
+```bash
+./bin/quality
+```
+
+**5. Update Model Annotations (if migrations applied)**
+```bash
+bundle exec annotaterb models
+```
+
+**6. Commit Any Remaining Changes**
+Commit message format: `docs: Add tagging system documentation [002-003]`
+
+---
+
+#### Files Already Complete
+
+| File | Status |
+|------|--------|
+| db/migrate/*_create_taxonomies.rb | ✅ |
+| db/migrate/*_create_tagging_rules.rb | ✅ |
+| db/migrate/*_add_tagging_fields_to_content_items.rb | ✅ |
+| app/models/taxonomy.rb | ✅ |
+| app/models/tagging_rule.rb | ✅ |
+| app/models/content_item.rb | ✅ (callback added) |
+| app/services/tagging_service.rb | ✅ |
+| app/services/admin/taxonomies_service.rb | ✅ |
+| app/services/admin/tagging_rules_service.rb | ✅ |
+| app/controllers/admin/taxonomies_controller.rb | ✅ |
+| app/controllers/admin/tagging_rules_controller.rb | ✅ |
+| app/views/admin/taxonomies/* (6 files) | ✅ |
+| app/views/admin/tagging_rules/* (6 files) | ✅ |
+| config/routes.rb | ✅ |
+| config/locales/en.yml | ✅ |
+| config/locales/es.yml | ✅ |
+| spec/factories/taxonomies.rb | ✅ |
+| spec/factories/tagging_rules.rb | ✅ |
+| spec/models/taxonomy_spec.rb | ✅ |
+| spec/models/tagging_rule_spec.rb | ✅ |
+| spec/services/tagging_service_spec.rb | ✅ |
+| spec/services/admin/*_service_spec.rb | ✅ |
+| spec/requests/admin/*_spec.rb | ✅ |
 
 ---
 
 #### Files to Create
 
-**1. Database Migrations (run in order)**
-
-```
-db/migrate/YYYYMMDDHHMMSS_create_taxonomies.rb
-```
-- `site_id` (references, not null, FK)
-- `tenant_id` (references, not null, FK) - for consistency with Source pattern
-- `name` (string, not null)
-- `slug` (string, not null)
-- `description` (text)
-- `parent_id` (bigint, nullable) - self-referential FK for hierarchy
-- `position` (integer, default: 0) - ordering within siblings
-- `timestamps`
-- Indexes: `[site_id, slug]` unique, `[site_id, parent_id]`, `[tenant_id]`
-
-```
-db/migrate/YYYYMMDDHHMMSS_create_tagging_rules.rb
-```
-- `site_id` (references, not null, FK)
-- `tenant_id` (references, not null, FK)
-- `taxonomy_id` (references, not null, FK)
-- `rule_type` (integer, not null) - enum: url_pattern(0), source(1), keyword(2), domain(3)
-- `pattern` (text, not null) - regex for url_pattern, source_id for source, keywords for keyword, domain pattern for domain
-- `priority` (integer, not null, default: 100)
-- `enabled` (boolean, default: true, not null)
-- `timestamps`
-- Indexes: `[site_id, priority]`, `[site_id, enabled]`, `[taxonomy_id]`, `[tenant_id]`
-
-```
-db/migrate/YYYYMMDDHHMMSS_add_tagging_fields_to_content_items.rb
-```
-- `topic_tags` (jsonb, default: [], not null)
-- `content_type` (string, nullable) - news, article, job, tool, service, person
-- `tagging_confidence` (decimal, precision: 3, scale: 2, nullable)
-- `tagging_explanation` (jsonb, default: [], not null) - array of {rule_id, reason}
-- Index: `[site_id, content_type]`
-
-**2. Models**
-
-```
-app/models/taxonomy.rb
-```
-- Include TenantScoped, SiteScoped (following Source pattern)
-- `belongs_to :parent, class_name: 'Taxonomy', optional: true`
-- `has_many :children, class_name: 'Taxonomy', foreign_key: :parent_id, dependent: :destroy`
-- `has_many :tagging_rules, dependent: :destroy`
-- Validations: name presence, slug presence/uniqueness/format
-- `before_validation :generate_slug_from_name`
-- Scopes: `roots` (parent_id nil), `by_position`
-- Instance methods: `ancestors`, `descendants`, `full_path`
-
-```
-app/models/tagging_rule.rb
-```
-- Include TenantScoped, SiteScoped
-- `belongs_to :taxonomy`
-- `enum :rule_type, { url_pattern: 0, source: 1, keyword: 2, domain: 3 }`
-- Validations: pattern presence, priority presence, rule_type presence
-- Scopes: `enabled`, `by_priority` (order priority ASC), `for_type(type)`
-- Instance method: `matches?(content_item)` - returns {match: bool, confidence: float, reason: string}
-
-**3. Service**
-
-```
-app/services/tagging_service.rb
-```
-- Class method: `TaggingService.tag(content_item)` - entry point
-- Instance: `initialize(content_item)`
-- Main method: `#call` - returns {topic_tags: [], content_type: string, confidence: float, explanation: []}
-- Private evaluator methods:
-  - `evaluate_url_pattern_rule(rule)` - regex match against url_canonical
-  - `evaluate_source_rule(rule)` - check if content_item.source_id matches
-  - `evaluate_keyword_rule(rule)` - search title + extracted_text for keywords
-  - `evaluate_domain_rule(rule)` - extract domain from url_canonical, pattern match
-- Confidence calculation:
-  - url_pattern exact match: 1.0
-  - source match: 0.9
-  - domain match: 0.85
-  - keyword match: 0.7 + (0.1 * match_count) capped at 0.9
-- Returns highest confidence content_type if rules set it
-
-**4. Admin Services**
-
-```
-app/services/admin/taxonomies_service.rb
-```
-- `initialize(tenant)`
-- `all_taxonomies` - returns tree structure, ordered by position
-- `find_taxonomy(id)`
-- `root_taxonomies` - returns only top-level
-
-```
-app/services/admin/tagging_rules_service.rb
-```
-- `initialize(tenant)`
-- `all_rules` - includes taxonomy, ordered by priority
-- `find_rule(id)`
-- `rules_for_taxonomy(taxonomy)` - filtered by taxonomy_id
-
-**5. Admin Controllers**
-
-```
-app/controllers/admin/taxonomies_controller.rb
-```
-- Include AdminAccess
-- Standard CRUD: index, show, new, create, edit, update, destroy
-- Strong params: `[:name, :slug, :description, :parent_id, :position]`
-
-```
-app/controllers/admin/tagging_rules_controller.rb
-```
-- Include AdminAccess
-- Standard CRUD: index, show, new, create, edit, update, destroy
-- Strong params: `[:taxonomy_id, :rule_type, :pattern, :priority, :enabled]`
-- Custom action: `test` - test rule against sample content_items
-
-**6. Admin Views**
-
-```
-app/views/admin/taxonomies/
-  index.html.erb    - Tree display with indent for hierarchy
-  show.html.erb     - Details + child taxonomies + rules using it
-  new.html.erb      - Form with parent selector
-  edit.html.erb     - Form with parent selector
-  _form.html.erb    - Shared form partial
-```
-
-```
-app/views/admin/tagging_rules/
-  index.html.erb    - List grouped by taxonomy, sorted by priority
-  show.html.erb     - Details + test preview
-  new.html.erb      - Form with taxonomy selector + rule_type selector
-  edit.html.erb     - Form
-  _form.html.erb    - Shared form partial
-```
-
-**7. Factories**
-
-```
-spec/factories/taxonomies.rb
-```
-- Default: tenant, site from tenant, sequence name/slug
-- Traits: `:child` (with parent), `:with_rules`
-
-```
-spec/factories/tagging_rules.rb
-```
-- Default: association :taxonomy, site from taxonomy.site
-- Traits: `:url_pattern`, `:source_based`, `:keyword`, `:domain`, `:disabled`
-
-**8. Specs**
-
-```
-spec/models/taxonomy_spec.rb
-```
-- Associations (site, tenant, parent, children, tagging_rules)
-- Validations (name, slug uniqueness scoped to site)
-- Hierarchy methods (ancestors, descendants)
-- Slug generation
-
-```
-spec/models/tagging_rule_spec.rb
-```
-- Associations (site, tenant, taxonomy)
-- Validations (pattern, priority, rule_type)
-- Enum values
-- `matches?` method for each rule type
-
-```
-spec/services/tagging_service_spec.rb
-```
-- URL pattern matching (exact regex, partial, no match)
-- Source-based matching
-- Keyword matching (single, multiple, case insensitive)
-- Domain matching (exact, wildcard)
-- Priority ordering (higher priority rule wins)
-- Confidence scoring (each rule type gets expected score)
-- Multi-tag scenarios (multiple rules match)
-- Explanation building
-- No rules scenario (returns empty)
-
-```
-spec/services/admin/taxonomies_service_spec.rb
-```
-- Scoping to current tenant/site
-- Tree ordering
-
-```
-spec/services/admin/tagging_rules_service_spec.rb
-```
-- Scoping to current tenant/site
-- Priority ordering
-
-```
-spec/controllers/admin/taxonomies_controller_spec.rb
-```
-- CRUD actions work
-- Authorization (admin access required)
-
-```
-spec/controllers/admin/tagging_rules_controller_spec.rb
-```
-- CRUD actions work
-- Authorization (admin access required)
+| File | Purpose |
+|------|---------|
+| doc/tagging.md | System documentation |
 
 ---
 
-#### Files to Modify
+#### Test Plan Status
 
-**1. ContentItem Model**
-```
-app/models/content_item.rb
-```
-- Add `after_create :apply_tagging_rules` callback
-- Add getter methods for new JSONB fields
-- Add scopes: `by_content_type(type)`, `tagged_with(taxonomy_slug)`
-
-**2. Routes**
-```
-config/routes.rb
-```
-- Add under namespace :admin:
-  - `resources :taxonomies`
-  - `resources :tagging_rules do member { post :test } end`
-
-**3. Locales**
-```
-config/locales/en.yml
-config/locales/es.yml
-```
-- Add admin.taxonomies.* translations
-- Add admin.tagging_rules.* translations
-
----
-
-#### Integration Point
-
-ContentItem already has `after_create` lifecycle. Add:
-```ruby
-after_create :apply_tagging_rules
-
-private
-
-def apply_tagging_rules
-  result = TaggingService.tag(self)
-  update_columns(
-    topic_tags: result[:topic_tags],
-    content_type: result[:content_type],
-    tagging_confidence: result[:confidence],
-    tagging_explanation: result[:explanation]
-  )
-end
-```
-
----
-
-#### Test Plan
-
-Model tests:
-- [ ] Taxonomy associations and validations
-- [ ] Taxonomy hierarchy (parent/children)
-- [ ] Taxonomy slug auto-generation
-- [ ] Taxonomy site isolation
-- [ ] TaggingRule associations and validations
-- [ ] TaggingRule enum rule_type
-- [ ] TaggingRule `matches?` for url_pattern
-- [ ] TaggingRule `matches?` for source
-- [ ] TaggingRule `matches?` for keyword
-- [ ] TaggingRule `matches?` for domain
-
-Service tests:
-- [ ] TaggingService URL pattern exact match (confidence 1.0)
-- [ ] TaggingService URL pattern partial match (confidence 0.95)
-- [ ] TaggingService source match (confidence 0.9)
-- [ ] TaggingService domain match (confidence 0.85)
-- [ ] TaggingService keyword match (confidence 0.7-0.9)
-- [ ] TaggingService priority ordering
-- [ ] TaggingService multiple matching rules (all tags applied)
-- [ ] TaggingService no matching rules (empty result)
-- [ ] TaggingService explanation array building
-
-Integration tests:
-- [ ] ContentItem creation triggers tagging
-- [ ] ContentItem has correct topic_tags after save
-- [ ] Admin taxonomy CRUD
-- [ ] Admin tagging rule CRUD
-- [ ] Admin rule test preview
-
----
-
-#### Docs to Update
-
-- [ ] Create `doc/tagging.md` - Comprehensive documentation:
-  - System overview
-  - How rules work (each type)
-  - Confidence scoring algorithm
-  - How to add new rule types
-  - Admin UI guide
-  - Troubleshooting
-
----
-
-#### Implementation Order
-
-1. **Phase 1: Database** (migrations)
-   - CreateTaxonomies migration
-   - CreateTaggingRules migration
-   - AddTaggingFieldsToContentItems migration
-   - Run migrations
-
-2. **Phase 2: Models**
-   - Taxonomy model
-   - TaggingRule model
-   - Update ContentItem model (getters, scopes)
-   - Factories
-
-3. **Phase 3: Core Service**
-   - TaggingService
-   - Model tests
-   - Service tests
-
-4. **Phase 4: Integration**
-   - ContentItem after_create callback
-   - Integration tests
-
-5. **Phase 5: Admin**
-   - Admin services
-   - Admin controllers
-   - Admin views
-   - Routes
-   - Locales
-   - Controller tests
-
-6. **Phase 6: Documentation**
-   - doc/tagging.md
-
-7. **Phase 7: Quality**
-   - Run ./bin/quality
-   - Fix any issues
-   - Commit
+All tests written but NOT EXECUTED (database was not running in previous session):
+- [x] spec/models/taxonomy_spec.rb - 28 examples
+- [x] spec/models/tagging_rule_spec.rb - 35 examples
+- [x] spec/services/tagging_service_spec.rb - 24 examples
+- [x] spec/services/admin/taxonomies_service_spec.rb - 12 examples
+- [x] spec/services/admin/tagging_rules_service_spec.rb - 13 examples
+- [x] spec/requests/admin/taxonomies_spec.rb - 21 examples
+- [x] spec/requests/admin/tagging_rules_spec.rb - 24 examples
 
 ---
 
 ## Work Log
+
+### 2026-01-23 03:47 - Documentation Sync (Phase 5)
+
+**Documentation Status:**
+- `doc/tagging.md` - ✅ Already exists (374 lines, comprehensive)
+  - System overview and architecture
+  - Rule types explained (url_pattern, source, keyword, domain)
+  - Confidence scoring algorithm
+  - Admin UI usage guide
+  - Extensibility guide
+  - Troubleshooting section
+  - Database schema reference
+
+**Related Documentation Links Verified:**
+- `doc/QUALITY_ENFORCEMENT.md` - ✅ Exists
+- `doc/ERROR_HANDLING.md` - ✅ Exists
+- `doc/ANTI_PATTERN_PREVENTION.md` - ✅ Exists
+
+**Model Annotations:**
+- `bundle exec annotaterb models` - ❌ BLOCKED (database unavailable)
+- ContentItem model has existing annotations (lines 3-34) but missing new columns:
+  - `topic_tags`, `content_type`, `tagging_confidence`, `tagging_explanation`
+- Taxonomy and TaggingRule models have no annotations yet
+- Will sync when database is available and migrations applied
+
+**Consistency Checks:**
+- [x] Code matches documentation
+- [x] No broken links in markdown
+- [ ] Schema annotations current (blocked by database)
+
+**No Changes Needed:**
+- All documentation already up-to-date from previous session
+- No new code features to document
+
+### 2026-01-23 03:42 - Testing Phase (Phase 4)
+
+**Static Analysis - All Passed:**
+- RuboCop: 243 files inspected, no offenses detected
+- ERB Lint: 70 files linted, no errors found
+- Brakeman: 0 security warnings
+- Bundle Audit: No vulnerabilities found
+- Strong Migrations: All migrations safe for production
+
+**Spec File Validation - All Passed:**
+- Ruby syntax validated for all 7 spec files
+- Ruby syntax validated for all 5 model/service files
+
+**Test Files Verified (7 spec files, ~157 examples):**
+| File | Examples | Coverage |
+|------|----------|----------|
+| spec/models/taxonomy_spec.rb | ~28 | Associations, validations, callbacks, scopes, hierarchy, site isolation |
+| spec/models/tagging_rule_spec.rb | ~35 | Associations, validations, enums, scopes, matches? for all 4 rule types |
+| spec/services/tagging_service_spec.rb | ~24 | All rule types, priority ordering, confidence scoring, site isolation |
+| spec/services/admin/taxonomies_service_spec.rb | ~12 | Tenant/site scoping, tree ordering, find methods |
+| spec/services/admin/tagging_rules_service_spec.rb | ~13 | Tenant/site scoping, priority ordering, find methods |
+| spec/requests/admin/taxonomies_spec.rb | ~21 | CRUD actions, tenant isolation, hierarchy features |
+| spec/requests/admin/tagging_rules_spec.rb | ~24 | CRUD actions, tenant isolation, rule types, test action |
+
+**Quality Gates Run:**
+```
+./bin/quality
+```
+Results:
+- ✅ RuboCop Rails Omakase - Code Style Compliance
+- ✅ ERB Lint - Template Quality
+- ✅ Brakeman - Security Vulnerability Scan
+- ✅ Bundle Audit - Gem Security Check
+- ✅ Strong Migrations - Safe Migration Analysis
+- ❌ RSpec Core Tests - BLOCKED (database connection unavailable)
+
+**Blocker:**
+- Database connection unavailable (Postgres.app permission dialog)
+- Cannot run actual RSpec tests or migrations
+- Tests are syntactically valid and follow project patterns
+
+**Next Steps (when database available):**
+1. Run migrations: `bundle exec rails db:migrate`
+2. Run tests: `bundle exec rspec spec/models/taxonomy_spec.rb spec/models/tagging_rule_spec.rb spec/services/tagging_service_spec.rb spec/services/admin spec/requests/admin/taxonomies_spec.rb spec/requests/admin/tagging_rules_spec.rb`
+3. Update model annotations: `bundle exec annotaterb models`
+
+### 2026-01-23 03:40 - Implementation Progress
+
+**Documentation Created:**
+- Created `doc/tagging.md` (373 lines) with comprehensive documentation:
+  - System overview and architecture
+  - Rule types explained (url_pattern, source, keyword, domain)
+  - Confidence scoring algorithm table
+  - Priority ordering guide
+  - Admin UI usage guide
+  - Extensibility guide for adding new rule types
+  - Troubleshooting section
+  - Database schema reference
+
+**Quality Gates Verified:**
+- RuboCop: 7 files inspected, no offenses detected
+- Brakeman: 0 security warnings
+- ERB Lint: 12 files, no errors found
+
+**Blockers:**
+- Database connection unavailable (Postgres.app permission dialog issue)
+- Cannot run migrations or tests until database is accessible
+- Model annotations cannot be updated without database
+
+**Commit:** `8bf95b9` - docs: Add tagging system documentation [002-003]
+
+**Files Created:**
+- doc/tagging.md (373 lines)
+
+**Status:**
+- All implementation code complete (from previous sessions)
+- Documentation complete ✅
+- Migrations exist but NOT APPLIED (blocked by database)
+- Tests exist but NOT RUN (blocked by database)
+
+### 2026-01-23 03:30 - Planning Phase Complete
+
+**Gap Analysis Results:**
+- Implementation is 90%+ complete from previous sessions (12 commits)
+- All code files exist and are complete:
+  - Models: Taxonomy, TaggingRule (with matches? method for all 4 rule types)
+  - Services: TaggingService, Admin::TaxonomiesService, Admin::TaggingRulesService
+  - Controllers: Admin::TaxonomiesController, Admin::TaggingRulesController
+  - Views: 12 ERB files (6 for taxonomies, 6 for tagging_rules)
+  - Factories: taxonomies.rb, tagging_rules.rb (with traits)
+  - Tests: 7 spec files (~150 examples total)
+  - Routes: Configured with test action for tagging_rules
+  - Locales: en.yml and es.yml translations complete
+
+**Gaps Identified:**
+1. ❌ **Migrations NOT RUN** - schema.rb doesn't have taxonomies/tagging_rules tables or new content_items fields
+2. ❌ **doc/tagging.md MISSING** - Documentation not created
+3. ⚠️ **Tests NOT EXECUTED** - Database wasn't available in previous session
+4. ⚠️ **Quality gates NOT VERIFIED** - ./bin/quality not run this session
+
+**Remaining Work (in order):**
+1. Run migrations: `bundle exec rails db:migrate`
+2. Create doc/tagging.md documentation
+3. Run tests for all new code
+4. Run ./bin/quality and fix any issues
+5. Update model annotations
+6. Commit documentation changes
+
+### 2026-01-23 03:29 - Triage Complete
+
+- Dependencies: ✅ `002-001-ingestion-storage-model` is in done/ with status=done and all criteria checked
+- Task clarity: Clear - well-defined acceptance criteria with detailed plan
+- Ready to proceed: Yes
+- Notes:
+  - Task already has significant work completed (see previous work log entries)
+  - Implementation committed in 12 commits (61d49f1 through 83cea8c)
+  - Tests written but not executed (database not running in previous session)
+  - Documentation (docs/tagging.md) still pending
+  - Acceptance criteria checkboxes need to be verified and checked
+  - Quality gates need final run and verification
+  - Need to verify all implementation files exist and are correct
+
+### 2026-01-23 03:24 - Testing Complete
+
+**Tests written (7 spec files, ~1500 lines):**
+- spec/models/taxonomy_spec.rb - 28 examples
+- spec/models/tagging_rule_spec.rb - 35 examples
+- spec/services/tagging_service_spec.rb - 24 examples
+- spec/services/admin/taxonomies_service_spec.rb - 12 examples
+- spec/services/admin/tagging_rules_service_spec.rb - 13 examples
+- spec/requests/admin/taxonomies_spec.rb - 21 examples
+- spec/requests/admin/tagging_rules_spec.rb - 24 examples
+
+**Test coverage:**
+- All rule types (url_pattern, source, keyword, domain)
+- Confidence scoring for each rule type
+- Priority ordering
+- Multiple matching rules
+- Tenant/site isolation
+- Admin CRUD operations
+- Edge cases (blank values, invalid regex, disabled rules)
+
+**Quality gates:**
+- RuboCop: 7 files inspected, no offenses detected
+- Brakeman: 0 security warnings
+
+**Commit:** `83cea8c` - test: Add specs for categorisation system [002-003]
+
+**Note:** Database connection unavailable (Postgres.app permissions), so tests not executed. Specs written following project patterns.
 
 ### 2026-01-23 03:15 - Implementation Complete
 
@@ -506,7 +437,24 @@ Integration tests:
 
 ## Testing Evidence
 
-(To be filled during implementation)
+### 2026-01-23 03:24 - Testing Complete
+
+**Tests written:**
+- spec/models/taxonomy_spec.rb - Associations, validations, callbacks, scopes, hierarchy methods, site isolation
+- spec/models/tagging_rule_spec.rb - Associations, validations, enums, scopes, matches? method for all rule types
+- spec/services/tagging_service_spec.rb - All rule types, priority ordering, confidence scoring, explanation building
+- spec/services/admin/taxonomies_service_spec.rb - Tenant/site scoping, tree ordering, find methods
+- spec/services/admin/tagging_rules_service_spec.rb - Tenant/site scoping, priority ordering, find methods
+- spec/requests/admin/taxonomies_spec.rb - CRUD actions, tenant isolation, hierarchy features
+- spec/requests/admin/tagging_rules_spec.rb - CRUD actions, tenant isolation, rule type features, test action
+
+**Quality gates:**
+- RuboCop: 7 files inspected, no offenses detected
+- Brakeman: 0 security warnings
+
+**Commit:** `83cea8c` - test: Add specs for categorisation system [002-003]
+
+**Note:** Database is not running so tests could not be executed, but all specs have been written following the existing project patterns and RuboCop validation passes.
 
 ---
 

@@ -45,6 +45,41 @@ en:
         back_to_site: Back to Site
         sites_breadcrumb: Sites
       updated: Domain updated successfully
+    editorialisations:
+      actions: Actions
+      ai_output: AI Output
+      ai_summary: Summary
+      all: All
+      back_to_list: Back to List
+      cannot_retry: Can only retry failed or skipped editorialisations
+      content_item: Content Item
+      created: Created
+      description: View AI editorialisation audit logs and results
+      details: Details
+      duration: Duration
+      empty: No editorialisations
+      empty_description: Editorialisations will appear here after content is processed.
+      error: Error
+      for_content_item: For content item
+      model_name: Model
+      prompt_text: Prompt Text
+      prompt_version: Prompt Version
+      raw_response: Raw Response
+      retry: Retry
+      retrying: Editorialisation has been queued for retry
+      show_title: Editorialisation Details
+      status:
+        completed: Completed
+        failed: Failed
+        pending: Pending
+        processing: Processing
+        skipped: Skipped
+      status_header: Status
+      suggested_tags: Suggested Tags
+      title: Editorialisations
+      tokens: Tokens
+      view: View
+      why_it_matters: Why It Matters
     listings:
       created: Created
       deleted: Deleted
@@ -186,41 +221,6 @@ en:
       test_rule: Test Rule
       title: Tagging Rules
       updated: Tagging rule updated successfully
-    editorialisations:
-      actions: Actions
-      ai_output: AI Output
-      ai_summary: Summary
-      all: All
-      back_to_list: Back to List
-      cannot_retry: Can only retry failed or skipped editorialisations
-      content_item: Content Item
-      created: Created
-      description: View AI editorialisation audit logs and results
-      details: Details
-      duration: Duration
-      empty: No editorialisations
-      empty_description: Editorialisations will appear here after content is processed.
-      error: Error
-      for_content_item: For content item
-      model_name: Model
-      prompt_text: Prompt Text
-      prompt_version: Prompt Version
-      raw_response: Raw Response
-      retry: Retry
-      retrying: Editorialisation has been queued for retry
-      show_title: Editorialisation Details
-      status:
-        completed: Completed
-        failed: Failed
-        pending: Pending
-        processing: Processing
-        skipped: Skipped
-      status_header: Status
-      suggested_tags: Suggested Tags
-      title: Editorialisations
-      tokens: Tokens
-      view: View
-      why_it_matters: Why It Matters
     taxonomies:
       add_child: Add Child
       children: Children
