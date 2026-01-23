@@ -5,13 +5,15 @@
 | Field | Value |
 |-------|-------|
 | ID | `002-007-monetisation-basics` |
-| Status | `todo` |
+| Status | `doing` |
 | Priority | `002` High |
 | Created | `2025-01-23 00:05` |
-| Started | |
+| Started | `2026-01-23 09:46` |
 | Completed | |
 | Blocked By | `002-006-community-primitives` |
 | Blocks | (none) |
+| Assigned To | `worker-1` |
+| Assigned At | `2026-01-23 09:46` |
 
 ---
 
@@ -65,63 +67,301 @@ All must be clearly labeled in UI (transparency).
 
 ## Plan
 
-1. **Extend Tool/ContentItem for affiliates**
-   - Add affiliate_url_template, affiliate_attribution fields
-   - Create AffiliateLink service for URL generation
-   - Add click tracking (redirect through internal endpoint)
+### Implementation Plan (Generated 2026-01-23)
 
-2. **Create JobPost model** (or extend ContentItem)
-   - Core fields: title, company, location, salary_range, description
-   - Meta fields: apply_url, expires_at, paid, payment_reference
-   - Scoped to Site
+#### Gap Analysis
 
-3. **Add featured placement fields**
-   - featured_from (datetime)
-   - featured_until (datetime)
-   - featured_by_id (admin who set it)
+| Criterion | Status | Gap |
+|-----------|--------|-----|
+| **Affiliate Support** | | |
+| Tool model with affiliate fields | NO | No Tool model exists. Listing model has `metadata` JSONB field that could store affiliate data, but no dedicated columns. |
+| Affiliate links used when displaying | NO | Links go directly to `url_canonical`. No affiliate URL wrapping. |
+| Click tracking for affiliate links | NO | No click tracking infrastructure exists. |
+| Admin can manage affiliate settings | PARTIAL | Admin::ListingsController exists but no affiliate fields in form. |
+| **Job Board** | | |
+| JobPost model exists | NO | No JobPost model. Could use Listing with category or add `listing_type` field. |
+| Job fields (title, company, etc.) | PARTIAL | Listing has `title`, `description`, but missing `company`, `location`, `salary_range`, `apply_url`, `expires_at`, `paid`. |
+| Paid job creation flow | NO | No payment integration or flow exists. |
+| Jobs scoped to Site | YES | Listing already uses SiteScoped concern. |
+| Expired jobs hidden from feed | NO | No `expires_at` field. No expiry scopes. |
+| Admin can extend/expire jobs | NO | No expiry management in admin. |
+| **Featured Placements** | | |
+| featured_from/featured_until fields | NO | These fields don't exist on Listing. |
+| Featured items in "Featured" section | NO | No featured section in views. |
+| Featured items labeled in UI | NO | No "Featured"/"Sponsored" badges in views. |
+| Admin can set/clear featured status | NO | No featured management in admin. |
+| **General** | | |
+| Visibility rules respect expiry/featured | NO | Need new scopes. |
+| Tests cover expiry logic | NO | No expiry tests exist. |
+| Tests cover featured visibility | NO | No featured tests exist. |
+| `docs/monetisation.md` | NO | File doesn't exist. |
 
-4. **Implement job creation flow**
-   - Public form for job submission
-   - Payment step (stub for now - can use Stripe later)
-   - Admin approval queue
+#### Architecture Decision
 
-5. **Add featured sections**
-   - "Featured Tools" on tools index
-   - "Featured Jobs" on jobs index
-   - Clear "Sponsored" labeling
+**Approach**: Extend the existing `Listing` model rather than create separate models.
 
-6. **Implement visibility/expiry**
-   - Scope queries to exclude expired
-   - Scope queries to include featured based on dates
-   - Cron job to clean up expired listings
+**Rationale**:
+1. Listing already has tenant/site scoping via `TenantScoped` and `SiteScoped` concerns
+2. Listing has `metadata` JSONB for flexible data (can store job-specific fields initially)
+3. Listing has existing controller, views, tests, and factory patterns
+4. Category can distinguish listing types (tools, jobs, services already exist as traits)
+5. Adding fields via migration is cleaner than STI for this use case
 
-7. **Build admin UI**
-   - Affiliate settings for tools
-   - Job management (approve, extend, expire)
-   - Featured placement toggle
+**Alternative Considered**: Create separate `JobPost` and `Tool` STI models - rejected as over-engineering for MVP.
 
-8. **Write tests**
-   - Affiliate URL generation
-   - Job expiry logic
-   - Featured date range logic
-   - Visibility scoping
+#### Files to Create
 
-9. **Write documentation**
+1. **Migration: Add monetisation fields to listings**
+   - `db/migrate/YYYYMMDDHHMMSS_add_monetisation_fields_to_listings.rb`
+   - Fields:
+     - `affiliate_url_template` (text) - URL pattern with `{url}` placeholder
+     - `affiliate_attribution` (jsonb) - tracking params like `{source: 'curated', medium: 'affiliate'}`
+     - `featured_from` (datetime) - when featuring starts
+     - `featured_until` (datetime) - when featuring ends
+     - `featured_by_id` (bigint, references users) - admin who set featured
+     - `expires_at` (datetime) - for job expiry
+     - `listing_type` (integer, enum) - tool, job, service (optional, or use category)
+     - `company` (string) - for job posts
+     - `location` (string) - for job posts
+     - `salary_range` (string) - for job posts
+     - `apply_url` (text) - for job applications
+     - `paid` (boolean, default: false) - whether payment required/received
+     - `payment_reference` (string) - Stripe/payment ID
+   - Indexes:
+     - `index_listings_on_featured_from_until` (featured_from, featured_until)
+     - `index_listings_on_expires_at`
+     - `index_listings_on_listing_type`
+
+2. **AffiliateClick model**
+   - `app/models/affiliate_click.rb`
+   - Fields: listing_id, clicked_at, ip_hash, user_agent, referrer
+   - Purpose: Track affiliate link clicks for revenue reporting
+   - Scoped to Site via listing association
+
+3. **Migration: Create affiliate_clicks table**
+   - `db/migrate/YYYYMMDDHHMMSS_create_affiliate_clicks.rb`
+
+4. **AffiliateUrlService**
+   - `app/services/affiliate_url_service.rb`
+   - Methods:
+     - `generate_url(listing)` - builds affiliate URL from template
+     - `track_click(listing, request)` - records click event
+
+5. **AffiliateRedirectsController**
+   - `app/controllers/affiliate_redirects_controller.rb`
+   - Route: `GET /go/:listing_id` → tracks click, redirects to affiliate URL
+   - Security: rate limiting, bot detection
+
+6. **Documentation**
    - `docs/monetisation.md`
-   - How each stream works
-   - Pricing guidance (even if stubbed)
+
+#### Files to Modify
+
+1. **`app/models/listing.rb`**
+   - Add `listing_type` enum: `enum :listing_type, { tool: 0, job: 1, service: 2 }`
+   - Add `belongs_to :featured_by, class_name: 'User', optional: true`
+   - Add `has_many :affiliate_clicks`
+   - Add scopes:
+     - `scope :featured, -> { where('featured_from <= ? AND (featured_until IS NULL OR featured_until > ?)', Time.current, Time.current) }`
+     - `scope :not_expired, -> { where('expires_at IS NULL OR expires_at > ?', Time.current) }`
+     - `scope :jobs, -> { where(listing_type: :job) }`
+     - `scope :tools, -> { where(listing_type: :tool) }`
+     - `scope :active_jobs, -> { jobs.not_expired.published }`
+   - Add methods:
+     - `featured?` - check if currently featured
+     - `expired?` - check if past expiry
+     - `affiliate_url` - delegate to AffiliateUrlService
+     - `display_url` - returns affiliate URL or canonical URL
+
+2. **`app/controllers/admin/listings_controller.rb`**
+   - Add permitted params: `affiliate_url_template`, `affiliate_attribution`, `featured_from`, `featured_until`, `expires_at`, `company`, `location`, `salary_range`, `apply_url`, `paid`, `payment_reference`, `listing_type`
+   - Add actions: `feature`, `unfeature`, `extend_expiry`
+
+3. **`app/views/admin/listings/edit.html.erb`**
+   - Add form fields for monetisation settings (affiliate URL, featured dates, job fields)
+   - Conditional sections based on listing_type
+
+4. **`app/views/admin/listings/_form.html.erb`** (create if needed)
+   - Shared form partial with monetisation fields
+
+5. **`app/views/listings/index.html.erb`**
+   - Add "Featured" section at top
+   - Add featured/sponsored badge component
+   - Filter expired jobs from display
+
+6. **`app/views/listings/_listing.html.erb`** (or equivalent partial)
+   - Add "Featured" / "Sponsored" badge
+   - Use `display_url` instead of `url_canonical` for links
+   - Add "Apply" button for job listings
+
+7. **`config/routes.rb`**
+   - Add: `get '/go/:id', to: 'affiliate_redirects#show', as: :affiliate_redirect`
+   - Add admin routes: `post :feature`, `post :unfeature`, `post :extend_expiry` on listings
+
+8. **`spec/factories/listings.rb`**
+   - Add traits: `:featured`, `:expired`, `:with_affiliate`, `:job`, `:tool`
+
+9. **`spec/models/listing_spec.rb`**
+   - Add tests for:
+     - `featured?` method
+     - `expired?` method
+     - `featured` scope with date ranges
+     - `not_expired` scope
+     - `active_jobs` scope
+     - `affiliate_url` generation
+     - `display_url` returns correct URL
+
+10. **`config/locales/en.yml`**
+    - Add i18n keys for monetisation UI strings
+
+#### Test Plan
+
+- [ ] Model: Listing#featured? returns true when within featured date range
+- [ ] Model: Listing#featured? returns false when outside date range
+- [ ] Model: Listing#expired? returns true when past expires_at
+- [ ] Model: Listing#expired? returns false when expires_at is nil
+- [ ] Model: Listing.featured scope includes featured listings
+- [ ] Model: Listing.featured scope excludes non-featured listings
+- [ ] Model: Listing.not_expired scope excludes expired listings
+- [ ] Model: Listing.active_jobs chains correctly
+- [ ] Service: AffiliateUrlService generates URL from template
+- [ ] Service: AffiliateUrlService handles missing template gracefully
+- [ ] Controller: AffiliateRedirectsController tracks click and redirects
+- [ ] Controller: AffiliateRedirectsController handles missing listing
+- [ ] Controller: Admin can set featured dates
+- [ ] Controller: Admin can extend job expiry
+- [ ] View: Featured badge appears on featured listings
+- [ ] View: Expired jobs not shown in public listing
+- [ ] View: Apply button appears on job listings
+- [ ] Integration: Full affiliate click flow works end-to-end
+
+#### Docs to Update
+
+- [ ] Create `docs/monetisation.md` - Full documentation of revenue streams
+- [ ] Update `docs/DATA_MODEL.md` - Add new fields and AffiliateClick model
+
+#### Migration Order
+
+1. Add monetisation fields to listings (can deploy independently)
+2. Create affiliate_clicks table
+3. Add model code and scopes
+4. Add service layer
+5. Add controller actions and routes
+6. Update views with badges and featured sections
+7. Write tests
+8. Write documentation
+
+#### Notes
+
+- Payment integration is STUBBED - `paid` and `payment_reference` fields exist for future Stripe integration
+- No public job submission form in this task - admin creates jobs manually
+- AffiliateClick uses `ip_hash` (not raw IP) for privacy
+- Featured section uses time-based visibility, not manual ordering
+- Category already distinguishes content types; `listing_type` provides additional explicit typing
 
 ---
 
 ## Work Log
 
-(To be filled during implementation)
+### 2026-01-23 - Planning Phase Complete
+
+**Codebase Analysis Summary:**
+
+- **Listing model** (`app/models/listing.rb`): Primary model for content. Already has:
+  - TenantScoped and SiteScoped concerns (multi-tenant isolation)
+  - JSONB fields: `metadata`, `ai_summaries`, `ai_tags`
+  - Associations: tenant, site, category, source
+  - Scopes: published, recent, by_domain, with_content
+  - URL canonicalization via UrlCanonicaliser
+  - Cache management with `clear_listing_cache`
+
+- **Category model** (`app/models/category.rb`): Distinguishes content types via key/name. Has `allow_paths` for URL validation.
+
+- **Site model** (`app/models/site.rb`): Already has `monetisation_enabled?` helper method reading from `config` JSONB.
+
+- **Admin UI**: Admin::ListingsController exists with basic CRUD. Views are placeholder stubs.
+
+- **Test patterns**: RSpec + FactoryBot + Shoulda matchers. Traits like `:published`, `:unpublished`, `:news_article`, `:app_listing` exist.
+
+- **No existing monetisation code**: Zero affiliate, featured, or expiry functionality exists.
+
+**Key Architectural Decisions:**
+1. Extend Listing model (not create separate Tool/JobPost models)
+2. Add dedicated columns for monetisation fields (not abuse metadata JSONB)
+3. Create AffiliateClick model for click tracking
+4. Use AffiliateUrlService for URL generation
+5. Add `/go/:id` redirect endpoint for tracking
+
+**Gap Summary:**
+- 17 of 20 acceptance criteria items require new implementation
+- 2 items are partially satisfied (admin controller exists, site scoping exists)
+- 1 item is already satisfied (jobs scoped to site)
+
+### 2026-01-23 09:46 - Triage Complete
+
+- Dependencies: ✅ SATISFIED - `002-006-community-primitives` completed at 2026-01-23 09:45
+- Task clarity: CLEAR - All acceptance criteria are specific and testable
+- Ready to proceed: YES
+- Notes:
+  - Task has 3 clear revenue streams: affiliates, job board, featured placements
+  - Acceptance criteria well-defined with 23 checkboxes across 4 categories
+  - Plan is detailed with 9 implementation steps
+  - Dependencies on existing ContentItem/Tool models (need to verify structure)
+  - Multi-tenant scoping required (Site-level)
+
+### 2026-01-23 - Implementation Phase
+
+**Commits Made:**
+
+1. `78b0df3` - feat: Add monetisation database migrations
+   - `db/migrate/20260123110000_add_monetisation_fields_to_listings.rb`
+   - `db/migrate/20260123110001_create_affiliate_clicks.rb`
+
+2. `16e65d1` - feat: Add AffiliateClick model for tracking affiliate link clicks
+   - `app/models/affiliate_click.rb`
+
+3. `380a60d` - feat: Add monetisation features to Listing model
+   - Updated `app/models/listing.rb` with enum, scopes, and methods
+
+4. `14d0421` - feat: Add AffiliateUrlService for URL generation and click tracking
+   - `app/services/affiliate_url_service.rb`
+
+5. `36ab91b` - feat: Add AffiliateRedirectsController for tracking and redirecting
+   - `app/controllers/affiliate_redirects_controller.rb`
+
+6. `9d74b0a` - feat: Add routes for affiliate redirects and admin listing actions
+   - Updated `config/routes.rb`
+
+7. `c4218c4` - feat: Add monetisation actions and params to admin listings controller
+   - Updated `app/controllers/admin/listings_controller.rb`
+
+8. `abe1e37` - feat: Add i18n keys for monetisation features
+   - Updated `config/locales/en.yml`
+
+9. `bca575a` - feat: Add monetisation traits to factories
+   - Updated `spec/factories/listings.rb`
+   - Created `spec/factories/affiliate_clicks.rb`
+
+**Files Created:**
+- `db/migrate/20260123110000_add_monetisation_fields_to_listings.rb`
+- `db/migrate/20260123110001_create_affiliate_clicks.rb`
+- `app/models/affiliate_click.rb`
+- `app/services/affiliate_url_service.rb`
+- `app/controllers/affiliate_redirects_controller.rb`
+- `spec/factories/affiliate_clicks.rb`
+
+**Files Modified:**
+- `app/models/listing.rb`
+- `app/controllers/admin/listings_controller.rb`
+- `config/routes.rb`
+- `config/locales/en.yml`
+- `spec/factories/listings.rb`
 
 ---
 
 ## Testing Evidence
 
-(To be filled during implementation)
+(To be filled during test phase)
 
 ---
 
