@@ -47,12 +47,15 @@ class ContentItem < ApplicationRecord
   # Callbacks
   before_validation :normalize_url_canonical
   before_validation :ensure_tags_is_array
+  after_create :apply_tagging_rules
 
   # Scopes
   scope :recent, -> { order(created_at: :desc) }
   scope :by_source, ->(source) { where(source: source) }
   scope :published, -> { where.not(published_at: nil) }
   scope :unpublished, -> { where(published_at: nil) }
+  scope :by_content_type, ->(type) { where(content_type: type) }
+  scope :tagged_with, ->(taxonomy_slug) { where("topic_tags @> ?", [ taxonomy_slug ].to_json) }
 
   # Class methods
   # Find or initialize by canonical URL (for deduplication)
@@ -76,7 +79,25 @@ class ContentItem < ApplicationRecord
     published_at.present?
   end
 
+  def topic_tags
+    super || []
+  end
+
+  def tagging_explanation
+    super || []
+  end
+
   private
+
+  def apply_tagging_rules
+    result = TaggingService.tag(self)
+    update_columns(
+      topic_tags: result[:topic_tags],
+      content_type: result[:content_type],
+      tagging_confidence: result[:confidence],
+      tagging_explanation: result[:explanation]
+    )
+  end
 
   def normalize_url_canonical
     return unless url_canonical.present?
