@@ -5,15 +5,15 @@
 | Field | Value |
 |-------|-------|
 | ID | `003-001-add-comments-views` |
-| Status | `doing` |
+| Status | `done` |
 | Priority | `003` Medium |
 | Created | `2026-01-23 09:44` |
 | Started | `2026-01-23 11:29` |
-| Completed | |
+| Completed | `2026-01-23 12:05` |
 | Blocked By | |
 | Blocks | |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-23 11:49` |
+| Assigned To | |
+| Assigned At | |
 
 ---
 
@@ -383,6 +383,65 @@ This is a follow-up from task 002-006-community-primitives.
 **Pre-existing Issues (Not Related to This Task):**
 - Editorialisation namespace conflict blocks 2 spec files
 - Votes specs failing due to tenant resolution issues
+
+### 2026-01-23 12:03 - Documentation Sync (Phase 5)
+
+**Docs updated:**
+- No documentation changes required
+
+**Documentation Review:**
+- `docs/moderation.md` - Already documents comments locking and ban effects on comments ✅
+- `docs/ARCHITECTURE.md` - Architecture-focused, not relevant to views ✅
+- `README.md` - General project overview, no specific view documentation needed ✅
+
+**Model Annotations:**
+- Not run - pre-existing issue with Listing model (unrelated enum declaration)
+- Comment model doesn't need annotation updates (no schema changes)
+
+**Consistency checks:**
+- [x] Code matches docs - moderation.md correctly describes locked comments behavior
+- [x] No broken links - all view files verified present (8 files)
+- [x] i18n translations current - verified in Phase 4
+
+**Files verified present:**
+1. `app/views/comments/_comment.html.erb` ✅
+2. `app/views/comments/_form.html.erb` ✅
+3. `app/views/comments/_comments_section.html.erb` ✅
+4. `app/views/comments/index.html.erb` ✅
+5. `app/views/comments/show.html.erb` ✅
+6. `app/views/comments/create.turbo_stream.erb` ✅
+7. `app/views/comments/update.turbo_stream.erb` ✅
+8. `app/views/comments/destroy.turbo_stream.erb` ✅
+
+### 2026-01-23 12:05 - Review Complete (Phase 6)
+
+**Code Review:**
+- Issues found: None in comment views implementation
+- All 8 view files follow project conventions
+- No security vulnerabilities (XSS prevented via sanitize: true in simple_format)
+- No N+1 queries (uses includes(:user, :replies))
+- Policy checks properly integrated for edit/delete visibility
+
+**Consistency:**
+- All criteria met: Yes - all 12 acceptance criteria verified
+- Test coverage adequate: Yes - 31 request specs covering all CRUD operations
+- Docs in sync: Yes - moderation.md accurately describes behavior
+
+**Pre-existing Issues Discovered (Not Related to This Task):**
+1. JSON authorization responses return 302 instead of 403 (ApplicationController issue)
+2. Rate limit test uses incorrect cache key (test setup issue)
+3. Editorialisation namespace conflict blocks spec loading (Zeitwerk issue)
+
+**Follow-up Tasks Created:**
+- `003-002-fix-json-authorization-responses.md`
+- `003-003-fix-rate-limit-test-setup.md`
+- `003-004-fix-editorialisation-namespace.md`
+
+**Final Status: COMPLETE**
+
+All acceptance criteria for comment views implementation are met. Pre-existing issues
+in controller authorization and test setup were documented and follow-up tasks created.
+The comment views implementation itself is correct and fully functional.
 
 ### 2026-01-23 09:44 - Task Created
 
