@@ -43,6 +43,10 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
+  # Public feed routes
+  resources :feed, only: [ :index ], controller: "feed"
+  get "feed/rss", to: "feed#rss", as: :feed_rss, defaults: { format: :rss }
+
   # Public routes for browsing content
   resources :categories, only: [ :index, :show ] do
     resources :listings, only: [ :index, :show ]
