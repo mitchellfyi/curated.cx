@@ -13,7 +13,7 @@
 | Blocked By | |
 | Blocks | |
 | Assigned To | `worker-1` |
-| Assigned At | `2026-01-23 11:29` |
+| Assigned At | `2026-01-23 11:49` |
 
 ---
 
@@ -44,24 +44,48 @@ This is a follow-up from task 002-006-community-primitives.
 
 ## Plan
 
-### Implementation Plan (Generated 2026-01-23)
+### Implementation Plan (Generated 2026-01-23 11:50 - VERIFIED COMPLETE)
 
-#### Gap Analysis
+#### Gap Analysis (Verified 2026-01-23)
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| `index.html.erb` | None | Needs full implementation |
-| `show.html.erb` | None | Needs full implementation |
-| `_comment.html.erb` | None | Needs full implementation with threading |
-| `_form.html.erb` | None | Needs full implementation |
-| `create.turbo_stream.erb` | None | Needs full implementation |
-| `update.turbo_stream.erb` | None | Needs full implementation |
-| `destroy.turbo_stream.erb` | None | Needs full implementation |
-| Comments on content detail page | None | Content card exists but no comment expansion; need integration point |
-| Reply functionality | None | Model supports parent_id/replies - views need to support |
-| Edit/delete author-only | None | Policy exists (update=author, destroy=admin); views need conditionals |
-| Locked comments message | None | Controller checks `comments_locked?` - views need locked state display |
-| Quality gates pass | Pending | Run after implementation |
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| `index.html.erb` | ✅ COMPLETE | File exists with breadcrumb, content summary, comments list, locked message, form integration |
+| `show.html.erb` | ✅ COMPLETE | File exists with breadcrumb, single comment with replies view |
+| `_comment.html.erb` | ✅ COMPLETE | File exists with threading (depth param), user display, edited indicator, policy-based actions |
+| `_form.html.erb` | ✅ COMPLETE | File exists with parent_id hidden field, character counter, error display, cancel button |
+| `create.turbo_stream.erb` | ✅ COMPLETE | File exists handling both root comments and replies, updates comment count |
+| `update.turbo_stream.erb` | ✅ COMPLETE | File exists with depth calculation, replaces comment in place |
+| `destroy.turbo_stream.erb` | ✅ COMPLETE | File exists, removes comment and updates count |
+| Comments on content detail page | ✅ COMPLETE | `_comments_section.html.erb` created for embedding |
+| Reply functionality | ✅ COMPLETE | Recursive partial with depth limit (3), reply form toggle |
+| Edit/delete author-only | ✅ COMPLETE | `policy(comment).update?` for edit, `policy(comment).destroy?` for delete |
+| Locked comments message | ✅ COMPLETE | Amber warning banner with lock icon when `comments_locked?` |
+| Quality gates pass | ⏳ PENDING | Needs final verification run |
+
+#### Verification Summary
+
+**Files Created (8 total):**
+1. `app/views/comments/_comment.html.erb` - 95 lines, threaded comment partial
+2. `app/views/comments/_form.html.erb` - 61 lines, comment form with edit/reply modes
+3. `app/views/comments/_comments_section.html.erb` - 59 lines, embeddable section
+4. `app/views/comments/index.html.erb` - 85 lines, full page comments list
+5. `app/views/comments/show.html.erb` - 30 lines, single comment view
+6. `app/views/comments/create.turbo_stream.erb` - 32 lines, handles root + replies
+7. `app/views/comments/update.turbo_stream.erb` - 13 lines, in-place replace
+8. `app/views/comments/destroy.turbo_stream.erb` - 8 lines, remove + count update
+
+**i18n Keys (all present in config/locales/en.yml):**
+- `comments.comment_count` (zero/one/other)
+- `comments.form.*` (placeholder, submit, cancel, reply, edit, delete, confirm_delete, update, characters_remaining)
+- `comments.edited`, `comments.empty`, `comments.locked_message`
+- `comments.back_to_feed`, `comments.back_to_comments`
+- `comments.sign_in_to_comment`, `comments.reply_to`, `comments.on_content`
+
+**Test Coverage:**
+- `spec/requests/comments_spec.rb` - 322 lines, comprehensive coverage of all CRUD operations
+
+**Remaining:** Run `./bin/quality` to verify all gates pass
 
 #### Files to Create
 
@@ -196,6 +220,67 @@ This is a follow-up from task 002-006-community-primitives.
 ---
 
 ## Work Log
+
+### 2026-01-23 11:53 - Implementation Verification (Phase 3)
+
+**Quality Gates for Comments Views:**
+- ✅ ERB Lint: No errors in any of the 8 view files
+- ✅ RuboCop: No offenses detected
+- ✅ Brakeman: Passes with ignore file (4 false positives properly ignored)
+- ✅ i18n-tasks: No missing translations
+- ✅ Comments request specs: 31 examples, 0 failures
+
+**Note:** Full `./bin/quality` is blocked by unrelated staged files (editorialisation service namespace conflict from different task). The comments views implementation quality is verified independently.
+
+**Acceptance Criteria Verification:**
+1. ✅ `index.html.erb` - Full page with breadcrumb, content summary, locked message, form, empty state
+2. ✅ `show.html.erb` - Single comment view with replies and breadcrumb
+3. ✅ `_comment.html.erb` - Threading with depth limit (3), policy-based edit/delete
+4. ✅ `_form.html.erb` - parent_id hidden field, character counter, error display
+5. ✅ `create.turbo_stream.erb` - Handles root comments and replies
+6. ✅ `update.turbo_stream.erb` - In-place replacement with depth calculation
+7. ✅ `destroy.turbo_stream.erb` - Removes comment, updates count
+8. ✅ Comments on content detail page - `_comments_section.html.erb` created
+9. ✅ Reply functionality - Recursive partial rendering with depth limit
+10. ✅ Edit/delete author-only - Uses `policy(comment).update?` and `policy(comment).destroy?`
+11. ✅ Locked comments message - Amber warning banner with lock icon
+
+**All implementation work complete. Commits already made (3aecbfd, a8f4b47, c1fc59c). Ready for testing phase.**
+
+### 2026-01-23 11:50 - Planning Verification (Phase 2)
+
+**Gap Analysis Complete:**
+- All 8 view files exist and are fully implemented
+- All i18n translations present in en.yml (lines 343-373)
+- Request specs comprehensive (322 lines covering all CRUD + edge cases)
+- Work log shows implementation was completed at 11:38
+
+**Implementation Quality Review:**
+1. `_comment.html.erb`: Threaded display with recursive rendering, depth-limited to 3 levels, policy-based edit/delete buttons, turbo_frame wrapping
+2. `_form.html.erb`: Supports new, edit, reply modes; error display; character counter; parent_id hidden field
+3. `index.html.erb`: Breadcrumb, content summary, locked warning, form for authenticated users, empty state
+4. `show.html.erb`: Single comment deep-link view with breadcrumb back to comments
+5. Turbo streams: create handles root vs replies, update calculates depth, destroy removes and updates count
+6. `_comments_section.html.erb`: Embeddable partial for content detail pages
+
+**All acceptance criteria verified as complete. Ready for quality gate verification.**
+
+### 2026-01-23 11:49 - Triage Complete (Re-entry)
+
+- Dependencies: ✅ CLEAR - 002-006-community-primitives is in done/
+- Task clarity: Clear - acceptance criteria are specific and testable
+- Ready to proceed: Yes - task is nearly complete, needs final verification
+- Notes: Task was already in progress by worker-1. All 8 view files exist:
+  - `_comment.html.erb` ✅
+  - `_form.html.erb` ✅
+  - `_comments_section.html.erb` ✅
+  - `index.html.erb` ✅
+  - `show.html.erb` ✅
+  - `create.turbo_stream.erb` ✅
+  - `update.turbo_stream.erb` ✅
+  - `destroy.turbo_stream.erb` ✅
+- Previous work log shows ERB Lint, i18n-tasks, Brakeman, and RSpec all passed
+- Remaining: Final acceptance criteria verification and task completion
 
 ### 2026-01-23 11:38 - Implementation Complete
 
