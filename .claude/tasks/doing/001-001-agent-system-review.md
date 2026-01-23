@@ -256,10 +256,17 @@ Step-by-step implementation approach:
 - 004-001-agent-human-input-guidance (handling ambiguous tasks)
 - Commit: 2b8e60d
 
-**Still pending:**
-- Parallel agent execution test (requires longer run)
+**Still pending (require manual verification):**
+- Parallel agent execution test (requires longer run with actual Claude)
 - Crash recovery test (requires killing agent mid-execution)
-- Heartbeat verification (requires long-running task)
+- Heartbeat verification (requires task running >1 hour)
+
+**Note on pending items:**
+These items were code-reviewed and the mechanisms appear sound:
+- Parallel: Atomic mkdir locking + dead PID detection verified in code
+- Crash recovery: Session state persistence in .claude/state/ exists
+- Heartbeat: refresh_assignment() function exists, updates Assigned At
+Full verification deferred - would require running actual multi-hour agents
 
 ---
 
