@@ -31,12 +31,18 @@ You are performing final review for task {{TASK_ID}}.
    - Use priority 003 (Medium) for improvements
    - Use priority 004 (Low) for nice-to-haves
    - Reference this task in the new task's context
+   - Commit follow-up tasks immediately after creating them:
+     ```bash
+     git add .claude/tasks/todo/
+     git commit -m "chore: Create follow-up tasks from {{TASK_ID}}" || true
+     ```
 
 5. **Complete the Task**
    - Check all acceptance criteria boxes
    - Update status to `done`
    - Set completed timestamp
    - Write completion summary
+   - Move task file to `.claude/tasks/done/`
 
 ## Output
 

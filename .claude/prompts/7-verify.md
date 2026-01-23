@@ -36,6 +36,18 @@ You are verifying that task {{TASK_ID}} was managed correctly through all phases
    - Document what remains in Work Log
    - Create follow-up task if needed
 
+6. **Commit Task Files**
+   After finalizing task state, commit ALL task-related changes:
+   ```bash
+   # Regenerate taskboard
+   .claude/scripts/taskboard.sh
+
+   # Stage and commit task files
+   git add .claude/tasks/ TASKBOARD.md
+   git commit -m "chore: Complete task {{TASK_ID}} [{{TASK_ID}}]" || true
+   ```
+   This ensures task progress is tracked in git history.
+
 ## Output
 
 Update task Work Log:
@@ -51,6 +63,7 @@ Issues found:
 
 Actions taken:
 - [moved to done/ | kept in doing/ | created follow-up]
+- [committed task files to git]
 
 Task verified: [PASS/FAIL]
 ```
@@ -62,5 +75,6 @@ Task verified: [PASS/FAIL]
 - ONLY verify and update task file state
 - Be strict: incomplete tasks should NOT be in done/
 - If verification fails, do not mark task as complete
+- **ALWAYS commit task file changes at the end**
 
 Task file: {{TASK_FILE}}

@@ -11,8 +11,8 @@
 #   3. IMPLEMENT - Execute the plan, write code (30min)
 #   4. TEST      - Run tests, add coverage (10min)
 #   5. DOCS      - Sync documentation (5min)
-#   6. REVIEW    - Code review, create follow-ups (5min)
-#   7. VERIFY    - Verify task management done correctly (2min)
+#   6. REVIEW    - Code review, create follow-ups (10min)
+#   7. VERIFY    - Verify task management, commit task files (3min)
 #
 # FEATURES:
 #   - Modular phase-based execution (fresh context per phase)
@@ -53,7 +53,7 @@
 #
 # Phase timeout overrides (in seconds):
 #   TIMEOUT_TRIAGE (120), TIMEOUT_PLAN (300), TIMEOUT_IMPLEMENT (1800),
-#   TIMEOUT_TEST (600), TIMEOUT_DOCS (300), TIMEOUT_REVIEW (300), TIMEOUT_VERIFY (120)
+#   TIMEOUT_TEST (600), TIMEOUT_DOCS (300), TIMEOUT_REVIEW (600), TIMEOUT_VERIFY (180)
 #
 # WARNING: This script bypasses ALL safety checks. Only use in trusted repos.
 #
@@ -102,8 +102,8 @@ TIMEOUT_PLAN="${TIMEOUT_PLAN:-300}"
 TIMEOUT_IMPLEMENT="${TIMEOUT_IMPLEMENT:-1800}"
 TIMEOUT_TEST="${TIMEOUT_TEST:-600}"
 TIMEOUT_DOCS="${TIMEOUT_DOCS:-300}"
-TIMEOUT_REVIEW="${TIMEOUT_REVIEW:-300}"
-TIMEOUT_VERIFY="${TIMEOUT_VERIFY:-120}"
+TIMEOUT_REVIEW="${TIMEOUT_REVIEW:-600}"   # Increased from 300 - complex tasks need more time
+TIMEOUT_VERIFY="${TIMEOUT_VERIFY:-180}"   # Increased from 120 - includes committing
 
 # Phase definitions: name|prompt_file|timeout|skip_var
 PHASES=(
@@ -465,6 +465,32 @@ release_all_locks() {
     release_lock "$task_id"
   done
   HELD_LOCKS=()
+}
+
+# ============================================================================
+# Task File Git Operations
+# ============================================================================
+
+commit_task_files() {
+  local message="$1"
+  local task_id="${2:-}"
+
+  # Stage all task-related changes
+  git add "$TASKS_DIR" TASKBOARD.md 2>/dev/null || true
+
+  # Check if there's anything to commit
+  if git diff --cached --quiet 2>/dev/null; then
+    return 0  # Nothing to commit
+  fi
+
+  # Commit with appropriate message
+  if [ -n "$task_id" ]; then
+    git commit -m "$message [$task_id]" --no-verify 2>/dev/null || true
+  else
+    git commit -m "$message" --no-verify 2>/dev/null || true
+  fi
+
+  log_info "Committed task file changes: $message"
 }
 
 # ============================================================================
@@ -1160,6 +1186,9 @@ run_agent_iteration() {
 
       # Update task metadata
       assign_task "$task_file"
+
+      # Commit the task pickup
+      commit_task_files "chore: Start task $task_id" "$task_id"
     fi
   fi
 
@@ -1219,6 +1248,8 @@ run_agent_iteration() {
     if [ -f "$done_file" ]; then
       release_lock "$task_id"
       unassign_task "$done_file"
+      # Final commit to ensure task completion is recorded
+      commit_task_files "chore: Complete task $task_id" "$task_id"
     fi
 
     return 0
