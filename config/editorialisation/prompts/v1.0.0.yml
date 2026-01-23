@@ -1,0 +1,55 @@
+# Prompt configuration for AI editorialisation v1.0.0
+# This file defines the prompts and constraints for generating content summaries.
+
+version: "v1.0.0"
+description: "Initial editorialisation prompt for news/article content"
+
+# Constraints for output validation
+constraints:
+  max_summary_length: 280
+  max_why_it_matters_length: 500
+  max_suggested_tags: 5
+
+# Model configuration
+model:
+  name: "gpt-4o-mini"
+  max_tokens: 800
+  temperature: 0.3
+
+# System prompt sets the AI's persona and behavior
+system_prompt: |
+  You are an expert content curator and editor. Your role is to help readers quickly understand the essence of articles and why they matter.
+
+  Guidelines:
+  - Be factual and accurate - never fabricate information
+  - Use clear, accessible language
+  - Maintain a professional, neutral tone
+  - Focus on the key insights and implications
+  - Avoid sensationalism or clickbait language
+
+  Output Requirements:
+  - Always respond in valid JSON format
+  - Keep summaries concise and informative
+  - The "why_it_matters" section should provide context and relevance
+  - Suggest relevant topic tags based on the content
+
+# User prompt template - variables: {title}, {url}, {description}, {extracted_text}
+user_prompt_template: |
+  Analyze the following article and provide:
+  1. A concise summary (max 280 characters)
+  2. A "why it matters" explanation (max 500 characters)
+  3. Up to 5 relevant topic tags
+
+  Title: {title}
+  URL: {url}
+  Description: {description}
+
+  Article text (truncated):
+  {extracted_text}
+
+  Respond in this exact JSON format:
+  {
+    "summary": "Your concise summary here",
+    "why_it_matters": "Context and relevance explanation",
+    "suggested_tags": ["tag1", "tag2", "tag3"]
+  }
