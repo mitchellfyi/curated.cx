@@ -54,11 +54,12 @@ provider "digitalocean" {
 
 # Create droplet
 resource "digitalocean_droplet" "curated" {
-  image    = "ubuntu-22-04-x64"
-  name     = var.droplet_name
-  region   = var.droplet_region
-  size     = var.droplet_size
-  ssh_keys = [var.ssh_key_id]
+  image      = "ubuntu-22-04-x64"
+  name       = var.droplet_name
+  region     = var.droplet_region
+  size       = var.droplet_size
+  ssh_keys   = [var.ssh_key_id]
+  monitoring = true
 
   tags = ["curated", "production", "dokku"]
 

@@ -274,3 +274,9 @@ See `doc/SAFE_MIGRATIONS.md` for detailed examples and best practices.
 ## Architecture
 
 See `doc/adr/` for Architecture Decision Records documenting major technical decisions.
+
+
+### Use with Claude
+
+`claude  --allow-dangerously-skip-permissions   --chrome  --dangerously-skip-permissions --model opus --permission-mode dontAsk`
+

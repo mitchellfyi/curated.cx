@@ -36,9 +36,17 @@ command_exists() {
   run_remote "command -v $1 > /dev/null 2>&1"
 }
 
+echo -e "${YELLOW}Step 0: Clearing apt locks (if any)...${NC}"
+run_remote "pkill -9 apt-get 2>/dev/null || true"
+run_remote "pkill -9 dpkg 2>/dev/null || true"
+run_remote "rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/cache/apt/archives/lock 2>/dev/null || true"
+run_remote "dpkg --configure -a 2>/dev/null || true"
+echo -e "${GREEN}✓ Apt locks cleared${NC}"
+
+echo ""
 echo -e "${YELLOW}Step 1: Installing Dokku...${NC}"
 if ! command_exists dokku; then
-  run_remote "wget https://raw.githubusercontent.com/dokku/dokku/v0.33.3/bootstrap.sh"
+  run_remote "wget -q https://raw.githubusercontent.com/dokku/dokku/v0.33.3/bootstrap.sh -O bootstrap.sh"
   run_remote "sudo DOKKU_TAG=v0.33.3 bash bootstrap.sh"
   echo -e "${GREEN}✓ Dokku installed${NC}"
 else
@@ -94,7 +102,7 @@ run_remote "dokku config:set curated SECRET_KEY_BASE=\$(openssl rand -hex 64)"
 
 # Prompt for Rails master key
 echo ""
-echo -e "${YELLOW}Enter your RAILS_MASTER_KEY (from config/master.key or rails credentials:show):${NC}"
+echo -e "${YELLOW}Enter your RAILS_MASTER_KEY [from config/master.key or rails credentials:show]:${NC}"
 read -s RAILS_MASTER_KEY
 run_remote "dokku config:set curated RAILS_MASTER_KEY=\"$RAILS_MASTER_KEY\""
 

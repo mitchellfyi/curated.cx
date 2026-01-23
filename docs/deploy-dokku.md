@@ -1024,7 +1024,7 @@ If you prefer to set up secrets manually:
 **You need to add these secrets**:
 
 1. **Go to your GitHub repository**
-   - Navigate to: `https://github.com/your-username/curated.cx`
+   - Navigate to: `https://github.com/mitchellfyi/curated.cx`
    - Click **Settings** → **Secrets and variables** → **Actions**
 
 2. **Add `DOKKU_HOST` secret**:
