@@ -188,6 +188,32 @@ RSpec.describe Domain, type: :model do
         domain.update!(verified: true)
         expect(Rails.cache.read("site:hostname:#{domain.hostname}")).to be_nil
       end
+
+      it 'clears scoped site cache entries for the associated site' do
+        expect(Rails.cache).to receive(:delete_matched).with("site:#{domain.site_id}:*")
+        domain.update!(verified: true)
+      end
+    end
+
+    describe 'scoped cache invalidation' do
+      let(:tenant) { create(:tenant) }
+      let(:site1) { create(:site, tenant: tenant) }
+      let(:site2) { create(:site, tenant: tenant) }
+      let!(:domain1) { create(:domain, site: site1, hostname: 'site1.example.com') }
+      let!(:domain2) { create(:domain, site: site2, hostname: 'site2.example.com') }
+
+      it 'only clears cache for the associated site, not other sites' do
+        # Setup cache for both sites (simulating site-scoped data)
+        Rails.cache.write("site:#{site1.id}:data", "site1_data")
+        Rails.cache.write("site:#{site2.id}:data", "site2_data")
+
+        # Update domain1 - triggers clear_domain_cache which clears site1's cache
+        domain1.update!(verified: true)
+
+        # Verify site1 cache cleared, site2 cache intact
+        expect(Rails.cache.read("site:#{site1.id}:data")).to be_nil
+        expect(Rails.cache.read("site:#{site2.id}:data")).to eq("site2_data")
+      end
     end
   end
 

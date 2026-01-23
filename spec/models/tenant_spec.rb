@@ -270,13 +270,13 @@ RSpec.describe Tenant, type: :model do
 
       it 'clears cache on save' do
         expect(Rails.cache).to receive(:delete).with("tenant:hostname:#{tenant.hostname}")
-        expect(Rails.cache).to receive(:delete_matched).with('tenant:*')
+        expect(Rails.cache).to receive(:delete_matched).with("tenant:#{tenant.id}:*")
         tenant.update!(title: 'New Title')
       end
 
       it 'clears cache on destroy' do
         expect(Rails.cache).to receive(:delete).with("tenant:hostname:#{tenant.hostname}")
-        expect(Rails.cache).to receive(:delete_matched).with('tenant:*')
+        expect(Rails.cache).to receive(:delete_matched).with("tenant:#{tenant.id}:*")
         tenant.destroy!
       end
 
@@ -284,8 +284,39 @@ RSpec.describe Tenant, type: :model do
         root_tenant = create(:tenant, slug: 'root')
         expect(Rails.cache).to receive(:delete).with("tenant:hostname:#{root_tenant.hostname}")
         expect(Rails.cache).to receive(:delete).with('tenant:root')
-        expect(Rails.cache).to receive(:delete_matched).with('tenant:*')
+        expect(Rails.cache).to receive(:delete_matched).with("tenant:#{root_tenant.id}:*")
         root_tenant.update!(title: 'New Title')
+      end
+    end
+
+    describe 'scoped cache invalidation' do
+      let(:tenant1) { create(:tenant) }
+      let(:tenant2) { create(:tenant) }
+
+      it 'only clears cache for the updated tenant, not other tenants' do
+        # Setup cache for both tenants (simulating tenant-scoped data)
+        Rails.cache.write("tenant:#{tenant1.id}:data", "tenant1_data")
+        Rails.cache.write("tenant:#{tenant2.id}:data", "tenant2_data")
+
+        # Update tenant1 - triggers clear_tenant_cache
+        tenant1.update!(title: 'New Title')
+
+        # Verify tenant1 cache cleared, tenant2 cache intact
+        expect(Rails.cache.read("tenant:#{tenant1.id}:data")).to be_nil
+        expect(Rails.cache.read("tenant:#{tenant2.id}:data")).to eq("tenant2_data")
+      end
+
+      it 'clears all tenant caches when using class method' do
+        # Setup cache for both tenants
+        Rails.cache.write("tenant:#{tenant1.id}:data", "tenant1_data")
+        Rails.cache.write("tenant:#{tenant2.id}:data", "tenant2_data")
+
+        # Use the explicit full-platform clear
+        Tenant.clear_all_tenant_caches!
+
+        # Verify both tenant caches are cleared
+        expect(Rails.cache.read("tenant:#{tenant1.id}:data")).to be_nil
+        expect(Rails.cache.read("tenant:#{tenant2.id}:data")).to be_nil
       end
     end
   end
@@ -330,10 +361,10 @@ RSpec.describe Tenant, type: :model do
       end
     end
 
-    describe '.clear_cache!' do
-      it 'clears all tenant cache entries' do
+    describe '.clear_all_tenant_caches!' do
+      it 'clears all tenant cache entries across the platform' do
         expect(Rails.cache).to receive(:delete_matched).with('tenant:*')
-        Tenant.clear_cache!
+        Tenant.clear_all_tenant_caches!
       end
     end
   end
