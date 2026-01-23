@@ -1,21 +1,30 @@
 #!/usr/bin/env bash
 #
-# bin/agent - Run Claude agent for N tasks (FULLY AUTONOMOUS)
+# bin/agent - Run Claude agent for N tasks (FULLY AUTONOMOUS + SELF-HEALING)
 #
 # This script runs Claude in DANGEROUS MODE - all permissions bypassed,
 # no confirmations, no asks. The agent operates fully autonomously.
 #
+# SELF-HEALING FEATURES:
+#   - Automatic retry with exponential backoff on failures
+#   - Session persistence and resume on crash
+#   - Health checks before each run
+#   - Graceful degradation on repeated failures
+#   - State tracking for recovery
+#
 # Usage:
-#   ./bin/agent        # Run 5 tasks (default)
-#   ./bin/agent 3      # Run 3 tasks
-#   ./bin/agent 1      # Run 1 task
+#   ./bin/agent    # Run 5 tasks (default)
+#   ./bin/agent 3    # Run 3 tasks
+#   ./bin/agent 1    # Run 1 task
 #
 # Environment variables:
-#   CLAUDE_MODEL      - Model to use (default: opus)
-#   CLAUDE_TIMEOUT    - Timeout per task in seconds (default: 600)
-#   AGENT_DRY_RUN     - If set to 1, preview without executing
-#   AGENT_VERBOSE     - If set to 1, show more output
-#   AGENT_CONTINUE    - If set to 1, continue last session instead of new
+#   CLAUDE_MODEL     - Model to use (default: opus)
+#   CLAUDE_TIMEOUT   - Timeout per task in seconds (default: 600)
+#   AGENT_DRY_RUN    - If set to 1, preview without executing
+#   AGENT_VERBOSE    - If set to 1, show more output
+#   AGENT_MAX_RETRIES  - Max retries per task (default: 3)
+#   AGENT_RETRY_DELAY  - Base delay between retries in seconds (default: 5)
+#   AGENT_NO_RESUME  - If set to 1, don't resume previous session
 #
 # WARNING: This script bypasses ALL safety checks. Only use in trusted repos.
 #
@@ -30,6 +39,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TASKS_DIR="$REPO_ROOT/.claude/tasks"
 LOGS_DIR="$REPO_ROOT/.claude/logs/claude-loop"
 SCRIPTS_DIR="$REPO_ROOT/.claude/scripts"
+STATE_DIR="$REPO_ROOT/.claude/state"
+SESSION_FILE="$STATE_DIR/current-session"
+HEALTH_FILE="$STATE_DIR/health"
 
 # Defaults
 NUM_TASKS="${1:-5}"
@@ -37,7 +49,9 @@ CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
 CLAUDE_TIMEOUT="${CLAUDE_TIMEOUT:-600}"
 AGENT_DRY_RUN="${AGENT_DRY_RUN:-0}"
 AGENT_VERBOSE="${AGENT_VERBOSE:-0}"
-AGENT_CONTINUE="${AGENT_CONTINUE:-0}"
+AGENT_MAX_RETRIES="${AGENT_MAX_RETRIES:-3}"
+AGENT_RETRY_DELAY="${AGENT_RETRY_DELAY:-5}"
+AGENT_NO_RESUME="${AGENT_NO_RESUME:-0}"
 
 # Colors
 RED='\033[0;31m'
@@ -45,6 +59,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
 BOLD='\033[1m'
 NC='\033[0m'
 
@@ -56,30 +71,157 @@ RUN_TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
 RUN_LOG_DIR="$LOGS_DIR/$RUN_TIMESTAMP"
 
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+  echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 log_success() {
-    echo -e "${GREEN}[OK]${NC} $1"
+  echo -e "${GREEN}[OK]${NC} $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+  echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+  echo -e "${RED}[ERROR]${NC} $1"
 }
 
 log_step() {
-    echo -e "${CYAN}[STEP]${NC} $1"
+  echo -e "${CYAN}[STEP]${NC} $1"
+}
+
+log_heal() {
+  echo -e "${MAGENTA}[HEAL]${NC} $1"
 }
 
 log_header() {
-    echo ""
-    echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
-    echo -e "${BOLD} $1${NC}"
-    echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
+  echo ""
+  echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
+  echo -e "${BOLD} $1${NC}"
+  echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
+}
+
+# ============================================================================
+# State Management (Self-Healing)
+# ============================================================================
+
+init_state() {
+  mkdir -p "$STATE_DIR"
+  mkdir -p "$RUN_LOG_DIR"
+}
+
+save_session() {
+  local session_id="$1"
+  local iteration="$2"
+  local status="$3"
+
+  cat > "$SESSION_FILE" << EOF
+SESSION_ID=$session_id
+ITERATION=$iteration
+STATUS=$status
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+NUM_TASKS=$NUM_TASKS
+MODEL=$CLAUDE_MODEL
+LOG_DIR=$RUN_LOG_DIR
+EOF
+  log_info "Session state saved: $session_id (iteration $iteration)"
+}
+
+load_session() {
+  if [ -f "$SESSION_FILE" ] && [ "$AGENT_NO_RESUME" != "1" ]; then
+    # shellcheck source=/dev/null
+    source "$SESSION_FILE"
+    if [ -n "${SESSION_ID:-}" ] && [ "${STATUS:-}" = "running" ]; then
+      log_heal "Found interrupted session: $SESSION_ID"
+      log_heal "Last iteration: ${ITERATION:-1}, Status: $STATUS"
+      return 0
+    fi
+  fi
+  return 1
+}
+
+clear_session() {
+  rm -f "$SESSION_FILE"
+}
+
+update_health() {
+  local status="$1"
+  local message="$2"
+
+  cat > "$HEALTH_FILE" << EOF
+STATUS=$status
+MESSAGE=$message
+LAST_CHECK=$(date '+%Y-%m-%d %H:%M:%S')
+CONSECUTIVE_FAILURES=${CONSECUTIVE_FAILURES:-0}
+EOF
+}
+
+get_consecutive_failures() {
+  if [ -f "$HEALTH_FILE" ]; then
+    grep "^CONSECUTIVE_FAILURES=" "$HEALTH_FILE" 2>/dev/null | cut -d= -f2 || echo "0"
+  else
+    echo "0"
+  fi
+}
+
+# ============================================================================
+# Health Checks
+# ============================================================================
+
+health_check() {
+  log_step "Running health checks..."
+
+  local issues=0
+
+  # Check Claude CLI
+  if ! command -v claude &> /dev/null; then
+    log_error "Claude CLI not found"
+    ((issues++))
+  else
+    log_success "Claude CLI available"
+  fi
+
+  # Check CLAUDE.md exists
+  if [ ! -f "$REPO_ROOT/CLAUDE.md" ]; then
+    log_error "CLAUDE.md not found"
+    ((issues++))
+  else
+    log_success "CLAUDE.md exists"
+  fi
+
+  # Check task directories
+  for dir in todo doing done _templates; do
+    if [ ! -d "$TASKS_DIR/$dir" ]; then
+      log_warn "Creating missing directory: $TASKS_DIR/$dir"
+      mkdir -p "$TASKS_DIR/$dir"
+    fi
+  done
+  log_success "Task directories ready"
+
+  # Check disk space (warn if < 1GB)
+  local available_kb
+  available_kb=$(df -k "$REPO_ROOT" | awk 'NR==2 {print $4}')
+  if [ "$available_kb" -lt 1048576 ]; then
+    log_warn "Low disk space: $((available_kb / 1024))MB available"
+  else
+    log_success "Disk space OK: $((available_kb / 1024))MB available"
+  fi
+
+  # Check for stuck tasks in doing/
+  local doing_count
+  doing_count=$(find "$TASKS_DIR/doing" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$doing_count" -gt 1 ]; then
+    log_warn "Multiple tasks in doing/ ($doing_count) - this shouldn't happen"
+    log_heal "Consider running: mv .claude/tasks/doing/*.md .claude/tasks/todo/"
+  fi
+
+  if [ "$issues" -gt 0 ]; then
+    update_health "unhealthy" "$issues issues found"
+    return 1
+  fi
+
+  update_health "healthy" "All checks passed"
+  return 0
 }
 
 # ============================================================================
@@ -87,45 +229,21 @@ log_header() {
 # ============================================================================
 
 validate_environment() {
-    log_step "Validating environment..."
+  log_step "Validating environment..."
 
-    # Check we're in the right directory
-    if [ ! -f "$REPO_ROOT/CLAUDE.md" ]; then
-        log_error "CLAUDE.md not found. Are you in the right repository?"
-        exit 1
-    fi
+  # Validate NUM_TASKS is a number
+  if ! [[ "$NUM_TASKS" =~ ^[0-9]+$ ]]; then
+    log_error "Invalid number of tasks: $NUM_TASKS"
+    echo "Usage: $0 [number_of_tasks]"
+    exit 1
+  fi
 
-    # Check task directories exist
-    for dir in todo doing done _templates; do
-        if [ ! -d "$TASKS_DIR/$dir" ]; then
-            log_warn "Creating missing directory: $TASKS_DIR/$dir"
-            mkdir -p "$TASKS_DIR/$dir"
-        fi
-    done
+  if [ "$NUM_TASKS" -lt 1 ] || [ "$NUM_TASKS" -gt 50 ]; then
+    log_error "Number of tasks must be between 1 and 50"
+    exit 1
+  fi
 
-    # Check logs directory exists
-    mkdir -p "$RUN_LOG_DIR"
-
-    # Check Claude CLI is available
-    if ! command -v claude &> /dev/null; then
-        log_error "Claude CLI not found. Please install it first."
-        log_info "See: https://docs.anthropic.com/claude-code"
-        exit 1
-    fi
-
-    # Validate NUM_TASKS is a number
-    if ! [[ "$NUM_TASKS" =~ ^[0-9]+$ ]]; then
-        log_error "Invalid number of tasks: $NUM_TASKS"
-        echo "Usage: $0 [number_of_tasks]"
-        exit 1
-    fi
-
-    if [ "$NUM_TASKS" -lt 1 ] || [ "$NUM_TASKS" -gt 50 ]; then
-        log_error "Number of tasks must be between 1 and 50"
-        exit 1
-    fi
-
-    log_success "Environment validated"
+  log_success "Environment validated"
 }
 
 # ============================================================================
@@ -133,23 +251,75 @@ validate_environment() {
 # ============================================================================
 
 count_tasks() {
-    local state="$1"
-    find "$TASKS_DIR/$state" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' '
+  local state="$1"
+  find "$TASKS_DIR/$state" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' '
 }
 
 get_doing_task() {
-    find "$TASKS_DIR/doing" -maxdepth 1 -name "*.md" 2>/dev/null | head -1
+  find "$TASKS_DIR/doing" -maxdepth 1 -name "*.md" 2>/dev/null | head -1
 }
 
 get_next_todo_task() {
-    find "$TASKS_DIR/todo" -maxdepth 1 -name "*.md" 2>/dev/null | sort | head -1
+  find "$TASKS_DIR/todo" -maxdepth 1 -name "*.md" 2>/dev/null | sort | head -1
 }
 
 show_task_summary() {
-    log_info "Task Summary:"
-    echo "  - Todo:  $(count_tasks todo)"
-    echo "  - Doing: $(count_tasks doing)"
-    echo "  - Done:  $(count_tasks done)"
+  log_info "Task Summary:"
+  echo "  - Todo:  $(count_tasks todo)"
+  echo "  - Doing: $(count_tasks doing)"
+  echo "  - Done:  $(count_tasks done)"
+}
+
+# ============================================================================
+# Retry Logic with Exponential Backoff
+# ============================================================================
+
+calculate_backoff() {
+  local attempt="$1"
+  local base_delay="$AGENT_RETRY_DELAY"
+  local max_delay=60
+
+  # Exponential backoff: base * 2^(attempt-1), capped at max_delay
+  local delay=$((base_delay * (2 ** (attempt - 1))))
+  if [ "$delay" -gt "$max_delay" ]; then
+    delay=$max_delay
+  fi
+
+  echo "$delay"
+}
+
+run_with_retry() {
+  local iteration="$1"
+  local max_retries="$AGENT_MAX_RETRIES"
+  local attempt=1
+
+  while [ "$attempt" -le "$max_retries" ]; do
+    if [ "$attempt" -gt 1 ]; then
+      local backoff
+      backoff=$(calculate_backoff "$attempt")
+      log_heal "Retry attempt $attempt/$max_retries (waiting ${backoff}s)..."
+      sleep "$backoff"
+    fi
+
+    if run_agent_iteration "$iteration" "$attempt"; then
+      CONSECUTIVE_FAILURES=0
+      return 0
+    fi
+
+    ((attempt++))
+  done
+
+  log_error "All $max_retries retry attempts failed for iteration $iteration"
+  ((CONSECUTIVE_FAILURES++))
+
+  # Circuit breaker: if too many consecutive failures, pause longer
+  if [ "$CONSECUTIVE_FAILURES" -ge 3 ]; then
+    log_heal "Circuit breaker triggered: $CONSECUTIVE_FAILURES consecutive failures"
+    log_heal "Pausing for 30 seconds before continuing..."
+    sleep 30
+  fi
+
+  return 1
 }
 
 # ============================================================================
@@ -157,150 +327,223 @@ show_task_summary() {
 # ============================================================================
 
 run_agent_iteration() {
-    local iteration="$1"
-    local task_log="$RUN_LOG_DIR/task-$iteration.log"
+  local iteration="$1"
+  local attempt="${2:-1}"
+  local task_log="$RUN_LOG_DIR/task-$iteration-attempt-$attempt.log"
+  local session_id
 
-    log_header "Task $iteration of $NUM_TASKS"
+  # Generate or reuse session ID
+  if [ -f "$SESSION_FILE" ] && [ "$AGENT_NO_RESUME" != "1" ]; then
+    session_id=$(grep "^SESSION_ID=" "$SESSION_FILE" 2>/dev/null | cut -d= -f2 || true)
+  fi
+  if [ -z "${session_id:-}" ]; then
+    session_id="agent-$(date '+%Y%m%d%H%M%S')-$$"
+  fi
 
-    # Show current state
-    show_task_summary
+  log_header "Task $iteration of $NUM_TASKS (Attempt $attempt)"
 
-    # Check for task in doing
-    local doing_task
-    doing_task=$(get_doing_task)
+  # Save state before running
+  save_session "$session_id" "$iteration" "running"
 
-    if [ -n "$doing_task" ]; then
-        log_info "Resuming task: $(basename "$doing_task")"
+  # Show current state
+  show_task_summary
+
+  # Check for task in doing
+  local doing_task
+  doing_task=$(get_doing_task)
+
+  local use_continue=0
+  if [ -n "$doing_task" ]; then
+    log_info "Resuming task: $(basename "$doing_task")"
+    # If we have a task in doing and this is a retry, use --continue
+    if [ "$attempt" -gt 1 ]; then
+      use_continue=1
+      log_heal "Using --continue to resume previous session"
+    fi
+  else
+    local next_task
+    next_task=$(get_next_todo_task)
+    if [ -n "$next_task" ]; then
+      log_info "Next task from todo: $(basename "$next_task")"
     else
-        local next_task
-        next_task=$(get_next_todo_task)
-        if [ -n "$next_task" ]; then
-            log_info "Next task from todo: $(basename "$next_task")"
-        else
-            log_info "No tasks in queue - agent will create one from MISSION.md"
-        fi
+      log_info "No tasks in queue - agent will create one from MISSION.md"
     fi
+  fi
 
-    if [ "$AGENT_DRY_RUN" = "1" ]; then
-        log_warn "DRY RUN - would execute agent here"
-        return 0
-    fi
-
-    log_step "Running Claude agent (DANGEROUS MODE - all permissions bypassed)..."
-    echo "  Log: $task_log"
-    echo "  Model: $CLAUDE_MODEL"
-    echo ""
-
-    # Build the prompt
-    local prompt="continue working"
-
-    # Build Claude CLI arguments for FULLY AUTONOMOUS operation
-    # --dangerously-skip-permissions: Bypass ALL permission checks
-    # --permission-mode bypassPermissions: Additional bypass mode
-    # -p: Print mode (non-interactive, useful for pipes/scripts)
-    # --model: Specify the model to use
-    # --verbose: Show more output if requested
-    local claude_args=(
-        "--dangerously-skip-permissions"
-        "--permission-mode" "bypassPermissions"
-        "-p"
-        "--model" "$CLAUDE_MODEL"
-    )
-
-    # Add continue flag if requested
-    if [ "$AGENT_CONTINUE" = "1" ]; then
-        claude_args+=("--continue")
-    fi
-
-    # Add verbose if requested
-    if [ "$AGENT_VERBOSE" = "1" ]; then
-        claude_args+=("--verbose")
-    fi
-
-    # Execute Claude with timeout
-    # The agent should read CLAUDE.md and follow the operating loop
-    local exit_code=0
-
-    log_info "Executing: claude ${claude_args[*]} \"$prompt\""
-
-    # Use timeout if available (prefer gtimeout on macOS)
-    if command -v gtimeout &> /dev/null; then
-        gtimeout "${CLAUDE_TIMEOUT}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
-    elif command -v timeout &> /dev/null; then
-        timeout "${CLAUDE_TIMEOUT}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
-    else
-        # No timeout available, run directly
-        claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
-    fi
-
-    # Check exit code
-    if [ $exit_code -eq 124 ]; then
-        log_error "Task timed out after ${CLAUDE_TIMEOUT}s"
-        return 1
-    elif [ $exit_code -ne 0 ]; then
-        log_error "Agent exited with code $exit_code"
-        return 1
-    fi
-
-    log_success "Task iteration completed"
+  if [ "$AGENT_DRY_RUN" = "1" ]; then
+    log_warn "DRY RUN - would execute agent here"
+    save_session "$session_id" "$iteration" "dry-run"
     return 0
+  fi
+
+  log_step "Running Claude agent (DANGEROUS MODE - all permissions bypassed)..."
+  echo "  Log: $task_log"
+  echo "  Model: $CLAUDE_MODEL"
+  echo "  Session: $session_id"
+  echo ""
+
+  # Build the prompt
+  local prompt="continue working"
+
+  # Build Claude CLI arguments for FULLY AUTONOMOUS operation
+  local claude_args=(
+    "--dangerously-skip-permissions"
+    "--permission-mode" "bypassPermissions"
+    "-p"
+    "--model" "$CLAUDE_MODEL"
+  )
+
+  # Add continue flag if resuming after failure
+  if [ "$use_continue" = "1" ]; then
+    claude_args+=("--continue")
+  fi
+
+  # Add verbose if requested
+  if [ "$AGENT_VERBOSE" = "1" ]; then
+    claude_args+=("--verbose")
+  fi
+
+  # Execute Claude with timeout
+  local exit_code=0
+
+  log_info "Executing: claude ${claude_args[*]} \"$prompt\""
+
+  # Use timeout if available (prefer gtimeout on macOS)
+  if command -v gtimeout &> /dev/null; then
+    gtimeout "${CLAUDE_TIMEOUT}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+  elif command -v timeout &> /dev/null; then
+    timeout "${CLAUDE_TIMEOUT}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+  else
+    # No timeout available, run directly
+    claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+  fi
+
+  # Handle exit codes
+  case $exit_code in
+    0)
+      log_success "Task iteration completed successfully"
+      save_session "$session_id" "$iteration" "completed"
+      return 0
+      ;;
+    124)
+      log_error "Task timed out after ${CLAUDE_TIMEOUT}s"
+      log_heal "Will retry with --continue to resume"
+      save_session "$session_id" "$iteration" "timeout"
+      return 1
+      ;;
+    130|137)
+      log_warn "Task interrupted (signal $exit_code)"
+      save_session "$session_id" "$iteration" "interrupted"
+      return 1
+      ;;
+    *)
+      log_error "Agent exited with code $exit_code"
+
+      # Check if it's a recoverable error
+      if grep -q "rate limit\|overloaded\|502\|503\|504" "$task_log" 2>/dev/null; then
+        log_heal "Detected rate limit or server error - will retry"
+        save_session "$session_id" "$iteration" "rate-limited"
+      else
+        save_session "$session_id" "$iteration" "failed"
+      fi
+      return 1
+      ;;
+  esac
 }
+
+# ============================================================================
+# Cleanup
+# ============================================================================
+
+cleanup() {
+  log_info "Cleaning up..."
+
+  # Generate taskboard
+  if [ -x "$SCRIPTS_DIR/taskboard.sh" ]; then
+    "$SCRIPTS_DIR/taskboard.sh" 2>/dev/null || true
+  fi
+}
+
+trap cleanup EXIT
 
 # ============================================================================
 # Main
 # ============================================================================
 
 main() {
-    log_header "Claude Agent Runner"
-    echo ""
-    echo "  Tasks to run: $NUM_TASKS"
-    echo "  Model: $CLAUDE_MODEL"
-    echo "  Timeout: ${CLAUDE_TIMEOUT}s per task"
-    echo "  Log dir: $RUN_LOG_DIR"
-    echo ""
+  log_header "Claude Agent Runner (Self-Healing Mode)"
+  echo ""
+  echo "  Tasks to run: $NUM_TASKS"
+  echo "  Model: $CLAUDE_MODEL"
+  echo "  Timeout: ${CLAUDE_TIMEOUT}s per task"
+  echo "  Max retries: $AGENT_MAX_RETRIES"
+  echo "  Log dir: $RUN_LOG_DIR"
+  echo ""
 
-    # Validate environment
-    validate_environment
+  # Initialize state
+  init_state
 
-    # Track results
-    local completed=0
-    local failed=0
+  # Run health checks
+  if ! health_check; then
+    log_error "Health check failed - aborting"
+    exit 1
+  fi
 
-    # Run agent for N iterations
-    for ((i=1; i<=NUM_TASKS; i++)); do
-        if run_agent_iteration "$i"; then
-            ((completed++))
-        else
-            ((failed++))
-            log_warn "Continuing to next task despite failure..."
-        fi
+  # Check for interrupted session to resume
+  local start_iteration=1
+  if load_session; then
+    log_heal "Resuming from iteration ${ITERATION:-1}"
+    start_iteration="${ITERATION:-1}"
+    # Inherit the log directory from the interrupted session if available
+    if [ -n "${LOG_DIR:-}" ] && [ -d "$LOG_DIR" ]; then
+      RUN_LOG_DIR="$LOG_DIR"
+      log_info "Resuming logs in: $RUN_LOG_DIR"
+    fi
+  fi
 
-        # Small pause between iterations
-        if [ "$i" -lt "$NUM_TASKS" ]; then
-            sleep 2
-        fi
-    done
+  # Validate environment
+  validate_environment
 
-    # Generate taskboard
-    log_step "Regenerating taskboard..."
-    if [ -x "$SCRIPTS_DIR/taskboard.sh" ]; then
-        "$SCRIPTS_DIR/taskboard.sh"
+  # Track results
+  local completed=0
+  local failed=0
+  CONSECUTIVE_FAILURES=$(get_consecutive_failures)
+
+  # Run agent for N iterations with retry
+  for ((i=start_iteration; i<=NUM_TASKS; i++)); do
+    if run_with_retry "$i"; then
+      ((completed++))
     else
-        log_warn "taskboard.sh not executable, skipping"
+      ((failed++))
+      log_warn "Moving to next task after exhausting retries..."
     fi
 
-    # Final summary
-    log_header "Run Complete"
-    echo ""
-    echo "  Completed: $completed"
-    echo "  Failed: $failed"
-    echo "  Logs: $RUN_LOG_DIR"
-    echo ""
-    show_task_summary
-
-    if [ "$failed" -gt 0 ]; then
-        exit 1
+    # Small pause between iterations (unless it's the last one)
+    if [ "$i" -lt "$NUM_TASKS" ]; then
+      sleep 2
     fi
+  done
+
+  # Clear session on successful completion
+  if [ "$failed" -eq 0 ]; then
+    clear_session
+  fi
+
+  # Final summary
+  log_header "Run Complete"
+  echo ""
+  echo "  Completed: $completed"
+  echo "  Failed: $failed"
+  echo "  Logs: $RUN_LOG_DIR"
+  echo ""
+  show_task_summary
+
+  if [ "$failed" -gt 0 ]; then
+    log_warn "Some tasks failed - run './bin/agent' again to retry"
+    exit 1
+  fi
+
+  log_success "All tasks completed successfully!"
 }
 
 # ============================================================================

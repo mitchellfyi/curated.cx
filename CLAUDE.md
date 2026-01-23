@@ -422,7 +422,7 @@ Run `.claude/scripts/taskboard.sh` to regenerate `TASKBOARD.md`:
 
 ### bin/agent
 
-Main entry point for **FULLY AUTONOMOUS** operation. Runs Claude in dangerous mode with all permissions bypassed.
+Main entry point for **FULLY AUTONOMOUS + SELF-HEALING** operation. Runs Claude in dangerous mode with all permissions bypassed and automatic recovery from failures.
 
 ```bash
 # Run 5 tasks (default)
@@ -443,7 +443,38 @@ Main entry point for **FULLY AUTONOMOUS** operation. Runs Claude in dangerous mo
 | `CLAUDE_TIMEOUT` | `600` | Timeout per task in seconds |
 | `AGENT_DRY_RUN` | `0` | Set to 1 to preview without executing |
 | `AGENT_VERBOSE` | `0` | Set to 1 for more output |
-| `AGENT_CONTINUE` | `0` | Set to 1 to continue last session |
+| `AGENT_MAX_RETRIES` | `3` | Max retry attempts per task |
+| `AGENT_RETRY_DELAY` | `5` | Base delay between retries (exponential backoff) |
+| `AGENT_NO_RESUME` | `0` | Set to 1 to skip resuming interrupted sessions |
+
+**Self-Healing Features:**
+
+| Feature | Description |
+|---------|-------------|
+| **Auto-Retry** | Retries failed tasks up to 3 times with exponential backoff |
+| **Session Persistence** | Saves state to `.claude/state/` for crash recovery |
+| **Auto-Resume** | Detects interrupted sessions and resumes from last iteration |
+| **Health Checks** | Validates environment before each run (CLI, dirs, disk space) |
+| **Circuit Breaker** | Pauses 30s after 3 consecutive failures to avoid hammering |
+| **Error Detection** | Recognizes rate limits, timeouts, server errors for smart retry |
+| **Graceful Cleanup** | Regenerates taskboard on exit (normal or interrupted) |
+
+**How Self-Healing Works:**
+
+```
+1. Health check runs before starting
+2. On failure:
+   a. Save session state (iteration, status, logs)
+   b. Wait with exponential backoff (5s, 10s, 20s...)
+   c. Retry with --continue flag to resume
+   d. After 3 failures: circuit breaker pauses 30s
+3. On crash/kill:
+   a. Next run detects interrupted session
+   b. Resumes from last iteration automatically
+4. On completion:
+   a. Clears session state
+   b. Regenerates taskboard
+```
 
 **CLI Flags Used (Dangerous Mode):**
 
@@ -453,6 +484,7 @@ claude \
   --permission-mode bypassPermissions \  # Additional bypass mode
   -p \                                # Non-interactive print mode
   --model opus \                      # Specify model
+  --continue \                        # Resume previous session (on retry)
   "continue working"                  # The prompt
 ```
 

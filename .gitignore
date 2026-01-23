@@ -48,7 +48,8 @@
 # Quality check results
 *-results.json
 
-# Claude agent logs
+# Claude agent logs and state
 /.claude/logs/*
 !/.claude/logs/.gitkeep
 !/.claude/logs/claude-loop/.gitkeep
+/.claude/state/
