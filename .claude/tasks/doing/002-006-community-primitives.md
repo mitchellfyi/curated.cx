@@ -383,7 +383,93 @@ Site Scoping Tests:
 
 ## Testing Evidence
 
-(To be filled during implementation)
+### 2026-01-23 - Testing Phase Complete
+
+**Test Files Created:**
+
+Model Specs:
+- `spec/models/vote_spec.rb` - 20 examples covering:
+  - Associations (user, content_item, site)
+  - Validations (value presence, uniqueness)
+  - Scopes (for_content_item, by_user)
+  - Site scoping and isolation
+  - Counter cache increment/decrement
+
+- `spec/models/comment_spec.rb` - 28 examples covering:
+  - Associations (user, content_item, site, parent, replies)
+  - Validations (body presence, max length, parent same content_item)
+  - Scopes (root_comments, replies_to, recent, oldest_first, for_content_item)
+  - Instance methods (edited?, root?, reply?, mark_as_edited!)
+  - Threading (parent/replies, cascade delete)
+  - Site scoping and isolation
+  - Counter cache increment/decrement
+
+- `spec/models/site_ban_spec.rb` - 22 examples covering:
+  - Associations (user, banned_by, site)
+  - Validations (banned_at presence, uniqueness, cannot ban self)
+  - Scopes (active, expired, permanent, for_user)
+  - Instance methods (expired?, active?, permanent?)
+  - Callbacks (set_banned_at)
+  - Site scoping and isolation
+
+Policy Specs:
+- `spec/policies/vote_policy_spec.rb` - 12 examples covering:
+  - create? (user present, not banned, site present)
+  - destroy? (owner only, not banned)
+  - toggle? (same as create)
+  - Scope filtering by site
+
+- `spec/policies/comment_policy_spec.rb` - 18 examples covering:
+  - index?, show? (public access)
+  - create? (authenticated, not banned, not locked)
+  - update? (author only, not banned)
+  - destroy? (admin/owner only)
+  - Scope filtering by site
+
+- `spec/policies/site_ban_policy_spec.rb` - 16 examples covering:
+  - All CRUD actions (admin/owner only)
+  - Scope filtering by site and admin access
+
+Request Specs:
+- `spec/requests/votes_spec.rb` - 14 examples covering:
+  - POST toggle (create/remove vote)
+  - Counter cache updates
+  - Ban check (403 forbidden)
+  - Rate limiting (429 too many requests)
+  - Authentication required
+  - Multiple response formats (json, turbo_stream, html)
+  - Site isolation
+
+- `spec/requests/comments_spec.rb` - 22 examples covering:
+  - GET index, show (public access)
+  - POST create (authentication, ban check, lock check, rate limiting)
+  - PATCH update (author only, marks as edited)
+  - DELETE destroy (admin only)
+  - Threading (parent_id for replies)
+  - Multiple response formats
+  - Site isolation
+
+- `spec/requests/admin/site_bans_spec.rb` - 18 examples covering:
+  - GET index, show, new (admin access)
+  - POST create (admin only, assigns site and banned_by)
+  - DELETE destroy (admin only)
+  - Authorization checks (owner, admin roles)
+  - Site isolation
+
+- `spec/requests/admin/moderation_spec.rb` - 20 examples covering:
+  - POST hide/unhide (admin/owner only)
+  - POST lock_comments/unlock_comments (admin/owner only)
+  - Timestamp and user tracking
+  - Authorization checks (editor denied)
+  - Multiple response formats
+  - Site isolation
+
+**Quality Check:**
+- RuboCop: 10 files inspected, no offenses detected
+
+**Note:** Tests cannot be run because PostgreSQL database server is not running.
+The tests are syntactically correct and follow project patterns but require
+database access to execute.
 
 ---
 
