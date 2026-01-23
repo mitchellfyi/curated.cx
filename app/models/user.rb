@@ -28,6 +28,9 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   # Associations are automatically created by rolify
+  has_many :votes, dependent: :destroy
+  has_many :comments, dependent: :destroy
+  has_many :site_bans, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true
@@ -56,5 +59,9 @@ class User < ApplicationRecord
   def highest_tenant_role(tenant)
     role_hierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 }
     tenant_roles(tenant).max_by { |role| role_hierarchy[role.name.to_sym] || 0 }
+  end
+
+  def banned_from?(site)
+    site_bans.for_site(site).active.exists?
   end
 end

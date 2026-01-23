@@ -37,6 +37,10 @@ class ContentItem < ApplicationRecord
 
   # Associations
   belongs_to :source
+  has_many :votes, dependent: :destroy
+  has_many :comments, dependent: :destroy
+  belongs_to :hidden_by, class_name: "User", optional: true
+  belongs_to :comments_locked_by, class_name: "User", optional: true
 
   # Validations
   validates :url_canonical, presence: true, uniqueness: { scope: :site_id }
@@ -59,7 +63,8 @@ class ContentItem < ApplicationRecord
   scope :tagged_with, ->(taxonomy_slug) { where("topic_tags @> ?", [ taxonomy_slug ].to_json) }
 
   # Feed scopes
-  scope :for_feed, -> { published.order(published_at: :desc) }
+  scope :not_hidden, -> { where(hidden_at: nil) }
+  scope :for_feed, -> { published.not_hidden.order(published_at: :desc) }
   scope :published_since, ->(time) { published.where("published_at >= ?", time) }
   scope :top_this_week, -> { published_since(1.week.ago).order(Arel.sql("(upvotes_count + comments_count) DESC, published_at DESC")) }
   scope :by_engagement, -> { order(Arel.sql("(upvotes_count + comments_count) DESC")) }
@@ -105,6 +110,31 @@ class ContentItem < ApplicationRecord
   # Check if this item has been editorialised
   def editorialised?
     editorialised_at.present?
+  end
+
+  # Moderation methods
+  def hidden?
+    hidden_at.present?
+  end
+
+  def comments_locked?
+    comments_locked_at.present?
+  end
+
+  def hide!(user)
+    update!(hidden_at: Time.current, hidden_by: user)
+  end
+
+  def unhide!
+    update!(hidden_at: nil, hidden_by: nil)
+  end
+
+  def lock_comments!(user)
+    update!(comments_locked_at: Time.current, comments_locked_by: user)
+  end
+
+  def unlock_comments!
+    update!(comments_locked_at: nil, comments_locked_by: nil)
   end
 
   private
