@@ -527,7 +527,9 @@ run_phase_once() {
   local task_id="$4"
   local task_file="$5"
   local attempt="$6"
-  local phase_log="$RUN_LOG_DIR/phase-${phase_name,,}-$task_id-attempt${attempt}.log"
+  local phase_name_lower
+  phase_name_lower=$(echo "$phase_name" | tr '[:upper:]' '[:lower:]')
+  local phase_log="$RUN_LOG_DIR/phase-${phase_name_lower}-$task_id-attempt${attempt}.log"
 
   log_phase "Starting $phase_name phase (attempt $attempt)"
   echo "  Timeout: ${timeout}s"
