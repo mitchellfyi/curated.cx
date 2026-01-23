@@ -12,19 +12,15 @@ class Current < ActiveSupport::CurrentAttributes
   end
 
   # Backward-compatible setter to allow setting Current.tenant in legacy code/tests
+  # NOTE: Does NOT auto-create sites. Tenant must have a site already.
   def self.tenant=(value)
     case value
     when Site
       self.site = value
     when Tenant
-      site_for_tenant = value.sites.first || Site.create!(
-        tenant: value,
-        slug: value.slug,
-        name: value.title,
-        description: value.description,
-        config: value.settings,
-        status: value.status
-      )
+      site_for_tenant = value.sites.first
+      raise ArgumentError, "Tenant '#{value.slug}' has no sites. Create a site first." unless site_for_tenant
+
       self.site = site_for_tenant
     when nil
       self.site = nil
