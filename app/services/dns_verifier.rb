@@ -38,7 +38,7 @@ class DnsVerifier
     end
   rescue Resolv::ResolvError => e
     { verified: false, error: "DNS resolution error: #{e.message}" }
-  rescue => e
+  rescue StandardError => e
     { verified: false, error: "Verification error: #{e.message}" }
   end
 

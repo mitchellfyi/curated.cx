@@ -86,7 +86,7 @@ class ContentItem < ApplicationRecord
     self.url_canonical = normalized
   rescue UrlCanonicaliser::InvalidUrlError => e
     errors.add(:url_canonical, e.message)
-  rescue => e
+  rescue StandardError => e
     # If canonicalization fails, log but don't fail validation (raw URL is stored)
     Rails.logger.warn("URL canonicalization failed for #{url_canonical}: #{e.message}")
   end

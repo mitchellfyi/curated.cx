@@ -8,7 +8,11 @@ class HeartbeatJob < ApplicationJob
   queue_as :default
 
   def perform
-    hostname = Socket.gethostname rescue "unknown"
+    hostname = begin
+      Socket.gethostname
+    rescue SocketError, SystemCallError
+      "unknown"
+    end
     log_entry = {
       timestamp: Time.current.iso8601,
       environment: Rails.env,
