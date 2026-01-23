@@ -315,6 +315,34 @@ en:
     form_errors:
       one: "%{count} error prevented this from being saved"
       other: "%{count} errors prevented this from being saved"
+  feed:
+    content:
+      untitled: Untitled
+      why_it_matters: "Why it matters: "
+    empty:
+      description: Check back later for new content, or try adjusting your filters.
+      title: No content found
+    filters:
+      all_tags: All topics
+      all_types: All types
+      clear: Clear filters
+      content_type: Type
+      sort_by: Sort by
+      tag: Topic
+    index:
+      description: Latest curated content from %{site}
+      heading: Content Feed
+      title: Feed - %{site}
+    pagination:
+      next: Next
+      page: Page %{page}
+      previous: Previous
+    rss:
+      subscribe: RSS Feed
+    sort:
+      latest: Latest
+      ranked: Ranked
+      top_week: Top this week
   listings:
     index:
       across_categories: across all categories
