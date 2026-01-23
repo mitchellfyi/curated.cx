@@ -57,11 +57,14 @@ STEP 3: CREATE NEW TASK
 STEP 4: EXECUTE TASK
   For the task in doing/:
 
-  a) PLAN
-    - Read all relevant files
-    - Write implementation plan in task's Plan section
+  a) PLAN (Gap Analysis First!)
+    - Read all relevant files INCLUDING existing implementations
+    - Check each acceptance criterion against what exists
+    - Identify GAPS: what's missing, incomplete, or needs improvement
+    - Write implementation plan focusing on gaps
     - Identify files to create/modify
     - Identify tests needed
+    - If something "exists" but is incomplete, plan the completion work
 
   b) IMPLEMENT
     - Make changes in small, reviewable chunks
@@ -76,10 +79,13 @@ STEP 4: EXECUTE TASK
   d) REVIEW
     - Self-review the changes
     - Check for edge cases, security issues
-    - Verify acceptance criteria are met
+    - Verify ALL acceptance criteria are met (not just "something exists")
+    - If code partially exists, identify GAPS and IMPROVEMENTS needed
 
-  e) COMPLETE
+  e) COMPLETE (Only when ALL criteria met!)
     - Run final quality gates
+    - Verify EVERY acceptance criterion checkbox can be checked
+    - Do NOT mark done just because "code exists" - verify it meets spec
     - Update task status to "done"
     - Update completed timestamp
     - Add completion summary to Work Log
@@ -583,6 +589,8 @@ README.md          <- Project overview
 6. **Be autonomous** - Make decisions, don't wait for input
 7. **Be reversible** - Prefer changes that can be undone
 8. **Be transparent** - Document decisions and trade-offs
+9. **Be thorough** - "Exists" ≠ "Done". Check every criterion, find gaps, improve
+10. **Add value** - Always leave code better than you found it
 
 ---
 
