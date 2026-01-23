@@ -33,7 +33,8 @@
 #
 # Environment variables:
 #   CLAUDE_MODEL       - Model to use (default: opus, falls back to sonnet)
-#   AGENT_QUIET        - If set to 1, disable streaming (streaming ON by default)
+#   AGENT_QUIET        - If set to 1, disable streaming entirely
+#   AGENT_PROGRESS     - One-line progress updates (default: 1, set to 0 for verbose)
 #   AGENT_DRY_RUN      - If set to 1, preview without executing
 #   AGENT_VERBOSE      - If set to 1, show more output
 #   AGENT_MAX_RETRIES  - Max retries per phase (default: 2)
@@ -41,6 +42,11 @@
 #   AGENT_LOCK_TIMEOUT - Stale lock timeout in seconds (default: 10800 = 3h)
 #   AGENT_HEARTBEAT    - Heartbeat interval in seconds (default: 3600 = 1h)
 #   AGENT_NO_FALLBACK  - If set to 1, don't fall back to sonnet
+#
+# Output modes (mutually exclusive):
+#   default           - Concise one-line progress updates
+#   AGENT_PROGRESS=0  - Full verbose JSON streaming (very verbose)
+#   AGENT_QUIET=1     - No streaming output at all
 #
 # Phase skip flags (set to 1 to skip):
 #   SKIP_TRIAGE, SKIP_PLAN, SKIP_IMPLEMENT, SKIP_TEST, SKIP_DOCS, SKIP_REVIEW, SKIP_VERIFY
@@ -70,6 +76,7 @@ CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
 AGENT_DRY_RUN="${AGENT_DRY_RUN:-0}"
 AGENT_VERBOSE="${AGENT_VERBOSE:-0}"
 AGENT_QUIET="${AGENT_QUIET:-0}"
+AGENT_PROGRESS="${AGENT_PROGRESS:-1}"
 AGENT_MAX_RETRIES="${AGENT_MAX_RETRIES:-2}"
 AGENT_RETRY_DELAY="${AGENT_RETRY_DELAY:-5}"
 AGENT_NO_RESUME="${AGENT_NO_RESUME:-0}"
@@ -113,20 +120,44 @@ PHASES=(
 CURRENT_MODEL="$CLAUDE_MODEL"
 MODEL_FALLBACK_TRIGGERED=0
 
-# Generate unique agent ID with nicer default
+# Generate unique agent ID with nicer default (atomic to prevent race conditions)
 if [ -z "${AGENT_NAME:-}" ]; then
-  # Auto-generate worker name based on existing agents
+  # Ensure locks directory exists
+  mkdir -p "$LOCKS_DIR" 2>/dev/null || true
+
+  # Auto-generate worker name using atomic mkdir to prevent race conditions
+  # When two agents start simultaneously, mkdir will fail for one of them
   WORKER_NUM=1
-  while [ -f "$LOCKS_DIR/.worker-${WORKER_NUM}.active" ] 2>/dev/null; do
+  while true; do
+    WORKER_LOCK_DIR="$LOCKS_DIR/.worker-${WORKER_NUM}.active"
+    # Use mkdir for atomic lock acquisition (fails if already exists)
+    if mkdir "$WORKER_LOCK_DIR" 2>/dev/null; then
+      # Successfully claimed this worker number
+      echo "$$" > "$WORKER_LOCK_DIR/pid"
+      break
+    fi
+    # Check if the existing lock is from a dead process
+    if [ -f "$WORKER_LOCK_DIR/pid" ]; then
+      OLD_PID=$(cat "$WORKER_LOCK_DIR/pid" 2>/dev/null || echo "0")
+      if [ "$OLD_PID" != "0" ] && ! kill -0 "$OLD_PID" 2>/dev/null; then
+        # Process is dead, reclaim this number
+        rm -rf "$WORKER_LOCK_DIR" 2>/dev/null || true
+        if mkdir "$WORKER_LOCK_DIR" 2>/dev/null; then
+          echo "$$" > "$WORKER_LOCK_DIR/pid"
+          break
+        fi
+      fi
+    fi
     ((WORKER_NUM++))
+    # Safety limit to prevent infinite loop
+    if [ "$WORKER_NUM" -gt 100 ]; then
+      echo "ERROR: Could not find available worker number (max 100)" >&2
+      exit 1
+    fi
   done
   AGENT_NAME="worker-${WORKER_NUM}"
 fi
 AGENT_ID="${AGENT_NAME}"
-
-# Mark this worker as active (for auto-numbering)
-mkdir -p "$LOCKS_DIR" 2>/dev/null || true
-touch "$LOCKS_DIR/.${AGENT_ID}.active" 2>/dev/null || true
 
 # Track locks held by this agent
 HELD_LOCKS=()
@@ -190,6 +221,100 @@ log_header() {
   echo -e "${BOLD} $1${NC}"
   echo -e "${BOLD} Agent: $AGENT_ID${NC}"
   echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
+}
+
+# ============================================================================
+# Progress Filter (for AGENT_PROGRESS mode)
+# ============================================================================
+
+# Filter stream-json output to show one-line progress updates
+progress_filter() {
+  local phase_name="$1"
+  local last_tool=""
+  local last_status=""
+  local line_count=0
+  local start_time
+  start_time=$(date +%s)
+
+  # Clear line and move cursor
+  clear_line() {
+    printf '\r\033[K'
+  }
+
+  # Show a single-line status update
+  show_status() {
+    local elapsed=$(( $(date +%s) - start_time ))
+    local mins=$(( elapsed / 60 ))
+    local secs=$(( elapsed % 60 ))
+    clear_line
+    printf "${CYAN}[%s]${NC} ${BOLD}%s${NC} %02d:%02d │ %s" "$AGENT_ID" "$phase_name" "$mins" "$secs" "$1"
+  }
+
+  while IFS= read -r line; do
+    ((line_count++))
+
+    # Try to parse JSON and extract meaningful info
+    if command -v jq &>/dev/null; then
+      local msg_type tool_name content result_preview
+      msg_type=$(echo "$line" | jq -r '.type // empty' 2>/dev/null)
+
+      case "$msg_type" in
+        "assistant")
+          # Assistant is thinking/responding
+          content=$(echo "$line" | jq -r '.message.content[0].text // empty' 2>/dev/null | head -c 60)
+          if [ -n "$content" ]; then
+            show_status "💭 ${content}..."
+          fi
+          ;;
+        "content_block_start")
+          local block_type
+          block_type=$(echo "$line" | jq -r '.content_block.type // empty' 2>/dev/null)
+          if [ "$block_type" = "tool_use" ]; then
+            tool_name=$(echo "$line" | jq -r '.content_block.name // empty' 2>/dev/null)
+            if [ -n "$tool_name" ] && [ "$tool_name" != "$last_tool" ]; then
+              last_tool="$tool_name"
+              show_status "🔧 $tool_name"
+            fi
+          fi
+          ;;
+        "result")
+          local subtype cost_usd
+          subtype=$(echo "$line" | jq -r '.subtype // empty' 2>/dev/null)
+          cost_usd=$(echo "$line" | jq -r '.cost_usd // empty' 2>/dev/null)
+          if [ "$subtype" = "success" ]; then
+            show_status "✓ Done"
+            echo ""  # Newline after completion
+          elif [ -n "$cost_usd" ]; then
+            show_status "💰 \$$cost_usd"
+          fi
+          ;;
+        *)
+          # For other types, just show activity indicator
+          if [ $((line_count % 10)) -eq 0 ]; then
+            show_status "⋯ working"
+          fi
+          ;;
+      esac
+    else
+      # No jq available - simpler parsing
+      if echo "$line" | grep -q '"tool_use"'; then
+        local tool
+        tool=$(echo "$line" | grep -oE '"name":"[^"]+"' | head -1 | cut -d'"' -f4)
+        if [ -n "$tool" ] && [ "$tool" != "$last_tool" ]; then
+          last_tool="$tool"
+          show_status "🔧 $tool"
+        fi
+      elif echo "$line" | grep -q '"result"'; then
+        show_status "✓ Done"
+        echo ""
+      elif [ $((line_count % 10)) -eq 0 ]; then
+        show_status "⋯ working"
+      fi
+    fi
+  done
+
+  # Ensure we end with a newline
+  echo ""
 }
 
 # ============================================================================
@@ -546,12 +671,18 @@ run_phase_once() {
     "--model" "$CURRENT_MODEL"
   )
 
-  # Output mode: streaming (default) or quiet
-  if [ "$AGENT_QUIET" != "1" ]; then
+  # Output mode: streaming (default), progress (filtered), or quiet
+  local output_mode="stream"
+  if [ "$AGENT_QUIET" = "1" ]; then
+    output_mode="quiet"
+    claude_args+=("-p")
+  elif [ "$AGENT_PROGRESS" = "1" ]; then
+    output_mode="progress"
     # stream-json requires --verbose
     claude_args+=("--output-format" "stream-json" "--verbose")
   else
-    claude_args+=("-p")
+    # stream-json requires --verbose
+    claude_args+=("--output-format" "stream-json" "--verbose")
   fi
 
   local exit_code=0
@@ -562,13 +693,25 @@ run_phase_once() {
   echo -e "${CYAN}└─────────────────────────────────────────────────────────────┘${NC}"
   echo ""
 
-  # Execute with timeout
-  if command -v gtimeout &> /dev/null; then
-    gtimeout "${timeout}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
-  elif command -v timeout &> /dev/null; then
-    timeout "${timeout}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
+  # Execute with timeout - different output handling based on mode
+  if [ "$output_mode" = "progress" ]; then
+    # Progress mode: filter output to show one-line updates
+    if command -v gtimeout &> /dev/null; then
+      gtimeout "${timeout}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" | progress_filter "$phase_name" || exit_code=$?
+    elif command -v timeout &> /dev/null; then
+      timeout "${timeout}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" | progress_filter "$phase_name" || exit_code=$?
+    else
+      claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" | progress_filter "$phase_name" || exit_code=$?
+    fi
   else
-    claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
+    # Full stream or quiet mode
+    if command -v gtimeout &> /dev/null; then
+      gtimeout "${timeout}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
+    elif command -v timeout &> /dev/null; then
+      timeout "${timeout}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
+    else
+      claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
+    fi
   fi
 
   echo ""
@@ -1039,7 +1182,13 @@ run_agent_iteration() {
   echo "  Task: $task_id"
   echo "  Model: $CURRENT_MODEL"
   echo "  Phases: TRIAGE → PLAN → IMPLEMENT → TEST → DOCS → REVIEW → VERIFY"
-  echo "  Stream: $([ "$AGENT_QUIET" != "1" ] && echo "enabled" || echo "disabled")"
+  if [ "$AGENT_QUIET" = "1" ]; then
+    echo "  Output: quiet"
+  elif [ "$AGENT_PROGRESS" != "1" ]; then
+    echo "  Output: full stream"
+  else
+    echo "  Output: progress"
+  fi
   echo ""
 
   # Execute all phases
@@ -1119,7 +1268,13 @@ main() {
   echo "  Max retries: $AGENT_MAX_RETRIES per phase"
   echo "  Lock timeout: ${AGENT_LOCK_TIMEOUT}s ($(( AGENT_LOCK_TIMEOUT / 3600 ))h)"
   echo "  Heartbeat: ${AGENT_HEARTBEAT}s ($(( AGENT_HEARTBEAT / 60 ))min)"
-  echo "  Stream: $([ "$AGENT_QUIET" != "1" ] && echo "yes (default)" || echo "no")"
+  if [ "$AGENT_QUIET" = "1" ]; then
+    echo "  Output: quiet (no streaming)"
+  elif [ "$AGENT_PROGRESS" != "1" ]; then
+    echo "  Output: full stream (verbose)"
+  else
+    echo "  Output: progress (one-line updates)"
+  fi
   echo ""
   echo "  Phases:"
   echo "    1. TRIAGE    ${TIMEOUT_TRIAGE}s  $([ "$SKIP_TRIAGE" = "1" ] && echo "[SKIP]" || echo "")"
