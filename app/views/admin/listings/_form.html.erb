@@ -1,0 +1,190 @@
+<%= form_with model: [:admin, @listing], local: true, class: "space-y-6" do |form| %>
+  <% if @listing.errors.any? %>
+    <div class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            <%= t("errors.form_errors", count: @listing.errors.count) %>
+          </h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc pl-5 space-y-1">
+              <% @listing.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Basic Information -->
+  <fieldset class="border border-gray-200 rounded-md p-4">
+    <legend class="text-sm font-medium text-gray-700 px-2">Basic Information</legend>
+
+    <div class="space-y-4">
+      <div>
+        <%= form.label :listing_type, t("admin.listings.form.listing_type"), class: "block text-sm font-medium text-gray-700" %>
+        <%= form.select :listing_type, Listing.listing_types.keys.map { |k| [t("admin.listings.listing_types.#{k}"), k] }, {}, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", data: { action: "change->listing-form#toggleJobFields" } %>
+      </div>
+
+      <div>
+        <%= form.label :title, "Title", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_field :title, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "Enter listing title" %>
+      </div>
+
+      <div>
+        <%= form.label :category_id, "Category", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.collection_select :category_id, @categories, :id, :name, { prompt: "Select a category" }, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+
+      <div>
+        <%= form.label :url_raw, "URL", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.url_field :url_raw, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://example.com" %>
+      </div>
+
+      <div>
+        <%= form.label :description, "Description", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_area :description, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "Brief description of this listing" %>
+      </div>
+
+      <div>
+        <%= form.label :image_url, "Image URL", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.url_field :image_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://example.com/image.jpg" %>
+      </div>
+
+      <div class="flex items-center">
+        <%= form.check_box :published_at, { checked: @listing.published_at.present? }, Time.current.iso8601, nil, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+        <%= form.label :published_at, "Published", class: "ml-2 block text-sm text-gray-900" %>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Job-specific Fields -->
+  <fieldset id="job-fields" class="border border-gray-200 rounded-md p-4 <%= 'hidden' unless @listing.job? %>">
+    <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.job_settings") %></legend>
+
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <%= form.label :company, t("admin.listings.form.company"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_field :company, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "Company name" %>
+        </div>
+
+        <div>
+          <%= form.label :location, t("admin.listings.form.location"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_field :location, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "e.g., Remote, New York, London" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :salary_range, t("admin.listings.form.salary_range"), class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_field :salary_range, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "e.g., $80,000 - $120,000" %>
+      </div>
+
+      <div>
+        <%= form.label :apply_url, t("admin.listings.form.apply_url"), class: "block text-sm font-medium text-gray-700" %>
+        <%= form.url_field :apply_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://company.com/apply" %>
+      </div>
+
+      <div>
+        <%= form.label :expires_at, t("admin.listings.form.expires_at"), class: "block text-sm font-medium text-gray-700" %>
+        <%= form.datetime_local_field :expires_at, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Featured Settings -->
+  <fieldset class="border border-gray-200 rounded-md p-4">
+    <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.featured_settings") %></legend>
+
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <%= form.label :featured_from, t("admin.listings.form.featured_from"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.datetime_local_field :featured_from, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :featured_until, t("admin.listings.form.featured_until"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.datetime_local_field :featured_until, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500">Leave blank to not feature this listing. Set both dates for time-limited featuring.</p>
+    </div>
+  </fieldset>
+
+  <!-- Affiliate Settings -->
+  <fieldset class="border border-gray-200 rounded-md p-4">
+    <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.affiliate_settings") %></legend>
+
+    <div class="space-y-4">
+      <div>
+        <%= form.label :affiliate_url_template, t("admin.listings.form.affiliate_url_template"), class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_field :affiliate_url_template, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://partner.example.com/?ref=curated&url={url}" %>
+        <p class="mt-1 text-xs text-gray-500"><%= t("admin.listings.form.affiliate_url_template_hint") %></p>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Payment Settings -->
+  <fieldset class="border border-gray-200 rounded-md p-4">
+    <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.payment_settings") %></legend>
+
+    <div class="space-y-4">
+      <div class="flex items-center">
+        <%= form.check_box :paid, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+        <%= form.label :paid, t("admin.listings.form.paid"), class: "ml-2 block text-sm text-gray-900" %>
+      </div>
+
+      <div>
+        <%= form.label :payment_reference, t("admin.listings.form.payment_reference"), class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_field :payment_reference, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "Payment ID or reference" %>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Content -->
+  <fieldset class="border border-gray-200 rounded-md p-4">
+    <legend class="text-sm font-medium text-gray-700 px-2">Content</legend>
+
+    <div class="space-y-4">
+      <div>
+        <%= form.label :body_html, "Body HTML", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_area :body_html, rows: 6, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm", placeholder: "<p>HTML content...</p>" %>
+      </div>
+
+      <div>
+        <%= form.label :body_text, "Body Text", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_area :body_text, rows: 4, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "Plain text content..." %>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to t("actions.cancel"), admin_listings_path, class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= form.submit @listing.persisted? ? t("actions.update") : "Create Listing", class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 cursor-pointer" %>
+  </div>
+<% end %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const listingTypeSelect = document.querySelector('select[name="listing[listing_type]"]');
+    const jobFields = document.getElementById('job-fields');
+
+    if (listingTypeSelect && jobFields) {
+      listingTypeSelect.addEventListener('change', function() {
+        if (this.value === 'job') {
+          jobFields.classList.remove('hidden');
+        } else {
+          jobFields.classList.add('hidden');
+        }
+      });
+    }
+  });
+</script>

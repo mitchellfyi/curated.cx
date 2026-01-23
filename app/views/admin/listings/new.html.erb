@@ -1,4 +1,14 @@
-<div>
-  <h1 class="font-bold text-4xl">Admin::Listings#new</h1>
-  <p>Find me in app/views/admin/listings/new.html.erb</p>
+<div class="py-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">New Listing</h1>
+      <p class="mt-2 text-gray-600">Create a new listing for <%= Current.tenant&.title %></p>
+    </div>
+
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <%= render "form" %>
+      </div>
+    </div>
+  </div>
 </div>
