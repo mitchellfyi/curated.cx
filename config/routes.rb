@@ -14,6 +14,11 @@ Rails.application.routes.draw do
         end
       end
     end
+    resources :sources do
+      member do
+        post :run_now
+      end
+    end
   end
   devise_for :users
 
