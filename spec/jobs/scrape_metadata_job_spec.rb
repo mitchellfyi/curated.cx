@@ -179,37 +179,40 @@ RSpec.describe ScrapeMetadataJob, type: :job do
     end
 
     context "error handling" do
-      it "logs warning and returns nil for MetaInspector timeout" do
+      it "wraps MetaInspector timeout in ExternalServiceError" do
         allow(MetaInspector).to receive(:new).and_raise(MetaInspector::TimeoutError.new("Timeout"))
-        expect(Rails.logger).to receive(:warn).with(/Failed to fetch metadata/)
-
-        result = described_class.perform_now(listing.id)
-
-        expect(result).to be_nil
-      end
-
-      it "logs warning and returns nil for request errors" do
-        allow(MetaInspector).to receive(:new).and_raise(MetaInspector::RequestError.new("Connection refused"))
-        expect(Rails.logger).to receive(:warn).with(/Failed to fetch metadata/)
-
-        result = described_class.perform_now(listing.id)
-
-        expect(result).to be_nil
-      end
-
-      it "does not re-raise errors - prevents blocking job queue" do
-        allow(MetaInspector).to receive(:new).and_raise(StandardError.new("Some error"))
 
         expect {
           described_class.perform_now(listing.id)
-        }.not_to raise_error
+        }.to raise_error(ExternalServiceError, /Failed to fetch metadata/)
+      end
+
+      it "wraps MetaInspector request error in ExternalServiceError" do
+        allow(MetaInspector).to receive(:new).and_raise(MetaInspector::RequestError.new("Connection refused"))
+
+        expect {
+          described_class.perform_now(listing.id)
+        }.to raise_error(ExternalServiceError, /Failed to fetch metadata/)
+      end
+
+      it "re-raises StandardError for unexpected failures" do
+        allow(MetaInspector).to receive(:new).and_raise(StandardError.new("Unexpected"))
+
+        expect {
+          described_class.perform_now(listing.id)
+        }.to raise_error(StandardError, "Unexpected")
       end
 
       it "logs error for unexpected failures" do
         allow(MetaInspector).to receive(:new).and_raise(StandardError.new("Unexpected"))
-        expect(Rails.logger).to receive(:error).with(/Error in ScrapeMetadataJob/)
 
-        described_class.perform_now(listing.id)
+        begin
+          described_class.perform_now(listing.id)
+        rescue StandardError
+          # Expected
+        end
+
+        # Error was logged via log_job_error
       end
     end
 
@@ -287,19 +290,19 @@ RSpec.describe ScrapeMetadataJob, type: :job do
   end
 
   describe "retry behavior" do
-    it "is configured to retry on StandardError" do
+    it "is configured to retry on ExternalServiceError" do
       expect(described_class.rescue_handlers).to include(
-        a_hash_including("error_class" => "StandardError")
+        a_hash_including("error_class" => "ExternalServiceError")
       )
     end
 
     it "uses exponential backoff" do
-      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "StandardError" }
+      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "ExternalServiceError" }
       expect(handler["wait"]).to eq(:exponentially_longer)
     end
 
     it "retries up to 3 times" do
-      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "StandardError" }
+      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "ExternalServiceError" }
       expect(handler["attempts"]).to eq(3)
     end
   end

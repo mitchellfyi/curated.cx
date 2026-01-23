@@ -57,4 +57,178 @@ RSpec.describe ApplicationJob, type: :job do
       }.to raise_error(StandardError, "Test error")
     end
   end
+
+  describe 'retry_on configuration' do
+    it 'retries on ExternalServiceError' do
+      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "ExternalServiceError" }
+      expect(handler).to be_present
+      expect(handler["attempts"]).to eq(3)
+      expect(handler["wait"]).to eq(:exponentially_longer)
+    end
+
+    it 'retries on DnsError' do
+      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "DnsError" }
+      expect(handler).to be_present
+      expect(handler["attempts"]).to eq(3)
+      expect(handler["wait"]).to eq(:exponentially_longer)
+    end
+
+    it 'retries on ActiveRecord::Deadlocked' do
+      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "ActiveRecord::Deadlocked" }
+      expect(handler).to be_present
+      expect(handler["attempts"]).to eq(3)
+    end
+  end
+
+  describe 'discard_on configuration' do
+    it 'discards on ConfigurationError' do
+      handler = described_class.discard_handlers.find { |h| h == "ConfigurationError" }
+      expect(handler).to be_present
+    end
+
+    it 'discards on ActiveRecord::RecordNotFound' do
+      handler = described_class.discard_handlers.find { |h| h == "ActiveRecord::RecordNotFound" }
+      expect(handler).to be_present
+    end
+  end
+
+  describe '#log_job_error' do
+    let(:tenant) { create(:tenant) }
+    let(:site) { create(:site, tenant: tenant) }
+    let(:logging_job_class) do
+      Class.new(ApplicationJob) do
+        def perform(should_fail: false)
+          if should_fail
+            log_job_error(StandardError.new("Test failure"), listing_id: 123)
+          end
+        end
+
+        # Expose protected method for testing
+        public :log_job_error
+      end
+    end
+
+    before do
+      Current.tenant = tenant
+      Current.site = site
+    end
+
+    after do
+      Current.tenant = nil
+      Current.site = nil
+    end
+
+    it 'logs error with structured context' do
+      job = logging_job_class.new
+      error = StandardError.new("Connection timeout")
+
+      expect(Rails.logger).to receive(:error).with(a_string_matching(/Connection timeout/))
+
+      job.log_job_error(error)
+    end
+
+    it 'includes job class name in log message' do
+      job = logging_job_class.new
+      error = StandardError.new("Error")
+
+      expect(Rails.logger).to receive(:error).with(a_string_matching(/failed:/))
+
+      job.log_job_error(error)
+    end
+
+    it 'includes error class in log message' do
+      job = logging_job_class.new
+      error = ExternalServiceError.new("API timeout")
+
+      expect(Rails.logger).to receive(:error).with(a_string_matching(/ExternalServiceError/))
+
+      job.log_job_error(error)
+    end
+
+    it 'includes tenant_id in context when tenant is set' do
+      job = logging_job_class.new
+      error = StandardError.new("Error")
+
+      expect(Rails.logger).to receive(:error).with(a_string_matching(/"tenant_id":#{tenant.id}/))
+
+      job.log_job_error(error)
+    end
+
+    it 'includes site_id in context when site is set' do
+      job = logging_job_class.new
+      error = StandardError.new("Error")
+
+      expect(Rails.logger).to receive(:error).with(a_string_matching(/"site_id":#{site.id}/))
+
+      job.log_job_error(error)
+    end
+
+    it 'includes custom context passed as keyword arguments' do
+      job = logging_job_class.new
+      error = StandardError.new("Error")
+
+      expect(Rails.logger).to receive(:error).with(a_string_matching(/"listing_id":456/))
+
+      job.log_job_error(error, listing_id: 456)
+    end
+
+    it 'includes job_id in context' do
+      job = logging_job_class.new
+      job.job_id = "abc-123"
+      error = StandardError.new("Error")
+
+      expect(Rails.logger).to receive(:error).with(a_string_matching(/"job_id":"abc-123"/))
+
+      job.log_job_error(error)
+    end
+  end
+
+  describe '#log_job_warning' do
+    let(:tenant) { create(:tenant) }
+    let(:site) { create(:site, tenant: tenant) }
+    let(:logging_job_class) do
+      Class.new(ApplicationJob) do
+        def perform
+          log_job_warning("Slow response detected", response_time: 5.2)
+        end
+
+        # Expose protected method for testing
+        public :log_job_warning
+      end
+    end
+
+    before do
+      Current.tenant = tenant
+      Current.site = site
+    end
+
+    after do
+      Current.tenant = nil
+      Current.site = nil
+    end
+
+    it 'logs warning with message' do
+      job = logging_job_class.new
+
+      expect(Rails.logger).to receive(:warn).with(a_string_matching(/Slow response detected/))
+
+      job.log_job_warning("Slow response detected")
+    end
+
+    it 'includes tenant context' do
+      job = logging_job_class.new
+
+      expect(Rails.logger).to receive(:warn).with(a_string_matching(/"tenant_id":#{tenant.id}/))
+
+      job.log_job_warning("Warning message")
+    end
+
+    it 'includes custom context' do
+      job = logging_job_class.new
+
+      expect(Rails.logger).to receive(:warn).with(a_string_matching(/"response_time":5.2/))
+
+      job.log_job_warning("Slow response", response_time: 5.2)
+    end
+  end
 end
