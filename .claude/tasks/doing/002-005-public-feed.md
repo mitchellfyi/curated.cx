@@ -214,6 +214,30 @@ Initial ranking uses freshness decay, source quality weight, and engagement sign
 
 ## Work Log
 
+### 2026-01-23 09:12 - Documentation Sync
+
+Docs updated:
+- `docs/ranking.md` - Created complete algorithm documentation (new file)
+  - Formula explanation with component breakdown
+  - Freshness decay table with age vs score examples
+  - Source quality weight ranges and guidance
+  - Engagement normalization explanation
+  - Sort modes documentation (ranked, latest, top_week)
+  - Filtering options (by tag, content_type)
+  - Performance considerations and caching strategies
+  - Tuning guide for adjusting weights
+  - Future roadmap (personalization, ML, advanced signals)
+  - Related files reference
+
+Annotations:
+- Models not annotated (PostgreSQL not running)
+- Will be synced when database available
+
+Consistency checks:
+- [x] Code matches docs - FeedRankingService implementation matches documented formula
+- [x] No broken links - All internal file references verified
+- [ ] Schema annotations current - Deferred (requires database)
+
 ### 2026-01-23 09:10 - Testing Phase Complete
 
 Tests written:
@@ -388,3 +412,9 @@ Ready for implementation phase.
 
 - Dependency: `002-004-ai-editorialisation`
 - Mission: `MISSION.md` - "Rank: score items by relevance"
+- Documentation: `docs/ranking.md` - Algorithm documentation
+- Service: `app/services/feed_ranking_service.rb`
+- Controller: `app/controllers/feed_controller.rb`
+- Policy: `app/policies/content_item_policy.rb`
+- Views: `app/views/feed/`
+- Specs: `spec/services/feed_ranking_service_spec.rb`, `spec/requests/feed_spec.rb`, `spec/policies/content_item_policy_spec.rb`
