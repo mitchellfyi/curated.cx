@@ -221,10 +221,10 @@ is_lock_stale() {
     return 0  # No lock = stale (available)
   fi
 
-  # Read lock info
+  # Read lock info (strip quotes from values)
   local locked_at pid
-  locked_at=$(grep "^LOCKED_AT=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "0")
-  pid=$(grep "^PID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "0")
+  locked_at=$(grep "^LOCKED_AT=" "$lock_file" 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "0")
+  pid=$(grep "^PID=" "$lock_file" 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "0")
 
   # Check if PID is still running
   if [ -n "$pid" ] && [ "$pid" != "0" ]; then
@@ -259,9 +259,9 @@ is_task_locked() {
     return 1  # Not locked
   fi
 
-  # Check if locked by us
+  # Check if locked by us (strip quotes from value)
   local lock_agent
-  lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "")
+  lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "")
 
   if [ "$lock_agent" = "$AGENT_ID" ]; then
     return 1  # Locked by us = available to us
@@ -297,7 +297,7 @@ acquire_lock() {
   # Check again if locked (race condition protection)
   if [ -f "$lock_file" ]; then
     local lock_agent
-    lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "")
+    lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "")
 
     if [ "$lock_agent" != "$AGENT_ID" ] && ! is_lock_stale "$lock_file"; then
       rmdir "$lock_dir" 2>/dev/null || true
@@ -307,10 +307,10 @@ acquire_lock() {
 
   # Write lock file
   cat > "$lock_file" << EOF
-AGENT_ID=$AGENT_ID
-LOCKED_AT=$(date '+%Y-%m-%d %H:%M:%S')
-PID=$$
-TASK_ID=$task_id
+AGENT_ID="$AGENT_ID"
+LOCKED_AT="$(date '+%Y-%m-%d %H:%M:%S')"
+PID="$$"
+TASK_ID="$task_id"
 EOF
 
   rmdir "$lock_dir" 2>/dev/null || true
@@ -329,7 +329,7 @@ release_lock() {
 
   if [ -f "$lock_file" ]; then
     local lock_agent
-    lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "")
+    lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "")
 
     if [ "$lock_agent" = "$AGENT_ID" ]; then
       rm -f "$lock_file"
@@ -432,10 +432,10 @@ start_heartbeat() {
         lock_file=$(get_lock_file "$task_id")
         if [ -f "$lock_file" ]; then
           cat > "$lock_file" << EOF
-AGENT_ID=$AGENT_ID
-LOCKED_AT=$(date '+%Y-%m-%d %H:%M:%S')
-PID=$$
-TASK_ID=$task_id
+AGENT_ID="$AGENT_ID"
+LOCKED_AT="$(date '+%Y-%m-%d %H:%M:%S')"
+PID="$$"
+TASK_ID="$task_id"
 EOF
         fi
       fi
@@ -701,14 +701,14 @@ save_session() {
   local session_file="$STATE_DIR/session-$AGENT_ID"
 
   cat > "$session_file" << EOF
-SESSION_ID=$session_id
-AGENT_ID=$AGENT_ID
-ITERATION=$iteration
-STATUS=$status
-TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-NUM_TASKS=$NUM_TASKS
-MODEL=$CLAUDE_MODEL
-LOG_DIR=$RUN_LOG_DIR
+SESSION_ID="$session_id"
+AGENT_ID="$AGENT_ID"
+ITERATION="$iteration"
+STATUS="$status"
+TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
+NUM_TASKS="$NUM_TASKS"
+MODEL="$CLAUDE_MODEL"
+LOG_DIR="$RUN_LOG_DIR"
 EOF
   log_info "Session state saved: $session_id (iteration $iteration)"
 }
@@ -739,18 +739,18 @@ update_health() {
   local health_file="$STATE_DIR/health-$AGENT_ID"
 
   cat > "$health_file" << EOF
-STATUS=$status
-MESSAGE=$message
-AGENT_ID=$AGENT_ID
-LAST_CHECK=$(date '+%Y-%m-%d %H:%M:%S')
-CONSECUTIVE_FAILURES=${CONSECUTIVE_FAILURES:-0}
+STATUS="$status"
+MESSAGE="$message"
+AGENT_ID="$AGENT_ID"
+LAST_CHECK="$(date '+%Y-%m-%d %H:%M:%S')"
+CONSECUTIVE_FAILURES="${CONSECUTIVE_FAILURES:-0}"
 EOF
 }
 
 get_consecutive_failures() {
   local health_file="$STATE_DIR/health-$AGENT_ID"
   if [ -f "$health_file" ]; then
-    grep "^CONSECUTIVE_FAILURES=" "$health_file" 2>/dev/null | cut -d= -f2 || echo "0"
+    grep "^CONSECUTIVE_FAILURES=" "$health_file" 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "0"
   else
     echo "0"
   fi
@@ -868,7 +868,7 @@ get_doing_task_for_agent() {
 
     if [ -f "$lock_file" ]; then
       local lock_agent
-      lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "")
+      lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "")
       if [ "$lock_agent" = "$AGENT_ID" ]; then
         echo "$file"
         return 0
