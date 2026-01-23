@@ -548,13 +548,10 @@ run_phase_once() {
 
   # Output mode: streaming (default) or quiet
   if [ "$AGENT_QUIET" != "1" ]; then
-    claude_args+=("--output-format" "stream-json")
+    # stream-json requires --verbose
+    claude_args+=("--output-format" "stream-json" "--verbose")
   else
     claude_args+=("-p")
-  fi
-
-  if [ "$AGENT_VERBOSE" = "1" ]; then
-    claude_args+=("--verbose")
   fi
 
   local exit_code=0
