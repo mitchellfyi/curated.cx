@@ -4,7 +4,7 @@ class CreateEditorialisations < ActiveRecord::Migration[8.0]
   def change
     create_table :editorialisations do |t|
       t.references :site, null: false, foreign_key: true
-      t.references :content_item, null: false, foreign_key: true
+      t.references :content_item, null: false, foreign_key: true, index: false
       t.string :prompt_version, null: false
       t.text :prompt_text, null: false
       t.text :raw_response

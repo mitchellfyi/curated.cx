@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Editorialisation
+module EditorialisationServices
   # Manages prompt templates for AI editorialisation.
   # Loads prompts from config/editorialisation/prompts/ directory.
   #

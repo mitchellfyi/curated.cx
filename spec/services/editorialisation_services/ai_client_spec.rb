@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Editorialisation::AiClient, type: :service do
+RSpec.describe EditorialisationServices::AiClient, type: :service do
   let(:api_key) { "test-api-key-12345" }
   let(:system_prompt) { "You are a helpful assistant." }
   let(:user_prompt) { "Summarize this article." }

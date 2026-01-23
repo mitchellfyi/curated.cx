@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_23_110001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -52,6 +52,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "affiliate_clicks", force: :cascade do |t|
+    t.bigint "listing_id", null: false
+    t.datetime "clicked_at", null: false
+    t.string "ip_hash"
+    t.string "user_agent"
+    t.text "referrer"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["clicked_at"], name: "index_affiliate_clicks_on_clicked_at"
+    t.index ["listing_id", "clicked_at"], name: "index_affiliate_clicks_on_listing_clicked"
+    t.index ["listing_id"], name: "index_affiliate_clicks_on_listing_id"
+  end
+
   create_table "categories", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "site_id", null: false
@@ -69,6 +82,23 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
     t.index ["tenant_id"], name: "index_categories_on_tenant_id"
   end
 
+  create_table "comments", force: :cascade do |t|
+    t.bigint "site_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "content_item_id", null: false
+    t.bigint "parent_id"
+    t.text "body", null: false
+    t.datetime "edited_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_item_id", "parent_id"], name: "index_comments_on_content_item_and_parent"
+    t.index ["content_item_id"], name: "index_comments_on_content_item_id"
+    t.index ["parent_id"], name: "index_comments_on_parent_id"
+    t.index ["site_id", "user_id"], name: "index_comments_on_site_and_user"
+    t.index ["site_id"], name: "index_comments_on_site_id"
+    t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
   create_table "content_items", force: :cascade do |t|
     t.bigint "site_id", null: false
     t.bigint "source_id", null: false
@@ -83,11 +113,32 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
     t.datetime "published_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "topic_tags", default: [], null: false
+    t.string "content_type"
+    t.decimal "tagging_confidence", precision: 3, scale: 2
+    t.jsonb "tagging_explanation", default: [], null: false
+    t.text "ai_summary"
+    t.text "why_it_matters"
+    t.jsonb "ai_suggested_tags", default: [], null: false
+    t.datetime "editorialised_at"
+    t.integer "upvotes_count", default: 0, null: false
+    t.integer "comments_count", default: 0, null: false
+    t.datetime "hidden_at"
+    t.bigint "hidden_by_id"
+    t.datetime "comments_locked_at"
+    t.bigint "comments_locked_by_id"
+    t.index ["comments_locked_by_id"], name: "index_content_items_on_comments_locked_by_id"
+    t.index ["hidden_at"], name: "index_content_items_on_hidden_at"
+    t.index ["hidden_by_id"], name: "index_content_items_on_hidden_by_id"
     t.index ["published_at"], name: "index_content_items_on_published_at"
+    t.index ["site_id", "content_type"], name: "index_content_items_on_site_id_and_content_type"
+    t.index ["site_id", "editorialised_at"], name: "index_content_items_on_site_id_and_editorialised_at"
+    t.index ["site_id", "published_at"], name: "index_content_items_on_site_id_published_at_desc", order: { published_at: :desc }
     t.index ["site_id", "url_canonical"], name: "index_content_items_on_site_id_and_url_canonical", unique: true
     t.index ["site_id"], name: "index_content_items_on_site_id"
     t.index ["source_id", "created_at"], name: "index_content_items_on_source_id_and_created_at"
     t.index ["source_id"], name: "index_content_items_on_source_id"
+    t.index ["topic_tags"], name: "index_content_items_on_topic_tags_gin", using: :gin
   end
 
   create_table "domains", force: :cascade do |t|
@@ -106,6 +157,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
     t.index ["site_id"], name: "index_domains_on_site_id"
     t.index ["site_id"], name: "index_domains_on_site_id_where_primary", unique: true, where: "(\"primary\" = true)"
     t.index ["status"], name: "index_domains_on_status"
+  end
+
+  create_table "editorialisations", force: :cascade do |t|
+    t.bigint "site_id", null: false
+    t.bigint "content_item_id", null: false
+    t.string "prompt_version", null: false
+    t.text "prompt_text", null: false
+    t.text "raw_response"
+    t.jsonb "parsed_response", default: {}, null: false
+    t.integer "status", default: 0, null: false
+    t.text "error_message"
+    t.integer "tokens_used"
+    t.string "model_name"
+    t.integer "duration_ms"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_item_id"], name: "index_editorialisations_on_content_item_id", unique: true
+    t.index ["site_id", "created_at"], name: "index_editorialisations_on_site_id_and_created_at"
+    t.index ["site_id", "status"], name: "index_editorialisations_on_site_id_and_status"
+    t.index ["site_id"], name: "index_editorialisations_on_site_id"
   end
 
   create_table "heartbeat_logs", force: :cascade do |t|
@@ -158,10 +229,28 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
     t.jsonb "metadata", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "listing_type", default: 0, null: false
+    t.text "affiliate_url_template"
+    t.jsonb "affiliate_attribution", default: {}, null: false
+    t.datetime "featured_from"
+    t.datetime "featured_until"
+    t.bigint "featured_by_id"
+    t.string "company"
+    t.string "location"
+    t.string "salary_range"
+    t.text "apply_url"
+    t.datetime "expires_at"
+    t.boolean "paid", default: false, null: false
+    t.string "payment_reference"
     t.index ["category_id", "published_at"], name: "index_listings_on_category_published"
     t.index ["category_id"], name: "index_listings_on_category_id"
     t.index ["domain"], name: "index_listings_on_domain"
+    t.index ["featured_by_id"], name: "index_listings_on_featured_by_id"
     t.index ["published_at"], name: "index_listings_on_published_at"
+    t.index ["site_id", "expires_at"], name: "index_listings_on_site_expires_at"
+    t.index ["site_id", "featured_from", "featured_until"], name: "index_listings_on_site_featured_dates"
+    t.index ["site_id", "listing_type", "expires_at"], name: "index_listings_on_site_type_expires"
+    t.index ["site_id", "listing_type"], name: "index_listings_on_site_listing_type"
     t.index ["site_id", "url_canonical"], name: "index_listings_on_site_id_and_url_canonical", unique: true
     t.index ["site_id"], name: "index_listings_on_site_id"
     t.index ["source_id"], name: "index_listings_on_source_id"
@@ -182,6 +271,22 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
     t.datetime "updated_at", null: false
     t.index ["name", "resource_type", "resource_id"], name: "index_roles_on_name_and_resource_type_and_resource_id"
     t.index ["resource_type", "resource_id"], name: "index_roles_on_resource"
+  end
+
+  create_table "site_bans", force: :cascade do |t|
+    t.bigint "site_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "banned_by_id", null: false
+    t.text "reason"
+    t.datetime "banned_at", null: false
+    t.datetime "expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["banned_by_id"], name: "index_site_bans_on_banned_by_id"
+    t.index ["site_id", "expires_at"], name: "index_site_bans_on_site_and_expires"
+    t.index ["site_id", "user_id"], name: "index_site_bans_uniqueness", unique: true
+    t.index ["site_id"], name: "index_site_bans_on_site_id"
+    t.index ["user_id"], name: "index_site_bans_on_user_id"
   end
 
   create_table "sites", force: :cascade do |t|
@@ -211,12 +316,46 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
     t.boolean "enabled", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "quality_weight", precision: 3, scale: 2, default: "1.0", null: false
     t.index ["site_id", "name"], name: "index_sources_on_site_id_and_name", unique: true
     t.index ["site_id"], name: "index_sources_on_site_id"
     t.index ["tenant_id", "enabled"], name: "index_sources_on_tenant_id_and_enabled"
     t.index ["tenant_id", "kind"], name: "index_sources_on_tenant_id_and_kind"
     t.index ["tenant_id", "name"], name: "index_sources_on_tenant_id_and_name", unique: true
     t.index ["tenant_id"], name: "index_sources_on_tenant_id"
+  end
+
+  create_table "tagging_rules", force: :cascade do |t|
+    t.bigint "site_id", null: false
+    t.bigint "tenant_id", null: false
+    t.bigint "taxonomy_id", null: false
+    t.integer "rule_type", null: false
+    t.text "pattern", null: false
+    t.integer "priority", default: 100, null: false
+    t.boolean "enabled", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "enabled"], name: "index_tagging_rules_on_site_id_and_enabled"
+    t.index ["site_id", "priority"], name: "index_tagging_rules_on_site_id_and_priority"
+    t.index ["site_id"], name: "index_tagging_rules_on_site_id"
+    t.index ["taxonomy_id"], name: "index_tagging_rules_on_taxonomy_id"
+    t.index ["tenant_id"], name: "index_tagging_rules_on_tenant_id"
+  end
+
+  create_table "taxonomies", force: :cascade do |t|
+    t.bigint "site_id", null: false
+    t.bigint "tenant_id", null: false
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.text "description"
+    t.bigint "parent_id"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "parent_id"], name: "index_taxonomies_on_site_id_and_parent_id"
+    t.index ["site_id", "slug"], name: "index_taxonomies_on_site_id_and_slug", unique: true
+    t.index ["site_id"], name: "index_taxonomies_on_site_id"
+    t.index ["tenant_id"], name: "index_taxonomies_on_tenant_id"
   end
 
   create_table "tenants", force: :cascade do |t|
@@ -256,20 +395,55 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_215433) do
     t.index ["user_id"], name: "index_users_roles_on_user_id"
   end
 
+  create_table "votes", force: :cascade do |t|
+    t.bigint "site_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "content_item_id", null: false
+    t.integer "value", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_item_id"], name: "index_votes_on_content_item_id"
+    t.index ["site_id", "user_id", "content_item_id"], name: "index_votes_uniqueness", unique: true
+    t.index ["site_id"], name: "index_votes_on_site_id"
+    t.index ["user_id"], name: "index_votes_on_user_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "affiliate_clicks", "listings"
   add_foreign_key "categories", "sites"
   add_foreign_key "categories", "tenants"
+  add_foreign_key "comments", "comments", column: "parent_id"
+  add_foreign_key "comments", "content_items"
+  add_foreign_key "comments", "sites"
+  add_foreign_key "comments", "users"
   add_foreign_key "content_items", "sites"
   add_foreign_key "content_items", "sources"
+  add_foreign_key "content_items", "users", column: "comments_locked_by_id"
+  add_foreign_key "content_items", "users", column: "hidden_by_id"
   add_foreign_key "domains", "sites"
+  add_foreign_key "editorialisations", "content_items"
+  add_foreign_key "editorialisations", "sites"
   add_foreign_key "import_runs", "sites"
   add_foreign_key "import_runs", "sources"
   add_foreign_key "listings", "categories"
   add_foreign_key "listings", "sites"
   add_foreign_key "listings", "sources"
   add_foreign_key "listings", "tenants"
+  add_foreign_key "listings", "users", column: "featured_by_id"
+  add_foreign_key "site_bans", "sites"
+  add_foreign_key "site_bans", "users"
+  add_foreign_key "site_bans", "users", column: "banned_by_id"
   add_foreign_key "sites", "tenants"
   add_foreign_key "sources", "sites"
   add_foreign_key "sources", "tenants"
+  add_foreign_key "tagging_rules", "sites"
+  add_foreign_key "tagging_rules", "taxonomies"
+  add_foreign_key "tagging_rules", "tenants"
+  add_foreign_key "taxonomies", "sites"
+  add_foreign_key "taxonomies", "taxonomies", column: "parent_id"
+  add_foreign_key "taxonomies", "tenants"
+  add_foreign_key "votes", "content_items"
+  add_foreign_key "votes", "sites"
+  add_foreign_key "votes", "users"
 end

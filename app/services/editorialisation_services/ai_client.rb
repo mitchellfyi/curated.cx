@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Editorialisation
+module EditorialisationServices
   # Wrapper around OpenAI client for editorialisation API calls.
   # Handles authentication, error mapping, and response formatting.
   #

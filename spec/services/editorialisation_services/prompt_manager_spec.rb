@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Editorialisation::PromptManager, type: :service do
+RSpec.describe EditorialisationServices::PromptManager, type: :service do
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }

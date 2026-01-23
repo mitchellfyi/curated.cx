@@ -89,7 +89,7 @@ class EditorialisationService
   end
 
   def create_skipped_record(reason)
-    prompt_manager = Editorialisation::PromptManager.new
+    prompt_manager = EditorialisationServices::PromptManager.new
 
     ::Editorialisation.create!(
       site: site,
@@ -102,7 +102,7 @@ class EditorialisationService
   end
 
   def create_pending_record
-    prompt_manager = Editorialisation::PromptManager.new
+    prompt_manager = EditorialisationServices::PromptManager.new
     prompt = prompt_manager.build_prompt(content_item)
 
     ::Editorialisation.create!(
@@ -118,11 +118,11 @@ class EditorialisationService
     editorialisation.mark_processing!
 
     # Build prompt
-    prompt_manager = Editorialisation::PromptManager.new(version: editorialisation.prompt_version)
+    prompt_manager = EditorialisationServices::PromptManager.new(version: editorialisation.prompt_version)
     prompt = prompt_manager.build_prompt(content_item)
 
     # Make AI API call
-    ai_client = Editorialisation::AiClient.new
+    ai_client = EditorialisationServices::AiClient.new
     result = ai_client.complete(
       system_prompt: prompt[:system_prompt],
       user_prompt: prompt[:user_prompt],

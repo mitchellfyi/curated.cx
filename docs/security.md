@@ -16,7 +16,10 @@ Curated.cx implements strict site-level isolation to ensure that content, listin
 
 - `Category` - scoped to `site_id`
 - `Listing` - scoped to `site_id`
-- Future models (Votes, Comments, etc.) will also scope to `site_id`
+- `Vote` - scoped to `site_id`
+- `Comment` - scoped to `site_id`
+- `SiteBan` - scoped to `site_id`
+- `ContentItem` - scoped to `site_id`
 
 ### Tenant-Level Access
 
@@ -66,6 +69,42 @@ Listing.all  # Only returns listings for Current.site
 
 # Explicit unscoped queries require explicit call
 Listing.without_site_scope  # Returns all listings (admin/system use)
+```
+
+### Tenant/Site Consistency
+
+The `SiteScoped` concern also ensures tenant/site consistency for models that include both `SiteScoped` and `TenantScoped`:
+
+**Automatic Tenant Assignment**:
+```ruby
+# On create, tenant is automatically set from site (if not already set)
+before_validation :set_tenant_from_site, on: :create
+
+# This allows simplified record creation:
+Listing.create!(site: current_site, title: "Article")
+# tenant is automatically set to current_site.tenant
+```
+
+**Consistency Validation**:
+```ruby
+# Validates that tenant matches site's tenant
+validate :ensure_site_tenant_consistency
+
+# This catches edge cases like:
+# - Data migrations that set tenant directly
+# - Console operations with incorrect setup
+# - API imports with explicit (wrong) tenant setting
+```
+
+**Example**:
+```ruby
+site = Site.find_by(slug: 'ai-news')  # site.tenant = acme_corp
+wrong_tenant = Tenant.find_by(slug: 'other-corp')
+
+# This will fail validation:
+listing = Listing.new(site: site, tenant: wrong_tenant, title: "Article")
+listing.valid?  # => false
+listing.errors[:site]  # => ["must belong to the same tenant"]
 ```
 
 ---
@@ -273,4 +312,4 @@ When migrating existing data:
 
 ---
 
-*Last Updated: 2025-01-20*
+*Last Updated: 2026-01-23*
