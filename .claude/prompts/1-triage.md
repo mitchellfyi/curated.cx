@@ -22,7 +22,8 @@ You are a project manager validating task {{TASK_ID}} before work begins.
 4. **Update Task Metadata**
    - Set Status to `doing`
    - Set Started timestamp
-   - Update Assigned To with agent ID
+   - Set Assigned To to `{{AGENT_ID}}`
+   - Set Assigned At to `{{TIMESTAMP}}`
 
 ## Output
 

@@ -25,9 +25,17 @@ You are testing the implementation for task {{TASK_ID}}.
 
 4. **Run Full Quality Suite**
    ```bash
-   ./bin/quality
+   # Use bin/quality if available, otherwise run individual checks
+   if [ -x ./bin/quality ]; then
+     ./bin/quality
+   else
+     # Fallback: run core quality checks individually
+     bundle exec rubocop
+     bundle exec brakeman -q
+     bundle exec rspec
+   fi
    ```
-   - Must pass all 12 quality gates
+   - Must pass all quality gates
    - Fix any issues found
 
 ## Output

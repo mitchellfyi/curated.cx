@@ -162,6 +162,9 @@ AGENT_ID="${AGENT_NAME}"
 # Track locks held by this agent
 HELD_LOCKS=()
 
+# Track if this is an interrupt (Ctrl+C) vs normal exit
+INTERRUPTED=0
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -231,7 +234,6 @@ log_header() {
 progress_filter() {
   local phase_name="$1"
   local last_tool=""
-  local last_status=""
   local line_count=0
   local start_time
   start_time=$(date +%s)
@@ -255,13 +257,13 @@ progress_filter() {
 
     # Try to parse JSON and extract meaningful info
     if command -v jq &>/dev/null; then
-      local msg_type tool_name content result_preview
+      local msg_type tool_name content
       msg_type=$(echo "$line" | jq -r '.type // empty' 2>/dev/null)
 
       case "$msg_type" in
         "assistant")
           # Assistant is thinking/responding
-          content=$(echo "$line" | jq -r '.message.content[0].text // empty' 2>/dev/null | head -c 60)
+          content=$(echo "$line" | jq -r '.message.content[0].text // empty' 2>/dev/null | head -c 160)
           if [ -n "$content" ]; then
             show_status "💭 ${content}..."
           fi
@@ -657,10 +659,10 @@ run_phase_once() {
   echo "  Log: $phase_log"
 
   # Build the prompt from template
-  local prompt
-  prompt=$(build_phase_prompt "$prompt_file" "$task_id" "$task_file")
-  if [ $? -ne 0 ]; then
-    log_error "Failed to build prompt for $phase_name"
+  local prompt build_result=0
+  prompt=$(build_phase_prompt "$prompt_file" "$task_id" "$task_file") || build_result=$?
+  if [ "$build_result" -ne 0 ]; then
+    log_error "Failed to build prompt for $phase_name (prompt file: $PROMPTS_DIR/$prompt_file)"
     return 1
   fi
 
@@ -796,7 +798,7 @@ run_phase() {
     ((attempt++))
   done
 
-  log_error "$phase_name failed after $max_attempts attempts"
+  log_error "$phase_name failed after $max_attempts attempts - check logs: $RUN_LOG_DIR/phase-*"
   return 1
 }
 
@@ -911,6 +913,16 @@ health_check() {
     log_success "Claude CLI available"
   fi
 
+  # Check timeout command (optional but recommended for phase timeouts)
+  if command -v gtimeout &> /dev/null; then
+    log_success "Timeout available (gtimeout)"
+  elif command -v timeout &> /dev/null; then
+    log_success "Timeout available (timeout)"
+  else
+    log_warn "No timeout command found (gtimeout/timeout) - phases will run without time limits"
+    log_warn "Install coreutils for timeout support: brew install coreutils (macOS)"
+  fi
+
   # Check CLAUDE.md exists
   if [ ! -f "$REPO_ROOT/CLAUDE.md" ]; then
     log_error "CLAUDE.md not found"
@@ -919,8 +931,8 @@ health_check() {
     log_success "CLAUDE.md exists"
   fi
 
-  # Check task directories
-  for dir in todo doing done _templates; do
+  # Check task directories (quote "done" to avoid shellcheck warning about keyword)
+  for dir in todo doing "done" _templates; do
     if [ ! -d "$TASKS_DIR/$dir" ]; then
       log_warn "Creating missing directory: $TASKS_DIR/$dir"
       mkdir -p "$TASKS_DIR/$dir"
@@ -1047,7 +1059,8 @@ show_task_summary() {
   log_info "Task Summary:"
   echo "  - Todo:    $(count_tasks todo)"
   echo "  - Doing:   $(count_tasks doing)"
-  echo "  - Done:    $(count_tasks done)"
+  # shellcheck disable=SC1010
+  echo "  - Done:    $(count_tasks "done")"
   echo "  - Locked:  $(count_locked_tasks)"
 }
 
@@ -1091,12 +1104,14 @@ run_with_retry() {
   done
 
   log_error "All $max_retries retry attempts failed for iteration $iteration"
+  log_info "Troubleshooting: check logs in $RUN_LOG_DIR, or increase AGENT_MAX_RETRIES"
   ((CONSECUTIVE_FAILURES++))
 
   # Circuit breaker: if too many consecutive failures, pause longer
   if [ "$CONSECUTIVE_FAILURES" -ge 3 ]; then
     log_heal "Circuit breaker triggered: $CONSECUTIVE_FAILURES consecutive failures"
     log_heal "Pausing for 30 seconds before continuing..."
+    log_info "If persistent failures, check API rate limits or task complexity"
     sleep 30
   fi
 
@@ -1149,7 +1164,8 @@ run_agent_iteration() {
       fi
 
       # Move to doing/
-      local new_path="$TASKS_DIR/doing/$(basename "$task_file")"
+      local new_path
+      new_path="$TASKS_DIR/doing/$(basename "$task_file")"
       mv "$task_file" "$new_path"
       task_file="$new_path"
 
@@ -1209,7 +1225,8 @@ run_agent_iteration() {
     reset_model
 
     # Check if task was completed (moved to done/)
-    local done_file="$TASKS_DIR/done/$(basename "$task_file")"
+    local done_file
+    done_file="$TASKS_DIR/done/$(basename "$task_file")"
     if [ -f "$done_file" ]; then
       release_lock "$task_id"
       unassign_task "$done_file"
@@ -1228,32 +1245,61 @@ run_agent_iteration() {
 # ============================================================================
 
 cleanup() {
-  log_info "Cleaning up..."
+  # Check if this is an interrupt (Ctrl+C / SIGTERM)
+  if [ "$INTERRUPTED" = "1" ]; then
+    log_info "Interrupted - preserving task state for resume..."
 
-  # Stop heartbeat
-  stop_heartbeat
+    # Stop heartbeat
+    stop_heartbeat
 
-  # Release all locks held by this agent
-  release_all_locks
+    # Remove active marker (for auto-numbering) - now a directory
+    rm -rf "$LOCKS_DIR/.${AGENT_ID}.active" 2>/dev/null || true
 
-  # Remove active marker (for auto-numbering)
-  rm -f "$LOCKS_DIR/.${AGENT_ID}.active" 2>/dev/null || true
+    # Keep the lock and assignment so the task can be resumed
+    # Don't call release_all_locks or unassign_task
 
-  # Unassign any tasks we were working on
-  for file in "$TASKS_DIR/doing"/*.md; do
-    [ -f "$file" ] || continue
-    if grep -q "$AGENT_ID" "$file" 2>/dev/null; then
-      unassign_task "$file"
+    # Generate taskboard
+    if [ -x "$SCRIPTS_DIR/taskboard.sh" ]; then
+      "$SCRIPTS_DIR/taskboard.sh" 2>/dev/null || true
     fi
-  done
 
-  # Generate taskboard
-  if [ -x "$SCRIPTS_DIR/taskboard.sh" ]; then
-    "$SCRIPTS_DIR/taskboard.sh" 2>/dev/null || true
+    log_info "Task preserved in doing/ - run './bin/agent' to resume"
+  else
+    # Normal exit - full cleanup
+    log_info "Cleaning up..."
+
+    # Stop heartbeat
+    stop_heartbeat
+
+    # Release all locks held by this agent
+    release_all_locks
+
+    # Remove active marker (for auto-numbering) - now a directory
+    rm -rf "$LOCKS_DIR/.${AGENT_ID}.active" 2>/dev/null || true
+
+    # Unassign any tasks we were working on
+    for file in "$TASKS_DIR/doing"/*.md; do
+      [ -f "$file" ] || continue
+      if grep -q "$AGENT_ID" "$file" 2>/dev/null; then
+        unassign_task "$file"
+      fi
+    done
+
+    # Generate taskboard
+    if [ -x "$SCRIPTS_DIR/taskboard.sh" ]; then
+      "$SCRIPTS_DIR/taskboard.sh" 2>/dev/null || true
+    fi
   fi
 }
 
-trap cleanup EXIT INT TERM
+handle_interrupt() {
+  echo ""  # Newline after ^C
+  INTERRUPTED=1
+  exit 130  # Standard exit code for Ctrl+C (128 + signal 2)
+}
+
+trap handle_interrupt INT TERM
+trap cleanup EXIT
 
 # ============================================================================
 # Main
