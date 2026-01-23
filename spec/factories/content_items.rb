@@ -121,5 +121,27 @@ FactoryBot.define do
         item.update_columns(topic_tags: [ "tech", "technology" ])
       end
     end
+
+    trait :hidden do
+      transient do
+        hidden_by_user { nil }
+      end
+
+      after(:create) do |item, evaluator|
+        admin = evaluator.hidden_by_user || create(:user, :admin)
+        item.update_columns(hidden_at: Time.current, hidden_by_id: admin.id)
+      end
+    end
+
+    trait :comments_locked do
+      transient do
+        locked_by_user { nil }
+      end
+
+      after(:create) do |item, evaluator|
+        admin = evaluator.locked_by_user || create(:user, :admin)
+        item.update_columns(comments_locked_at: Time.current, comments_locked_by_id: admin.id)
+      end
+    end
   end
 end
