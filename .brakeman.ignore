@@ -7,6 +7,14 @@
     {
       "fingerprint": "c16535a52ee84621250746f4861edbef630a3bbeb24a3694c1ab586f83e9e25c",
       "note": "False positive: ranking_score_sql is built from constants and column names only, no user input. See safety comment in code."
+    },
+    {
+      "fingerprint": "1a65c6e664b2003257ed695802b5fbf446caba6e1e945613916c37823b609e6a",
+      "note": "False positive: url_canonical is a trusted database field containing URLs from our curated content sources, not user input."
+    },
+    {
+      "fingerprint": "89f6a6b81875b5e1ef8dabf31bd71e35221d3ddb9d6685354cc4c19f2236578b",
+      "note": "False positive: url_canonical is a trusted database field containing URLs from our curated content sources, not user input."
     }
   ],
   "updated": "2026-01-23",
