@@ -1,6 +1,19 @@
 module ApplicationHelper
   # General purpose helpers - model-specific logic moved to decorators
 
+  # Safe external URL helper - validates URL is HTTP/HTTPS to prevent XSS
+  # Returns nil for invalid URLs (javascript:, data:, etc.)
+  def safe_external_url(url)
+    return nil if url.blank?
+
+    uri = URI.parse(url.to_s)
+    return url if uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
+
+    nil
+  rescue URI::InvalidURIError
+    nil
+  end
+
   # Internationalization helpers
   def current_locale_name
     I18n.t("locales.#{I18n.locale}", default: I18n.locale.to_s.upcase)

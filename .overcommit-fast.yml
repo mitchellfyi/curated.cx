@@ -54,7 +54,7 @@ PrePush:
     enabled: true
     on_warn: warn
     command: ['bundle', 'exec', 'brakeman']
-    flags: ['--quiet', '--no-pager', '--exit-on-warn']
+    flags: ['--quiet', '--no-pager', '--exit-on-warn', '-i', '.brakeman.ignore']
 
   RSpec:
     enabled: true

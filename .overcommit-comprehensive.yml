@@ -27,7 +27,7 @@ PreCommit:
     enabled: true
     description: 'Check for security vulnerabilities'
     required_executable: 'brakeman'
-    flags: ['--quiet', '--format', 'emacs']
+    flags: ['--quiet', '--format', 'emacs', '-i', '.brakeman.ignore']
 
   RSpec:
     enabled: true

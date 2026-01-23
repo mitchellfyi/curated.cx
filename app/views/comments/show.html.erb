@@ -14,7 +14,7 @@
   <div class="mb-6 text-sm text-gray-500">
     <%= t('comments.on_content') %>
     <%= link_to @content_item.title || t('feed.content.untitled'),
-                @content_item.url_canonical,
+                safe_external_url(@content_item.url_canonical),
                 target: "_blank",
                 rel: "noopener noreferrer",
                 class: "text-blue-600 hover:text-blue-800" %>
