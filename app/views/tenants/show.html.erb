@@ -14,50 +14,27 @@
       <% end %>
     </div>
 
-    <% if @listings.any? %>
+    <% if @content_items.any? %>
       <div class="mb-8">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-6">
-          <%= t('listings.index.latest_content') %>
-        </h2>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-semibold text-gray-900">
+            <%= t('listings.index.latest_content') %>
+          </h2>
+          <%= link_to t('actions.view_arrow'), feed_index_path,
+                      class: "text-blue-600 hover:text-blue-700 font-medium" %>
+        </div>
 
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <% @listings.each do |listing| %>
-            <article class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-              <div class="p-6">
-                <div class="flex items-center justify-between mb-3">
-                  <% if listing.category %>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      <%= listing.category.name %>
-                    </span>
-                  <% end %>
-
-                  <% if listing.published_at %>
-                    <time class="text-sm text-gray-500" datetime="<%= listing.published_at.iso8601 %>">
-                      <%= t('time.ago', time: time_ago_in_words(listing.published_at)) %>
-                    </time>
-                  <% end %>
-                </div>
-
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                  <%= link_to listing.title, listing_path(listing),
-                      class: "hover:text-blue-600 transition-colors" %>
-                </h3>
-
-                <% if listing.description.present? %>
-                  <p class="text-gray-600 text-sm line-clamp-3">
-                    <%= truncate(listing.description, length: 150) %>
-                  </p>
-                <% end %>
-              </div>
-            </article>
+          <% @content_items.each do |item| %>
+            <%= render 'feed/content_card', content_item: item %>
           <% end %>
         </div>
       </div>
     <% else %>
       <div class="text-center py-12">
         <div class="text-gray-500">
-          <p class="text-lg"><%= t('listings.index.empty.title') %></p>
-          <p class="mt-2"><%= t('listings.index.empty.description') %></p>
+          <p class="text-lg"><%= t('feed.empty.title') %></p>
+          <p class="mt-2"><%= t('feed.empty.description') %></p>
         </div>
       </div>
     <% end %>

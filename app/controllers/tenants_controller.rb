@@ -11,8 +11,13 @@ class TenantsController < ApplicationController
     authorize Current.tenant
     @tenant = Current.tenant
 
-    # Load recent listings for the feed using cached method
-    @listings = Listing.recent_published_for_tenant(Current.tenant.id, limit: 20)
+    # Load ranked content feed for the homepage
+    @content_items = FeedRankingService.ranked_feed(
+      site: Current.site,
+      filters: {},
+      limit: 12,
+      offset: 0
+    )
 
     set_page_meta_tags(
       title: Current.tenant&.title,
