@@ -7,16 +7,22 @@ en:
     description: Description
     page_title: Page title
   actions:
+    actions: Actions
     back: Back
     browse: Browse
+    cancel: Cancel
     confirm: Are you sure? This action cannot be undone.
-    delete: Delete Account
+    delete: Delete
     edit: Edit
     manage: Manage
     show: Show
     update: Update Account
     view: View
     view_arrow: View →
+  errors:
+    form_errors:
+      one: "%{count} error prevented this from being saved"
+      other: "%{count} errors prevented this from being saved"
   admin:
     categories:
       created: Created
@@ -66,6 +72,95 @@ en:
         edit: Edit
         no_description: No description
       updated: Site updated successfully
+    tagging_rules:
+      add: Add Rule
+      confirm_delete: Are you sure you want to delete this tagging rule?
+      created: Tagging rule created successfully
+      deleted: Tagging rule deleted successfully
+      description: Define rules for automatic content categorisation
+      disabled: Disabled
+      edit: Edit Tagging Rule
+      empty: No tagging rules
+      empty_description: Get started by creating a new tagging rule.
+      enabled: Enabled
+      for_taxonomy: "For taxonomy"
+      form:
+        enabled: Enabled
+        pattern: Pattern
+        pattern_hint: The pattern to match against. Depends on rule type.
+        priority: Priority
+        priority_hint: Lower numbers run first. Rules are evaluated in priority order.
+        rule_type: Rule Type
+        rule_type_hint: Select how this rule matches content.
+        select_rule_type: Select a rule type
+        select_taxonomy: Select a taxonomy
+        status: Status
+        taxonomy: Taxonomy
+      help:
+        domain: Matches the domain of the content URL. Use * as wildcard.
+        keyword: Comma-separated keywords to find in title or text.
+        source: Enter the source ID to match content from.
+        url_pattern: Regular expression to match against the content URL.
+      new: New Tagging Rule
+      new_description: Create a rule to automatically tag content.
+      priority: Priority
+      rule: Rule
+      rule_details: Rule Details
+      rule_type_help: How This Rule Works
+      table:
+        pattern: Pattern
+        priority: Priority
+        status: Status
+        taxonomy: Taxonomy
+        type: Type
+      test:
+        confidence: Confidence
+        content: Content
+        match: Match
+        matched: Matched
+        no_content: No content items to test against.
+        no_match: No Match
+        reason: Reason
+      test_description: See how this rule matches against recent content.
+      test_results: Test Results
+      test_rule: Test Rule
+      title: Tagging Rules
+      updated: Tagging rule updated successfully
+    taxonomies:
+      add_child: Add Child
+      children: Children
+      children_count:
+        one: "%{count} child"
+        other: "%{count} children"
+      confirm_delete: Are you sure you want to delete this taxonomy? All child taxonomies
+        and tagging rules will also be deleted.
+      created: Taxonomy created successfully
+      deleted: Taxonomy deleted successfully
+      description: Manage topic tags for content categorisation
+      description_label: Description
+      edit: Edit Taxonomy
+      empty: No taxonomies
+      empty_description: Get started by creating a new taxonomy.
+      form:
+        description: Description
+        name: Name
+        no_parent: "(Root level)"
+        parent: Parent Taxonomy
+        position: Position
+        position_hint: Order within siblings. Lower numbers appear first.
+        slug: Slug
+        slug_hint: Leave blank to auto-generate from name.
+      new: New Taxonomy
+      new_description: Create a new taxonomy for tagging content.
+      no_children: No child taxonomies.
+      no_rules: No tagging rules defined for this taxonomy.
+      rules_count:
+        one: "%{count} rule"
+        other: "%{count} rules"
+      slug: Slug
+      tagging_rules: Tagging Rules
+      title: Taxonomies
+      updated: Taxonomy updated successfully
     sources:
       back_to_sources: Back to Sources
       configuration: Configuration

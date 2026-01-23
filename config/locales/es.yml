@@ -1,5 +1,105 @@
 ---
 es:
+  actions:
+    actions: Acciones
+    back: Volver
+    cancel: Cancelar
+    delete: Eliminar
+    edit: Editar
+    show: Ver
+  errors:
+    form_errors:
+      one: "%{count} error impidió que se guardara"
+      other: "%{count} errores impidieron que se guardara"
+  admin:
+    tagging_rules:
+      add: Agregar Regla
+      confirm_delete: ¿Estás seguro de que quieres eliminar esta regla de etiquetado?
+      created: Regla de etiquetado creada exitosamente
+      deleted: Regla de etiquetado eliminada exitosamente
+      description: Define reglas para categorización automática de contenido
+      disabled: Deshabilitado
+      edit: Editar Regla de Etiquetado
+      empty: Sin reglas de etiquetado
+      empty_description: Comienza creando una nueva regla de etiquetado.
+      enabled: Habilitado
+      for_taxonomy: "Para taxonomía"
+      form:
+        enabled: Habilitado
+        pattern: Patrón
+        pattern_hint: El patrón a comparar. Depende del tipo de regla.
+        priority: Prioridad
+        priority_hint: Números menores se ejecutan primero.
+        rule_type: Tipo de Regla
+        rule_type_hint: Selecciona cómo esta regla coincide con el contenido.
+        select_rule_type: Selecciona un tipo de regla
+        select_taxonomy: Selecciona una taxonomía
+        status: Estado
+        taxonomy: Taxonomía
+      help:
+        domain: Coincide con el dominio de la URL del contenido. Usa * como comodín.
+        keyword: Palabras clave separadas por comas para encontrar en título o texto.
+        source: Ingresa el ID de la fuente para coincidir contenido.
+        url_pattern: Expresión regular para coincidir con la URL del contenido.
+      new: Nueva Regla de Etiquetado
+      new_description: Crea una regla para etiquetar contenido automáticamente.
+      priority: Prioridad
+      rule: Regla
+      rule_details: Detalles de la Regla
+      rule_type_help: Cómo Funciona Esta Regla
+      table:
+        pattern: Patrón
+        priority: Prioridad
+        status: Estado
+        taxonomy: Taxonomía
+        type: Tipo
+      test:
+        confidence: Confianza
+        content: Contenido
+        match: Coincidencia
+        matched: Coincidió
+        no_content: Sin elementos de contenido para probar.
+        no_match: Sin Coincidencia
+        reason: Razón
+      test_description: Ve cómo esta regla coincide con contenido reciente.
+      test_results: Resultados de Prueba
+      test_rule: Probar Regla
+      title: Reglas de Etiquetado
+      updated: Regla de etiquetado actualizada exitosamente
+    taxonomies:
+      add_child: Agregar Hijo
+      children: Hijos
+      children_count:
+        one: "%{count} hijo"
+        other: "%{count} hijos"
+      confirm_delete: ¿Estás seguro de que quieres eliminar esta taxonomía?
+      created: Taxonomía creada exitosamente
+      deleted: Taxonomía eliminada exitosamente
+      description: Gestiona etiquetas de tema para categorización de contenido
+      description_label: Descripción
+      edit: Editar Taxonomía
+      empty: Sin taxonomías
+      empty_description: Comienza creando una nueva taxonomía.
+      form:
+        description: Descripción
+        name: Nombre
+        no_parent: "(Nivel raíz)"
+        parent: Taxonomía Padre
+        position: Posición
+        position_hint: Orden entre hermanos. Números menores aparecen primero.
+        slug: Slug
+        slug_hint: Deja en blanco para auto-generar desde el nombre.
+      new: Nueva Taxonomía
+      new_description: Crea una nueva taxonomía para etiquetar contenido.
+      no_children: Sin taxonomías hijas.
+      no_rules: Sin reglas de etiquetado definidas para esta taxonomía.
+      rules_count:
+        one: "%{count} regla"
+        other: "%{count} reglas"
+      slug: Slug
+      tagging_rules: Reglas de Etiquetado
+      title: Taxonomías
+      updated: Taxonomía actualizada exitosamente
   nav:
     dashboard: Dashboard
     home: Home
