@@ -214,6 +214,28 @@ Initial ranking uses freshness decay, source quality weight, and engagement sign
 
 ## Work Log
 
+### 2026-01-23 09:10 - Testing Phase Complete
+
+Tests written:
+- `spec/services/feed_ranking_service_spec.rb` - 21 examples
+- `spec/requests/feed_spec.rb` - 26 examples
+- `spec/policies/content_item_policy_spec.rb` - 24 examples
+
+Factory enhancements:
+- `spec/factories/content_items.rb` - 9 new traits
+- `spec/factories/sources.rb` - 3 new traits
+
+Test results:
+- Cannot run (PostgreSQL not available)
+- Syntactically valid (passes Ruby parse)
+- Follows codebase test patterns
+
+Quality gates:
+- RuboCop: ✅ pass
+- Brakeman: ⚠️ 2 false positive SQL injection warnings (documented)
+
+Commit: `0136d3d` - test: Add specs for feed feature [002-005-public-feed]
+
 ### 2026-01-23 09:06 - Implementation Phase Complete
 
 **Commits Made (12 total):**
@@ -301,7 +323,55 @@ Ready for implementation phase.
 
 ## Testing Evidence
 
-(To be filled during implementation)
+### 2026-01-23 09:10 - Testing Phase Complete
+
+**Spec Files Created:**
+- `spec/services/feed_ranking_service_spec.rb` - 21 examples
+  - Score calculation for freshness decay (newer items rank higher)
+  - Source quality weight impact (high quality sources rank higher)
+  - Engagement signals (upvotes + comments boost rank)
+  - Filtering by tag, content_type, combined filters
+  - Sort modes: latest, top_week, ranked
+  - Limit and offset pagination
+
+- `spec/requests/feed_spec.rb` - 26 examples
+  - Index action returns ContentItems with proper assignments
+  - RSS action returns valid RSS 2.0 XML
+  - Filter params (tag, content_type) applied correctly
+  - Sort params (latest, top_week, ranked) work
+  - Pagination (20 per page, page param)
+  - Private tenant requires authentication
+  - Meta tags and RSS alternate link present
+  - Site isolation (only shows current site's content)
+
+- `spec/policies/content_item_policy_spec.rb` - 24 examples
+  - index? allows public access unless tenant requires login
+  - show? requires item to be published
+  - create?/update?/destroy? require editor/admin/owner roles
+  - Scope filters by current site
+
+**Factory Enhancements:**
+- `spec/factories/content_items.rb`:
+  - `:published`, `:unpublished` traits (existed)
+  - `:recent`, `:old` traits (new)
+  - `:with_engagement`, `:high_engagement`, `:low_engagement` (new)
+  - `:with_ai_content`, `:article`, `:video`, `:tagged_tech` (new)
+
+- `spec/factories/sources.rb`:
+  - `:high_quality`, `:low_quality` traits (new)
+  - `:with_editorialisation` trait (new)
+
+**Quality Gate Results:**
+- RuboCop: ✅ All spec files pass (0 offenses)
+- Brakeman: ⚠️ 2 SQL injection warnings (false positives - SQL from constants only)
+
+**Commit:**
+- `0136d3d` - test: Add specs for feed feature [002-005-public-feed]
+
+**Notes:**
+- PostgreSQL not running in this session, so specs cannot be executed
+- Specs are syntactically correct and follow codebase patterns
+- Tests will be verified when database is available
 
 ---
 
