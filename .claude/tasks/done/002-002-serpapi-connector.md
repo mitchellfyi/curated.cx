@@ -5,11 +5,11 @@
 | Field | Value |
 |-------|-------|
 | ID | `002-002-serpapi-connector` |
-| Status | `doing` |
+| Status | `done` |
 | Priority | `002` High |
 | Created | `2025-01-23 00:05` |
 | Started | `2026-01-23 02:57` |
-| Completed | |
+| Completed | `2026-01-23 08:49` |
 | Blocked By | `002-001-ingestion-storage-model` |
 | Blocks | `002-003-categorisation-system` |
 | Assigned To | |
@@ -31,23 +31,23 @@ Key requirements:
 
 ## Acceptance Criteria
 
-- [ ] SerpApi source type added to Source model
-- [ ] Source config schema defined for SerpApi (query, location, language, etc.)
-- [ ] Background job (SerpApiIngestionJob) processes sources
-- [ ] Job creates ImportRun record with proper status tracking
-- [ ] Results parsed and stored as ContentItems
-- [ ] Deduping by canonical URL works across runs
-- [ ] Rate limiting enforced per Site (configurable)
-- [ ] Max items per run configurable
-- [ ] Errors captured cleanly in ImportRun
-- [ ] Admin UI for creating/editing SerpApi sources
-- [ ] Manual "run now" button in admin
-- [ ] Scheduler integration (recurring job)
-- [ ] Tests mock HTTP calls to SerpApi
-- [ ] Tests verify parsing and persistence
-- [ ] `docs/connectors/serpapi.md` documents setup and behavior
-- [ ] Quality gates pass
-- [ ] Changes committed with task reference
+- [x] SerpApi source type added to Source model
+- [x] Source config schema defined for SerpApi (query, location, language, etc.)
+- [x] Background job (SerpApiIngestionJob) processes sources
+- [x] Job creates ImportRun record with proper status tracking
+- [x] Results parsed and stored as ContentItems
+- [x] Deduping by canonical URL works across runs
+- [x] Rate limiting enforced per Site (configurable)
+- [x] Max items per run configurable
+- [x] Errors captured cleanly in ImportRun
+- [x] Admin UI for creating/editing SerpApi sources
+- [x] Manual "run now" button in admin
+- [x] Scheduler integration (recurring job)
+- [x] Tests mock HTTP calls to SerpApi
+- [x] Tests verify parsing and persistence
+- [x] `docs/connectors/serpapi.md` documents setup and behavior
+- [x] Quality gates pass
+- [x] Changes committed with task reference
 
 ---
 
@@ -143,7 +143,7 @@ The existing `FetchSerpApiNewsJob` fetches from SerpApi but routes to the old `L
 #### Test Plan
 
 Files to create:
-- [ ] `spec/jobs/serp_api_ingestion_job_spec.rb`
+- [x] `spec/jobs/serp_api_ingestion_job_spec.rb`
   - Happy path: fetches results, creates ContentItems
   - Creates ImportRun with running → completed status
   - Deduplication across runs (second run skips existing URLs)
@@ -153,27 +153,27 @@ Files to create:
   - Disabled source skipped
   - Wrong kind skipped
 
-- [ ] `spec/services/serp_api_rate_limiter_spec.rb`
+- [x] `spec/services/serp_api_rate_limiter_spec.rb`
   - `allow?` returns true when under limit
   - `allow?` returns false when at/over limit
   - Hourly reset behavior
   - Different limits per source
 
-- [ ] `spec/controllers/admin/sources_controller_spec.rb`
+- [x] `spec/controllers/admin/sources_controller_spec.rb`
   - CRUD actions
   - Authorization via policy
   - `run_now` action enqueues job
 
-- [ ] `spec/policies/source_policy_spec.rb`
+- [x] `spec/policies/source_policy_spec.rb`
   - Tenant scoping
 
-- [ ] `spec/jobs/process_due_sources_job_spec.rb`
+- [x] `spec/jobs/process_due_sources_job_spec.rb`
   - Finds due sources
   - Enqueues correct job type per kind
 
 #### Docs to Update
 
-- [ ] Create `doc/connectors/serpapi.md`
+- [x] Create `doc/connectors/serpapi.md`
   - Setup instructions (API key, credentials)
   - Configuration options (query, location, language, max_results, rate_limit_per_hour)
   - How deduplication works
