@@ -290,6 +290,15 @@ RSpec.describe Tenant, type: :model do
     end
 
     describe 'scoped cache invalidation' do
+      # Use memory store to test actual cache behavior (test env uses null_store by default)
+      around do |example|
+        original_cache = Rails.cache
+        Rails.cache = ActiveSupport::Cache::MemoryStore.new
+        example.run
+      ensure
+        Rails.cache = original_cache
+      end
+
       let(:tenant1) { create(:tenant) }
       let(:tenant2) { create(:tenant) }
 
