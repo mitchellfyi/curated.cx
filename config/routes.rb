@@ -7,6 +7,12 @@ Rails.application.routes.draw do
     root "dashboard#index"
     resources :categories
     resources :listings
+    resources :taxonomies
+    resources :tagging_rules do
+      member do
+        get :test
+      end
+    end
     resources :sites do
       resources :domains, except: [ :index ] do
         member do
