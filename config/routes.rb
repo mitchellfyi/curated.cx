@@ -30,6 +30,19 @@ Rails.application.routes.draw do
         post :retry
       end
     end
+
+    # Site bans management
+    resources :site_bans, only: %i[index show new create destroy]
+
+    # Content moderation
+    resources :content_items, only: [] do
+      member do
+        post :hide
+        post :unhide
+        post :lock_comments
+        post :unlock_comments
+      end
+    end
   end
   devise_for :users
 
@@ -46,6 +59,14 @@ Rails.application.routes.draw do
   # Public feed routes
   resources :feed, only: [ :index ], controller: "feed"
   get "feed/rss", to: "feed#rss", as: :feed_rss, defaults: { format: :rss }
+
+  # Content item engagement routes
+  resources :content_items, only: [] do
+    # Vote toggle
+    post :vote, to: "votes#toggle", on: :member
+    # Comments
+    resources :comments, only: %i[index show create update destroy]
+  end
 
   # Public routes for browsing content
   resources :categories, only: [ :index, :show ] do

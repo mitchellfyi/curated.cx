@@ -221,6 +221,14 @@ en:
       test_rule: Test Rule
       title: Tagging Rules
       updated: Tagging rule updated successfully
+    moderation:
+      comments_locked: Comments have been locked on this content
+      comments_unlocked: Comments have been unlocked on this content
+      hidden: Content has been hidden
+      unhidden: Content has been made visible again
+    site_bans:
+      created: User has been banned from this site
+      destroyed: User ban has been removed
     taxonomies:
       add_child: Add Child
       children: Children
@@ -299,6 +307,13 @@ en:
     unlocks:
       resend_button: Resend unlock instructions
       resend_instructions: Didn't receive unlock instructions?
+  comments:
+    banned: You are banned from commenting on this site
+    created: Comment posted successfully
+    deleted: Comment deleted
+    locked: Comments are locked on this content
+    rate_limited: You're commenting too quickly. Please wait before posting again.
+    updated: Comment updated
   categories:
     index:
       browse_content: Browse content
@@ -315,6 +330,7 @@ en:
     form_errors:
       one: "%{count} error prevented this from being saved"
       other: "%{count} errors prevented this from being saved"
+    rate_limited: You have exceeded the rate limit. Please try again later.
   feed:
     content:
       untitled: Untitled
@@ -395,6 +411,10 @@ en:
       disabled: Disabled
       enabled: Enabled
       private: Private
+  votes:
+    banned: You are banned from voting on this site
+    rate_limited: You're voting too quickly. Please wait before voting again.
+    sign_in_to_vote: Sign in to vote
   time:
     ago: "%{time} ago"
     formats:
