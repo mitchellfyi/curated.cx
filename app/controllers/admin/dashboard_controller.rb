@@ -46,10 +46,10 @@ class Admin::DashboardController < ApplicationController
   private
 
   def listing_stats_for_dashboard
-    today_start = Time.current.beginning_of_day
+    today_start = Current.tenant.listings.connection.quote(Time.current.beginning_of_day)
     result = Current.tenant.listings.select(
       Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL) AS published_count"),
-      Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL AND created_at >= '#{today_start.iso8601}') AS today_count")
+      Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL AND created_at >= #{today_start}) AS today_count")
     ).take
 
     {
