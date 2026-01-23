@@ -5,11 +5,11 @@
 | Field | Value |
 |-------|-------|
 | ID | `002-004-ai-editorialisation` |
-| Status | `doing` |
+| Status | `done` |
 | Priority | `002` High |
 | Created | `2025-01-23 00:05` |
 | Started | `2026-01-23 03:18` |
-| Completed | |
+| Completed | `2026-01-23 08:48` |
 | Blocked By | `002-003-categorisation-system` |
 | Blocks | `002-005-public-feed` |
 | Assigned To | |
@@ -55,7 +55,7 @@ The system must be auditable - store prompt versions and outputs. It must never 
 
 #### Gap Analysis (Updated 2026-01-23 03:44)
 
-| Criterion | Status | Gap |
+| Criterion | Status | `done` |
 |-----------|--------|-----|
 | Editorialisation model tracks AI generation attempts | ✅ COMPLETE | `app/models/editorialisation.rb` exists with all fields |
 | Fields: content_item_id, prompt_version, prompt_text, response, status, error | ✅ COMPLETE | `db/migrate/20260123031806_create_editorialisations.rb` has all fields |
