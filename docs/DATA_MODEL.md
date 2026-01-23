@@ -19,6 +19,8 @@ This architecture enables:
 
 ```
 Tenant (1) ──< (many) Site (1) ──< (many) Domain
+                 │
+                 └──< (many) Listing (1) ──< (many) AffiliateClick
 ```
 
 ### Tenant (Owner Account)
@@ -273,6 +275,106 @@ site.primary_hostname  # => "www.ainews.cx"
 
 ---
 
+### Listing (Content Item)
+
+**Purpose**: Represents a curated content item (tool, job, service, article).
+
+**Key Attributes**:
+- `site_id` - The site this listing belongs to
+- `tenant_id` - Legacy association (set from site)
+- `category_id` - Content category
+- `listing_type` - Enum: `tool`, `job`, `service`
+- `title`, `description`, `body_html` - Content fields
+- `url_canonical`, `url_raw` - Source URLs
+- `published_at` - Publication timestamp
+
+**Monetisation Fields**:
+- `affiliate_url_template` - Affiliate URL with placeholders
+- `affiliate_attribution` (JSONB) - Tracking parameters
+- `featured_from`, `featured_until` - Featured date range
+- `featured_by_id` - Admin who set featured
+- `expires_at` - Expiry for jobs
+- `company`, `location`, `salary_range`, `apply_url` - Job fields
+- `paid`, `payment_reference` - Payment tracking
+
+**Associations**:
+- `belongs_to :site` - Parent site
+- `belongs_to :tenant` - Legacy association
+- `belongs_to :category` - Content category
+- `belongs_to :featured_by` (User) - Admin reference
+- `has_many :affiliate_clicks` - Click tracking
+
+**Scopes**:
+- `published` - Has `published_at`
+- `featured` - Currently within featured date range
+- `not_expired` - Not past `expires_at`
+- `jobs`, `tools`, `services` - By listing type
+- `active_jobs` - Jobs that are published and not expired
+- `with_affiliate` - Has affiliate template configured
+
+**Example**:
+```ruby
+# Create a featured job listing
+listing = site.listings.create!(
+  category: jobs_category,
+  listing_type: :job,
+  title: "Senior Developer",
+  company: "ACME Corp",
+  location: "Remote",
+  salary_range: "$120k-$180k",
+  apply_url: "https://example.com/apply",
+  url_raw: "https://example.com/jobs/123",
+  expires_at: 30.days.from_now,
+  featured_from: Time.current,
+  featured_until: 7.days.from_now,
+  published_at: Time.current
+)
+
+# Check status
+listing.featured?  # => true
+listing.expired?   # => false
+listing.job?       # => true
+```
+
+---
+
+### AffiliateClick (Click Tracking)
+
+**Purpose**: Tracks clicks on affiliate links for revenue analytics.
+
+**Key Attributes**:
+- `listing_id` - The clicked listing
+- `clicked_at` - Timestamp of click
+- `ip_hash` - SHA256 hash of IP (privacy)
+- `user_agent` - Browser information
+- `referrer` - Source page URL
+
+**Associations**:
+- `belongs_to :listing` - Parent listing
+
+**Scopes**:
+- `recent` - Ordered by most recent
+- `today`, `this_week`, `this_month` - Time-based filtering
+- `for_site(site_id)` - Scoped to a site via listing
+
+**Example**:
+```ruby
+# Track a click
+AffiliateClick.create!(
+  listing: listing,
+  clicked_at: Time.current,
+  ip_hash: Digest::SHA256.hexdigest(ip)[0..15],
+  user_agent: request.user_agent,
+  referrer: request.referrer
+)
+
+# Analytics
+AffiliateClick.for_site(site.id).this_month.count
+AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
+```
+
+---
+
 ## Migration Path
 
 **Current State**: The application currently uses `Tenant` model directly with `hostname` field for routing.
@@ -308,4 +410,4 @@ site.primary_hostname  # => "www.ainews.cx"
 
 ---
 
-*Last Updated: 2025-01-20*
+*Last Updated: 2026-01-23*
