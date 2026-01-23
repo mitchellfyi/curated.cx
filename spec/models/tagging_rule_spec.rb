@@ -252,17 +252,5 @@ RSpec.describe TaggingRule, type: :model do
     end
   end
 
-  describe "callbacks" do
-    describe "#set_tenant_from_site" do
-      let(:tenant) { create(:tenant) }
-      let(:site) { create(:site, tenant: tenant) }
-      let(:taxonomy) { create(:taxonomy, site: site, tenant: tenant) }
-
-      it "sets tenant from site on create" do
-        rule = build(:tagging_rule, taxonomy: taxonomy, site: site, tenant: nil)
-        rule.save
-        expect(rule.tenant).to eq(tenant)
-      end
-    end
-  end
+  # Note: #set_tenant_from_site is tested in spec/models/concerns/site_scoped_spec.rb
 end

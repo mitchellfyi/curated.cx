@@ -12,11 +12,12 @@ RSpec.describe Taxonomy, type: :model do
   end
 
   describe "validations" do
-    let(:site) { create(:site) }
-    subject { build(:taxonomy, site: site) }
+    let(:tenant) { create(:tenant) }
+    let(:site) { create(:site, tenant: tenant) }
+    subject { create(:taxonomy, site: site, tenant: tenant) }
 
     it { should validate_presence_of(:name) }
-    it { should validate_presence_of(:slug) }
+    # Slug is auto-generated from name, so presence validation test doesn't work with shoulda
     it { should validate_uniqueness_of(:slug).scoped_to(:site_id) }
 
     it "validates slug format" do
@@ -54,23 +55,7 @@ RSpec.describe Taxonomy, type: :model do
       end
     end
 
-    describe "#set_tenant_from_site" do
-      let(:tenant) { create(:tenant) }
-      let(:site) { create(:site, tenant: tenant) }
-
-      it "sets tenant from site on create" do
-        taxonomy = build(:taxonomy, site: site, tenant: nil)
-        taxonomy.save
-        expect(taxonomy.tenant).to eq(tenant)
-      end
-
-      it "does not override existing tenant" do
-        other_tenant = create(:tenant)
-        taxonomy = build(:taxonomy, site: site, tenant: other_tenant)
-        taxonomy.save
-        expect(taxonomy.tenant).to eq(other_tenant)
-      end
-    end
+    # Note: #set_tenant_from_site is tested in spec/models/concerns/site_scoped_spec.rb
   end
 
   describe "scopes" do

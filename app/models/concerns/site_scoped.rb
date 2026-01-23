@@ -52,7 +52,10 @@ module SiteScoped
   # Sets tenant from site on create when tenant is not already set.
   # This allows models to be created with just a site, and the tenant
   # will be inferred automatically.
+  # Only applies to models that also include TenantScoped (have a tenant attribute).
   def set_tenant_from_site
+    return unless respond_to?(:tenant=)
+
     self.tenant = site.tenant if site.present? && tenant.nil?
   end
 
@@ -62,7 +65,10 @@ module SiteScoped
   # - Console operations with incorrect setup
   # - Seeds/fixtures with mismatched data
   # - API imports with explicit tenant setting
+  # Only applies to models that also include TenantScoped (have a tenant attribute).
   def ensure_site_tenant_consistency
+    return unless respond_to?(:tenant)
+
     if site.present? && tenant.present? && site.tenant_id != tenant_id
       errors.add(:site, "must belong to the same tenant")
     end
