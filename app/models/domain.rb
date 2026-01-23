@@ -113,7 +113,7 @@ class Domain < ApplicationRecord
 
   # Verification methods
   def check_dns!
-    result = verify_dns_resolution
+    result = dns_verifier.verify
 
     self.last_checked_at = Time.current
 
@@ -135,70 +135,8 @@ class Domain < ApplicationRecord
     result
   end
 
-  def verify_dns_resolution
-    require "resolv"
-
-    hostname = self.hostname
-    is_apex = apex_domain?(hostname)
-    expected_target = dns_target
-
-    resolver = Resolv::DNS.new
-    resolver.timeouts = [ 2, 2, 2 ] # 2 second timeout per attempt
-
-    begin
-      if is_apex
-        # For apex domains, check A records resolve to expected IP
-        a_records = resolver.getresources(hostname, Resolv::DNS::Resource::IN::A)
-
-        if a_records.empty?
-          { verified: false, error: "No A records found for #{hostname}" }
-        elsif ip_address?(expected_target)
-          # Check if any A record matches expected target (if target is IP)
-          matching = a_records.any? { |record| record.address.to_s == expected_target }
-          if matching
-            { verified: true, records: a_records.map(&:address).map(&:to_s) }
-          else
-            found_ips = a_records.map(&:address).map(&:to_s).join(", ")
-            { verified: false, error: "A records point to #{found_ips}, expected #{expected_target}" }
-          end
-        else
-          # Target is a hostname, resolve it and compare
-          target_ip = resolver.getaddress(expected_target).to_s
-          matching = a_records.any? { |record| record.address.to_s == target_ip }
-          if matching
-            { verified: true, records: a_records.map(&:address).map(&:to_s) }
-          else
-            found_ips = a_records.map(&:address).map(&:to_s).join(", ")
-            { verified: false, error: "A records point to #{found_ips}, expected #{target_ip} (#{expected_target})" }
-          end
-        end
-      else
-        # For subdomains, check CNAME points to expected target
-        cname_records = resolver.getresources(hostname, Resolv::DNS::Resource::IN::CNAME)
-
-        if cname_records.empty?
-          { verified: false, error: "No CNAME record found for #{hostname}" }
-        else
-          # Check if CNAME points to expected target
-          cname_target = cname_records.first.name.to_s.downcase
-          expected_target_normalized = expected_target.downcase
-
-          if cname_target == expected_target_normalized || cname_target.end_with?(".#{expected_target_normalized}")
-            { verified: true, records: [ cname_target ] }
-          else
-            { verified: false, error: "CNAME points to #{cname_target}, expected #{expected_target}" }
-          end
-        end
-      end
-    rescue Resolv::ResolvError => e
-      { verified: false, error: "DNS resolution error: #{e.message}" }
-    rescue => e
-      { verified: false, error: "Verification error: #{e.message}" }
-    end
-  end
-
-  def ip_address?(string)
-    /\A(\d{1,3}\.){3}\d{1,3}\z/.match?(string)
+  def dns_verifier
+    @dns_verifier ||= DnsVerifier.new(hostname: hostname, expected_target: dns_target)
   end
 
   # DNS-related methods (shared logic with DnsInstructionsHelper)
