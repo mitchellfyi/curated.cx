@@ -1,30 +1,38 @@
 #!/usr/bin/env bash
 #
-# bin/agent - Run Claude agent for N tasks (FULLY AUTONOMOUS + SELF-HEALING)
+# bin/agent - Run Claude agent for N tasks (FULLY AUTONOMOUS + SELF-HEALING + PARALLEL)
 #
 # This script runs Claude in DANGEROUS MODE - all permissions bypassed,
 # no confirmations, no asks. The agent operates fully autonomously.
 #
-# SELF-HEALING FEATURES:
+# FEATURES:
 #   - Automatic retry with exponential backoff on failures
 #   - Session persistence and resume on crash
 #   - Health checks before each run
 #   - Graceful degradation on repeated failures
-#   - State tracking for recovery
+#   - PARALLEL AGENT SUPPORT via lock files
+#   - Task assignment tracking to prevent conflicts
 #
 # Usage:
-#   ./bin/agent    # Run 5 tasks (default)
-#   ./bin/agent 3    # Run 3 tasks
-#   ./bin/agent 1    # Run 1 task
+#   ./bin/agent        # Run 5 tasks (default)
+#   ./bin/agent 3      # Run 3 tasks
+#   ./bin/agent 1      # Run 1 task
+#
+# Parallel usage (run multiple agents simultaneously):
+#   ./bin/agent 5 &    # Agent 1 in background
+#   ./bin/agent 5 &    # Agent 2 in background
+#   ./bin/agent 5 &    # Agent 3 in background
 #
 # Environment variables:
-#   CLAUDE_MODEL     - Model to use (default: opus)
-#   CLAUDE_TIMEOUT   - Timeout per task in seconds (default: 600)
-#   AGENT_DRY_RUN    - If set to 1, preview without executing
-#   AGENT_VERBOSE    - If set to 1, show more output
+#   CLAUDE_MODEL       - Model to use (default: opus)
+#   CLAUDE_TIMEOUT     - Timeout per task in seconds (default: 600)
+#   AGENT_DRY_RUN      - If set to 1, preview without executing
+#   AGENT_VERBOSE      - If set to 1, show more output
 #   AGENT_MAX_RETRIES  - Max retries per task (default: 3)
 #   AGENT_RETRY_DELAY  - Base delay between retries in seconds (default: 5)
-#   AGENT_NO_RESUME  - If set to 1, don't resume previous session
+#   AGENT_NO_RESUME    - If set to 1, don't resume previous session
+#   AGENT_NAME         - Custom agent name (default: auto-generated)
+#   AGENT_LOCK_TIMEOUT - Stale lock timeout in seconds (default: 7200 = 2 hours)
 #
 # WARNING: This script bypasses ALL safety checks. Only use in trusted repos.
 #
@@ -40,6 +48,7 @@ TASKS_DIR="$REPO_ROOT/.claude/tasks"
 LOGS_DIR="$REPO_ROOT/.claude/logs/claude-loop"
 SCRIPTS_DIR="$REPO_ROOT/.claude/scripts"
 STATE_DIR="$REPO_ROOT/.claude/state"
+LOCKS_DIR="$REPO_ROOT/.claude/locks"
 SESSION_FILE="$STATE_DIR/current-session"
 HEALTH_FILE="$STATE_DIR/health"
 
@@ -52,6 +61,14 @@ AGENT_VERBOSE="${AGENT_VERBOSE:-0}"
 AGENT_MAX_RETRIES="${AGENT_MAX_RETRIES:-3}"
 AGENT_RETRY_DELAY="${AGENT_RETRY_DELAY:-5}"
 AGENT_NO_RESUME="${AGENT_NO_RESUME:-0}"
+AGENT_LOCK_TIMEOUT="${AGENT_LOCK_TIMEOUT:-7200}"
+
+# Generate unique agent ID
+HOSTNAME_SHORT=$(hostname -s 2>/dev/null || hostname | cut -d. -f1)
+AGENT_ID="${AGENT_NAME:-agent-${HOSTNAME_SHORT}-$$-$(date +%s)}"
+
+# Track locks held by this agent
+HELD_LOCKS=()
 
 # Colors
 RED='\033[0;31m'
@@ -68,37 +85,236 @@ NC='\033[0m'
 # ============================================================================
 
 RUN_TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
-RUN_LOG_DIR="$LOGS_DIR/$RUN_TIMESTAMP"
+RUN_LOG_DIR="$LOGS_DIR/$RUN_TIMESTAMP-$AGENT_ID"
 
 log_info() {
-  echo -e "${BLUE}[INFO]${NC} $1"
+  echo -e "${BLUE}[$AGENT_ID]${NC} $1"
 }
 
 log_success() {
-  echo -e "${GREEN}[OK]${NC} $1"
+  echo -e "${GREEN}[$AGENT_ID OK]${NC} $1"
 }
 
 log_warn() {
-  echo -e "${YELLOW}[WARN]${NC} $1"
+  echo -e "${YELLOW}[$AGENT_ID WARN]${NC} $1"
 }
 
 log_error() {
-  echo -e "${RED}[ERROR]${NC} $1"
+  echo -e "${RED}[$AGENT_ID ERROR]${NC} $1"
 }
 
 log_step() {
-  echo -e "${CYAN}[STEP]${NC} $1"
+  echo -e "${CYAN}[$AGENT_ID STEP]${NC} $1"
 }
 
 log_heal() {
-  echo -e "${MAGENTA}[HEAL]${NC} $1"
+  echo -e "${MAGENTA}[$AGENT_ID HEAL]${NC} $1"
+}
+
+log_lock() {
+  echo -e "${YELLOW}[$AGENT_ID LOCK]${NC} $1"
 }
 
 log_header() {
   echo ""
   echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
   echo -e "${BOLD} $1${NC}"
+  echo -e "${BOLD} Agent: $AGENT_ID${NC}"
   echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
+}
+
+# ============================================================================
+# Lock Management (Parallel Agent Support)
+# ============================================================================
+
+init_locks() {
+  mkdir -p "$LOCKS_DIR"
+}
+
+get_task_id_from_file() {
+  local file="$1"
+  basename "$file" .md
+}
+
+get_lock_file() {
+  local task_id="$1"
+  echo "$LOCKS_DIR/${task_id}.lock"
+}
+
+is_lock_stale() {
+  local lock_file="$1"
+
+  if [ ! -f "$lock_file" ]; then
+    return 0  # No lock = stale (available)
+  fi
+
+  # Read lock info
+  local locked_at pid
+  locked_at=$(grep "^LOCKED_AT=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "0")
+  pid=$(grep "^PID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "0")
+
+  # Check if PID is still running
+  if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+    if ! kill -0 "$pid" 2>/dev/null; then
+      log_heal "Lock PID $pid is not running - lock is stale"
+      return 0  # Process not running = stale
+    fi
+  fi
+
+  # Check if lock is too old
+  local now locked_timestamp age
+  now=$(date +%s)
+  locked_timestamp=$(date -j -f "%Y-%m-%d %H:%M:%S" "$locked_at" +%s 2>/dev/null || date -d "$locked_at" +%s 2>/dev/null || echo "0")
+
+  if [ "$locked_timestamp" != "0" ]; then
+    age=$((now - locked_timestamp))
+    if [ "$age" -gt "$AGENT_LOCK_TIMEOUT" ]; then
+      log_heal "Lock is ${age}s old (> ${AGENT_LOCK_TIMEOUT}s) - lock is stale"
+      return 0  # Too old = stale
+    fi
+  fi
+
+  return 1  # Lock is valid
+}
+
+is_task_locked() {
+  local task_id="$1"
+  local lock_file
+  lock_file=$(get_lock_file "$task_id")
+
+  if [ ! -f "$lock_file" ]; then
+    return 1  # Not locked
+  fi
+
+  # Check if locked by us
+  local lock_agent
+  lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "")
+
+  if [ "$lock_agent" = "$AGENT_ID" ]; then
+    return 1  # Locked by us = available to us
+  fi
+
+  # Check if stale
+  if is_lock_stale "$lock_file"; then
+    log_heal "Removing stale lock for $task_id"
+    rm -f "$lock_file"
+    return 1  # Was stale, now available
+  fi
+
+  return 0  # Locked by another agent
+}
+
+acquire_lock() {
+  local task_id="$1"
+  local lock_file
+  lock_file=$(get_lock_file "$task_id")
+
+  # Atomic lock acquisition using mkdir (atomic on most filesystems)
+  local lock_dir="${lock_file}.acquiring"
+
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    # Another agent is acquiring
+    sleep 0.5
+    if [ -d "$lock_dir" ]; then
+      log_warn "Lock acquisition in progress by another agent for $task_id"
+      return 1
+    fi
+  fi
+
+  # Check again if locked (race condition protection)
+  if [ -f "$lock_file" ]; then
+    local lock_agent
+    lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "")
+
+    if [ "$lock_agent" != "$AGENT_ID" ] && ! is_lock_stale "$lock_file"; then
+      rmdir "$lock_dir" 2>/dev/null || true
+      return 1  # Already locked by another
+    fi
+  fi
+
+  # Write lock file
+  cat > "$lock_file" << EOF
+AGENT_ID=$AGENT_ID
+LOCKED_AT=$(date '+%Y-%m-%d %H:%M:%S')
+PID=$$
+TASK_ID=$task_id
+EOF
+
+  rmdir "$lock_dir" 2>/dev/null || true
+
+  # Track this lock
+  HELD_LOCKS+=("$task_id")
+  log_lock "Acquired lock for $task_id"
+
+  return 0
+}
+
+release_lock() {
+  local task_id="$1"
+  local lock_file
+  lock_file=$(get_lock_file "$task_id")
+
+  if [ -f "$lock_file" ]; then
+    local lock_agent
+    lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "")
+
+    if [ "$lock_agent" = "$AGENT_ID" ]; then
+      rm -f "$lock_file"
+      log_lock "Released lock for $task_id"
+
+      # Remove from held locks
+      local new_held=()
+      for held in "${HELD_LOCKS[@]}"; do
+        if [ "$held" != "$task_id" ]; then
+          new_held+=("$held")
+        fi
+      done
+      HELD_LOCKS=("${new_held[@]+"${new_held[@]}"}")
+    fi
+  fi
+}
+
+release_all_locks() {
+  log_lock "Releasing all held locks..."
+  for task_id in "${HELD_LOCKS[@]+"${HELD_LOCKS[@]}"}"; do
+    release_lock "$task_id"
+  done
+  HELD_LOCKS=()
+}
+
+# ============================================================================
+# Task Assignment (Update task file metadata)
+# ============================================================================
+
+assign_task() {
+  local task_file="$1"
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M')
+
+  # Update Assigned To and Assigned At in task file
+  if [ -f "$task_file" ]; then
+    # Use sed to update the metadata table
+    if grep -q "| Assigned To |" "$task_file"; then
+      sed -i.bak "s/| Assigned To | .*/| Assigned To | \`$AGENT_ID\` |/" "$task_file"
+      sed -i.bak "s/| Assigned At | .*/| Assigned At | \`$timestamp\` |/" "$task_file"
+      rm -f "${task_file}.bak"
+    fi
+    log_info "Assigned task to $AGENT_ID"
+  fi
+}
+
+unassign_task() {
+  local task_file="$1"
+
+  # Clear Assigned To and Assigned At in task file
+  if [ -f "$task_file" ]; then
+    if grep -q "| Assigned To |" "$task_file"; then
+      sed -i.bak "s/| Assigned To | .*/| Assigned To | |/" "$task_file"
+      sed -i.bak "s/| Assigned At | .*/| Assigned At | |/" "$task_file"
+      rm -f "${task_file}.bak"
+    fi
+    log_info "Unassigned task"
+  fi
 }
 
 # ============================================================================
@@ -108,15 +324,18 @@ log_header() {
 init_state() {
   mkdir -p "$STATE_DIR"
   mkdir -p "$RUN_LOG_DIR"
+  init_locks
 }
 
 save_session() {
   local session_id="$1"
   local iteration="$2"
   local status="$3"
+  local session_file="$STATE_DIR/session-$AGENT_ID"
 
-  cat > "$SESSION_FILE" << EOF
+  cat > "$session_file" << EOF
 SESSION_ID=$session_id
+AGENT_ID=$AGENT_ID
 ITERATION=$iteration
 STATUS=$status
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
@@ -128,9 +347,11 @@ EOF
 }
 
 load_session() {
-  if [ -f "$SESSION_FILE" ] && [ "$AGENT_NO_RESUME" != "1" ]; then
+  local session_file="$STATE_DIR/session-$AGENT_ID"
+
+  if [ -f "$session_file" ] && [ "$AGENT_NO_RESUME" != "1" ]; then
     # shellcheck source=/dev/null
-    source "$SESSION_FILE"
+    source "$session_file"
     if [ -n "${SESSION_ID:-}" ] && [ "${STATUS:-}" = "running" ]; then
       log_heal "Found interrupted session: $SESSION_ID"
       log_heal "Last iteration: ${ITERATION:-1}, Status: $STATUS"
@@ -141,24 +362,28 @@ load_session() {
 }
 
 clear_session() {
-  rm -f "$SESSION_FILE"
+  local session_file="$STATE_DIR/session-$AGENT_ID"
+  rm -f "$session_file"
 }
 
 update_health() {
   local status="$1"
   local message="$2"
+  local health_file="$STATE_DIR/health-$AGENT_ID"
 
-  cat > "$HEALTH_FILE" << EOF
+  cat > "$health_file" << EOF
 STATUS=$status
 MESSAGE=$message
+AGENT_ID=$AGENT_ID
 LAST_CHECK=$(date '+%Y-%m-%d %H:%M:%S')
 CONSECUTIVE_FAILURES=${CONSECUTIVE_FAILURES:-0}
 EOF
 }
 
 get_consecutive_failures() {
-  if [ -f "$HEALTH_FILE" ]; then
-    grep "^CONSECUTIVE_FAILURES=" "$HEALTH_FILE" 2>/dev/null | cut -d= -f2 || echo "0"
+  local health_file="$STATE_DIR/health-$AGENT_ID"
+  if [ -f "$health_file" ]; then
+    grep "^CONSECUTIVE_FAILURES=" "$health_file" 2>/dev/null | cut -d= -f2 || echo "0"
   else
     echo "0"
   fi
@@ -198,6 +423,12 @@ health_check() {
   done
   log_success "Task directories ready"
 
+  # Check locks directory
+  if [ ! -d "$LOCKS_DIR" ]; then
+    mkdir -p "$LOCKS_DIR"
+  fi
+  log_success "Locks directory ready"
+
   # Check disk space (warn if < 1GB)
   local available_kb
   available_kb=$(df -k "$REPO_ROOT" | awk 'NR==2 {print $4}')
@@ -207,12 +438,11 @@ health_check() {
     log_success "Disk space OK: $((available_kb / 1024))MB available"
   fi
 
-  # Check for stuck tasks in doing/
-  local doing_count
-  doing_count=$(find "$TASKS_DIR/doing" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$doing_count" -gt 1 ]; then
-    log_warn "Multiple tasks in doing/ ($doing_count) - this shouldn't happen"
-    log_heal "Consider running: mv .claude/tasks/doing/*.md .claude/tasks/todo/"
+  # Show active agents
+  local active_locks
+  active_locks=$(find "$LOCKS_DIR" -name "*.lock" 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$active_locks" -gt 0 ]; then
+    log_info "Active task locks: $active_locks"
   fi
 
   if [ "$issues" -gt 0 ]; then
@@ -255,19 +485,65 @@ count_tasks() {
   find "$TASKS_DIR/$state" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' '
 }
 
-get_doing_task() {
-  find "$TASKS_DIR/doing" -maxdepth 1 -name "*.md" 2>/dev/null | head -1
+count_locked_tasks() {
+  find "$LOCKS_DIR" -maxdepth 1 -name "*.lock" 2>/dev/null | wc -l | tr -d ' '
 }
 
-get_next_todo_task() {
-  find "$TASKS_DIR/todo" -maxdepth 1 -name "*.md" 2>/dev/null | sort | head -1
+get_doing_task_for_agent() {
+  # Look for a task in doing/ that we have locked
+  for file in "$TASKS_DIR/doing"/*.md; do
+    [ -f "$file" ] || continue
+    local task_id
+    task_id=$(get_task_id_from_file "$file")
+
+    local lock_file
+    lock_file=$(get_lock_file "$task_id")
+
+    if [ -f "$lock_file" ]; then
+      local lock_agent
+      lock_agent=$(grep "^AGENT_ID=" "$lock_file" 2>/dev/null | cut -d= -f2 || echo "")
+      if [ "$lock_agent" = "$AGENT_ID" ]; then
+        echo "$file"
+        return 0
+      fi
+    fi
+  done
+
+  return 1
+}
+
+get_next_available_task() {
+  # First check doing/ for tasks we own
+  local our_doing
+  our_doing=$(get_doing_task_for_agent) || true
+  if [ -n "$our_doing" ]; then
+    echo "$our_doing"
+    return 0
+  fi
+
+  # Then check todo/ for unassigned tasks (sorted by priority)
+  for file in $(find "$TASKS_DIR/todo" -maxdepth 1 -name "*.md" 2>/dev/null | sort); do
+    [ -f "$file" ] || continue
+    local task_id
+    task_id=$(get_task_id_from_file "$file")
+
+    if ! is_task_locked "$task_id"; then
+      echo "$file"
+      return 0
+    else
+      log_info "Skipping $task_id (locked by another agent)"
+    fi
+  done
+
+  return 1
 }
 
 show_task_summary() {
   log_info "Task Summary:"
-  echo "  - Todo:  $(count_tasks todo)"
-  echo "  - Doing: $(count_tasks doing)"
-  echo "  - Done:  $(count_tasks done)"
+  echo "  - Todo:    $(count_tasks todo)"
+  echo "  - Doing:   $(count_tasks doing)"
+  echo "  - Done:    $(count_tasks done)"
+  echo "  - Locked:  $(count_locked_tasks)"
 }
 
 # ============================================================================
@@ -333,12 +609,7 @@ run_agent_iteration() {
   local session_id
 
   # Generate or reuse session ID
-  if [ -f "$SESSION_FILE" ] && [ "$AGENT_NO_RESUME" != "1" ]; then
-    session_id=$(grep "^SESSION_ID=" "$SESSION_FILE" 2>/dev/null | cut -d= -f2 || true)
-  fi
-  if [ -z "${session_id:-}" ]; then
-    session_id="agent-$(date '+%Y%m%d%H%M%S')-$$"
-  fi
+  session_id="$AGENT_ID-iter$iteration"
 
   log_header "Task $iteration of $NUM_TASKS (Attempt $attempt)"
 
@@ -348,25 +619,40 @@ run_agent_iteration() {
   # Show current state
   show_task_summary
 
-  # Check for task in doing
-  local doing_task
-  doing_task=$(get_doing_task)
+  # Find a task to work on
+  local task_file
+  task_file=$(get_next_available_task) || true
 
-  local use_continue=0
-  if [ -n "$doing_task" ]; then
-    log_info "Resuming task: $(basename "$doing_task")"
-    # If we have a task in doing and this is a retry, use --continue
-    if [ "$attempt" -gt 1 ]; then
-      use_continue=1
-      log_heal "Using --continue to resume previous session"
-    fi
+  if [ -z "$task_file" ]; then
+    log_info "No available tasks (all locked or empty)"
+    log_info "Agent will create one from MISSION.md or wait for tasks"
+    # Let Claude handle creating a task
   else
-    local next_task
-    next_task=$(get_next_todo_task)
-    if [ -n "$next_task" ]; then
-      log_info "Next task from todo: $(basename "$next_task")"
+    local task_id
+    task_id=$(get_task_id_from_file "$task_file")
+    local is_doing=0
+
+    # Check if already in doing/
+    if [[ "$task_file" == *"/doing/"* ]]; then
+      is_doing=1
+      log_info "Resuming task: $task_id"
     else
-      log_info "No tasks in queue - agent will create one from MISSION.md"
+      log_info "Picking up task: $task_id"
+
+      # Acquire lock
+      if ! acquire_lock "$task_id"; then
+        log_warn "Failed to acquire lock for $task_id - another agent got it"
+        # Try to find another task
+        return 1
+      fi
+
+      # Move to doing/
+      local new_path="$TASKS_DIR/doing/$(basename "$task_file")"
+      mv "$task_file" "$new_path"
+      task_file="$new_path"
+
+      # Update task metadata
+      assign_task "$task_file"
     fi
   fi
 
@@ -379,7 +665,7 @@ run_agent_iteration() {
   log_step "Running Claude agent (DANGEROUS MODE - all permissions bypassed)..."
   echo "  Log: $task_log"
   echo "  Model: $CLAUDE_MODEL"
-  echo "  Session: $session_id"
+  echo "  Agent: $AGENT_ID"
   echo ""
 
   # Build the prompt
@@ -392,11 +678,6 @@ run_agent_iteration() {
     "-p"
     "--model" "$CLAUDE_MODEL"
   )
-
-  # Add continue flag if resuming after failure
-  if [ "$use_continue" = "1" ]; then
-    claude_args+=("--continue")
-  fi
 
   # Add verbose if requested
   if [ "$AGENT_VERBOSE" = "1" ]; then
@@ -423,11 +704,24 @@ run_agent_iteration() {
     0)
       log_success "Task iteration completed successfully"
       save_session "$session_id" "$iteration" "completed"
+
+      # Check if task was completed (moved to done/)
+      # If so, release the lock
+      if [ -n "${task_file:-}" ]; then
+        local task_id
+        task_id=$(get_task_id_from_file "$task_file")
+        local done_file="$TASKS_DIR/done/$(basename "$task_file")"
+        if [ -f "$done_file" ]; then
+          release_lock "$task_id"
+          unassign_task "$done_file"
+        fi
+      fi
+
       return 0
       ;;
     124)
       log_error "Task timed out after ${CLAUDE_TIMEOUT}s"
-      log_heal "Will retry with --continue to resume"
+      log_heal "Will retry"
       save_session "$session_id" "$iteration" "timeout"
       return 1
       ;;
@@ -458,25 +752,38 @@ run_agent_iteration() {
 cleanup() {
   log_info "Cleaning up..."
 
+  # Release all locks held by this agent
+  release_all_locks
+
+  # Unassign any tasks we were working on
+  for file in "$TASKS_DIR/doing"/*.md; do
+    [ -f "$file" ] || continue
+    if grep -q "$AGENT_ID" "$file" 2>/dev/null; then
+      unassign_task "$file"
+    fi
+  done
+
   # Generate taskboard
   if [ -x "$SCRIPTS_DIR/taskboard.sh" ]; then
     "$SCRIPTS_DIR/taskboard.sh" 2>/dev/null || true
   fi
 }
 
-trap cleanup EXIT
+trap cleanup EXIT INT TERM
 
 # ============================================================================
 # Main
 # ============================================================================
 
 main() {
-  log_header "Claude Agent Runner (Self-Healing Mode)"
+  log_header "Claude Agent Runner (Parallel Mode)"
   echo ""
+  echo "  Agent ID: $AGENT_ID"
   echo "  Tasks to run: $NUM_TASKS"
   echo "  Model: $CLAUDE_MODEL"
   echo "  Timeout: ${CLAUDE_TIMEOUT}s per task"
   echo "  Max retries: $AGENT_MAX_RETRIES"
+  echo "  Lock timeout: ${AGENT_LOCK_TIMEOUT}s"
   echo "  Log dir: $RUN_LOG_DIR"
   echo ""
 
@@ -507,6 +814,7 @@ main() {
   # Track results
   local completed=0
   local failed=0
+  local skipped=0
   CONSECUTIVE_FAILURES=$(get_consecutive_failures)
 
   # Run agent for N iterations with retry
@@ -514,6 +822,14 @@ main() {
     if run_with_retry "$i"; then
       ((completed++))
     else
+      # Check if we failed because no tasks available
+      local available
+      available=$(get_next_available_task) || true
+      if [ -z "$available" ] && [ "$(count_tasks todo)" -eq 0 ]; then
+        log_info "No more tasks available - stopping early"
+        ((skipped++))
+        break
+      fi
       ((failed++))
       log_warn "Moving to next task after exhausting retries..."
     fi
@@ -532,8 +848,10 @@ main() {
   # Final summary
   log_header "Run Complete"
   echo ""
+  echo "  Agent: $AGENT_ID"
   echo "  Completed: $completed"
   echo "  Failed: $failed"
+  echo "  Skipped: $skipped"
   echo "  Logs: $RUN_LOG_DIR"
   echo ""
   show_task_summary

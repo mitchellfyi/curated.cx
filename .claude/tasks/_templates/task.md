@@ -12,6 +12,8 @@
 | Completed | `YYYY-MM-DD HH:MM` |
 | Blocked By | (task IDs that must complete first) |
 | Blocks | (task IDs waiting on this) |
+| Assigned To | |
+| Assigned At | |
 
 ---
 

@@ -20,12 +20,14 @@ When prompted with "continue", "continue working", or similar:
 Execute this algorithm on every "continue working" run:
 
 ```
-STEP 1: CHECK DOING
+STEP 1: CHECK DOING (Your Task)
   - Look in .claude/tasks/doing/
-  - If a task file exists:
+  - Find task file assigned to YOU (check Assigned To field)
+  - If found:
     - Read the task file
     - Resume work from the Work Log
     - Continue to STEP 4
+  - If another agent's task is in doing/, skip it
 
 STEP 2: PICK FROM TODO
   - Look in .claude/tasks/todo/
@@ -34,7 +36,10 @@ STEP 2: PICK FROM TODO
       - PPP = priority (001=critical, 002=high, 003=medium, 004=low)
       - SSS = sequence within priority
     - Check dependencies (blockedBy field)
-    - Pick first unblocked task
+    - Check assignment (skip if Assigned To is set to another agent)
+    - Pick first unblocked, unassigned task
+    - Update Assigned To with your agent ID
+    - Update Assigned At with current timestamp
     - Move file from todo/ to doing/
     - Update status field in file to "doing"
     - Continue to STEP 4
@@ -78,13 +83,15 @@ STEP 4: EXECUTE TASK
     - Update task status to "done"
     - Update completed timestamp
     - Add completion summary to Work Log
+    - Clear Assigned To and Assigned At fields
     - Move file from doing/ to done/
     - Commit with message referencing task ID
     - Regenerate TASKBOARD.md
 
 STEP 5: CONTINUE OR STOP
   - If more tasks remain and within run limit: go to STEP 1
-  - Otherwise: stop and report summary
+  - If stopping: clear your assignment from any uncompleted tasks
+  - Report summary
 ```
 
 ---
@@ -210,11 +217,23 @@ Examples:
 
 ```
 .claude/tasks/
-  todo/     <- Planned, ready to start
-  doing/    <- In progress (max 1 task at a time)
-  done/     <- Completed with logs
+  todo/     <- Planned, ready to start (unassigned)
+  doing/    <- In progress (assigned to an agent)
+  done/     <- Completed with logs (unassigned)
   _templates/ <- Task file template
 ```
+
+### Task Assignment (Parallel Support)
+
+Each task has assignment metadata:
+- **Assigned To**: Agent ID currently working on the task
+- **Assigned At**: Timestamp when assignment started
+
+Rules for parallel operation:
+1. Only pick up tasks where `Assigned To` is empty
+2. Set `Assigned To` to your agent ID when starting
+3. Clear `Assigned To` when completing or abandoning
+4. If `Assigned At` is >2 hours old, the assignment is stale (can be claimed)
 
 ### Moving Tasks
 
@@ -422,7 +441,7 @@ Run `.claude/scripts/taskboard.sh` to regenerate `TASKBOARD.md`:
 
 ### bin/agent
 
-Main entry point for **FULLY AUTONOMOUS + SELF-HEALING** operation. Runs Claude in dangerous mode with all permissions bypassed and automatic recovery from failures.
+Main entry point for **FULLY AUTONOMOUS + SELF-HEALING + PARALLEL** operation. Runs Claude in dangerous mode with all permissions bypassed and automatic recovery from failures. Supports multiple agents running simultaneously without conflicts.
 
 ```bash
 # Run 5 tasks (default)
@@ -433,6 +452,15 @@ Main entry point for **FULLY AUTONOMOUS + SELF-HEALING** operation. Runs Claude 
 
 # Run 1 task
 ./bin/agent 1
+
+# Run multiple agents in parallel
+./bin/agent 5 &    # Agent 1 in background
+./bin/agent 5 &    # Agent 2 in background
+./bin/agent 5 &    # Agent 3 in background
+
+# Named agents (useful for tracking)
+AGENT_NAME="worker-1" ./bin/agent 5 &
+AGENT_NAME="worker-2" ./bin/agent 5 &
 ```
 
 **Environment Variables:**
@@ -446,6 +474,8 @@ Main entry point for **FULLY AUTONOMOUS + SELF-HEALING** operation. Runs Claude 
 | `AGENT_MAX_RETRIES` | `3` | Max retry attempts per task |
 | `AGENT_RETRY_DELAY` | `5` | Base delay between retries (exponential backoff) |
 | `AGENT_NO_RESUME` | `0` | Set to 1 to skip resuming interrupted sessions |
+| `AGENT_NAME` | auto | Custom agent name (default: auto-generated) |
+| `AGENT_LOCK_TIMEOUT` | `7200` | Stale lock timeout in seconds (2 hours) |
 
 **Self-Healing Features:**
 
@@ -458,6 +488,17 @@ Main entry point for **FULLY AUTONOMOUS + SELF-HEALING** operation. Runs Claude 
 | **Circuit Breaker** | Pauses 30s after 3 consecutive failures to avoid hammering |
 | **Error Detection** | Recognizes rate limits, timeouts, server errors for smart retry |
 | **Graceful Cleanup** | Regenerates taskboard on exit (normal or interrupted) |
+
+**Parallel Operation Features:**
+
+| Feature | Description |
+|---------|-------------|
+| **Lock Files** | Tasks are locked via `.claude/locks/<task-id>.lock` |
+| **Atomic Acquisition** | Lock acquisition uses atomic mkdir for race safety |
+| **Stale Detection** | Detects dead processes and expired locks (>2 hours) |
+| **Task Assignment** | Updates task metadata with agent ID and timestamp |
+| **Auto-Cleanup** | Releases all locks on exit (normal, interrupt, or crash) |
+| **Conflict Prevention** | Agents skip tasks locked by others |
 
 **How Self-Healing Works:**
 
@@ -503,15 +544,17 @@ Generates TASKBOARD.md from task files.
 ```
 .claude/
   tasks/
-    todo/          <- Tasks ready to work
-    doing/         <- Current task (max 1)
+    todo/          <- Tasks ready to work (unassigned)
+    doing/         <- Current tasks (assigned to agents)
     done/          <- Completed tasks
     _templates/
       task.md      <- Task template
   scripts/
     taskboard.sh   <- Generate TASKBOARD.md
   logs/
-    claude-loop/   <- Run logs by timestamp
+    claude-loop/   <- Run logs by timestamp and agent
+  state/           <- Session state for crash recovery (per agent)
+  locks/           <- Lock files for parallel coordination
 
 bin/
   agent            <- Main agent script
@@ -545,8 +588,20 @@ README.md          <- Project overview
 # Move any doing task back to todo
 mv .claude/tasks/doing/*.md .claude/tasks/todo/ 2>/dev/null
 
+# Clear all locks (use with caution!)
+rm -rf .claude/locks/*.lock 2>/dev/null
+
+# Clear assignments in todo tasks
+for f in .claude/tasks/todo/*.md; do
+  sed -i '' 's/| Assigned To | .*/| Assigned To | |/' "$f" 2>/dev/null
+  sed -i '' 's/| Assigned At | .*/| Assigned At | |/' "$f" 2>/dev/null
+done
+
 # Clear logs older than 7 days
 find .claude/logs -mtime +7 -delete
+
+# Clear stale state files
+rm -rf .claude/state/* 2>/dev/null
 ```
 
 ### Validate System
@@ -559,6 +614,19 @@ ls -la .claude/tasks/{todo,doing,done,_templates}
 echo "TODO: $(ls .claude/tasks/todo/*.md 2>/dev/null | wc -l)"
 echo "DOING: $(ls .claude/tasks/doing/*.md 2>/dev/null | wc -l)"
 echo "DONE: $(ls .claude/tasks/done/*.md 2>/dev/null | wc -l)"
+echo "LOCKS: $(ls .claude/locks/*.lock 2>/dev/null | wc -l)"
+```
+
+### Check Active Agents
+
+```bash
+# List current locks and their owners
+for lock in .claude/locks/*.lock; do
+  [ -f "$lock" ] || continue
+  echo "=== $(basename "$lock" .lock) ==="
+  cat "$lock"
+  echo ""
+done
 ```
 
 ---
@@ -567,8 +635,8 @@ echo "DONE: $(ls .claude/tasks/done/*.md 2>/dev/null | wc -l)"
 
 ```
 CONTINUE WORKING LOOP:
-  doing? -> resume it
-  todo?  -> pick highest priority unblocked
+  doing (mine)? -> resume it
+  todo (unassigned)? -> assign to me, pick highest priority unblocked
   empty? -> create from MISSION.md
 
 QUALITY GATES:
@@ -586,9 +654,15 @@ TASK PRIORITY:
   003 = Medium
   004 = Low
 
+PARALLEL OPERATION:
+  - Check Assigned To before picking task
+  - Set Assigned To when starting
+  - Clear Assigned To when done or stopping
+  - Stale assignments (>2h) can be claimed
+
 WHEN STUCK:
   1. Log it
   2. Try 3 times
-  3. Move back to todo
+  3. Clear assignment, move back to todo
   4. Pick something else
 ```

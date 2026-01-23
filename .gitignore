@@ -53,3 +53,5 @@
 !/.claude/logs/.gitkeep
 !/.claude/logs/claude-loop/.gitkeep
 /.claude/state/
+/.claude/locks/*
+!/.claude/locks/.gitkeep
