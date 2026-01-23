@@ -60,10 +60,12 @@ Quality gates:
 
 ## Rules
 
+- **COMMIT tests as you write them** - don't wait until the end
 - Do NOT add new features in this phase
 - Fix bugs found during testing, but don't expand scope
 - Every new public method needs a test
 - Test file organization should mirror source file organization
 - Mock external services (HTTP calls, APIs)
+- Commit message format: `Add specs for X [{{TASK_ID}}]`
 
 Task file: {{TASK_FILE}}
