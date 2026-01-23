@@ -58,6 +58,12 @@ class ContentItem < ApplicationRecord
   scope :by_content_type, ->(type) { where(content_type: type) }
   scope :tagged_with, ->(taxonomy_slug) { where("topic_tags @> ?", [ taxonomy_slug ].to_json) }
 
+  # Feed scopes
+  scope :for_feed, -> { published.order(published_at: :desc) }
+  scope :published_since, ->(time) { published.where("published_at >= ?", time) }
+  scope :top_this_week, -> { published_since(1.week.ago).order(Arel.sql("(upvotes_count + comments_count) DESC, published_at DESC")) }
+  scope :by_engagement, -> { order(Arel.sql("(upvotes_count + comments_count) DESC")) }
+
   # Class methods
   # Find or initialize by canonical URL (for deduplication)
   def self.find_or_initialize_by_canonical_url(site:, url_canonical:, source:)
