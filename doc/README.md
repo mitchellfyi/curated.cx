@@ -24,6 +24,11 @@ This directory contains comprehensive documentation for the Curated.www Rails 8 
 - **[CI_CD_QUALITY.md](CI_CD_QUALITY.md)** - CI/CD workflows and automated quality gates
 - **[SAFE_MIGRATIONS.md](SAFE_MIGRATIONS.md)** - Database migration safety guide
 - **[SEO_TESTING.md](SEO_TESTING.md)** - SEO optimization and testing standards
+- **[CACHE_KEY_CONVENTIONS.md](CACHE_KEY_CONVENTIONS.md)** - Cache key naming and scoped invalidation patterns
+- **[ERROR_HANDLING.md](ERROR_HANDLING.md)** - Error handling patterns for jobs and services
+
+### Connectors
+- **[connectors/serpapi.md](connectors/serpapi.md)** - SerpApi Google News ingestion connector
 
 ### GitHub Integration
 - **[.github/copilot-instructions.md](../.github/copilot-instructions.md)** - GitHub Copilot configuration
@@ -79,10 +84,6 @@ This directory contains comprehensive documentation for the Curated.www Rails 8 
 10. ✅ **Strong Migrations** - Safe database changes
 11. ✅ **Bundle Audit** - Zero security vulnerabilities
 12. ✅ **Database** - Proper indexes and constraints
-7. ✅ **Performance** - No N+1 queries
-8. ✅ **Strong Migrations** - Safe database changes
-9. ✅ **Bundle Audit** - Zero security vulnerabilities
-10. ✅ **Database** - Proper indexes and constraints
 
 ### Monitoring Dashboard
 - Local quality metrics: `./bin/quality`
