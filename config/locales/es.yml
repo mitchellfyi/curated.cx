@@ -66,6 +66,41 @@ es:
       test_rule: Probar Regla
       title: Reglas de Etiquetado
       updated: Regla de etiquetado actualizada exitosamente
+    editorialisations:
+      actions: Acciones
+      ai_output: Salida de IA
+      ai_summary: Resumen
+      all: Todos
+      back_to_list: Volver a la Lista
+      cannot_retry: Solo se pueden reintentar editorializaciones fallidas o omitidas
+      content_item: Elemento de Contenido
+      created: Creado
+      description: Ver registros y resultados de editorialización de IA
+      details: Detalles
+      duration: Duración
+      empty: Sin editorializaciones
+      empty_description: Las editorializaciones aparecerán aquí después de procesar el contenido.
+      error: Error
+      for_content_item: Para elemento de contenido
+      model_name: Modelo
+      prompt_text: Texto del Prompt
+      prompt_version: Versión del Prompt
+      raw_response: Respuesta Cruda
+      retry: Reintentar
+      retrying: La editorialización se ha puesto en cola para reintentar
+      show_title: Detalles de Editorialización
+      status:
+        completed: Completado
+        failed: Fallido
+        pending: Pendiente
+        processing: Procesando
+        skipped: Omitido
+      status_header: Estado
+      suggested_tags: Etiquetas Sugeridas
+      title: Editorializaciones
+      tokens: Tokens
+      view: Ver
+      why_it_matters: Por Qué Importa
     taxonomies:
       add_child: Agregar Hijo
       children: Hijos

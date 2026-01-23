@@ -25,6 +25,11 @@ Rails.application.routes.draw do
         post :run_now
       end
     end
+    resources :editorialisations, only: [ :index, :show ] do
+      member do
+        post :retry
+      end
+    end
   end
   devise_for :users
 

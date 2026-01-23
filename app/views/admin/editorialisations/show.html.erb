@@ -1,0 +1,139 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900"><%= t('admin.editorialisations.show_title') %></h1>
+          <p class="mt-2 text-sm text-gray-600">
+            <%= t('admin.editorialisations.for_content_item') %>:
+            <span class="font-medium"><%= @editorialisation.content_item.title || '(No title)' %></span>
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <% if @editorialisation.failed? || @editorialisation.skipped? %>
+            <%= button_to retry_admin_editorialisation_path(@editorialisation),
+                method: :post,
+                class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+              <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              <%= t('admin.editorialisations.retry') %>
+            <% end %>
+          <% end %>
+          <%= link_to admin_editorialisations_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+            <%= t('admin.editorialisations.back_to_list') %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          <%= t('admin.editorialisations.details') %>
+        </h3>
+      </div>
+      <div class="border-b border-gray-200 px-4 py-5 sm:px-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.status_header') %></dt>
+            <dd class="mt-1">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                <%= case @editorialisation.status
+                    when 'completed' then 'bg-green-100 text-green-800'
+                    when 'processing' then 'bg-blue-100 text-blue-800'
+                    when 'pending' then 'bg-yellow-100 text-yellow-800'
+                    when 'failed' then 'bg-red-100 text-red-800'
+                    when 'skipped' then 'bg-gray-100 text-gray-800'
+                    end %>">
+                <%= t("admin.editorialisations.status.#{@editorialisation.status}") %>
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.prompt_version') %></dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @editorialisation.prompt_version %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.model_name') %></dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @editorialisation.model_name || '-' %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.tokens') %></dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @editorialisation.tokens_used || '-' %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.duration') %></dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <%= @editorialisation.duration_seconds ? "#{@editorialisation.duration_seconds.round(2)}s" : '-' %>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.created') %></dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= l(@editorialisation.created_at, format: :long) %></dd>
+          </div>
+        </dl>
+      </div>
+
+      <% if @editorialisation.error_message.present? %>
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h4 class="text-sm font-medium text-red-600 mb-2"><%= t('admin.editorialisations.error') %></h4>
+          <div class="bg-red-50 border border-red-200 rounded-md p-3">
+            <p class="text-sm text-red-700"><%= @editorialisation.error_message %></p>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @editorialisation.completed? %>
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h4 class="text-sm font-medium text-gray-900 mb-4"><%= t('admin.editorialisations.ai_output') %></h4>
+          <div class="space-y-4">
+            <div>
+              <h5 class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.ai_summary') %></h5>
+              <p class="mt-1 text-sm text-gray-900"><%= @editorialisation.ai_summary || '-' %></p>
+            </div>
+            <div>
+              <h5 class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.why_it_matters') %></h5>
+              <p class="mt-1 text-sm text-gray-900"><%= @editorialisation.why_it_matters || '-' %></p>
+            </div>
+            <div>
+              <h5 class="text-sm font-medium text-gray-500"><%= t('admin.editorialisations.suggested_tags') %></h5>
+              <div class="mt-1 flex flex-wrap gap-2">
+                <% @editorialisation.suggested_tags.each do |tag| %>
+                  <span class="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"><%= tag %></span>
+                <% end %>
+                <% if @editorialisation.suggested_tags.empty? %>
+                  <span class="text-sm text-gray-500">-</span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <details>
+          <summary class="text-sm font-medium text-gray-900 cursor-pointer">
+            <%= t('admin.editorialisations.prompt_text') %>
+          </summary>
+          <div class="mt-3 bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto">
+            <pre class="text-xs text-gray-700 whitespace-pre-wrap"><%= @editorialisation.prompt_text %></pre>
+          </div>
+        </details>
+      </div>
+
+      <% if @editorialisation.raw_response.present? %>
+        <div class="px-4 py-5 sm:px-6">
+          <details>
+            <summary class="text-sm font-medium text-gray-900 cursor-pointer">
+              <%= t('admin.editorialisations.raw_response') %>
+            </summary>
+            <div class="mt-3 bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto">
+              <pre class="text-xs text-gray-700 whitespace-pre-wrap"><%= @editorialisation.raw_response %></pre>
+            </div>
+          </details>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
