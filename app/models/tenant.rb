@@ -23,6 +23,9 @@
 #  index_tenants_on_status_hostname  (status,hostname)
 #
 class Tenant < ApplicationRecord
+  include JsonbSettingsAccessor
+  self.jsonb_settings_column = :settings
+
   # Associations
   has_many :sites, dependent: :destroy
   has_many :categories, dependent: :destroy
@@ -82,33 +85,6 @@ class Tenant < ApplicationRecord
 
   def settings
     super || {}
-  end
-
-  def setting(key, default = nil)
-    keys = key.to_s.split(".")
-    value = settings
-    keys.each do |k|
-      value = value[k] if value.is_a?(Hash)
-    end
-    value || default
-  end
-
-  def update_setting(key, value)
-    keys = key.to_s.split(".")
-    new_settings = settings.deep_dup
-
-    # Navigate to the nested location
-    current = new_settings
-    keys[0..-2].each do |k|
-      current[k] ||= {}
-      current = current[k]
-    end
-
-    # Set the final value
-    current[keys.last] = value
-
-    self.settings = new_settings
-    save!
   end
 
   # Category helpers

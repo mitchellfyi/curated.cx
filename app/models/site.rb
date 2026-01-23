@@ -27,6 +27,9 @@
 #
 class Site < ApplicationRecord
   include TenantScoped
+  include JsonbSettingsAccessor
+  self.jsonb_settings_column = :config
+
   # Associations
   belongs_to :tenant
   has_many :domains, dependent: :destroy
@@ -68,33 +71,6 @@ class Site < ApplicationRecord
   # Instance methods
   def config
     super || {}
-  end
-
-  def setting(key, default = nil)
-    keys = key.to_s.split(".")
-    value = config
-    keys.each do |k|
-      value = value[k] if value.is_a?(Hash)
-    end
-    value.nil? ? default : value
-  end
-
-  def update_setting(key, value)
-    keys = key.to_s.split(".")
-    new_config = config.deep_dup
-
-    # Navigate to the nested location
-    current = new_config
-    keys[0..-2].each do |k|
-      current[k] ||= {}
-      current = current[k]
-    end
-
-    # Set the final value
-    current[keys.last] = value
-
-    self.config = new_config
-    save!
   end
 
   # Config helpers for common settings
