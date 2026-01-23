@@ -6,7 +6,13 @@ Rails.application.routes.draw do
     get "dashboard/index"
     root "dashboard#index"
     resources :categories
-    resources :listings
+    resources :listings do
+      member do
+        post :feature
+        post :unfeature
+        post :extend_expiry
+      end
+    end
     resources :taxonomies
     resources :tagging_rules do
       member do
@@ -55,6 +61,9 @@ Rails.application.routes.draw do
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+
+  # Affiliate tracking redirect
+  get "/go/:id", to: "affiliate_redirects#show", as: :affiliate_redirect
 
   # Public feed routes
   resources :feed, only: [ :index ], controller: "feed"
