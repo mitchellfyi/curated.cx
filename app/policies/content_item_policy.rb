@@ -25,6 +25,23 @@ class ContentItemPolicy < ApplicationPolicy
     admin_or_owner_only?
   end
 
+  # Moderation actions
+  def hide?
+    admin_or_owner_only?
+  end
+
+  def unhide?
+    admin_or_owner_only?
+  end
+
+  def lock_comments?
+    admin_or_owner_only?
+  end
+
+  def unlock_comments?
+    admin_or_owner_only?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       return scope.none unless Current.site.present?
