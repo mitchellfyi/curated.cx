@@ -24,15 +24,18 @@
 #   ./bin/agent 5 &    # Agent 3 in background
 #
 # Environment variables:
-#   CLAUDE_MODEL       - Model to use (default: opus)
+#   CLAUDE_MODEL       - Model to use (default: opus, falls back to sonnet on limits)
 #   CLAUDE_TIMEOUT     - Timeout per task in seconds (default: 600)
 #   AGENT_DRY_RUN      - If set to 1, preview without executing
 #   AGENT_VERBOSE      - If set to 1, show more output
+#   AGENT_STREAM       - If set to 1, show streaming output (more verbose)
 #   AGENT_MAX_RETRIES  - Max retries per task (default: 3)
 #   AGENT_RETRY_DELAY  - Base delay between retries in seconds (default: 5)
 #   AGENT_NO_RESUME    - If set to 1, don't resume previous session
 #   AGENT_NAME         - Custom agent name (default: auto-generated)
-#   AGENT_LOCK_TIMEOUT - Stale lock timeout in seconds (default: 7200 = 2 hours)
+#   AGENT_LOCK_TIMEOUT - Stale lock timeout in seconds (default: 10800 = 3 hours)
+#   AGENT_HEARTBEAT    - Heartbeat interval in seconds (default: 3600 = 1 hour)
+#   AGENT_NO_FALLBACK  - If set to 1, don't fall back to sonnet on rate limits
 #
 # WARNING: This script bypasses ALL safety checks. Only use in trusted repos.
 #
@@ -58,10 +61,17 @@ CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
 CLAUDE_TIMEOUT="${CLAUDE_TIMEOUT:-600}"
 AGENT_DRY_RUN="${AGENT_DRY_RUN:-0}"
 AGENT_VERBOSE="${AGENT_VERBOSE:-0}"
+AGENT_STREAM="${AGENT_STREAM:-0}"
 AGENT_MAX_RETRIES="${AGENT_MAX_RETRIES:-3}"
 AGENT_RETRY_DELAY="${AGENT_RETRY_DELAY:-5}"
 AGENT_NO_RESUME="${AGENT_NO_RESUME:-0}"
-AGENT_LOCK_TIMEOUT="${AGENT_LOCK_TIMEOUT:-7200}"
+AGENT_LOCK_TIMEOUT="${AGENT_LOCK_TIMEOUT:-10800}"
+AGENT_HEARTBEAT="${AGENT_HEARTBEAT:-3600}"
+AGENT_NO_FALLBACK="${AGENT_NO_FALLBACK:-0}"
+
+# Model state (for fallback)
+CURRENT_MODEL="$CLAUDE_MODEL"
+MODEL_FALLBACK_TRIGGERED=0
 
 # Generate unique agent ID
 HOSTNAME_SHORT=$(hostname -s 2>/dev/null || hostname | cut -d. -f1)
@@ -113,6 +123,10 @@ log_heal() {
 
 log_lock() {
   echo -e "${YELLOW}[$AGENT_ID LOCK]${NC} $1"
+}
+
+log_model() {
+  echo -e "${MAGENTA}[$AGENT_ID MODEL]${NC} $1"
 }
 
 log_header() {
@@ -314,6 +328,99 @@ unassign_task() {
       rm -f "${task_file}.bak"
     fi
     log_info "Unassigned task"
+  fi
+}
+
+refresh_assignment() {
+  local task_file="$1"
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M')
+
+  # Update only Assigned At to refresh the heartbeat
+  if [ -f "$task_file" ]; then
+    if grep -q "| Assigned At |" "$task_file"; then
+      sed -i.bak "s/| Assigned At | .*/| Assigned At | \`$timestamp\` |/" "$task_file"
+      rm -f "${task_file}.bak"
+    fi
+    log_info "Refreshed assignment timestamp"
+  fi
+}
+
+# ============================================================================
+# Heartbeat (Refresh assignment to prevent stale detection)
+# ============================================================================
+
+HEARTBEAT_PID=""
+CURRENT_TASK_FILE=""
+
+start_heartbeat() {
+  local task_file="$1"
+  CURRENT_TASK_FILE="$task_file"
+
+  # Stop any existing heartbeat
+  stop_heartbeat
+
+  # Start background heartbeat process
+  (
+    while true; do
+      sleep "$AGENT_HEARTBEAT"
+      if [ -f "$CURRENT_TASK_FILE" ]; then
+        refresh_assignment "$CURRENT_TASK_FILE"
+        # Also refresh the lock file
+        local task_id
+        task_id=$(get_task_id_from_file "$CURRENT_TASK_FILE")
+        local lock_file
+        lock_file=$(get_lock_file "$task_id")
+        if [ -f "$lock_file" ]; then
+          cat > "$lock_file" << EOF
+AGENT_ID=$AGENT_ID
+LOCKED_AT=$(date '+%Y-%m-%d %H:%M:%S')
+PID=$$
+TASK_ID=$task_id
+EOF
+        fi
+      fi
+    done
+  ) &
+  HEARTBEAT_PID=$!
+  log_info "Started heartbeat (PID: $HEARTBEAT_PID, interval: ${AGENT_HEARTBEAT}s)"
+}
+
+stop_heartbeat() {
+  if [ -n "$HEARTBEAT_PID" ] && kill -0 "$HEARTBEAT_PID" 2>/dev/null; then
+    kill "$HEARTBEAT_PID" 2>/dev/null || true
+    wait "$HEARTBEAT_PID" 2>/dev/null || true
+    log_info "Stopped heartbeat"
+  fi
+  HEARTBEAT_PID=""
+}
+
+# ============================================================================
+# Model Fallback (opus -> sonnet on rate limits)
+# ============================================================================
+
+fallback_to_sonnet() {
+  if [ "$AGENT_NO_FALLBACK" = "1" ]; then
+    log_warn "Model fallback disabled (AGENT_NO_FALLBACK=1)"
+    return 1
+  fi
+
+  if [ "$CURRENT_MODEL" = "sonnet" ]; then
+    log_warn "Already using sonnet, cannot fall back further"
+    return 1
+  fi
+
+  log_model "Falling back from $CURRENT_MODEL to sonnet due to rate limits"
+  CURRENT_MODEL="sonnet"
+  MODEL_FALLBACK_TRIGGERED=1
+  return 0
+}
+
+reset_model() {
+  if [ "$MODEL_FALLBACK_TRIGGERED" = "1" ]; then
+    log_model "Resetting model back to $CLAUDE_MODEL after successful run"
+    CURRENT_MODEL="$CLAUDE_MODEL"
+    MODEL_FALLBACK_TRIGGERED=0
   fi
 }
 
@@ -662,10 +769,19 @@ run_agent_iteration() {
     return 0
   fi
 
+  # Start heartbeat for long-running tasks
+  if [ -n "${task_file:-}" ]; then
+    start_heartbeat "$task_file"
+  fi
+
   log_step "Running Claude agent (DANGEROUS MODE - all permissions bypassed)..."
   echo "  Log: $task_log"
-  echo "  Model: $CLAUDE_MODEL"
+  echo "  Model: $CURRENT_MODEL"
+  if [ "$MODEL_FALLBACK_TRIGGERED" = "1" ]; then
+    echo "  (fallback from $CLAUDE_MODEL due to rate limits)"
+  fi
   echo "  Agent: $AGENT_ID"
+  echo "  Stream: $([ "$AGENT_STREAM" = "1" ] && echo "enabled" || echo "disabled")"
   echo ""
 
   # Build the prompt
@@ -675,9 +791,17 @@ run_agent_iteration() {
   local claude_args=(
     "--dangerously-skip-permissions"
     "--permission-mode" "bypassPermissions"
-    "-p"
-    "--model" "$CLAUDE_MODEL"
+    "--model" "$CURRENT_MODEL"
   )
+
+  # Output mode: streaming (-p omitted) or print mode (-p)
+  if [ "$AGENT_STREAM" = "1" ]; then
+    # Streaming mode - shows real-time output
+    claude_args+=("--output-format" "stream-json")
+  else
+    # Print mode - cleaner output
+    claude_args+=("-p")
+  fi
 
   # Add verbose if requested
   if [ "$AGENT_VERBOSE" = "1" ]; then
@@ -688,6 +812,9 @@ run_agent_iteration() {
   local exit_code=0
 
   log_info "Executing: claude ${claude_args[*]} \"$prompt\""
+  echo ""
+  echo -e "${CYAN}─────────────────────────────────────────────────────────────${NC}"
+  echo ""
 
   # Use timeout if available (prefer gtimeout on macOS)
   if command -v gtimeout &> /dev/null; then
@@ -699,11 +826,21 @@ run_agent_iteration() {
     claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
   fi
 
+  echo ""
+  echo -e "${CYAN}─────────────────────────────────────────────────────────────${NC}"
+  echo ""
+
+  # Stop heartbeat
+  stop_heartbeat
+
   # Handle exit codes
   case $exit_code in
     0)
       log_success "Task iteration completed successfully"
       save_session "$session_id" "$iteration" "completed"
+
+      # Reset model on success (if we had fallen back)
+      reset_model
 
       # Check if task was completed (moved to done/)
       # If so, release the lock
@@ -733,10 +870,18 @@ run_agent_iteration() {
     *)
       log_error "Agent exited with code $exit_code"
 
-      # Check if it's a recoverable error
-      if grep -q "rate limit\|overloaded\|502\|503\|504" "$task_log" 2>/dev/null; then
-        log_heal "Detected rate limit or server error - will retry"
-        save_session "$session_id" "$iteration" "rate-limited"
+      # Check if it's a rate limit - try fallback to sonnet
+      if grep -qiE "rate.?limit|overloaded|429|502|503|504|capacity|quota" "$task_log" 2>/dev/null; then
+        log_heal "Detected rate limit or server error"
+
+        # Try to fall back to sonnet
+        if fallback_to_sonnet; then
+          log_heal "Will retry with sonnet model"
+          save_session "$session_id" "$iteration" "rate-limited-fallback"
+        else
+          log_heal "Will retry with same model"
+          save_session "$session_id" "$iteration" "rate-limited"
+        fi
       else
         save_session "$session_id" "$iteration" "failed"
       fi
@@ -751,6 +896,9 @@ run_agent_iteration() {
 
 cleanup() {
   log_info "Cleaning up..."
+
+  # Stop heartbeat
+  stop_heartbeat
 
   # Release all locks held by this agent
   release_all_locks
@@ -780,10 +928,12 @@ main() {
   echo ""
   echo "  Agent ID: $AGENT_ID"
   echo "  Tasks to run: $NUM_TASKS"
-  echo "  Model: $CLAUDE_MODEL"
+  echo "  Model: $CLAUDE_MODEL (fallback: sonnet)"
   echo "  Timeout: ${CLAUDE_TIMEOUT}s per task"
   echo "  Max retries: $AGENT_MAX_RETRIES"
-  echo "  Lock timeout: ${AGENT_LOCK_TIMEOUT}s"
+  echo "  Lock timeout: ${AGENT_LOCK_TIMEOUT}s ($(( AGENT_LOCK_TIMEOUT / 3600 ))h)"
+  echo "  Heartbeat: ${AGENT_HEARTBEAT}s ($(( AGENT_HEARTBEAT / 60 ))min)"
+  echo "  Stream output: $([ "$AGENT_STREAM" = "1" ] && echo "yes" || echo "no")"
   echo "  Log dir: $RUN_LOG_DIR"
   echo ""
 

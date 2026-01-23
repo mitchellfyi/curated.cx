@@ -227,13 +227,14 @@ Examples:
 
 Each task has assignment metadata:
 - **Assigned To**: Agent ID currently working on the task
-- **Assigned At**: Timestamp when assignment started
+- **Assigned At**: Timestamp when assignment started (refreshed every hour)
 
 Rules for parallel operation:
 1. Only pick up tasks where `Assigned To` is empty
 2. Set `Assigned To` to your agent ID when starting
 3. Clear `Assigned To` when completing or abandoning
-4. If `Assigned At` is >2 hours old, the assignment is stale (can be claimed)
+4. If `Assigned At` is >3 hours old, the assignment is stale (can be claimed)
+5. Long-running tasks refresh `Assigned At` every hour (heartbeat)
 
 ### Moving Tasks
 
@@ -467,21 +468,25 @@ AGENT_NAME="worker-2" ./bin/agent 5 &
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CLAUDE_MODEL` | `opus` | Model to use (opus, sonnet, haiku) |
+| `CLAUDE_MODEL` | `opus` | Model to use (opus, sonnet, haiku) - falls back to sonnet on limits |
 | `CLAUDE_TIMEOUT` | `600` | Timeout per task in seconds |
 | `AGENT_DRY_RUN` | `0` | Set to 1 to preview without executing |
 | `AGENT_VERBOSE` | `0` | Set to 1 for more output |
+| `AGENT_STREAM` | `0` | Set to 1 for streaming output (shows real-time progress) |
 | `AGENT_MAX_RETRIES` | `3` | Max retry attempts per task |
 | `AGENT_RETRY_DELAY` | `5` | Base delay between retries (exponential backoff) |
 | `AGENT_NO_RESUME` | `0` | Set to 1 to skip resuming interrupted sessions |
 | `AGENT_NAME` | auto | Custom agent name (default: auto-generated) |
-| `AGENT_LOCK_TIMEOUT` | `7200` | Stale lock timeout in seconds (2 hours) |
+| `AGENT_LOCK_TIMEOUT` | `10800` | Stale lock timeout in seconds (3 hours) |
+| `AGENT_HEARTBEAT` | `3600` | Heartbeat interval in seconds (1 hour) - refreshes assignment |
+| `AGENT_NO_FALLBACK` | `0` | Set to 1 to disable model fallback on rate limits |
 
 **Self-Healing Features:**
 
 | Feature | Description |
 |---------|-------------|
 | **Auto-Retry** | Retries failed tasks up to 3 times with exponential backoff |
+| **Model Fallback** | Automatically switches from opus to sonnet on rate limits |
 | **Session Persistence** | Saves state to `.claude/state/` for crash recovery |
 | **Auto-Resume** | Detects interrupted sessions and resumes from last iteration |
 | **Health Checks** | Validates environment before each run (CLI, dirs, disk space) |
@@ -495,8 +500,9 @@ AGENT_NAME="worker-2" ./bin/agent 5 &
 |---------|-------------|
 | **Lock Files** | Tasks are locked via `.claude/locks/<task-id>.lock` |
 | **Atomic Acquisition** | Lock acquisition uses atomic mkdir for race safety |
-| **Stale Detection** | Detects dead processes and expired locks (>2 hours) |
+| **Stale Detection** | Detects dead processes and expired locks (>3 hours) |
 | **Task Assignment** | Updates task metadata with agent ID and timestamp |
+| **Heartbeat** | Refreshes assignment every hour to prevent stale detection |
 | **Auto-Cleanup** | Releases all locks on exit (normal, interrupt, or crash) |
 | **Conflict Prevention** | Agents skip tasks locked by others |
 
@@ -658,7 +664,8 @@ PARALLEL OPERATION:
   - Check Assigned To before picking task
   - Set Assigned To when starting
   - Clear Assigned To when done or stopping
-  - Stale assignments (>2h) can be claimed
+  - Stale assignments (>3h) can be claimed
+  - Heartbeat refreshes every 1h for long tasks
 
 WHEN STUCK:
   1. Log it
