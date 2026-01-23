@@ -28,7 +28,7 @@
 #   CLAUDE_TIMEOUT     - Timeout per task in seconds (default: 600)
 #   AGENT_DRY_RUN      - If set to 1, preview without executing
 #   AGENT_VERBOSE      - If set to 1, show more output
-#   AGENT_STREAM       - If set to 1, show streaming output (more verbose)
+#   AGENT_QUIET        - If set to 1, disable streaming output (default: streaming on)
 #   AGENT_MAX_RETRIES  - Max retries per task (default: 3)
 #   AGENT_RETRY_DELAY  - Base delay between retries in seconds (default: 5)
 #   AGENT_NO_RESUME    - If set to 1, don't resume previous session
@@ -36,6 +36,8 @@
 #   AGENT_LOCK_TIMEOUT - Stale lock timeout in seconds (default: 10800 = 3 hours)
 #   AGENT_HEARTBEAT    - Heartbeat interval in seconds (default: 3600 = 1 hour)
 #   AGENT_NO_FALLBACK  - If set to 1, don't fall back to sonnet on rate limits
+#   AGENT_NO_REVIEW    - If set to 1, skip post-task review cycle
+#   AGENT_REVIEW_TIMEOUT - Timeout for review phase in seconds (default: 300)
 #
 # WARNING: This script bypasses ALL safety checks. Only use in trusted repos.
 #
@@ -61,13 +63,15 @@ CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
 CLAUDE_TIMEOUT="${CLAUDE_TIMEOUT:-600}"
 AGENT_DRY_RUN="${AGENT_DRY_RUN:-0}"
 AGENT_VERBOSE="${AGENT_VERBOSE:-0}"
-AGENT_STREAM="${AGENT_STREAM:-0}"
+AGENT_QUIET="${AGENT_QUIET:-0}"
 AGENT_MAX_RETRIES="${AGENT_MAX_RETRIES:-3}"
 AGENT_RETRY_DELAY="${AGENT_RETRY_DELAY:-5}"
 AGENT_NO_RESUME="${AGENT_NO_RESUME:-0}"
 AGENT_LOCK_TIMEOUT="${AGENT_LOCK_TIMEOUT:-10800}"
 AGENT_HEARTBEAT="${AGENT_HEARTBEAT:-3600}"
 AGENT_NO_FALLBACK="${AGENT_NO_FALLBACK:-0}"
+AGENT_NO_REVIEW="${AGENT_NO_REVIEW:-0}"
+AGENT_REVIEW_TIMEOUT="${AGENT_REVIEW_TIMEOUT:-300}"
 
 # Model state (for fallback)
 CURRENT_MODEL="$CLAUDE_MODEL"
@@ -422,6 +426,120 @@ reset_model() {
     CURRENT_MODEL="$CLAUDE_MODEL"
     MODEL_FALLBACK_TRIGGERED=0
   fi
+}
+
+# ============================================================================
+# Post-Task Review (Quality Gate)
+# ============================================================================
+
+log_review() {
+  echo -e "${MAGENTA}[$AGENT_ID REVIEW]${NC} $1"
+}
+
+run_post_task_review() {
+  local task_id="$1"
+  local task_file="$2"
+  local review_log="$RUN_LOG_DIR/review-$task_id.log"
+
+  if [ "$AGENT_NO_REVIEW" = "1" ]; then
+    log_info "Skipping post-task review (AGENT_NO_REVIEW=1)"
+    return 0
+  fi
+
+  log_review "Starting post-task review for: $task_id"
+
+  # Get recent commits related to this task
+  local recent_commits
+  recent_commits=$(git log --oneline -10 --grep="$task_id" 2>/dev/null || echo "")
+
+  # Build the review prompt
+  local review_prompt
+  review_prompt=$(cat << REVIEW_EOF
+You are reviewing task $task_id which was just completed.
+
+REVIEW SCOPE:
+- Only review code and commits related to this specific task
+- Check the task file at: $task_file (if it exists in done/)
+- Review recent commits: $recent_commits
+
+REVIEW CHECKLIST:
+1. CODE QUALITY: Are there any code smells, anti-patterns, or improvements needed?
+2. TEST COVERAGE: Are there missing tests or edge cases not covered?
+3. SECURITY: Any security concerns (SQL injection, XSS, auth issues)?
+4. PERFORMANCE: Any N+1 queries, missing indexes, or slow operations?
+5. DOCUMENTATION: Is the code self-documenting? Any missing comments for complex logic?
+6. ERROR HANDLING: Are errors handled gracefully? Good error messages?
+
+ACTIONS TO TAKE:
+- Fix any critical issues you find immediately
+- For non-critical improvements, create new tasks in .claude/tasks/todo/ with:
+  - Priority 003 (Medium) for improvements
+  - Priority 004 (Low) for nice-to-haves
+  - Use format: PPP-SSS-description.md
+  - Reference the original task in the new task's context
+
+OUTPUT:
+- Summarize what you reviewed
+- List any issues found and fixed
+- List any new tasks created for future improvements
+- Run quality gates (./bin/quality) to verify no regressions
+
+Be thorough but focused. Only review code related to task $task_id.
+REVIEW_EOF
+)
+
+  log_review "Running Claude review cycle..."
+  echo "  Log: $review_log"
+  echo ""
+
+  # Build Claude CLI arguments
+  local claude_args=(
+    "--dangerously-skip-permissions"
+    "--permission-mode" "bypassPermissions"
+    "--model" "$CURRENT_MODEL"
+  )
+
+  # Output mode
+  if [ "$AGENT_QUIET" != "1" ]; then
+    claude_args+=("--output-format" "stream-json")
+  else
+    claude_args+=("-p")
+  fi
+
+  if [ "$AGENT_VERBOSE" = "1" ]; then
+    claude_args+=("--verbose")
+  fi
+
+  local exit_code=0
+
+  echo -e "${MAGENTA}─────────────────────────────────────────────────────────────${NC}"
+  echo -e "${MAGENTA} POST-TASK REVIEW${NC}"
+  echo -e "${MAGENTA}─────────────────────────────────────────────────────────────${NC}"
+  echo ""
+
+  # Use review timeout (shorter than main task)
+  if command -v gtimeout &> /dev/null; then
+    gtimeout "${AGENT_REVIEW_TIMEOUT}s" claude "${claude_args[@]}" "$review_prompt" 2>&1 | tee "$review_log" || exit_code=$?
+  elif command -v timeout &> /dev/null; then
+    timeout "${AGENT_REVIEW_TIMEOUT}s" claude "${claude_args[@]}" "$review_prompt" 2>&1 | tee "$review_log" || exit_code=$?
+  else
+    claude "${claude_args[@]}" "$review_prompt" 2>&1 | tee "$review_log" || exit_code=$?
+  fi
+
+  echo ""
+  echo -e "${MAGENTA}─────────────────────────────────────────────────────────────${NC}"
+  echo ""
+
+  if [ "$exit_code" -eq 0 ]; then
+    log_review "Review completed successfully"
+  elif [ "$exit_code" -eq 124 ]; then
+    log_warn "Review timed out after ${AGENT_REVIEW_TIMEOUT}s (non-fatal)"
+  else
+    log_warn "Review exited with code $exit_code (non-fatal)"
+  fi
+
+  # Review is non-fatal - we don't fail the task if review has issues
+  return 0
 }
 
 # ============================================================================
@@ -781,7 +899,7 @@ run_agent_iteration() {
     echo "  (fallback from $CLAUDE_MODEL due to rate limits)"
   fi
   echo "  Agent: $AGENT_ID"
-  echo "  Stream: $([ "$AGENT_STREAM" = "1" ] && echo "enabled" || echo "disabled")"
+  echo "  Stream: $([ "$AGENT_QUIET" != "1" ] && echo "enabled" || echo "disabled (quiet mode)")"
   echo ""
 
   # Build the prompt
@@ -794,12 +912,12 @@ run_agent_iteration() {
     "--model" "$CURRENT_MODEL"
   )
 
-  # Output mode: streaming (-p omitted) or print mode (-p)
-  if [ "$AGENT_STREAM" = "1" ]; then
-    # Streaming mode - shows real-time output
+  # Output mode: streaming (default) or print mode (quiet)
+  if [ "$AGENT_QUIET" != "1" ]; then
+    # Streaming mode - shows real-time output (DEFAULT)
     claude_args+=("--output-format" "stream-json")
   else
-    # Print mode - cleaner output
+    # Print mode - cleaner output (quiet mode)
     claude_args+=("-p")
   fi
 
@@ -843,7 +961,7 @@ run_agent_iteration() {
       reset_model
 
       # Check if task was completed (moved to done/)
-      # If so, release the lock
+      # If so, release the lock and run post-task review
       if [ -n "${task_file:-}" ]; then
         local task_id
         task_id=$(get_task_id_from_file "$task_file")
@@ -851,6 +969,9 @@ run_agent_iteration() {
         if [ -f "$done_file" ]; then
           release_lock "$task_id"
           unassign_task "$done_file"
+
+          # Run post-task review for completed tasks
+          run_post_task_review "$task_id" "$done_file"
         fi
       fi
 
@@ -933,7 +1054,8 @@ main() {
   echo "  Max retries: $AGENT_MAX_RETRIES"
   echo "  Lock timeout: ${AGENT_LOCK_TIMEOUT}s ($(( AGENT_LOCK_TIMEOUT / 3600 ))h)"
   echo "  Heartbeat: ${AGENT_HEARTBEAT}s ($(( AGENT_HEARTBEAT / 60 ))min)"
-  echo "  Stream output: $([ "$AGENT_STREAM" = "1" ] && echo "yes" || echo "no")"
+  echo "  Stream output: $([ "$AGENT_QUIET" != "1" ] && echo "yes (default)" || echo "no (quiet mode)")"
+  echo "  Post-task review: $([ "$AGENT_NO_REVIEW" != "1" ] && echo "yes (${AGENT_REVIEW_TIMEOUT}s timeout)" || echo "no")"
   echo "  Log dir: $RUN_LOG_DIR"
   echo ""
 

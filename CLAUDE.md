@@ -478,7 +478,7 @@ AGENT_NAME="worker-2" ./bin/agent 5 &
 | `CLAUDE_TIMEOUT` | `600` | Timeout per task in seconds |
 | `AGENT_DRY_RUN` | `0` | Set to 1 to preview without executing |
 | `AGENT_VERBOSE` | `0` | Set to 1 for more output |
-| `AGENT_STREAM` | `0` | Set to 1 for streaming output (shows real-time progress) |
+| `AGENT_QUIET` | `0` | Set to 1 to disable streaming output (streaming is ON by default) |
 | `AGENT_MAX_RETRIES` | `3` | Max retry attempts per task |
 | `AGENT_RETRY_DELAY` | `5` | Base delay between retries (exponential backoff) |
 | `AGENT_NO_RESUME` | `0` | Set to 1 to skip resuming interrupted sessions |
@@ -486,6 +486,8 @@ AGENT_NAME="worker-2" ./bin/agent 5 &
 | `AGENT_LOCK_TIMEOUT` | `10800` | Stale lock timeout in seconds (3 hours) |
 | `AGENT_HEARTBEAT` | `3600` | Heartbeat interval in seconds (1 hour) - refreshes assignment |
 | `AGENT_NO_FALLBACK` | `0` | Set to 1 to disable model fallback on rate limits |
+| `AGENT_NO_REVIEW` | `0` | Set to 1 to skip post-task code review cycle |
+| `AGENT_REVIEW_TIMEOUT` | `300` | Timeout for post-task review in seconds (5 min) |
 
 **Self-Healing Features:**
 
@@ -493,6 +495,7 @@ AGENT_NAME="worker-2" ./bin/agent 5 &
 |---------|-------------|
 | **Auto-Retry** | Retries failed tasks up to 3 times with exponential backoff |
 | **Model Fallback** | Automatically switches from opus to sonnet on rate limits |
+| **Post-Task Review** | Runs code review after each completed task, creates follow-up tasks |
 | **Session Persistence** | Saves state to `.claude/state/` for crash recovery |
 | **Auto-Resume** | Detects interrupted sessions and resumes from last iteration |
 | **Health Checks** | Validates environment before each run (CLI, dirs, disk space) |
