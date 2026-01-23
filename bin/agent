@@ -6,12 +6,13 @@
 # Each task goes through distinct phases, each with focused prompts.
 #
 # PHASES:
-#   1. TRIAGE   - Validate task, check dependencies (60s)
-#   2. PLAN     - Gap analysis, detailed planning (180s)
-#   3. IMPLEMENT- Execute the plan, write code (600s)
-#   4. TEST     - Run tests, add coverage (300s)
-#   5. DOCS     - Sync documentation (120s)
-#   6. REVIEW   - Code review, create follow-ups (180s)
+#   1. TRIAGE    - Validate task, check dependencies (2min)
+#   2. PLAN      - Gap analysis, detailed planning (5min)
+#   3. IMPLEMENT - Execute the plan, write code (30min)
+#   4. TEST      - Run tests, add coverage (10min)
+#   5. DOCS      - Sync documentation (5min)
+#   6. REVIEW    - Code review, create follow-ups (5min)
+#   7. VERIFY    - Verify task management done correctly (2min)
 #
 # FEATURES:
 #   - Modular phase-based execution (fresh context per phase)
@@ -42,10 +43,11 @@
 #   AGENT_NO_FALLBACK  - If set to 1, don't fall back to sonnet
 #
 # Phase skip flags (set to 1 to skip):
-#   SKIP_TRIAGE, SKIP_PLAN, SKIP_IMPLEMENT, SKIP_TEST, SKIP_DOCS, SKIP_REVIEW
+#   SKIP_TRIAGE, SKIP_PLAN, SKIP_IMPLEMENT, SKIP_TEST, SKIP_DOCS, SKIP_REVIEW, SKIP_VERIFY
 #
 # Phase timeout overrides (in seconds):
-#   TIMEOUT_TRIAGE, TIMEOUT_PLAN, TIMEOUT_IMPLEMENT, TIMEOUT_TEST, TIMEOUT_DOCS, TIMEOUT_REVIEW
+#   TIMEOUT_TRIAGE (120), TIMEOUT_PLAN (300), TIMEOUT_IMPLEMENT (1800),
+#   TIMEOUT_TEST (600), TIMEOUT_DOCS (300), TIMEOUT_REVIEW (300), TIMEOUT_VERIFY (120)
 #
 # WARNING: This script bypasses ALL safety checks. Only use in trusted repos.
 #
@@ -88,14 +90,16 @@ SKIP_IMPLEMENT="${SKIP_IMPLEMENT:-0}"
 SKIP_TEST="${SKIP_TEST:-0}"
 SKIP_DOCS="${SKIP_DOCS:-0}"
 SKIP_REVIEW="${SKIP_REVIEW:-0}"
+SKIP_VERIFY="${SKIP_VERIFY:-0}"
 
-# Phase timeouts (in seconds)
-TIMEOUT_TRIAGE="${TIMEOUT_TRIAGE:-60}"
-TIMEOUT_PLAN="${TIMEOUT_PLAN:-180}"
-TIMEOUT_IMPLEMENT="${TIMEOUT_IMPLEMENT:-600}"
-TIMEOUT_TEST="${TIMEOUT_TEST:-300}"
-TIMEOUT_DOCS="${TIMEOUT_DOCS:-120}"
-TIMEOUT_REVIEW="${TIMEOUT_REVIEW:-180}"
+# Phase timeouts (in seconds) - generous defaults to allow completion
+TIMEOUT_TRIAGE="${TIMEOUT_TRIAGE:-120}"
+TIMEOUT_PLAN="${TIMEOUT_PLAN:-300}"
+TIMEOUT_IMPLEMENT="${TIMEOUT_IMPLEMENT:-1800}"
+TIMEOUT_TEST="${TIMEOUT_TEST:-600}"
+TIMEOUT_DOCS="${TIMEOUT_DOCS:-300}"
+TIMEOUT_REVIEW="${TIMEOUT_REVIEW:-300}"
+TIMEOUT_VERIFY="${TIMEOUT_VERIFY:-120}"
 
 # Phase definitions: name|prompt_file|timeout|skip_var
 PHASES=(
@@ -105,15 +109,28 @@ PHASES=(
   "TEST|4-test.md|$TIMEOUT_TEST|$SKIP_TEST"
   "DOCS|5-docs.md|$TIMEOUT_DOCS|$SKIP_DOCS"
   "REVIEW|6-review.md|$TIMEOUT_REVIEW|$SKIP_REVIEW"
+  "VERIFY|7-verify.md|$TIMEOUT_VERIFY|$SKIP_VERIFY"
 )
 
 # Model state (for fallback)
 CURRENT_MODEL="$CLAUDE_MODEL"
 MODEL_FALLBACK_TRIGGERED=0
 
-# Generate unique agent ID
+# Generate unique agent ID with nicer default
 HOSTNAME_SHORT=$(hostname -s 2>/dev/null || hostname | cut -d. -f1)
-AGENT_ID="${AGENT_NAME:-agent-${HOSTNAME_SHORT}-$$-$(date +%s)}"
+if [ -z "${AGENT_NAME:-}" ]; then
+  # Auto-generate worker name based on existing agents
+  WORKER_NUM=1
+  while [ -f "$LOCKS_DIR/.worker-${WORKER_NUM}.active" ] 2>/dev/null; do
+    ((WORKER_NUM++))
+  done
+  AGENT_NAME="worker-${WORKER_NUM}"
+fi
+AGENT_ID="${AGENT_NAME}"
+
+# Mark this worker as active (for auto-numbering)
+mkdir -p "$LOCKS_DIR" 2>/dev/null || true
+touch "$LOCKS_DIR/.${AGENT_ID}.active" 2>/dev/null || true
 
 # Track locks held by this agent
 HELD_LOCKS=()
@@ -503,22 +520,16 @@ build_phase_prompt() {
   echo "$prompt"
 }
 
-run_phase() {
+run_phase_once() {
   local phase_name="$1"
   local prompt_file="$2"
   local timeout="$3"
-  local skip="$4"
-  local task_id="$5"
-  local task_file="$6"
-  local phase_log="$RUN_LOG_DIR/phase-${phase_name,,}-$task_id.log"
+  local task_id="$4"
+  local task_file="$5"
+  local attempt="$6"
+  local phase_log="$RUN_LOG_DIR/phase-${phase_name,,}-$task_id-attempt${attempt}.log"
 
-  # Check if phase should be skipped
-  if [ "$skip" = "1" ]; then
-    log_phase "Skipping $phase_name (disabled)"
-    return 0
-  fi
-
-  log_phase "Starting $phase_name phase"
+  log_phase "Starting $phase_name phase (attempt $attempt)"
   echo "  Timeout: ${timeout}s"
   echo "  Log: $phase_log"
 
@@ -552,7 +563,7 @@ run_phase() {
 
   echo ""
   echo -e "${CYAN}┌─────────────────────────────────────────────────────────────┐${NC}"
-  echo -e "${CYAN}│${NC} ${BOLD}PHASE: $phase_name${NC}"
+  echo -e "${CYAN}│${NC} ${BOLD}PHASE: $phase_name (attempt $attempt)${NC}"
   echo -e "${CYAN}└─────────────────────────────────────────────────────────────┘${NC}"
   echo ""
 
@@ -577,7 +588,8 @@ run_phase() {
       ;;
     124)
       log_error "$phase_name timed out after ${timeout}s"
-      return 1
+      # Return special code for timeout
+      return 124
       ;;
     *)
       # Check for rate limits
@@ -586,11 +598,68 @@ run_phase() {
         if fallback_to_sonnet; then
           log_heal "Will retry $phase_name with sonnet"
         fi
+        return 2  # Retryable error
       fi
       log_error "$phase_name failed with exit code $exit_code"
       return 1
       ;;
   esac
+}
+
+run_phase() {
+  local phase_name="$1"
+  local prompt_file="$2"
+  local timeout="$3"
+  local skip="$4"
+  local task_id="$5"
+  local task_file="$6"
+
+  # Check if phase should be skipped
+  if [ "$skip" = "1" ]; then
+    log_phase "Skipping $phase_name (disabled)"
+    return 0
+  fi
+
+  # Retry loop for individual phase
+  local attempt=1
+  local max_attempts="$AGENT_MAX_RETRIES"
+
+  while [ "$attempt" -le "$max_attempts" ]; do
+    local result=0
+    run_phase_once "$phase_name" "$prompt_file" "$timeout" "$task_id" "$task_file" "$attempt" || result=$?
+
+    case $result in
+      0)
+        return 0  # Success
+        ;;
+      124)
+        # Timeout - don't retry, timeouts mean we need more time
+        log_error "$phase_name timed out - consider increasing TIMEOUT_${phase_name}"
+        return 1
+        ;;
+      2)
+        # Rate limit - retry with backoff
+        if [ "$attempt" -lt "$max_attempts" ]; then
+          local backoff=$((AGENT_RETRY_DELAY * attempt))
+          log_heal "Retrying $phase_name in ${backoff}s (attempt $((attempt + 1))/$max_attempts)"
+          sleep "$backoff"
+        fi
+        ;;
+      *)
+        # Other error - retry
+        if [ "$attempt" -lt "$max_attempts" ]; then
+          local backoff=$((AGENT_RETRY_DELAY * attempt))
+          log_heal "Retrying $phase_name in ${backoff}s (attempt $((attempt + 1))/$max_attempts)"
+          sleep "$backoff"
+        fi
+        ;;
+    esac
+
+    ((attempt++))
+  done
+
+  log_error "$phase_name failed after $max_attempts attempts"
+  return 1
 }
 
 run_all_phases() {
@@ -977,7 +1046,7 @@ run_agent_iteration() {
   log_step "Running modular phase-based execution..."
   echo "  Task: $task_id"
   echo "  Model: $CURRENT_MODEL"
-  echo "  Phases: TRIAGE → PLAN → IMPLEMENT → TEST → DOCS → REVIEW"
+  echo "  Phases: TRIAGE → PLAN → IMPLEMENT → TEST → DOCS → REVIEW → VERIFY"
   echo "  Stream: $([ "$AGENT_QUIET" != "1" ] && echo "enabled" || echo "disabled")"
   echo ""
 
@@ -1026,6 +1095,9 @@ cleanup() {
   # Release all locks held by this agent
   release_all_locks
 
+  # Remove active marker (for auto-numbering)
+  rm -f "$LOCKS_DIR/.${AGENT_ID}.active" 2>/dev/null || true
+
   # Unassign any tasks we were working on
   for file in "$TASKS_DIR/doing"/*.md; do
     [ -f "$file" ] || continue
@@ -1058,12 +1130,13 @@ main() {
   echo "  Stream: $([ "$AGENT_QUIET" != "1" ] && echo "yes (default)" || echo "no")"
   echo ""
   echo "  Phases:"
-  echo "    1. TRIAGE   ${TIMEOUT_TRIAGE}s  $([ "$SKIP_TRIAGE" = "1" ] && echo "[SKIP]" || echo "")"
-  echo "    2. PLAN     ${TIMEOUT_PLAN}s  $([ "$SKIP_PLAN" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    1. TRIAGE    ${TIMEOUT_TRIAGE}s  $([ "$SKIP_TRIAGE" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    2. PLAN      ${TIMEOUT_PLAN}s  $([ "$SKIP_PLAN" = "1" ] && echo "[SKIP]" || echo "")"
   echo "    3. IMPLEMENT ${TIMEOUT_IMPLEMENT}s  $([ "$SKIP_IMPLEMENT" = "1" ] && echo "[SKIP]" || echo "")"
-  echo "    4. TEST     ${TIMEOUT_TEST}s  $([ "$SKIP_TEST" = "1" ] && echo "[SKIP]" || echo "")"
-  echo "    5. DOCS     ${TIMEOUT_DOCS}s  $([ "$SKIP_DOCS" = "1" ] && echo "[SKIP]" || echo "")"
-  echo "    6. REVIEW   ${TIMEOUT_REVIEW}s  $([ "$SKIP_REVIEW" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    4. TEST      ${TIMEOUT_TEST}s  $([ "$SKIP_TEST" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    5. DOCS      ${TIMEOUT_DOCS}s  $([ "$SKIP_DOCS" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    6. REVIEW    ${TIMEOUT_REVIEW}s  $([ "$SKIP_REVIEW" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    7. VERIFY    ${TIMEOUT_VERIFY}s  $([ "$SKIP_VERIFY" = "1" ] && echo "[SKIP]" || echo "")"
   echo ""
   echo "  Log dir: $RUN_LOG_DIR"
   echo ""

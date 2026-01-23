@@ -472,16 +472,17 @@ AGENT_NAME="worker-2" ./bin/agent 5 &
 
 **Phase-Based Execution:**
 
-Each task goes through 6 distinct phases, each with a fresh Claude session and focused prompt:
+Each task goes through 7 distinct phases, each with a fresh Claude session and focused prompt:
 
 | Phase | Timeout | Purpose |
 |-------|---------|---------|
-| 1. TRIAGE | 60s | Validate task, check dependencies, verify readiness |
-| 2. PLAN | 180s | Gap analysis, detailed implementation planning |
-| 3. IMPLEMENT | 600s | Execute the plan, write code |
-| 4. TEST | 300s | Run tests, add missing coverage |
-| 5. DOCS | 120s | Sync documentation, update annotations |
-| 6. REVIEW | 180s | Code review, consistency check, create follow-ups |
+| 1. TRIAGE | 2min | Validate task, check dependencies, verify readiness |
+| 2. PLAN | 5min | Gap analysis, detailed implementation planning |
+| 3. IMPLEMENT | 30min | Execute the plan, write code |
+| 4. TEST | 10min | Run tests, add missing coverage |
+| 5. DOCS | 5min | Sync documentation, update annotations |
+| 6. REVIEW | 5min | Code review, consistency check, create follow-ups |
+| 7. VERIFY | 2min | Verify task management done correctly |
 
 **Environment Variables:**
 
@@ -494,7 +495,7 @@ Each task goes through 6 distinct phases, each with a fresh Claude session and f
 | `AGENT_MAX_RETRIES` | `2` | Max retry attempts per phase |
 | `AGENT_RETRY_DELAY` | `5` | Base delay between retries (exponential backoff) |
 | `AGENT_NO_RESUME` | `0` | Set to 1 to skip resuming interrupted sessions |
-| `AGENT_NAME` | auto | Custom agent name (default: auto-generated) |
+| `AGENT_NAME` | `worker-N` | Agent name (auto-generates worker-1, worker-2, etc.) |
 | `AGENT_LOCK_TIMEOUT` | `10800` | Stale lock timeout in seconds (3 hours) |
 | `AGENT_HEARTBEAT` | `3600` | Heartbeat interval in seconds (1 hour) - refreshes assignment |
 | `AGENT_NO_FALLBACK` | `0` | Set to 1 to disable model fallback on rate limits |
@@ -509,17 +510,19 @@ Each task goes through 6 distinct phases, each with a fresh Claude session and f
 | `SKIP_TEST` | Skip testing phase |
 | `SKIP_DOCS` | Skip documentation sync phase |
 | `SKIP_REVIEW` | Skip code review phase |
+| `SKIP_VERIFY` | Skip task verification phase |
 
 **Phase Timeout Overrides** (in seconds):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TIMEOUT_TRIAGE` | 60 | Triage phase timeout |
-| `TIMEOUT_PLAN` | 180 | Planning phase timeout |
-| `TIMEOUT_IMPLEMENT` | 600 | Implementation phase timeout |
-| `TIMEOUT_TEST` | 300 | Testing phase timeout |
-| `TIMEOUT_DOCS` | 120 | Documentation phase timeout |
-| `TIMEOUT_REVIEW` | 180 | Review phase timeout |
+| `TIMEOUT_TRIAGE` | 120 | Triage phase timeout (2min) |
+| `TIMEOUT_PLAN` | 300 | Planning phase timeout (5min) |
+| `TIMEOUT_IMPLEMENT` | 1800 | Implementation phase timeout (30min) |
+| `TIMEOUT_TEST` | 600 | Testing phase timeout (10min) |
+| `TIMEOUT_DOCS` | 300 | Documentation phase timeout (5min) |
+| `TIMEOUT_REVIEW` | 300 | Review phase timeout (5min) |
+| `TIMEOUT_VERIFY` | 120 | Verification phase timeout (2min) |
 
 **Self-Healing Features:**
 
