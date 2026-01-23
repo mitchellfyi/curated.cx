@@ -19,10 +19,6 @@ en:
     update: Update Account
     view: View
     view_arrow: View →
-  errors:
-    form_errors:
-      one: "%{count} error prevented this from being saved"
-      other: "%{count} errors prevented this from being saved"
   admin:
     categories:
       created: Created
@@ -72,6 +68,70 @@ en:
         edit: Edit
         no_description: No description
       updated: Site updated successfully
+    sources:
+      back_to_sources: Back to Sources
+      configuration: Configuration
+      created: Source created successfully
+      deleted: Source deleted successfully
+      disabled: Disabled
+      duration: Duration
+      edit_button: Edit
+      edit_page:
+        danger_zone: Danger Zone
+        delete: Delete Source
+        delete_warning: Once you delete a source, all import runs and content items
+          from this source will be deleted. This action cannot be undone.
+        title: Edit Source
+      enabled: Enabled
+      form:
+        api_key: API Key
+        api_key_hint: Get your API key from serpapi.com
+        api_key_placeholder: Your SerpAPI key
+        cancel: Cancel
+        create: Create Source
+        enabled: Enabled
+        interval_hint: Minimum 15 minutes
+        interval_minutes: Run interval (minutes)
+        kind: Source Type
+        language: Language
+        location: Location
+        max_results: Max results per run
+        name: Name
+        name_placeholder: e.g., AI News Feed
+        query: Search Query
+        query_placeholder: e.g., artificial intelligence news
+        rate_limit_per_hour: Rate limit per hour
+        schedule: Schedule
+        select_site: Select a site
+        serp_api_config: SerpAPI Configuration
+        site: Site
+        update: Update Source
+      import_history: Import History
+      index:
+        description: Manage your content ingestion sources
+        get_started: Get started by creating a new source.
+        new_source: New Source
+        no_sources: No sources
+        title: Sources
+      items_created: Created
+      items_failed: Failed
+      items_updated: Updated
+      last_run: Last run
+      last_status: Last Status
+      never_run: Never run
+      new:
+        description: Set up a new content ingestion source
+        title: Create New Source
+      no_import_runs: No import runs yet
+      per_hour: per hour
+      rate_limit: Rate Limit
+      run_now: Run Now
+      run_queued: Source run has been queued
+      schedule_interval: Schedule Interval
+      source_disabled: Source must be enabled to run manually
+      started_at: Started At
+      status: Status
+      updated: Source updated successfully
     tagging_rules:
       add: Add Rule
       confirm_delete: Are you sure you want to delete this tagging rule?
@@ -83,7 +143,7 @@ en:
       empty: No tagging rules
       empty_description: Get started by creating a new tagging rule.
       enabled: Enabled
-      for_taxonomy: "For taxonomy"
+      for_taxonomy: For taxonomy
       form:
         enabled: Enabled
         pattern: Pattern
@@ -161,70 +221,6 @@ en:
       tagging_rules: Tagging Rules
       title: Taxonomies
       updated: Taxonomy updated successfully
-    sources:
-      back_to_sources: Back to Sources
-      configuration: Configuration
-      created: Source created successfully
-      deleted: Source deleted successfully
-      disabled: Disabled
-      duration: Duration
-      edit_button: Edit
-      edit_page:
-        danger_zone: Danger Zone
-        delete: Delete Source
-        delete_warning: Once you delete a source, all import runs and content items
-          from this source will be deleted. This action cannot be undone.
-        title: Edit Source
-      enabled: Enabled
-      form:
-        api_key: API Key
-        api_key_hint: Get your API key from serpapi.com
-        api_key_placeholder: Your SerpAPI key
-        cancel: Cancel
-        create: Create Source
-        enabled: Enabled
-        interval_hint: Minimum 15 minutes
-        interval_minutes: Run interval (minutes)
-        kind: Source Type
-        language: Language
-        location: Location
-        max_results: Max results per run
-        name: Name
-        name_placeholder: e.g., AI News Feed
-        query: Search Query
-        query_placeholder: e.g., artificial intelligence news
-        rate_limit_per_hour: Rate limit per hour
-        schedule: Schedule
-        select_site: Select a site
-        serp_api_config: SerpAPI Configuration
-        site: Site
-        update: Update Source
-      import_history: Import History
-      index:
-        description: Manage your content ingestion sources
-        get_started: Get started by creating a new source.
-        new_source: New Source
-        no_sources: No sources
-        title: Sources
-      items_created: Created
-      items_failed: Failed
-      items_updated: Updated
-      last_run: Last run
-      last_status: Last Status
-      never_run: Never run
-      new:
-        description: Set up a new content ingestion source
-        title: Create New Source
-      no_import_runs: No import runs yet
-      per_hour: per hour
-      rate_limit: Rate Limit
-      run_now: Run Now
-      run_queued: Source run has been queued
-      schedule_interval: Schedule Interval
-      source_disabled: Source must be enabled to run manually
-      started_at: Started At
-      status: Status
-      updated: Source updated successfully
   app:
     description: Curated platform for discovering and sharing content
     name: Curated
@@ -280,6 +276,10 @@ en:
   counts:
     item: Item
     listing: Listing
+  errors:
+    form_errors:
+      one: "%{count} error prevented this from being saved"
+      other: "%{count} errors prevented this from being saved"
   listings:
     index:
       across_categories: across all categories
