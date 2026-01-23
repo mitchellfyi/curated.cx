@@ -8,14 +8,24 @@ class ListingsController < ApplicationController
   def index
     authorize Listing
 
+    # Get featured listings for the featured section
+    @featured_listings = policy_scope(Listing.includes(:category))
+                          .featured
+                          .not_expired
+                          .published_recent
+                          .limit(3)
+
+    # Get regular listings (exclude expired)
     @listings = if @category
                   # Category-specific listings
                   policy_scope(@category.listings.includes(:category))
+                            .not_expired
                             .published_recent
                             .limit(20)
     else
                   # All listings for current site
                   policy_scope(Listing.includes(:category))
+                            .not_expired
                             .published_recent
                             .limit(20)
     end
