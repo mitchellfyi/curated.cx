@@ -41,10 +41,10 @@ class UpsertListingsJob < ApplicationJob
 
     listing
   rescue UrlCanonicaliser::InvalidUrlError => e
-    Rails.logger.warn("Invalid URL in UpsertListingsJob: #{url_raw} - #{e.message}")
+    log_job_warning("Invalid URL: #{e.message}", url_raw: url_raw)
     nil
   rescue StandardError => e
-    Rails.logger.error("Error in UpsertListingsJob: #{e.class} - #{e.message}")
+    log_job_error(e, url_raw: url_raw, category_id: category_id)
     raise
   ensure
     Current.tenant = nil

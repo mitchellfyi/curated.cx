@@ -46,6 +46,7 @@ class FetchSerpApiNewsJob < ApplicationJob
     source.update_run_status("success")
   rescue StandardError => e
     source.update_run_status("error: #{e.message}")
+    log_job_error(e, source_id: source_id)
     raise
   ensure
     Current.tenant = nil
