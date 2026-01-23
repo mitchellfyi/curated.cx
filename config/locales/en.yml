@@ -83,31 +83,39 @@ en:
     listings:
       created: Created
       deleted: Deleted
-      updated: Updated
-      featured: Listing has been featured
-      unfeatured: Listing is no longer featured
       expiry_extended: Listing expiry has been extended
+      featured: Listing has been featured
       form:
-        listing_type: Listing Type
         affiliate_settings: Affiliate Settings
         affiliate_url_template: Affiliate URL Template
-        affiliate_url_template_hint: 'Use {url}, {title}, {id} as placeholders'
-        featured_settings: Featured Settings
+        affiliate_url_template_hint: Use {url}, {title}, {id} as placeholders
+        apply_url: Apply URL
+        company: Company
+        expires_at: Expires At
         featured_from: Featured From
+        featured_settings: Featured Settings
         featured_until: Featured Until
         job_settings: Job Settings
-        company: Company
+        listing_type: Listing Type
         location: Location
-        salary_range: Salary Range
-        apply_url: Apply URL
-        expires_at: Expires At
-        payment_settings: Payment Settings
         paid: Paid
         payment_reference: Payment Reference
+        payment_settings: Payment Settings
+        salary_range: Salary Range
       listing_types:
-        tool: Tool
         job: Job
         service: Service
+        tool: Tool
+      unfeatured: Listing is no longer featured
+      updated: Updated
+    moderation:
+      comments_locked: Comments have been locked on this content
+      comments_unlocked: Comments have been unlocked on this content
+      hidden: Content has been hidden
+      unhidden: Content has been made visible again
+    site_bans:
+      created: User has been banned from this site
+      destroyed: User ban has been removed
     sites:
       created: Site created successfully
       deleted: Site deleted successfully
@@ -245,14 +253,6 @@ en:
       test_rule: Test Rule
       title: Tagging Rules
       updated: Tagging rule updated successfully
-    moderation:
-      comments_locked: Comments have been locked on this content
-      comments_unlocked: Comments have been unlocked on this content
-      hidden: Content has been hidden
-      unhidden: Content has been made visible again
-    site_bans:
-      created: User has been banned from this site
-      destroyed: User ban has been removed
     taxonomies:
       add_child: Add Child
       children: Children
@@ -288,6 +288,8 @@ en:
       tagging_rules: Tagging Rules
       title: Taxonomies
       updated: Taxonomy updated successfully
+  affiliate:
+    listing_not_found: The requested listing could not be found.
   app:
     description: Curated platform for discovering and sharing content
     name: Curated
@@ -331,13 +333,6 @@ en:
     unlocks:
       resend_button: Resend unlock instructions
       resend_instructions: Didn't receive unlock instructions?
-  comments:
-    banned: You are banned from commenting on this site
-    created: Comment posted successfully
-    deleted: Comment deleted
-    locked: Comments are locked on this content
-    rate_limited: You're commenting too quickly. Please wait before posting again.
-    updated: Comment updated
   categories:
     index:
       browse_content: Browse content
@@ -345,6 +340,37 @@ en:
       title: Title
     show:
       description: Description
+  comments:
+    back_to_comments: Back to comments
+    back_to_feed: Back to feed
+    banned: You are banned from commenting on this site
+    comment_count:
+      one: 1 comment
+      other: "%{count} comments"
+      zero: No comments
+    created: Comment posted successfully
+    deleted: Comment deleted
+    edited: "(edited)"
+    empty: No comments yet. Be the first to comment!
+    form:
+      cancel: Cancel
+      characters_remaining: characters remaining
+      confirm_delete: Are you sure you want to delete this comment?
+      delete: Delete
+      edit: Edit
+      placeholder: Write a comment...
+      reply: Reply
+      submit: Post Comment
+      update: Update
+    loading: Loading comments...
+    locked: Comments are locked on this content
+    locked_message: Comments are locked on this content.
+    on_content: Comment on
+    rate_limited: You're commenting too quickly. Please wait before posting again.
+    reply_to: Replying to %{user}
+    sign_in_to_comment: Sign in to comment
+    title: Comments
+    updated: Comment updated
   common:
     brand_name: Curated.cx
   counts:
@@ -358,7 +384,7 @@ en:
   feed:
     content:
       untitled: Untitled
-      why_it_matters: "Why it matters: "
+      why_it_matters: 'Why it matters: '
     empty:
       description: Check back later for new content, or try adjusting your filters.
       title: No content found
@@ -403,6 +429,17 @@ en:
       no_listings_yet: No listings yet
       title: All Listings
       view_details: View Details
+  monetisation:
+    badges:
+      featured: Featured
+      sponsored: Sponsored
+    featured_section:
+      title: Featured
+    job:
+      apply: Apply
+      expired: Expired
+      expires: Expires
+      salary: Salary
   nav:
     about: About
     admin: Admin
@@ -435,26 +472,13 @@ en:
       disabled: Disabled
       enabled: Enabled
       private: Private
-  votes:
-    banned: You are banned from voting on this site
-    rate_limited: You're voting too quickly. Please wait before voting again.
-    sign_in_to_vote: Sign in to vote
-  affiliate:
-    listing_not_found: The requested listing could not be found.
-  monetisation:
-    badges:
-      featured: Featured
-      sponsored: Sponsored
-    job:
-      apply: Apply
-      expires: Expires
-      expired: Expired
-      salary: Salary
-    featured_section:
-      title: Featured
   time:
     ago: "%{time} ago"
     formats:
       default: "%B %d, %Y"
       long: "%B %d, %Y at %I:%M %p"
       short: "%b %d"
+  votes:
+    banned: You are banned from voting on this site
+    rate_limited: You're voting too quickly. Please wait before voting again.
+    sign_in_to_vote: Sign in to vote
