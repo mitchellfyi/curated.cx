@@ -74,7 +74,9 @@ class Tenant < ApplicationRecord
     end
   end
 
-  def self.clear_cache!
+  # Clears ALL tenant caches across the platform.
+  # Use sparingly - prefer scoped invalidation via instance method.
+  def self.clear_all_tenant_caches!
     Rails.cache.delete_matched("tenant:*")
   end
 
@@ -121,8 +123,8 @@ class Tenant < ApplicationRecord
     Rails.cache.delete("tenant:hostname:#{hostname}")
     Rails.cache.delete("tenant:root") if root?
 
-    # Also clear any cached instances that might be stale
-    Rails.cache.delete_matched("tenant:*")
+    # Clear only this tenant's scoped cache entries (multi-tenant safe)
+    Rails.cache.delete_matched("tenant:#{id}:*")
   end
 
   def validate_settings_structure
