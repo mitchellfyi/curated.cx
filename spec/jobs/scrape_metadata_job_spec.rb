@@ -249,7 +249,11 @@ RSpec.describe ScrapeMetadataJob, type: :job do
         expect(Current).to receive(:tenant=).with(nil).at_least(:once)
         expect(Current).to receive(:site=).with(nil).at_least(:once)
 
-        described_class.perform_now(listing.id)
+        begin
+          described_class.perform_now(listing.id)
+        rescue StandardError
+          # Expected - error is re-raised after ensure block
+        end
       end
     end
 
