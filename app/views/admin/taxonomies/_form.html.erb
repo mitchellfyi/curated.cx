@@ -1,0 +1,55 @@
+<%= form_with(model: [:admin, taxonomy], class: "space-y-6") do |form| %>
+  <% if taxonomy.errors.any? %>
+    <div class="bg-red-50 border border-red-200 rounded-md p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800"><%= t('errors.form_errors', count: taxonomy.errors.count) %></h3>
+          <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+            <% taxonomy.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :name, t('admin.taxonomies.form.name'), class: "block text-sm font-medium text-gray-700" %>
+    <%= form.text_field :name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", required: true %>
+  </div>
+
+  <div>
+    <%= form.label :slug, t('admin.taxonomies.form.slug'), class: "block text-sm font-medium text-gray-700" %>
+    <%= form.text_field :slug, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    <p class="mt-1 text-sm text-gray-500"><%= t('admin.taxonomies.form.slug_hint') %></p>
+  </div>
+
+  <div>
+    <%= form.label :description, t('admin.taxonomies.form.description'), class: "block text-sm font-medium text-gray-700" %>
+    <%= form.text_area :description, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+  </div>
+
+  <% if parent_options.any? %>
+    <div>
+      <%= form.label :parent_id, t('admin.taxonomies.form.parent'), class: "block text-sm font-medium text-gray-700" %>
+      <%= form.select :parent_id, options_from_collection_for_select(parent_options, :id, :full_path, taxonomy.parent_id), { include_blank: t('admin.taxonomies.form.no_parent') }, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :position, t('admin.taxonomies.form.position'), class: "block text-sm font-medium text-gray-700" %>
+    <%= form.number_field :position, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", min: 0 %>
+    <p class="mt-1 text-sm text-gray-500"><%= t('admin.taxonomies.form.position_hint') %></p>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to t('actions.cancel'), admin_taxonomies_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= form.submit class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer" %>
+  </div>
+<% end %>

@@ -1,0 +1,16 @@
+<div class="py-8">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <nav class="text-sm text-gray-500 mb-2">
+        <%= link_to t('admin.taxonomies.title'), admin_taxonomies_path, class: "hover:text-blue-600" %>
+        <span class="mx-1">/</span>
+        <%= link_to @taxonomy.name, admin_taxonomy_path(@taxonomy), class: "hover:text-blue-600" %>
+      </nav>
+      <h1 class="text-3xl font-bold text-gray-900"><%= t('admin.taxonomies.edit') %></h1>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <%= render 'form', taxonomy: @taxonomy, parent_options: @parent_options %>
+    </div>
+  </div>
+</div>

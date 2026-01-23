@@ -1,0 +1,32 @@
+<li>
+  <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+    <div class="flex items-center justify-between">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center">
+          <% if depth > 0 %>
+            <span class="text-gray-300 mr-2"><%= '—' * depth %></span>
+          <% end %>
+          <h3 class="text-lg font-medium text-gray-900">
+            <%= link_to taxonomy.name, admin_taxonomy_path(taxonomy), class: "hover:text-blue-600" %>
+          </h3>
+        </div>
+        <div class="mt-1 flex items-center text-sm text-gray-500">
+          <span><%= t('admin.taxonomies.slug') %>: <code class="bg-gray-100 px-1 rounded"><%= taxonomy.slug %></code></span>
+          <span class="mx-2">•</span>
+          <span><%= t('admin.taxonomies.rules_count', count: taxonomy.tagging_rules.size) %></span>
+          <% if taxonomy.children.any? %>
+            <span class="mx-2">•</span>
+            <span><%= t('admin.taxonomies.children_count', count: taxonomy.children.size) %></span>
+          <% end %>
+        </div>
+      </div>
+      <div class="flex-shrink-0 flex items-center space-x-2">
+        <%= link_to t('actions.edit'), edit_admin_taxonomy_path(taxonomy), class: "text-blue-600 hover:text-blue-500 font-medium text-sm" %>
+        <%= link_to t('actions.show'), admin_taxonomy_path(taxonomy), class: "text-gray-600 hover:text-gray-500 font-medium text-sm" %>
+      </div>
+    </div>
+  </div>
+</li>
+<% taxonomy.children.by_position.each do |child| %>
+  <%= render partial: 'taxonomy_row', locals: { taxonomy: child, depth: depth + 1 } %>
+<% end %>

@@ -1,0 +1,90 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <nav class="text-sm text-gray-500 mb-2">
+            <%= link_to t('admin.taxonomies.title'), admin_taxonomies_path, class: "hover:text-blue-600" %>
+            <% @taxonomy.ancestors.each do |ancestor| %>
+              <span class="mx-1">/</span>
+              <%= link_to ancestor.name, admin_taxonomy_path(ancestor), class: "hover:text-blue-600" %>
+            <% end %>
+          </nav>
+          <h1 class="text-3xl font-bold text-gray-900"><%= @taxonomy.name %></h1>
+          <p class="mt-2 text-gray-600"><code class="bg-gray-100 px-2 py-1 rounded"><%= @taxonomy.slug %></code></p>
+        </div>
+        <div class="flex space-x-2">
+          <%= link_to t('actions.edit'), edit_admin_taxonomy_path(@taxonomy), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+          <%= button_to t('actions.delete'), admin_taxonomy_path(@taxonomy), method: :delete, data: { confirm: t('admin.taxonomies.confirm_delete') }, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700" %>
+        </div>
+      </div>
+    </div>
+
+    <% if @taxonomy.description.present? %>
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-2"><%= t('admin.taxonomies.description_label') %></h2>
+        <p class="text-gray-600"><%= @taxonomy.description %></p>
+      </div>
+    <% end %>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-medium text-gray-900"><%= t('admin.taxonomies.children') %></h2>
+          <%= link_to new_admin_taxonomy_path(parent_id: @taxonomy.id), class: "text-blue-600 hover:text-blue-500 text-sm font-medium" do %>
+            + <%= t('admin.taxonomies.add_child') %>
+          <% end %>
+        </div>
+        <% if @children.any? %>
+          <ul class="divide-y divide-gray-200">
+            <% @children.each do |child| %>
+              <li class="py-3">
+                <div class="flex items-center justify-between">
+                  <%= link_to child.name, admin_taxonomy_path(child), class: "text-gray-900 hover:text-blue-600" %>
+                  <span class="text-sm text-gray-500"><%= child.slug %></span>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-gray-500 text-sm"><%= t('admin.taxonomies.no_children') %></p>
+        <% end %>
+      </div>
+
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-medium text-gray-900"><%= t('admin.taxonomies.tagging_rules') %></h2>
+          <%= link_to new_admin_tagging_rule_path(taxonomy_id: @taxonomy.id), class: "text-blue-600 hover:text-blue-500 text-sm font-medium" do %>
+            + <%= t('admin.tagging_rules.add') %>
+          <% end %>
+        </div>
+        <% if @tagging_rules.any? %>
+          <ul class="divide-y divide-gray-200">
+            <% @tagging_rules.each do |rule| %>
+              <li class="py-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <%= link_to admin_tagging_rule_path(rule), class: "text-gray-900 hover:text-blue-600" do %>
+                      <span class="font-medium"><%= rule.rule_type.humanize %></span>
+                    <% end %>
+                    <p class="text-sm text-gray-500 truncate max-w-xs"><%= rule.pattern %></p>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <% if rule.enabled? %>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"><%= t('admin.tagging_rules.enabled') %></span>
+                    <% else %>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"><%= t('admin.tagging_rules.disabled') %></span>
+                    <% end %>
+                    <span class="text-sm text-gray-500"><%= t('admin.tagging_rules.priority') %>: <%= rule.priority %></span>
+                  </div>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-gray-500 text-sm"><%= t('admin.taxonomies.no_rules') %></p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

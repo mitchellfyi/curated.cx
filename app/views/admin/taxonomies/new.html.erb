@@ -1,0 +1,12 @@
+<div class="py-8">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900"><%= t('admin.taxonomies.new') %></h1>
+      <p class="mt-2 text-gray-600"><%= t('admin.taxonomies.new_description') %></p>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <%= render 'form', taxonomy: @taxonomy, parent_options: @parent_options %>
+    </div>
+  </div>
+</div>

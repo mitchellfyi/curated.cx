@@ -1,0 +1,42 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t('admin.taxonomies.title') %></h1>
+        <p class="mt-2 text-gray-600"><%= t('admin.taxonomies.description') %></p>
+      </div>
+      <%= link_to new_admin_taxonomy_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+        <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <%= t('admin.taxonomies.new') %>
+      <% end %>
+    </div>
+
+    <% if @taxonomies.any? %>
+      <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200">
+          <% @taxonomies.each do |taxonomy| %>
+            <%= render partial: 'taxonomy_row', locals: { taxonomy: taxonomy, depth: 0 } %>
+          <% end %>
+        </ul>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+        </svg>
+        <h3 class="mt-4 text-sm font-medium text-gray-900"><%= t('admin.taxonomies.empty') %></h3>
+        <p class="mt-1 text-sm text-gray-500"><%= t('admin.taxonomies.empty_description') %></p>
+        <div class="mt-6">
+          <%= link_to new_admin_taxonomy_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+            <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <%= t('admin.taxonomies.new') %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
