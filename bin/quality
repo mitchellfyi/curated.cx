@@ -73,7 +73,7 @@ run_check(
 puts_header("2. SECURITY ANALYSIS")
 run_check(
   "Brakeman - Security Vulnerability Scan",
-  "bundle exec brakeman --quiet --format plain --no-pager"
+  "bundle exec brakeman --quiet --format plain --no-pager -i .brakeman.ignore"
 )
 
 run_check(

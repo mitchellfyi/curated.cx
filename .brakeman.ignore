@@ -1,0 +1,14 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "9b2f0ae5c30e8b0deb83dd08817890cef227f34ee429f7836b7cc569a7d5597c",
+      "note": "False positive: engagement_score_sql is built from column names only, no user input. See safety comment in code."
+    },
+    {
+      "fingerprint": "c16535a52ee84621250746f4861edbef630a3bbeb24a3694c1ab586f83e9e25c",
+      "note": "False positive: ranking_score_sql is built from constants and column names only, no user input. See safety comment in code."
+    }
+  ],
+  "updated": "2026-01-23",
+  "brakeman_version": "7.1.0"
+}
