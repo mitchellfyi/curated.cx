@@ -4,35 +4,53 @@
 #
 # Table name: listings
 #
-#  id            :bigint           not null, primary key
-#  ai_summaries  :jsonb            not null
-#  ai_tags       :jsonb            not null
-#  body_html     :text
-#  body_text     :text
-#  description   :text
-#  domain        :string
-#  image_url     :text
-#  metadata      :jsonb            not null
-#  published_at  :datetime
-#  site_name     :string
-#  title         :string
-#  url_canonical :text             not null
-#  url_raw       :text             not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  category_id   :bigint           not null
-#  site_id       :bigint           not null
-#  source_id     :bigint
-#  tenant_id     :bigint           not null
+#  id                     :bigint           not null, primary key
+#  affiliate_attribution  :jsonb            not null
+#  affiliate_url_template :text
+#  ai_summaries           :jsonb            not null
+#  ai_tags                :jsonb            not null
+#  apply_url              :text
+#  body_html              :text
+#  body_text              :text
+#  company                :string
+#  description            :text
+#  domain                 :string
+#  expires_at             :datetime
+#  featured_from          :datetime
+#  featured_until         :datetime
+#  image_url              :text
+#  listing_type           :integer          default("tool"), not null
+#  location               :string
+#  metadata               :jsonb            not null
+#  paid                   :boolean          default(FALSE), not null
+#  payment_reference      :string
+#  published_at           :datetime
+#  salary_range           :string
+#  site_name              :string
+#  title                  :string
+#  url_canonical          :text             not null
+#  url_raw                :text             not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  category_id            :bigint           not null
+#  featured_by_id         :bigint
+#  site_id                :bigint           not null
+#  source_id              :bigint
+#  tenant_id              :bigint           not null
 #
 # Indexes
 #
 #  index_listings_on_category_id                (category_id)
 #  index_listings_on_category_published         (category_id,published_at)
 #  index_listings_on_domain                     (domain)
+#  index_listings_on_featured_by_id             (featured_by_id)
 #  index_listings_on_published_at               (published_at)
+#  index_listings_on_site_expires_at            (site_id,expires_at)
+#  index_listings_on_site_featured_dates        (site_id,featured_from,featured_until)
 #  index_listings_on_site_id                    (site_id)
 #  index_listings_on_site_id_and_url_canonical  (site_id,url_canonical) UNIQUE
+#  index_listings_on_site_listing_type          (site_id,listing_type)
+#  index_listings_on_site_type_expires          (site_id,listing_type,expires_at)
 #  index_listings_on_source_id                  (source_id)
 #  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
 #  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
@@ -45,6 +63,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (category_id => categories.id)
+#  fk_rails_...  (featured_by_id => users.id)
 #  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (source_id => sources.id)
 #  fk_rails_...  (tenant_id => tenants.id)
@@ -53,10 +72,15 @@ class Listing < ApplicationRecord
   include TenantScoped
   include SiteScoped
 
+  # Enums
+  enum :listing_type, { tool: 0, job: 1, service: 2 }, default: :tool
+
   # Associations
   belongs_to :tenant # Keep for backward compatibility and data access
   belongs_to :category
   belongs_to :source, optional: true
+  belongs_to :featured_by, class_name: "User", optional: true
+  has_many :affiliate_clicks, dependent: :destroy
 
   # Validations
   validates :category, presence: true
@@ -85,6 +109,25 @@ class Listing < ApplicationRecord
   scope :published_recent, -> { published.recent }
   scope :by_source, ->(source) { where(source: source) }
   scope :without_source, -> { where(source_id: nil) }
+
+  # Monetisation scopes
+  scope :featured, -> {
+    where("featured_from <= ? AND (featured_until IS NULL OR featured_until > ?)",
+          Time.current, Time.current)
+  }
+  scope :not_featured, -> {
+    where("featured_from IS NULL OR featured_from > ? OR " \
+          "(featured_until IS NOT NULL AND featured_until <= ?)",
+          Time.current, Time.current)
+  }
+  scope :not_expired, -> { where("expires_at IS NULL OR expires_at > ?", Time.current) }
+  scope :expired, -> { where("expires_at IS NOT NULL AND expires_at <= ?", Time.current) }
+  scope :jobs, -> { where(listing_type: :job) }
+  scope :tools, -> { where(listing_type: :tool) }
+  scope :services, -> { where(listing_type: :service) }
+  scope :active_jobs, -> { jobs.not_expired.published }
+  scope :with_affiliate, -> { where.not(affiliate_url_template: [ nil, "" ]) }
+  scope :paid_listings, -> { where(paid: true) }
 
   # Class methods for common queries
   def self.recent_published_for_site(site_id, limit: 20)
@@ -135,6 +178,42 @@ class Listing < ApplicationRecord
 
   def metadata
     super || {}
+  end
+
+  def affiliate_attribution
+    super || {}
+  end
+
+  # Monetisation status methods
+
+  # Returns true if listing is currently featured
+  def featured?
+    return false if featured_from.blank?
+
+    now = Time.current
+    featured_from <= now && (featured_until.nil? || featured_until > now)
+  end
+
+  # Returns true if listing has expired (past expires_at)
+  def expired?
+    expires_at.present? && expires_at <= Time.current
+  end
+
+  # Returns true if listing has affiliate tracking configured
+  def has_affiliate?
+    affiliate_url_template.present?
+  end
+
+  # Returns the affiliate URL or canonical URL for display
+  def display_url
+    affiliate_url.presence || url_canonical
+  end
+
+  # Returns the affiliate URL with tracking params applied
+  def affiliate_url
+    return nil unless has_affiliate?
+
+    AffiliateUrlService.new(self).generate_url
   end
 
   # Get root domain from canonical URL
@@ -200,8 +279,8 @@ class Listing < ApplicationRecord
   end
 
   def validate_jsonb_fields
-    [ ai_summaries, ai_tags, metadata ].each_with_index do |field, index|
-      field_name = %i[ai_summaries ai_tags metadata][index]
+    [ ai_summaries, ai_tags, metadata, affiliate_attribution ].each_with_index do |field, index|
+      field_name = %i[ai_summaries ai_tags metadata affiliate_attribution][index]
       next if field.blank?
 
       unless field.is_a?(Hash)
