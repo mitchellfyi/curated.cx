@@ -15,7 +15,7 @@ class TenantResolver
     return @app.call(env) if request.path == "/up"
 
     normalized_host = Domain.normalize_hostname(request.host)
-    site = resolve_site(normalized_host)
+    site = resolve_site_safely(normalized_host, request.host)
 
     if site
       Current.site = site
@@ -23,13 +23,18 @@ class TenantResolver
     else
       redirect_to_domain_not_connected(env, normalized_host || request.host)
     end
-  rescue ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid, NoMethodError => e
-    Rails.logger.error("TenantResolver error: #{e.class} - #{e.message}")
-    Rails.logger.error(e.backtrace.first(5).join("\n"))
-    redirect_to_domain_not_connected(env, request.host)
   end
 
   private
+
+  # Safely resolve site, catching only resolution-related errors
+  def resolve_site_safely(hostname, original_host)
+    resolve_site(hostname)
+  rescue ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid, NoMethodError => e
+    Rails.logger.error("TenantResolver error during resolution: #{e.class} - #{e.message}")
+    Rails.logger.error(e.backtrace.first(5).join("\n"))
+    nil
+  end
 
   def resolve_site(hostname)
     return nil if hostname.blank?

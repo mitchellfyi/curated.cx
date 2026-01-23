@@ -4,8 +4,15 @@
 module TenantTestHelpers
   # Set up tenant context for tests
   def setup_tenant_context(tenant)
-    site = tenant.sites.first || create(:site, tenant: tenant, slug: tenant.slug, name: tenant.title)
-    tenant.sites.reload  # Reload association so Current.tenant= doesn't try to create another site
+    # Use for_tenant to bypass ActsAsTenant scoping when Current.tenant is nil
+    site = Site.for_tenant(tenant).first || create(:site, tenant: tenant, slug: tenant.slug, name: tenant.title)
+
+    # Ensure there's a domain mapping the tenant's hostname to the site
+    # This is required for the TenantResolver middleware to resolve requests
+    unless site.domains.exists?(hostname: Domain.normalize_hostname(tenant.hostname))
+      create(:domain, site: site, hostname: tenant.hostname, primary: site.domains.empty?)
+    end
+
     Current.site = site
     ActsAsTenant.current_tenant = tenant
 
@@ -68,19 +75,18 @@ RSpec.configure do |config|
   config.include TenantTestHelpers, type: :controller
   config.include TenantTestHelpers, type: :system
   config.include TenantTestHelpers, type: :model
+  config.include TenantTestHelpers, type: :service
+  config.include TenantTestHelpers, type: :job
 
-  # Set up tenant context for request specs
-  config.before(:each, type: :request) do
-    # Clear tenant context before each test
-    clear_tenant_context
+  # Clear tenant context before each test (all types)
+  config.before(:each) do
+    Current.reset! if Current.respond_to?(:reset!)
+    ActsAsTenant.current_tenant = nil
   end
 
-  config.after(:each, type: :request) do
-    # Clear tenant context after each test
-    clear_tenant_context
-  end
-
-  config.after(:each, type: :controller) do
-    clear_tenant_context
+  # Clear tenant context after each test (all types)
+  config.after(:each) do
+    Current.reset! if Current.respond_to?(:reset!)
+    ActsAsTenant.current_tenant = nil
   end
 end

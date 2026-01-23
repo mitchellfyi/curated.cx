@@ -4,7 +4,8 @@ require "rails_helper"
 
 RSpec.describe Admin::TaxonomiesService, type: :service do
   let(:tenant) { create(:tenant) }
-  let(:site) { create(:site, tenant: tenant) }
+  # Use site from tenant factory
+  let(:site) { tenant.sites.first }
   let(:service) { described_class.new(tenant) }
 
   before do
@@ -21,7 +22,14 @@ RSpec.describe Admin::TaxonomiesService, type: :service do
   describe "#all_taxonomies" do
     let!(:taxonomy1) { create(:taxonomy, site: site, tenant: tenant, name: "Category A", position: 1) }
     let!(:taxonomy2) { create(:taxonomy, site: site, tenant: tenant, name: "Category B", position: 2) }
-    let!(:other_tenant_taxonomy) { create(:taxonomy) }
+    let!(:other_tenant_taxonomy) do
+      # Create in a different tenant context
+      ActsAsTenant.without_tenant do
+        other_tenant = create(:tenant)
+        other_site = other_tenant.sites.first
+        create(:taxonomy, site: other_site, tenant: other_tenant)
+      end
+    end
 
     it "returns taxonomies for the current tenant" do
       taxonomies = service.all_taxonomies

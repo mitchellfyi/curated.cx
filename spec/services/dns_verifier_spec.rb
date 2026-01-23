@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe DnsVerifier do
+RSpec.describe DnsVerifier, type: :service do
   let(:dns_resolver) { instance_double(Resolv::DNS) }
 
   before do

@@ -6,12 +6,14 @@ RSpec.describe TenantsController, type: :controller do
   render_views
 
   let(:tenant) { create(:tenant, :enabled, title: 'Test Tenant', description: 'Test Description') }
+  let(:site) { tenant.sites.first }
   let(:user) { create(:user) }
   let(:admin_user) { create(:user, :admin) }
-  let!(:listing1) { create(:listing, :published, tenant: tenant) }
-  let!(:listing2) { create(:listing, :published, tenant: tenant) }
-  let!(:unpublished_listing) { create(:listing, :unpublished, tenant: tenant) }
-  let!(:other_tenant_listing) { create(:listing, :published) }
+  let(:source) { create(:source, site: site) }
+  let!(:content_item1) { create(:content_item, :published, site: site, source: source) }
+  let!(:content_item2) { create(:content_item, :published, site: site, source: source) }
+  let!(:unpublished_item) { create(:content_item, site: site, source: source, published_at: nil) }
+  let!(:other_tenant_item) { create(:content_item, :published) }
 
   before do
     setup_tenant_context(tenant)
@@ -67,32 +69,35 @@ RSpec.describe TenantsController, type: :controller do
       expect(assigns(:tenant)).to eq(tenant)
     end
 
-    it 'assigns published listings for the tenant' do
+    it 'assigns published content items for the site' do
       get :show
-      expect(assigns(:listings)).to include(listing1, listing2)
-      expect(assigns(:listings)).not_to include(unpublished_listing)
-      expect(assigns(:listings)).not_to include(other_tenant_listing)
+      expect(assigns(:content_items)).to include(content_item1, content_item2)
+      expect(assigns(:content_items)).not_to include(unpublished_item)
+      expect(assigns(:content_items)).not_to include(other_tenant_item)
     end
 
-    it 'limits listings to 20' do
-      # Create more than 20 listings
-      25.times { create(:listing, :published, tenant: tenant) }
+    it 'limits content items to 12' do
+      # Create more content items
+      15.times { create(:content_item, :published, site: site, source: source) }
 
       get :show
-      expect(assigns(:listings).count).to eq(20)
+      expect(assigns(:content_items).count).to eq(12)
     end
 
-    it 'includes category association in listings' do
+    it 'includes source association in content items' do
       get :show
-      expect(assigns(:listings).first.association(:category)).to be_loaded
+      # The service may or may not preload associations, but items should have sources
+      expect(assigns(:content_items).first.source).to be_present
     end
 
-    it 'orders listings by recent' do
-      older_listing = create(:listing, :published, tenant: tenant, published_at: 1.week.ago)
-      newer_listing = create(:listing, :published, tenant: tenant, published_at: 1.day.ago)
+    it 'orders content items by ranking' do
+      older_item = create(:content_item, :published, site: site, source: source, published_at: 1.week.ago)
+      newer_item = create(:content_item, :published, site: site, source: source, published_at: 1.hour.ago)
 
       get :show
-      expect(assigns(:listings).first).to eq(newer_listing)
+      # Newer items should rank higher in the default ranking
+      content_items = assigns(:content_items)
+      expect(content_items.index(newer_item)).to be < content_items.index(older_item)
     end
 
     it 'sets meta tags with tenant title' do
@@ -110,10 +115,11 @@ RSpec.describe TenantsController, type: :controller do
       get :show
     end
 
-    it 'uses policy scope for listings' do
-      # Note: The controller uses a caching method, not policy_scope
+    it 'uses FeedRankingService for content items' do
+      # The controller uses FeedRankingService
       get :show
       expect(response).to have_http_status(:success)
+      expect(assigns(:content_items)).to be_present
     end
 
     context 'when tenant has no description' do

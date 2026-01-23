@@ -23,13 +23,15 @@ class ScrapeMetadataJob < ApplicationJob
     page = fetch_page_metadata(listing.url_canonical)
 
     # Update listing with metadata
+    # MetaInspector provides page.to_s for the raw HTML content
+    html_content = page.to_s.presence
     listing.update!(
       title: page.title.presence || listing.title,
       description: page.description.presence || listing.description,
       image_url: page.images.best.presence || listing.image_url,
       site_name: page.host.presence || listing.site_name,
-      body_html: page.body.presence,
-      body_text: extract_text_from_html(page.body),
+      body_html: html_content,
+      body_text: extract_text_from_html(html_content),
       published_at: extract_published_at(page) || listing.published_at
     )
 
@@ -103,11 +105,11 @@ class ScrapeMetadataJob < ApplicationJob
     nil
   end
 
-  def extract_json_ld(html)
-    require "nokogiri"
+  def extract_json_ld(doc)
     require "json"
 
-    doc = Nokogiri::HTML(html)
+    return nil unless doc.respond_to?(:css)
+
     script_tags = doc.css('script[type="application/ld+json"]')
 
     script_tags.each do |script|

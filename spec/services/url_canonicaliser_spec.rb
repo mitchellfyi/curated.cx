@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe UrlCanonicaliser do
+RSpec.describe UrlCanonicaliser, type: :service do
   describe '.canonicalize' do
     it 'normalizes scheme to lowercase' do
       result = described_class.canonicalize('HTTP://EXAMPLE.COM/Article')

@@ -43,7 +43,7 @@ module EditorialisationServices
       duration_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).to_i
 
       parse_response(response, model, duration_ms)
-    rescue Faraday::TimeoutError, Net::ReadTimeout => e
+    rescue Faraday::TimeoutError, Net::ReadTimeout, Timeout::Error => e
       raise AiTimeoutError.new("AI API request timed out: #{e.message}")
     rescue Faraday::Error => e
       handle_faraday_error(e)
@@ -111,6 +111,12 @@ module EditorialisationServices
 
     def handle_faraday_error(error)
       message = "AI API request failed: #{error.message}"
+
+      # Check for timeout-related errors (webmock may wrap differently)
+      if error.message.include?("timed out") || error.message.include?("execution expired") ||
+          error.is_a?(Faraday::TimeoutError)
+        raise AiTimeoutError.new("AI API request timed out: #{error.message}")
+      end
 
       case error
       when Faraday::TooManyRequestsError

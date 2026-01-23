@@ -2,35 +2,53 @@
 #
 # Table name: listings
 #
-#  id            :bigint           not null, primary key
-#  ai_summaries  :jsonb            not null
-#  ai_tags       :jsonb            not null
-#  body_html     :text
-#  body_text     :text
-#  description   :text
-#  domain        :string
-#  image_url     :text
-#  metadata      :jsonb            not null
-#  published_at  :datetime
-#  site_name     :string
-#  title         :string
-#  url_canonical :text             not null
-#  url_raw       :text             not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  category_id   :bigint           not null
-#  site_id       :bigint           not null
-#  source_id     :bigint
-#  tenant_id     :bigint           not null
+#  id                     :bigint           not null, primary key
+#  affiliate_attribution  :jsonb            not null
+#  affiliate_url_template :text
+#  ai_summaries           :jsonb            not null
+#  ai_tags                :jsonb            not null
+#  apply_url              :text
+#  body_html              :text
+#  body_text              :text
+#  company                :string
+#  description            :text
+#  domain                 :string
+#  expires_at             :datetime
+#  featured_from          :datetime
+#  featured_until         :datetime
+#  image_url              :text
+#  listing_type           :integer          default("tool"), not null
+#  location               :string
+#  metadata               :jsonb            not null
+#  paid                   :boolean          default(FALSE), not null
+#  payment_reference      :string
+#  published_at           :datetime
+#  salary_range           :string
+#  site_name              :string
+#  title                  :string
+#  url_canonical          :text             not null
+#  url_raw                :text             not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  category_id            :bigint           not null
+#  featured_by_id         :bigint
+#  site_id                :bigint           not null
+#  source_id              :bigint
+#  tenant_id              :bigint           not null
 #
 # Indexes
 #
 #  index_listings_on_category_id                (category_id)
 #  index_listings_on_category_published         (category_id,published_at)
 #  index_listings_on_domain                     (domain)
+#  index_listings_on_featured_by_id             (featured_by_id)
 #  index_listings_on_published_at               (published_at)
+#  index_listings_on_site_expires_at            (site_id,expires_at)
+#  index_listings_on_site_featured_dates        (site_id,featured_from,featured_until)
 #  index_listings_on_site_id                    (site_id)
 #  index_listings_on_site_id_and_url_canonical  (site_id,url_canonical) UNIQUE
+#  index_listings_on_site_listing_type          (site_id,listing_type)
+#  index_listings_on_site_type_expires          (site_id,listing_type,expires_at)
 #  index_listings_on_source_id                  (source_id)
 #  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
 #  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
@@ -43,15 +61,23 @@
 # Foreign Keys
 #
 #  fk_rails_...  (category_id => categories.id)
+#  fk_rails_...  (featured_by_id => users.id)
 #  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (source_id => sources.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 FactoryBot.define do
   factory :listing do
-    tenant
-    site { tenant&.sites&.first || association(:site, tenant: tenant) }
-    category { tenant&.categories&.first || association(:category, tenant: tenant, site: site) }
+    # When category is passed, derive tenant and site from it
+    # Otherwise create new tenant/site/category
+    transient do
+      category_trait { nil }  # Can be :news, :apps, :services for typed listings
+    end
+
+    tenant { nil }  # Will be set in after(:build)
+    site { nil }    # Will be set in after(:build)
+    category { nil } # Will be set in after(:build)
+
     sequence(:url_raw) { |n| "https://example#{n}.com" }
     sequence(:title) { |n| "Article Title #{n}" }
     description { Faker::Lorem.paragraph }
@@ -64,14 +90,43 @@ FactoryBot.define do
     ai_tags { {} }
     metadata { {} }
 
-    after(:build) do |listing|
+    after(:build) do |listing, evaluator|
       listing.created_at ||= 2.days.ago
 
-      if listing.category.nil? && listing.tenant
-        listing.site ||= listing.tenant.sites.first || create(:site, tenant: listing.tenant)
-        listing.category = listing.tenant.categories.find_by(site: listing.site) || create(:category, tenant: listing.tenant, site: listing.site)
-      elsif listing.category && listing.site.nil?
-        listing.site = listing.category.site
+      # Map category_trait to category key
+      trait_to_key = { news: 'news', apps: 'apps', services: 'services' }
+      category_key = trait_to_key[evaluator.category_trait]
+
+      # Wrap in without_tenant to bypass ActsAsTenant scoping interference
+      ActsAsTenant.without_tenant do
+        if listing.category
+          # Category was explicitly passed - derive tenant and site from it
+          listing.tenant ||= listing.category.tenant
+          listing.site ||= listing.category.site
+        elsif listing.tenant
+          # Tenant was passed - find or create site and category for it
+          listing.site ||= Site.for_tenant(listing.tenant).first || create(:site, tenant: listing.tenant)
+          # Use category_trait if specified (for :app_listing, :news_article, etc.)
+          if category_key
+            # Find existing category by key, or create one with the trait
+            listing.category ||= Category.for_tenant(listing.tenant).find_by(key: category_key, site: listing.site) ||
+                                 create(:category, evaluator.category_trait, tenant: listing.tenant, site: listing.site)
+          else
+            listing.category ||= Category.for_tenant(listing.tenant).find_by(site: listing.site) || create(:category, tenant: listing.tenant, site: listing.site)
+          end
+        else
+          # Nothing passed - create a new tenant (which auto-creates a site)
+          listing.tenant = create(:tenant)
+          listing.site = Site.for_tenant(listing.tenant).first
+          # Use category_trait if specified
+          if category_key
+            # Find existing category by key, or create one with the trait
+            listing.category = Category.for_tenant(listing.tenant).find_by(key: category_key, site: listing.site) ||
+                               create(:category, evaluator.category_trait, tenant: listing.tenant, site: listing.site)
+          else
+            listing.category = create(:category, tenant: listing.tenant, site: listing.site)
+          end
+        end
       end
     end
 
@@ -92,7 +147,8 @@ FactoryBot.define do
     end
 
     trait :news_article do
-      association :category, :news
+      # Category will be created in after(:build) with :news trait
+      category_trait { :news }
       url_raw { "https://#{Faker::Internet.domain_name}/#{Faker::Lorem.words(number: 3).join('-')}" }
       title { Faker::Lorem.sentence.chomp('.') }
       site_name { Faker::Company.name + ' News' }
@@ -100,7 +156,8 @@ FactoryBot.define do
     end
 
     trait :app_listing do
-      association :category, :apps
+      # Category will be created in after(:build) with :apps trait
+      category_trait { :apps }
       url_raw { "https://#{Faker::Internet.domain_name}" }
       title { Faker::App.name }
       description { Faker::Lorem.sentence }
@@ -108,7 +165,8 @@ FactoryBot.define do
     end
 
     trait :service_listing do
-      association :category, :services
+      # Category will be created in after(:build) with :services trait
+      category_trait { :services }
       url_raw { "https://#{Faker::Internet.domain_name}" }
       title { Faker::Company.name }
       description { Faker::Company.catch_phrase }

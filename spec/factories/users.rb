@@ -35,8 +35,10 @@ FactoryBot.define do
       end
 
       after(:create) do |user, evaluator|
-        tenant = evaluator.tenant || create(:tenant)
-        user.add_role(evaluator.role, tenant)
+        ActsAsTenant.without_tenant do
+          tenant = evaluator.tenant || create(:tenant)
+          user.add_role(evaluator.role, tenant)
+        end
       end
     end
   end

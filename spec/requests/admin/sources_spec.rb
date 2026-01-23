@@ -4,7 +4,8 @@ require "rails_helper"
 
 RSpec.describe "Admin::Sources", type: :request do
   let!(:tenant) { create(:tenant, :ai_news) }
-  let!(:site) { create(:site, tenant: tenant, slug: "ai_site", name: "AI Site") }
+  # Use the site created by the tenant factory
+  let!(:site) { tenant.sites.first }
   let(:admin_user) { create(:user, :admin) }
   let(:tenant_owner) { create(:user) }
   let(:regular_user) { create(:user) }
@@ -15,7 +16,8 @@ RSpec.describe "Admin::Sources", type: :request do
 
   describe "tenant scoping" do
     let!(:tenant2) { create(:tenant, :construction) }
-    let!(:site2) { create(:site, tenant: tenant2, slug: "construction_site", name: "Construction Site") }
+    # Use the site created by the tenant2 factory
+    let!(:site2) { tenant2.sites.first }
     let!(:tenant1_source) { create(:source, :serp_api_google_news, site: site, name: "AI Source") }
     let!(:tenant2_source) { create(:source, :serp_api_google_news, site: site2, name: "Construction Source") }
 

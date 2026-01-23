@@ -2,35 +2,53 @@
 #
 # Table name: listings
 #
-#  id            :bigint           not null, primary key
-#  ai_summaries  :jsonb            not null
-#  ai_tags       :jsonb            not null
-#  body_html     :text
-#  body_text     :text
-#  description   :text
-#  domain        :string
-#  image_url     :text
-#  metadata      :jsonb            not null
-#  published_at  :datetime
-#  site_name     :string
-#  title         :string
-#  url_canonical :text             not null
-#  url_raw       :text             not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  category_id   :bigint           not null
-#  site_id       :bigint           not null
-#  source_id     :bigint
-#  tenant_id     :bigint           not null
+#  id                     :bigint           not null, primary key
+#  affiliate_attribution  :jsonb            not null
+#  affiliate_url_template :text
+#  ai_summaries           :jsonb            not null
+#  ai_tags                :jsonb            not null
+#  apply_url              :text
+#  body_html              :text
+#  body_text              :text
+#  company                :string
+#  description            :text
+#  domain                 :string
+#  expires_at             :datetime
+#  featured_from          :datetime
+#  featured_until         :datetime
+#  image_url              :text
+#  listing_type           :integer          default("tool"), not null
+#  location               :string
+#  metadata               :jsonb            not null
+#  paid                   :boolean          default(FALSE), not null
+#  payment_reference      :string
+#  published_at           :datetime
+#  salary_range           :string
+#  site_name              :string
+#  title                  :string
+#  url_canonical          :text             not null
+#  url_raw                :text             not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  category_id            :bigint           not null
+#  featured_by_id         :bigint
+#  site_id                :bigint           not null
+#  source_id              :bigint
+#  tenant_id              :bigint           not null
 #
 # Indexes
 #
 #  index_listings_on_category_id                (category_id)
 #  index_listings_on_category_published         (category_id,published_at)
 #  index_listings_on_domain                     (domain)
+#  index_listings_on_featured_by_id             (featured_by_id)
 #  index_listings_on_published_at               (published_at)
+#  index_listings_on_site_expires_at            (site_id,expires_at)
+#  index_listings_on_site_featured_dates        (site_id,featured_from,featured_until)
 #  index_listings_on_site_id                    (site_id)
 #  index_listings_on_site_id_and_url_canonical  (site_id,url_canonical) UNIQUE
+#  index_listings_on_site_listing_type          (site_id,listing_type)
+#  index_listings_on_site_type_expires          (site_id,listing_type,expires_at)
 #  index_listings_on_source_id                  (source_id)
 #  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
 #  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
@@ -43,6 +61,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (category_id => categories.id)
+#  fk_rails_...  (featured_by_id => users.id)
 #  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (source_id => sources.id)
 #  fk_rails_...  (tenant_id => tenants.id)
@@ -92,7 +111,8 @@ RSpec.describe Listing, type: :model do
     it 'prevents duplicate canonical URLs within same tenant' do
       ActsAsTenant.with_tenant(tenant1) do
         create(:listing, category: category1, url_raw: 'https://example.com/article')
-        expect { create(:listing, category: category1, url_raw: 'https://example.com/article') }.to raise_error(ActiveRecord::RecordNotUnique)
+        # The validation runs first, so we get RecordInvalid, not RecordNotUnique
+        expect { create(:listing, category: category1, url_raw: 'https://example.com/article') }.to raise_error(ActiveRecord::RecordInvalid, /Url canonical has already been taken/)
       end
     end
   end
@@ -363,7 +383,8 @@ RSpec.describe Listing, type: :model do
       it 'returns url_canonical when no affiliate' do
         listing = create(:listing, tenant: tenant, category: category,
                          url_raw: 'https://example.com', affiliate_url_template: nil)
-        expect(listing.display_url).to eq('https://example.com/')
+        # URL normalization doesn't add a trailing slash to root domains
+        expect(listing.display_url).to eq('https://example.com')
       end
     end
 

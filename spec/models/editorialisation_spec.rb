@@ -1,5 +1,36 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: editorialisations
+#
+#  id              :bigint           not null, primary key
+#  ai_model        :string
+#  duration_ms     :integer
+#  error_message   :text
+#  parsed_response :jsonb            not null
+#  prompt_text     :text             not null
+#  prompt_version  :string           not null
+#  raw_response    :text
+#  status          :integer          default("pending"), not null
+#  tokens_used     :integer
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  content_item_id :bigint           not null
+#  site_id         :bigint           not null
+#
+# Indexes
+#
+#  index_editorialisations_on_content_item_id         (content_item_id) UNIQUE
+#  index_editorialisations_on_site_id                 (site_id)
+#  index_editorialisations_on_site_id_and_created_at  (site_id,created_at)
+#  index_editorialisations_on_site_id_and_status      (site_id,status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (content_item_id => content_items.id)
+#  fk_rails_...  (site_id => sites.id)
+#
 require "rails_helper"
 
 RSpec.describe Editorialisation, type: :model do
@@ -87,11 +118,11 @@ RSpec.describe Editorialisation, type: :model do
     let(:source) { create(:source, site: site) }
     let(:content_item) { create(:content_item, site: site, source: source) }
 
-    it "returns the most recent editorialisation for a content item" do
-      old = create(:editorialisation, content_item: content_item, created_at: 2.hours.ago)
-      recent = create(:editorialisation, content_item: content_item, created_at: 1.hour.ago)
+    it "returns the editorialisation for a content item" do
+      # There's a unique constraint on content_item_id, so only one editorialisation per item
+      editorialisation = create(:editorialisation, content_item: content_item)
 
-      expect(Editorialisation.latest_for_content_item(content_item.id)).to eq(recent)
+      expect(Editorialisation.latest_for_content_item(content_item.id)).to eq(editorialisation)
     end
 
     it "returns nil if no editorialisation exists" do
@@ -158,7 +189,7 @@ RSpec.describe Editorialisation, type: :model do
       expect(editorialisation.raw_response).to eq('{"summary": "Test"}')
       expect(editorialisation.tokens_used).to eq(150)
       expect(editorialisation.duration_ms).to eq(1500)
-      expect(editorialisation.model_name).to eq("gpt-4o-mini")
+      expect(editorialisation.ai_model).to eq("gpt-4o-mini")
     end
   end
 

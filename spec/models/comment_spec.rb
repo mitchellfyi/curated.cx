@@ -1,5 +1,35 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: comments
+#
+#  id              :bigint           not null, primary key
+#  body            :text             not null
+#  edited_at       :datetime
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  content_item_id :bigint           not null
+#  parent_id       :bigint
+#  site_id         :bigint           not null
+#  user_id         :bigint           not null
+#
+# Indexes
+#
+#  index_comments_on_content_item_and_parent  (content_item_id,parent_id)
+#  index_comments_on_content_item_id          (content_item_id)
+#  index_comments_on_parent_id                (parent_id)
+#  index_comments_on_site_and_user            (site_id,user_id)
+#  index_comments_on_site_id                  (site_id)
+#  index_comments_on_user_id                  (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (content_item_id => content_items.id)
+#  fk_rails_...  (parent_id => comments.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (user_id => users.id)
+#
 require "rails_helper"
 
 RSpec.describe Comment, type: :model do
@@ -77,8 +107,9 @@ RSpec.describe Comment, type: :model do
 
     describe ".recent" do
       it "orders by created_at desc" do
-        old_comment = create(:comment, content_item: content_item, user: create(:user), site: site, created_at: 1.day.ago)
-        new_comment = create(:comment, content_item: content_item, user: create(:user), site: site, created_at: 1.hour.ago)
+        # Use future timestamps to ensure these are the most recent comments
+        old_comment = create(:comment, content_item: content_item, user: create(:user), site: site, created_at: 1.hour.from_now)
+        new_comment = create(:comment, content_item: content_item, user: create(:user), site: site, created_at: 2.hours.from_now)
 
         expect(Comment.recent.first).to eq(new_comment)
       end

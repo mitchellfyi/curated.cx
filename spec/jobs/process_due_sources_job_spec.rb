@@ -31,10 +31,9 @@ RSpec.describe ProcessDueSourcesJob, type: :job do
       end
 
       it "logs info for unmapped source kinds" do
-        expect(Rails.logger).to receive(:info).with(
-          /No job mapping for source kind 'rss'/
-        )
+        allow(Rails.logger).to receive(:info)
         described_class.perform_now
+        expect(Rails.logger).to have_received(:info).with(/No job mapping for source kind 'rss'/)
       end
     end
 

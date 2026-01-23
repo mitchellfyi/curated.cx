@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe SerpApiRateLimiter do
+RSpec.describe SerpApiRateLimiter, type: :service do
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
   let(:source) { create(:source, :serp_api_google_news, site: site) }

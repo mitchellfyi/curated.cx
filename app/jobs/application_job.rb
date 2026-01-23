@@ -1,3 +1,7 @@
+# Require error classes that are used in retry_on/discard_on declarations
+# This ensures they're loaded before the class body is evaluated
+require_dependency "application_error"
+
 class ApplicationJob < ActiveJob::Base
   # Retry transient external service errors (API timeouts, network issues)
   retry_on ExternalServiceError, wait: :exponentially_longer, attempts: 3

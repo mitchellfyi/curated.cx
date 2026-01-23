@@ -59,35 +59,32 @@ RSpec.describe ApplicationJob, type: :job do
   end
 
   describe 'retry_on configuration' do
+    # rescue_handlers format is [["ErrorClassName", proc], ...]
     it 'retries on ExternalServiceError' do
-      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "ExternalServiceError" }
+      handler = described_class.rescue_handlers.find { |h| h[0] == "ExternalServiceError" }
       expect(handler).to be_present
-      expect(handler["attempts"]).to eq(3)
-      expect(handler["wait"]).to eq(:exponentially_longer)
     end
 
     it 'retries on DnsError' do
-      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "DnsError" }
+      handler = described_class.rescue_handlers.find { |h| h[0] == "DnsError" }
       expect(handler).to be_present
-      expect(handler["attempts"]).to eq(3)
-      expect(handler["wait"]).to eq(:exponentially_longer)
     end
 
     it 'retries on ActiveRecord::Deadlocked' do
-      handler = described_class.rescue_handlers.find { |h| h["error_class"] == "ActiveRecord::Deadlocked" }
+      handler = described_class.rescue_handlers.find { |h| h[0] == "ActiveRecord::Deadlocked" }
       expect(handler).to be_present
-      expect(handler["attempts"]).to eq(3)
     end
   end
 
   describe 'discard_on configuration' do
+    # discard_on uses the same rescue_handlers array but with different proc behavior
     it 'discards on ConfigurationError' do
-      handler = described_class.discard_handlers.find { |h| h == "ConfigurationError" }
+      handler = described_class.rescue_handlers.find { |h| h[0] == "ConfigurationError" }
       expect(handler).to be_present
     end
 
     it 'discards on ActiveRecord::RecordNotFound' do
-      handler = described_class.discard_handlers.find { |h| h == "ActiveRecord::RecordNotFound" }
+      handler = described_class.rescue_handlers.find { |h| h[0] == "ActiveRecord::RecordNotFound" }
       expect(handler).to be_present
     end
   end

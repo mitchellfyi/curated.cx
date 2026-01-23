@@ -124,15 +124,15 @@ RSpec.describe VotePolicy, type: :policy do
     let!(:our_vote) { create(:vote, content_item: content_item, user: user, site: site) }
 
     context "when Current.site is present" do
-      let(:other_tenant) { create(:tenant) }
-      let(:other_site) { create(:site, tenant: other_tenant) }
-      let(:other_source) { create(:source, site: other_site) }
-      let(:other_content_item) { create(:content_item, site: other_site, source: other_source) }
-
       before do
-        Current.site = other_site
-        @other_vote = create(:vote, content_item: other_content_item, user: create(:user), site: other_site)
-        Current.site = site
+        # Create other tenant's data outside tenant scope
+        @other_vote = ActsAsTenant.without_tenant do
+          other_tenant = create(:tenant)
+          other_site = other_tenant.sites.first
+          other_source = create(:source, site: other_site, tenant: other_tenant)
+          other_content_item = create(:content_item, site: other_site, source: other_source)
+          create(:vote, content_item: other_content_item, user: create(:user), site: other_site)
+        end
         allow(Current).to receive(:site).and_return(site)
       end
 

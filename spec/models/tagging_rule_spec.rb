@@ -1,5 +1,34 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: tagging_rules
+#
+#  id          :bigint           not null, primary key
+#  enabled     :boolean          default(TRUE), not null
+#  pattern     :text             not null
+#  priority    :integer          default(100), not null
+#  rule_type   :integer          not null
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#  site_id     :bigint           not null
+#  taxonomy_id :bigint           not null
+#  tenant_id   :bigint           not null
+#
+# Indexes
+#
+#  index_tagging_rules_on_site_id               (site_id)
+#  index_tagging_rules_on_site_id_and_enabled   (site_id,enabled)
+#  index_tagging_rules_on_site_id_and_priority  (site_id,priority)
+#  index_tagging_rules_on_taxonomy_id           (taxonomy_id)
+#  index_tagging_rules_on_tenant_id             (tenant_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (taxonomy_id => taxonomies.id)
+#  fk_rails_...  (tenant_id => tenants.id)
+#
 require "rails_helper"
 
 RSpec.describe TaggingRule, type: :model do
@@ -183,7 +212,7 @@ RSpec.describe TaggingRule, type: :model do
           pattern: "innovation, startup")
         result = rule.matches?(item)
         expect(result[:match]).to be true
-        expect(result[:confidence]).to eq(0.9) # 0.7 + (0.1 * 2) = 0.9
+        expect(result[:confidence]).to be_within(0.001).of(0.9) # 0.7 + (0.1 * 2) = 0.9
       end
 
       it "does not match when no keywords found" do
@@ -193,17 +222,12 @@ RSpec.describe TaggingRule, type: :model do
         expect(result[:match]).to be false
       end
 
-      it "handles empty pattern" do
-        rule = create(:tagging_rule, :keyword, taxonomy: taxonomy, site: site,
-          pattern: "")
-        result = rule.matches?(content_item)
-        expect(result[:match]).to be false
-      end
-
       it "handles blank text content" do
+        # Pattern can't be empty due to validation, so test with valid pattern but blank content
         item = build(:content_item, site: site, source: source,
           title: nil, extracted_text: nil, description: nil)
-        rule = create(:tagging_rule, :keyword, taxonomy: taxonomy, site: site)
+        rule = create(:tagging_rule, :keyword, taxonomy: taxonomy, site: site,
+          pattern: "test")
         result = rule.matches?(item)
         expect(result[:match]).to be false
       end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_23_110001) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_23_205525) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -169,7 +169,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_23_110001) do
     t.integer "status", default: 0, null: false
     t.text "error_message"
     t.integer "tokens_used"
-    t.string "model_name"
+    t.string "ai_model"
     t.integer "duration_ms"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

@@ -11,7 +11,7 @@ class VotesController < ApplicationController
   VOTE_RATE_LIMIT = 100
   VOTE_RATE_PERIOD = 1.hour
 
-  # POST /content_items/:content_item_id/vote
+  # POST /content_items/:id/vote
   def toggle
     authorize Vote
 
@@ -40,7 +40,7 @@ class VotesController < ApplicationController
   private
 
   def set_content_item
-    @content_item = ContentItem.find(params[:content_item_id])
+    @content_item = ContentItem.find(params[:id])
   end
 
   def check_ban_status

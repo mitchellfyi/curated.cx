@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe AffiliateUrlService do
+RSpec.describe AffiliateUrlService, type: :service do
   let(:tenant) { create(:tenant) }
   let(:category) { create(:category, tenant: tenant) }
 

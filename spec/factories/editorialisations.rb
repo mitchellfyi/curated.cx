@@ -1,5 +1,36 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: editorialisations
+#
+#  id              :bigint           not null, primary key
+#  ai_model        :string
+#  duration_ms     :integer
+#  error_message   :text
+#  parsed_response :jsonb            not null
+#  prompt_text     :text             not null
+#  prompt_version  :string           not null
+#  raw_response    :text
+#  status          :integer          default("pending"), not null
+#  tokens_used     :integer
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  content_item_id :bigint           not null
+#  site_id         :bigint           not null
+#
+# Indexes
+#
+#  index_editorialisations_on_content_item_id         (content_item_id) UNIQUE
+#  index_editorialisations_on_site_id                 (site_id)
+#  index_editorialisations_on_site_id_and_created_at  (site_id,created_at)
+#  index_editorialisations_on_site_id_and_status      (site_id,status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (content_item_id => content_items.id)
+#  fk_rails_...  (site_id => sites.id)
+#
 FactoryBot.define do
   factory :editorialisation do
     association :content_item
@@ -28,7 +59,7 @@ FactoryBot.define do
       end
       tokens_used { 150 }
       duration_ms { 1500 }
-      model_name { "gpt-4o-mini" }
+      ai_model { "gpt-4o-mini" }
     end
 
     trait :failed do

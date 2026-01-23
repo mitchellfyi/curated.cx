@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class FeedController < ApplicationController
+  # Skip policy scope verification since we manually scope by Current.site
+  # and use FeedRankingService for content filtering
+  skip_after_action :verify_policy_scoped
+
   PER_PAGE = 20
   MAX_RSS_ITEMS = 50
 

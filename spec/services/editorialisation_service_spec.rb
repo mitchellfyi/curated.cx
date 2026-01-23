@@ -32,7 +32,7 @@ RSpec.describe EditorialisationService, type: :service do
 
   before do
     # Stub AiClient to avoid real API calls
-    allow_any_instance_of(Editorialisation::AiClient).to receive(:complete).and_return(ai_response)
+    allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response)
     # Prevent editorialisation job from running on content_item creation
     allow_any_instance_of(ContentItem).to receive(:enqueue_editorialisation)
   end
@@ -71,7 +71,7 @@ RSpec.describe EditorialisationService, type: :service do
 
         expect(result.tokens_used).to eq(150)
         expect(result.duration_ms).to eq(1500)
-        expect(result.model_name).to eq("gpt-4o-mini")
+        expect(result.ai_model).to eq("gpt-4o-mini")
       end
 
       it "stores the prompt version" do
@@ -116,7 +116,7 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "does not call the AI API" do
-        expect_any_instance_of(Editorialisation::AiClient).not_to receive(:complete)
+        expect_any_instance_of(EditorialisationServices::AiClient).not_to receive(:complete)
         described_class.editorialise(content_item)
       end
 
@@ -142,15 +142,16 @@ RSpec.describe EditorialisationService, type: :service do
     end
 
     context "eligibility: existing completed editorialisation" do
-      before do
+      let!(:existing_editorialisation) do
         create(:editorialisation, :completed, content_item: content_item)
       end
 
-      it "creates a skipped record" do
+      it "returns the existing editorialisation" do
         result = described_class.editorialise(content_item)
 
-        expect(result.status).to eq("skipped")
-        expect(result.error_message).to eq("Existing completed editorialisation")
+        # Returns the existing record rather than creating a duplicate
+        expect(result.id).to eq(existing_editorialisation.id)
+        expect(result.status).to eq("completed")
       end
     end
 
@@ -233,7 +234,7 @@ RSpec.describe EditorialisationService, type: :service do
 
     context "AI API errors (retryable)" do
       before do
-        allow_any_instance_of(Editorialisation::AiClient).to receive(:complete)
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete)
           .and_raise(AiApiError.new("API request failed"))
       end
 
@@ -250,7 +251,7 @@ RSpec.describe EditorialisationService, type: :service do
 
     context "AI rate limit errors (retryable)" do
       before do
-        allow_any_instance_of(Editorialisation::AiClient).to receive(:complete)
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete)
           .and_raise(AiRateLimitError.new("Rate limit exceeded"))
       end
 
@@ -266,7 +267,7 @@ RSpec.describe EditorialisationService, type: :service do
 
     context "AI timeout errors (retryable)" do
       before do
-        allow_any_instance_of(Editorialisation::AiClient).to receive(:complete)
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete)
           .and_raise(AiTimeoutError.new("Request timed out"))
       end
 
@@ -282,7 +283,7 @@ RSpec.describe EditorialisationService, type: :service do
 
     context "AI invalid response error (non-retryable)" do
       before do
-        allow_any_instance_of(Editorialisation::AiClient).to receive(:complete)
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete)
           .and_return(content: "not valid json", tokens_used: 0, model: "gpt-4o-mini", duration_ms: 100)
       end
 
@@ -296,7 +297,7 @@ RSpec.describe EditorialisationService, type: :service do
 
     context "AI response missing required fields" do
       before do
-        allow_any_instance_of(Editorialisation::AiClient).to receive(:complete)
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete)
           .and_return(content: '{"foo": "bar"}', tokens_used: 0, model: "gpt-4o-mini", duration_ms: 100)
       end
 
@@ -310,7 +311,7 @@ RSpec.describe EditorialisationService, type: :service do
 
     context "AI configuration error (non-retryable)" do
       before do
-        allow_any_instance_of(Editorialisation::AiClient).to receive(:complete)
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete)
           .and_raise(AiConfigurationError.new("API key not configured"))
       end
 
@@ -324,7 +325,7 @@ RSpec.describe EditorialisationService, type: :service do
 
     context "unexpected error" do
       before do
-        allow_any_instance_of(Editorialisation::AiClient).to receive(:complete)
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete)
           .and_raise(StandardError.new("Something went wrong"))
       end
 

@@ -4,7 +4,8 @@ require "rails_helper"
 
 RSpec.describe Admin::TaggingRulesService, type: :service do
   let(:tenant) { create(:tenant) }
-  let(:site) { create(:site, tenant: tenant) }
+  # Use site from tenant factory
+  let(:site) { tenant.sites.first }
   let(:taxonomy) { create(:taxonomy, site: site, tenant: tenant) }
   let(:service) { described_class.new(tenant) }
 
@@ -22,7 +23,15 @@ RSpec.describe Admin::TaggingRulesService, type: :service do
   describe "#all_rules" do
     let!(:rule1) { create(:tagging_rule, taxonomy: taxonomy, site: site, priority: 100) }
     let!(:rule2) { create(:tagging_rule, taxonomy: taxonomy, site: site, priority: 10) }
-    let!(:other_tenant_rule) { create(:tagging_rule) }
+    let!(:other_tenant_rule) do
+      # Create in a different tenant context
+      ActsAsTenant.without_tenant do
+        other_tenant = create(:tenant)
+        other_site = other_tenant.sites.first
+        other_taxonomy = create(:taxonomy, site: other_site, tenant: other_tenant)
+        create(:tagging_rule, taxonomy: other_taxonomy, site: other_site, tenant: other_tenant)
+      end
+    end
 
     it "returns rules for the current tenant" do
       rules = service.all_rules

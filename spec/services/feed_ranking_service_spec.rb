@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe FeedRankingService do
+RSpec.describe FeedRankingService, type: :service do
   let(:tenant) { create(:tenant, :enabled) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site, quality_weight: 1.0) }

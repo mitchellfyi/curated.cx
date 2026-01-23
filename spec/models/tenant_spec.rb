@@ -275,9 +275,15 @@ RSpec.describe Tenant, type: :model do
       end
 
       it 'clears cache on destroy' do
-        expect(Rails.cache).to receive(:delete).with("tenant:hostname:#{tenant.hostname}")
-        expect(Rails.cache).to receive(:delete_matched).with("tenant:#{tenant.id}:*")
+        # Allow any other cache deletions (e.g., from associated sites being destroyed)
+        allow(Rails.cache).to receive(:delete)
+        allow(Rails.cache).to receive(:delete_matched)
+
         tenant.destroy!
+
+        # Verify tenant cache clearing was called (may be called multiple times due to cascading)
+        expect(Rails.cache).to have_received(:delete).with("tenant:hostname:#{tenant.hostname}").at_least(:once)
+        expect(Rails.cache).to have_received(:delete_matched).with("tenant:#{tenant.id}:*").at_least(:once)
       end
 
       it 'clears root cache when tenant is root' do

@@ -16,8 +16,9 @@ RSpec.describe TenantResolver do
     context 'with valid tenant hostname' do
       let(:hostname) { 'ainews.cx' }
       let(:tenant) { create(:tenant, hostname: 'ainews.cx', slug: 'ai') }
-      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug) }
-      let!(:domain) { create(:domain, site: site, hostname: 'ainews.cx', primary: true) }
+      # Tenant factory already creates a site and primary domain with hostname: tenant.hostname
+      let!(:site) { tenant.sites.first }
+      let!(:domain) { site.domains.find_by(primary: true) }
 
       it 'sets the current site and calls the app' do
         status, _, _ = middleware.call(env)
@@ -32,8 +33,9 @@ RSpec.describe TenantResolver do
     context 'with hostname that has port' do
       let(:hostname) { 'ainews.cx:3000' }
       let(:tenant) { create(:tenant, hostname: 'ainews.cx', slug: 'ai') }
-      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug) }
-      let!(:domain) { create(:domain, site: site, hostname: 'ainews.cx', primary: true) }
+      # Tenant factory already creates a site and primary domain with hostname: tenant.hostname
+      let!(:site) { tenant.sites.first }
+      let!(:domain) { site.domains.find_by(primary: true) }
 
       it 'strips the port and resolves the site' do
         status, _ = middleware.call(env)
@@ -58,8 +60,14 @@ RSpec.describe TenantResolver do
     context 'with disabled site' do
       let(:hostname) { 'disabled.example.com' }
       let(:tenant) { create(:tenant, hostname: 'disabled.example.com', slug: 'disabled', status: :disabled) }
-      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug, status: :disabled) }
-      let!(:domain) { create(:domain, site: site, hostname: 'disabled.example.com', primary: true) }
+      # Tenant factory creates a site and primary domain, update the site's status
+      let!(:site) do
+        s = tenant.sites.first
+        s.update!(status: :disabled)
+        s
+      end
+      # Tenant factory already creates a primary domain with hostname: tenant.hostname
+      let!(:domain) { site.domains.find_by(primary: true) }
 
       it 'redirects to domain not connected page' do
         middleware.call(env)
@@ -72,8 +80,14 @@ RSpec.describe TenantResolver do
     context 'with private_access tenant' do
       let(:hostname) { 'private.example.com' }
       let(:tenant) { create(:tenant, hostname: 'private.example.com', slug: 'private', status: :private_access) }
-      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug, status: :private_access) }
-      let!(:domain) { create(:domain, site: site, hostname: 'private.example.com', primary: true) }
+      # Tenant factory creates a site and primary domain, update the site's status
+      let!(:site) do
+        s = tenant.sites.first
+        s.update!(status: :private_access)
+        s
+      end
+      # Tenant factory already creates a primary domain with hostname: tenant.hostname
+      let!(:domain) { site.domains.find_by(primary: true) }
 
       it 'allows access to private_access sites' do
         status, _ = middleware.call(env)
@@ -99,8 +113,9 @@ RSpec.describe TenantResolver do
     context 'with localhost in development' do
       let(:hostname) { 'localhost' }
       let(:root_tenant) { create(:tenant, hostname: 'curated.cx', slug: 'root') }
-      let!(:root_site) { create(:site, tenant: root_tenant, slug: root_tenant.slug) }
-      let!(:root_domain) { create(:domain, site: root_site, hostname: 'curated.cx', primary: true) }
+      # Tenant factory already creates a site and primary domain
+      let!(:root_site) { root_tenant.sites.first }
+      let!(:root_domain) { root_site.domains.find_by(primary: true) }
 
       before do
         allow(Tenant).to receive(:root_tenant).and_return(root_tenant)
@@ -119,8 +134,9 @@ RSpec.describe TenantResolver do
       let(:hostname) { 'ai.localhost' }
       let(:tenant) { create(:tenant, hostname: 'ainews.cx', slug: 'ai') }
       let(:root_tenant) { create(:tenant, hostname: 'curated.cx', slug: 'root') }
-      let!(:site) { create(:site, tenant: tenant, slug: tenant.slug) }
-      let!(:domain) { create(:domain, site: site, hostname: 'ainews.cx', primary: true) }
+      # Tenant factory already creates a site and primary domain
+      let!(:site) { tenant.sites.first }
+      let!(:domain) { site.domains.find_by(primary: true) }
 
       before do
         allow(Tenant).to receive(:root_tenant).and_return(root_tenant)

@@ -47,6 +47,7 @@ en:
       updated: Domain updated successfully
     editorialisations:
       actions: Actions
+      ai_model: AI Model
       ai_output: AI Output
       ai_summary: Summary
       all: All
@@ -61,7 +62,6 @@ en:
       empty_description: Editorialisations will appear here after content is processed.
       error: Error
       for_content_item: For content item
-      model_name: Model
       prompt_text: Prompt Text
       prompt_version: Prompt Version
       raw_response: Raw Response
@@ -362,14 +362,12 @@ en:
       reply: Reply
       submit: Post Comment
       update: Update
-    loading: Loading comments...
     locked: Comments are locked on this content
     locked_message: Comments are locked on this content.
     on_content: Comment on
     rate_limited: You're commenting too quickly. Please wait before posting again.
     reply_to: Replying to %{user}
     sign_in_to_comment: Sign in to comment
-    title: Comments
     updated: Comment updated
   common:
     brand_name: Curated.cx
@@ -417,10 +415,8 @@ en:
       category_listings: "%{category} Listings"
       description: Browse %{category} from %{tenant}
       empty:
-        description: There are no published listings available at this time.
         no_category_content: No content has been added yet.
         no_content_in_category: No content has been added to this category yet.
-        title: No listings found
       in_category: in %{category}
       item_count:
         one: "%{count} item"
@@ -432,13 +428,11 @@ en:
   monetisation:
     badges:
       featured: Featured
-      sponsored: Sponsored
     featured_section:
       title: Featured
     job:
       apply: Apply
       expired: Expired
-      expires: Expires
       salary: Salary
   nav:
     about: About

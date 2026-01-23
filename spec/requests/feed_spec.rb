@@ -242,7 +242,7 @@ RSpec.describe "Feed", type: :request do
 
       expect(response.body).to include("<item>")
       expect(response.body).to include("<pubDate>")
-      expect(response.body).to include("<guid>")
+      expect(response.body).to include("<guid ")  # guid has isPermaLink attribute
     end
 
     it "limits to MAX_RSS_ITEMS" do
@@ -298,10 +298,14 @@ RSpec.describe "Feed", type: :request do
   end
 
   describe "site isolation" do
-    let(:other_tenant) { create(:tenant, :enabled) }
-    let(:other_site) { other_tenant.sites.first || create(:site, tenant: other_tenant) }
-    let(:other_source) { create(:source, site: other_site) }
-    let!(:other_item) { create(:content_item, :published, site: other_site, source: other_source) }
+    let!(:other_item) do
+      ActsAsTenant.without_tenant do
+        other_tenant = create(:tenant, :enabled)
+        other_site = other_tenant.sites.first
+        other_source = create(:source, site: other_site, tenant: other_tenant)
+        create(:content_item, :published, site: other_site, source: other_source)
+      end
+    end
     let!(:our_item) { create(:content_item, :published, site: site, source: source) }
 
     it "only shows content from current site" do

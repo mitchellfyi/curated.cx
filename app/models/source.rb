@@ -4,18 +4,19 @@
 #
 # Table name: sources
 #
-#  id          :bigint           not null, primary key
-#  config      :jsonb            not null
-#  enabled     :boolean          default(TRUE), not null
-#  kind        :integer          not null
-#  last_run_at :datetime
-#  last_status :string
-#  name        :string           not null
-#  schedule    :jsonb            not null
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  site_id     :bigint           not null
-#  tenant_id   :bigint           not null
+#  id             :bigint           not null, primary key
+#  config         :jsonb            not null
+#  enabled        :boolean          default(TRUE), not null
+#  kind           :integer          not null
+#  last_run_at    :datetime
+#  last_status    :string
+#  name           :string           not null
+#  quality_weight :decimal(3, 2)    default(1.0), not null
+#  schedule       :jsonb            not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  site_id        :bigint           not null
+#  tenant_id      :bigint           not null
 #
 # Indexes
 #

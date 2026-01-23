@@ -82,7 +82,7 @@ es:
       empty_description: Las editorializaciones aparecerán aquí después de procesar el contenido.
       error: Error
       for_content_item: Para elemento de contenido
-      model_name: Modelo
+      ai_model: Modelo de IA
       prompt_text: Texto del Prompt
       prompt_version: Versión del Prompt
       raw_response: Respuesta Cruda

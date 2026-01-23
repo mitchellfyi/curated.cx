@@ -44,6 +44,19 @@ FactoryBot.define do
     end
     status { :enabled }
 
+    # By default, create a site and domain so tenant hostname resolution works
+    # Use ActsAsTenant.without_tenant to prevent current_tenant from overriding the tenant_id
+    after(:create) do |tenant|
+      ActsAsTenant.without_tenant do
+        site = create(:site, tenant: tenant, slug: tenant.slug, name: tenant.title)
+        create(:domain, :primary, site: site, hostname: tenant.hostname)
+      end
+    end
+
+    trait :without_site do
+      after(:create) { } # Override to skip site creation
+    end
+
     trait :root do
       slug { "root" }
       hostname { "curated.cx" }

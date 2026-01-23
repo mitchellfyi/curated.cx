@@ -35,7 +35,9 @@ class SourcePolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if user&.admin?
+      return scope.none unless user.present?
+
+      if user.admin?
         scope.all
       elsif Current.tenant.present?
         scope.joins(:site).where(sites: { tenant_id: Current.tenant.id })

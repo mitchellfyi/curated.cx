@@ -89,6 +89,11 @@ class EditorialisationService
   end
 
   def create_skipped_record(reason)
+    # If an editorialisation already exists for this content item, return it
+    # (respects unique constraint on content_item_id)
+    existing = ::Editorialisation.find_by(content_item_id: content_item.id)
+    return existing if existing
+
     prompt_manager = EditorialisationServices::PromptManager.new
 
     ::Editorialisation.create!(
