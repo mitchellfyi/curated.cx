@@ -1,43 +1,51 @@
 #!/usr/bin/env bash
 #
-# bin/agent - Run Claude agent for N tasks (FULLY AUTONOMOUS + SELF-HEALING + PARALLEL)
+# bin/agent - Modular Claude Agent with Phase-Based Execution
 #
-# This script runs Claude in DANGEROUS MODE - all permissions bypassed,
-# no confirmations, no asks. The agent operates fully autonomously.
+# This script runs Claude in DANGEROUS MODE with a structured workflow.
+# Each task goes through distinct phases, each with focused prompts.
+#
+# PHASES:
+#   1. TRIAGE   - Validate task, check dependencies (60s)
+#   2. PLAN     - Gap analysis, detailed planning (180s)
+#   3. IMPLEMENT- Execute the plan, write code (600s)
+#   4. TEST     - Run tests, add coverage (300s)
+#   5. DOCS     - Sync documentation (120s)
+#   6. REVIEW   - Code review, create follow-ups (180s)
 #
 # FEATURES:
-#   - Automatic retry with exponential backoff on failures
-#   - Session persistence and resume on crash
-#   - Health checks before each run
-#   - Graceful degradation on repeated failures
-#   - PARALLEL AGENT SUPPORT via lock files
-#   - Task assignment tracking to prevent conflicts
+#   - Modular phase-based execution (fresh context per phase)
+#   - Phase-specific prompts and timeouts
+#   - Automatic retry with exponential backoff
+#   - Model fallback (opus -> sonnet on rate limits)
+#   - Parallel agent support via lock files
+#   - Self-healing and crash recovery
 #
 # Usage:
 #   ./bin/agent        # Run 5 tasks (default)
 #   ./bin/agent 3      # Run 3 tasks
 #   ./bin/agent 1      # Run 1 task
 #
-# Parallel usage (run multiple agents simultaneously):
-#   ./bin/agent 5 &    # Agent 1 in background
-#   ./bin/agent 5 &    # Agent 2 in background
-#   ./bin/agent 5 &    # Agent 3 in background
+# Parallel usage:
+#   AGENT_NAME="worker-1" ./bin/agent 5 &
+#   AGENT_NAME="worker-2" ./bin/agent 5 &
 #
 # Environment variables:
-#   CLAUDE_MODEL       - Model to use (default: opus, falls back to sonnet on limits)
-#   CLAUDE_TIMEOUT     - Timeout per task in seconds (default: 600)
+#   CLAUDE_MODEL       - Model to use (default: opus, falls back to sonnet)
+#   AGENT_QUIET        - If set to 1, disable streaming (streaming ON by default)
 #   AGENT_DRY_RUN      - If set to 1, preview without executing
 #   AGENT_VERBOSE      - If set to 1, show more output
-#   AGENT_QUIET        - If set to 1, disable streaming output (default: streaming on)
-#   AGENT_MAX_RETRIES  - Max retries per task (default: 3)
-#   AGENT_RETRY_DELAY  - Base delay between retries in seconds (default: 5)
-#   AGENT_NO_RESUME    - If set to 1, don't resume previous session
+#   AGENT_MAX_RETRIES  - Max retries per phase (default: 2)
 #   AGENT_NAME         - Custom agent name (default: auto-generated)
-#   AGENT_LOCK_TIMEOUT - Stale lock timeout in seconds (default: 10800 = 3 hours)
-#   AGENT_HEARTBEAT    - Heartbeat interval in seconds (default: 3600 = 1 hour)
-#   AGENT_NO_FALLBACK  - If set to 1, don't fall back to sonnet on rate limits
-#   AGENT_NO_REVIEW    - If set to 1, skip post-task review cycle
-#   AGENT_REVIEW_TIMEOUT - Timeout for review phase in seconds (default: 300)
+#   AGENT_LOCK_TIMEOUT - Stale lock timeout in seconds (default: 10800 = 3h)
+#   AGENT_HEARTBEAT    - Heartbeat interval in seconds (default: 3600 = 1h)
+#   AGENT_NO_FALLBACK  - If set to 1, don't fall back to sonnet
+#
+# Phase skip flags (set to 1 to skip):
+#   SKIP_TRIAGE, SKIP_PLAN, SKIP_IMPLEMENT, SKIP_TEST, SKIP_DOCS, SKIP_REVIEW
+#
+# Phase timeout overrides (in seconds):
+#   TIMEOUT_TRIAGE, TIMEOUT_PLAN, TIMEOUT_IMPLEMENT, TIMEOUT_TEST, TIMEOUT_DOCS, TIMEOUT_REVIEW
 #
 # WARNING: This script bypasses ALL safety checks. Only use in trusted repos.
 #
@@ -60,18 +68,44 @@ HEALTH_FILE="$STATE_DIR/health"
 # Defaults
 NUM_TASKS="${1:-5}"
 CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
-CLAUDE_TIMEOUT="${CLAUDE_TIMEOUT:-600}"
 AGENT_DRY_RUN="${AGENT_DRY_RUN:-0}"
 AGENT_VERBOSE="${AGENT_VERBOSE:-0}"
 AGENT_QUIET="${AGENT_QUIET:-0}"
-AGENT_MAX_RETRIES="${AGENT_MAX_RETRIES:-3}"
+AGENT_MAX_RETRIES="${AGENT_MAX_RETRIES:-2}"
 AGENT_RETRY_DELAY="${AGENT_RETRY_DELAY:-5}"
 AGENT_NO_RESUME="${AGENT_NO_RESUME:-0}"
 AGENT_LOCK_TIMEOUT="${AGENT_LOCK_TIMEOUT:-10800}"
 AGENT_HEARTBEAT="${AGENT_HEARTBEAT:-3600}"
 AGENT_NO_FALLBACK="${AGENT_NO_FALLBACK:-0}"
-AGENT_NO_REVIEW="${AGENT_NO_REVIEW:-0}"
-AGENT_REVIEW_TIMEOUT="${AGENT_REVIEW_TIMEOUT:-300}"
+
+# Phase configuration
+PROMPTS_DIR="$REPO_ROOT/.claude/prompts"
+
+# Phase skip flags (set to 1 to skip)
+SKIP_TRIAGE="${SKIP_TRIAGE:-0}"
+SKIP_PLAN="${SKIP_PLAN:-0}"
+SKIP_IMPLEMENT="${SKIP_IMPLEMENT:-0}"
+SKIP_TEST="${SKIP_TEST:-0}"
+SKIP_DOCS="${SKIP_DOCS:-0}"
+SKIP_REVIEW="${SKIP_REVIEW:-0}"
+
+# Phase timeouts (in seconds)
+TIMEOUT_TRIAGE="${TIMEOUT_TRIAGE:-60}"
+TIMEOUT_PLAN="${TIMEOUT_PLAN:-180}"
+TIMEOUT_IMPLEMENT="${TIMEOUT_IMPLEMENT:-600}"
+TIMEOUT_TEST="${TIMEOUT_TEST:-300}"
+TIMEOUT_DOCS="${TIMEOUT_DOCS:-120}"
+TIMEOUT_REVIEW="${TIMEOUT_REVIEW:-180}"
+
+# Phase definitions: name|prompt_file|timeout|skip_var
+PHASES=(
+  "TRIAGE|1-triage.md|$TIMEOUT_TRIAGE|$SKIP_TRIAGE"
+  "PLAN|2-plan.md|$TIMEOUT_PLAN|$SKIP_PLAN"
+  "IMPLEMENT|3-implement.md|$TIMEOUT_IMPLEMENT|$SKIP_IMPLEMENT"
+  "TEST|4-test.md|$TIMEOUT_TEST|$SKIP_TEST"
+  "DOCS|5-docs.md|$TIMEOUT_DOCS|$SKIP_DOCS"
+  "REVIEW|6-review.md|$TIMEOUT_REVIEW|$SKIP_REVIEW"
+)
 
 # Model state (for fallback)
 CURRENT_MODEL="$CLAUDE_MODEL"
@@ -131,6 +165,10 @@ log_lock() {
 
 log_model() {
   echo -e "${MAGENTA}[$AGENT_ID MODEL]${NC} $1"
+}
+
+log_phase() {
+  echo -e "${BOLD}${CYAN}[$AGENT_ID PHASE]${NC} $1"
 }
 
 log_header() {
@@ -429,68 +467,68 @@ reset_model() {
 }
 
 # ============================================================================
-# Post-Task Review (Quality Gate)
+# Phase Execution (Modular Workflow)
 # ============================================================================
 
-log_review() {
-  echo -e "${MAGENTA}[$AGENT_ID REVIEW]${NC} $1"
+build_phase_prompt() {
+  local prompt_file="$1"
+  local task_id="$2"
+  local task_file="$3"
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M')
+
+  # Read the prompt template
+  local template
+  if [ -f "$PROMPTS_DIR/$prompt_file" ]; then
+    template=$(cat "$PROMPTS_DIR/$prompt_file")
+  else
+    log_error "Prompt file not found: $PROMPTS_DIR/$prompt_file"
+    return 1
+  fi
+
+  # Get recent commits for REVIEW phase
+  local recent_commits=""
+  if [[ "$prompt_file" == *"review"* ]]; then
+    recent_commits=$(git log --oneline -10 --grep="$task_id" 2>/dev/null || echo "(no commits yet)")
+  fi
+
+  # Substitute template variables
+  local prompt="$template"
+  prompt="${prompt//\{\{TASK_ID\}\}/$task_id}"
+  prompt="${prompt//\{\{TASK_FILE\}\}/$task_file}"
+  prompt="${prompt//\{\{TIMESTAMP\}\}/$timestamp}"
+  prompt="${prompt//\{\{RECENT_COMMITS\}\}/$recent_commits}"
+  prompt="${prompt//\{\{AGENT_ID\}\}/$AGENT_ID}"
+
+  echo "$prompt"
 }
 
-run_post_task_review() {
-  local task_id="$1"
-  local task_file="$2"
-  local review_log="$RUN_LOG_DIR/review-$task_id.log"
+run_phase() {
+  local phase_name="$1"
+  local prompt_file="$2"
+  local timeout="$3"
+  local skip="$4"
+  local task_id="$5"
+  local task_file="$6"
+  local phase_log="$RUN_LOG_DIR/phase-${phase_name,,}-$task_id.log"
 
-  if [ "$AGENT_NO_REVIEW" = "1" ]; then
-    log_info "Skipping post-task review (AGENT_NO_REVIEW=1)"
+  # Check if phase should be skipped
+  if [ "$skip" = "1" ]; then
+    log_phase "Skipping $phase_name (disabled)"
     return 0
   fi
 
-  log_review "Starting post-task review for: $task_id"
+  log_phase "Starting $phase_name phase"
+  echo "  Timeout: ${timeout}s"
+  echo "  Log: $phase_log"
 
-  # Get recent commits related to this task
-  local recent_commits
-  recent_commits=$(git log --oneline -10 --grep="$task_id" 2>/dev/null || echo "")
-
-  # Build the review prompt
-  local review_prompt
-  review_prompt=$(cat << REVIEW_EOF
-You are reviewing task $task_id which was just completed.
-
-REVIEW SCOPE:
-- Only review code and commits related to this specific task
-- Check the task file at: $task_file (if it exists in done/)
-- Review recent commits: $recent_commits
-
-REVIEW CHECKLIST:
-1. CODE QUALITY: Are there any code smells, anti-patterns, or improvements needed?
-2. TEST COVERAGE: Are there missing tests or edge cases not covered?
-3. SECURITY: Any security concerns (SQL injection, XSS, auth issues)?
-4. PERFORMANCE: Any N+1 queries, missing indexes, or slow operations?
-5. DOCUMENTATION: Is the code self-documenting? Any missing comments for complex logic?
-6. ERROR HANDLING: Are errors handled gracefully? Good error messages?
-
-ACTIONS TO TAKE:
-- Fix any critical issues you find immediately
-- For non-critical improvements, create new tasks in .claude/tasks/todo/ with:
-  - Priority 003 (Medium) for improvements
-  - Priority 004 (Low) for nice-to-haves
-  - Use format: PPP-SSS-description.md
-  - Reference the original task in the new task's context
-
-OUTPUT:
-- Summarize what you reviewed
-- List any issues found and fixed
-- List any new tasks created for future improvements
-- Run quality gates (./bin/quality) to verify no regressions
-
-Be thorough but focused. Only review code related to task $task_id.
-REVIEW_EOF
-)
-
-  log_review "Running Claude review cycle..."
-  echo "  Log: $review_log"
-  echo ""
+  # Build the prompt from template
+  local prompt
+  prompt=$(build_phase_prompt "$prompt_file" "$task_id" "$task_file")
+  if [ $? -ne 0 ]; then
+    log_error "Failed to build prompt for $phase_name"
+    return 1
+  fi
 
   # Build Claude CLI arguments
   local claude_args=(
@@ -499,7 +537,7 @@ REVIEW_EOF
     "--model" "$CURRENT_MODEL"
   )
 
-  # Output mode
+  # Output mode: streaming (default) or quiet
   if [ "$AGENT_QUIET" != "1" ]; then
     claude_args+=("--output-format" "stream-json")
   else
@@ -512,33 +550,68 @@ REVIEW_EOF
 
   local exit_code=0
 
-  echo -e "${MAGENTA}─────────────────────────────────────────────────────────────${NC}"
-  echo -e "${MAGENTA} POST-TASK REVIEW${NC}"
-  echo -e "${MAGENTA}─────────────────────────────────────────────────────────────${NC}"
+  echo ""
+  echo -e "${CYAN}┌─────────────────────────────────────────────────────────────┐${NC}"
+  echo -e "${CYAN}│${NC} ${BOLD}PHASE: $phase_name${NC}"
+  echo -e "${CYAN}└─────────────────────────────────────────────────────────────┘${NC}"
   echo ""
 
-  # Use review timeout (shorter than main task)
+  # Execute with timeout
   if command -v gtimeout &> /dev/null; then
-    gtimeout "${AGENT_REVIEW_TIMEOUT}s" claude "${claude_args[@]}" "$review_prompt" 2>&1 | tee "$review_log" || exit_code=$?
+    gtimeout "${timeout}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
   elif command -v timeout &> /dev/null; then
-    timeout "${AGENT_REVIEW_TIMEOUT}s" claude "${claude_args[@]}" "$review_prompt" 2>&1 | tee "$review_log" || exit_code=$?
+    timeout "${timeout}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
   else
-    claude "${claude_args[@]}" "$review_prompt" 2>&1 | tee "$review_log" || exit_code=$?
+    claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$phase_log" || exit_code=$?
   fi
 
   echo ""
-  echo -e "${MAGENTA}─────────────────────────────────────────────────────────────${NC}"
+  echo -e "${CYAN}└─────────────────────────────────────────────────────────────┘${NC}"
   echo ""
 
-  if [ "$exit_code" -eq 0 ]; then
-    log_review "Review completed successfully"
-  elif [ "$exit_code" -eq 124 ]; then
-    log_warn "Review timed out after ${AGENT_REVIEW_TIMEOUT}s (non-fatal)"
-  else
-    log_warn "Review exited with code $exit_code (non-fatal)"
-  fi
+  # Handle exit codes
+  case $exit_code in
+    0)
+      log_phase "$phase_name completed successfully"
+      return 0
+      ;;
+    124)
+      log_error "$phase_name timed out after ${timeout}s"
+      return 1
+      ;;
+    *)
+      # Check for rate limits
+      if grep -qiE "rate.?limit|overloaded|429|502|503|504|capacity|quota" "$phase_log" 2>/dev/null; then
+        log_heal "Rate limit detected in $phase_name"
+        if fallback_to_sonnet; then
+          log_heal "Will retry $phase_name with sonnet"
+        fi
+      fi
+      log_error "$phase_name failed with exit code $exit_code"
+      return 1
+      ;;
+  esac
+}
 
-  # Review is non-fatal - we don't fail the task if review has issues
+run_all_phases() {
+  local task_id="$1"
+  local task_file="$2"
+
+  log_info "Running ${#PHASES[@]} phases for task: $task_id"
+
+  for phase_def in "${PHASES[@]}"; do
+    IFS='|' read -r name prompt_file timeout skip <<< "$phase_def"
+
+    if ! run_phase "$name" "$prompt_file" "$timeout" "$skip" "$task_id" "$task_file"; then
+      log_error "Phase $name failed - stopping task execution"
+      return 1
+    fi
+
+    # Small pause between phases
+    sleep 1
+  done
+
+  log_success "All phases completed for task: $task_id"
   return 0
 }
 
@@ -882,133 +955,62 @@ run_agent_iteration() {
   fi
 
   if [ "$AGENT_DRY_RUN" = "1" ]; then
-    log_warn "DRY RUN - would execute agent here"
+    log_warn "DRY RUN - would execute phases here"
+    log_info "Phases: ${PHASES[*]}"
     save_session "$session_id" "$iteration" "dry-run"
     return 0
   fi
 
+  # Ensure we have a task to work on
+  if [ -z "${task_file:-}" ]; then
+    log_error "No task file available for phase execution"
+    save_session "$session_id" "$iteration" "no-task"
+    return 1
+  fi
+
+  local task_id
+  task_id=$(get_task_id_from_file "$task_file")
+
   # Start heartbeat for long-running tasks
-  if [ -n "${task_file:-}" ]; then
-    start_heartbeat "$task_file"
-  fi
+  start_heartbeat "$task_file"
 
-  log_step "Running Claude agent (DANGEROUS MODE - all permissions bypassed)..."
-  echo "  Log: $task_log"
+  log_step "Running modular phase-based execution..."
+  echo "  Task: $task_id"
   echo "  Model: $CURRENT_MODEL"
-  if [ "$MODEL_FALLBACK_TRIGGERED" = "1" ]; then
-    echo "  (fallback from $CLAUDE_MODEL due to rate limits)"
-  fi
-  echo "  Agent: $AGENT_ID"
-  echo "  Stream: $([ "$AGENT_QUIET" != "1" ] && echo "enabled" || echo "disabled (quiet mode)")"
+  echo "  Phases: TRIAGE → PLAN → IMPLEMENT → TEST → DOCS → REVIEW"
+  echo "  Stream: $([ "$AGENT_QUIET" != "1" ] && echo "enabled" || echo "disabled")"
   echo ""
 
-  # Build the prompt
-  local prompt="continue working"
-
-  # Build Claude CLI arguments for FULLY AUTONOMOUS operation
-  local claude_args=(
-    "--dangerously-skip-permissions"
-    "--permission-mode" "bypassPermissions"
-    "--model" "$CURRENT_MODEL"
-  )
-
-  # Output mode: streaming (default) or print mode (quiet)
-  if [ "$AGENT_QUIET" != "1" ]; then
-    # Streaming mode - shows real-time output (DEFAULT)
-    claude_args+=("--output-format" "stream-json")
-  else
-    # Print mode - cleaner output (quiet mode)
-    claude_args+=("-p")
-  fi
-
-  # Add verbose if requested
-  if [ "$AGENT_VERBOSE" = "1" ]; then
-    claude_args+=("--verbose")
-  fi
-
-  # Execute Claude with timeout
+  # Execute all phases
   local exit_code=0
-
-  log_info "Executing: claude ${claude_args[*]} \"$prompt\""
-  echo ""
-  echo -e "${CYAN}─────────────────────────────────────────────────────────────${NC}"
-  echo ""
-
-  # Use timeout if available (prefer gtimeout on macOS)
-  if command -v gtimeout &> /dev/null; then
-    gtimeout "${CLAUDE_TIMEOUT}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
-  elif command -v timeout &> /dev/null; then
-    timeout "${CLAUDE_TIMEOUT}s" claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
-  else
-    # No timeout available, run directly
-    claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$task_log" || exit_code=$?
+  if ! run_all_phases "$task_id" "$task_file"; then
+    exit_code=1
   fi
-
-  echo ""
-  echo -e "${CYAN}─────────────────────────────────────────────────────────────${NC}"
-  echo ""
 
   # Stop heartbeat
   stop_heartbeat
 
-  # Handle exit codes
-  case $exit_code in
-    0)
-      log_success "Task iteration completed successfully"
-      save_session "$session_id" "$iteration" "completed"
+  # Handle result
+  if [ "$exit_code" -eq 0 ]; then
+    log_success "Task iteration completed successfully"
+    save_session "$session_id" "$iteration" "completed"
 
-      # Reset model on success (if we had fallen back)
-      reset_model
+    # Reset model on success
+    reset_model
 
-      # Check if task was completed (moved to done/)
-      # If so, release the lock and run post-task review
-      if [ -n "${task_file:-}" ]; then
-        local task_id
-        task_id=$(get_task_id_from_file "$task_file")
-        local done_file="$TASKS_DIR/done/$(basename "$task_file")"
-        if [ -f "$done_file" ]; then
-          release_lock "$task_id"
-          unassign_task "$done_file"
+    # Check if task was completed (moved to done/)
+    local done_file="$TASKS_DIR/done/$(basename "$task_file")"
+    if [ -f "$done_file" ]; then
+      release_lock "$task_id"
+      unassign_task "$done_file"
+    fi
 
-          # Run post-task review for completed tasks
-          run_post_task_review "$task_id" "$done_file"
-        fi
-      fi
-
-      return 0
-      ;;
-    124)
-      log_error "Task timed out after ${CLAUDE_TIMEOUT}s"
-      log_heal "Will retry"
-      save_session "$session_id" "$iteration" "timeout"
-      return 1
-      ;;
-    130|137)
-      log_warn "Task interrupted (signal $exit_code)"
-      save_session "$session_id" "$iteration" "interrupted"
-      return 1
-      ;;
-    *)
-      log_error "Agent exited with code $exit_code"
-
-      # Check if it's a rate limit - try fallback to sonnet
-      if grep -qiE "rate.?limit|overloaded|429|502|503|504|capacity|quota" "$task_log" 2>/dev/null; then
-        log_heal "Detected rate limit or server error"
-
-        # Try to fall back to sonnet
-        if fallback_to_sonnet; then
-          log_heal "Will retry with sonnet model"
-          save_session "$session_id" "$iteration" "rate-limited-fallback"
-        else
-          log_heal "Will retry with same model"
-          save_session "$session_id" "$iteration" "rate-limited"
-        fi
-      else
-        save_session "$session_id" "$iteration" "failed"
-      fi
-      return 1
-      ;;
-  esac
+    return 0
+  else
+    log_error "Task iteration failed"
+    save_session "$session_id" "$iteration" "failed"
+    return 1
+  fi
 }
 
 # ============================================================================
@@ -1045,17 +1047,24 @@ trap cleanup EXIT INT TERM
 # ============================================================================
 
 main() {
-  log_header "Claude Agent Runner (Parallel Mode)"
+  log_header "Claude Agent Runner (Phase-Based)"
   echo ""
   echo "  Agent ID: $AGENT_ID"
   echo "  Tasks to run: $NUM_TASKS"
   echo "  Model: $CLAUDE_MODEL (fallback: sonnet)"
-  echo "  Timeout: ${CLAUDE_TIMEOUT}s per task"
-  echo "  Max retries: $AGENT_MAX_RETRIES"
+  echo "  Max retries: $AGENT_MAX_RETRIES per phase"
   echo "  Lock timeout: ${AGENT_LOCK_TIMEOUT}s ($(( AGENT_LOCK_TIMEOUT / 3600 ))h)"
   echo "  Heartbeat: ${AGENT_HEARTBEAT}s ($(( AGENT_HEARTBEAT / 60 ))min)"
-  echo "  Stream output: $([ "$AGENT_QUIET" != "1" ] && echo "yes (default)" || echo "no (quiet mode)")"
-  echo "  Post-task review: $([ "$AGENT_NO_REVIEW" != "1" ] && echo "yes (${AGENT_REVIEW_TIMEOUT}s timeout)" || echo "no")"
+  echo "  Stream: $([ "$AGENT_QUIET" != "1" ] && echo "yes (default)" || echo "no")"
+  echo ""
+  echo "  Phases:"
+  echo "    1. TRIAGE   ${TIMEOUT_TRIAGE}s  $([ "$SKIP_TRIAGE" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    2. PLAN     ${TIMEOUT_PLAN}s  $([ "$SKIP_PLAN" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    3. IMPLEMENT ${TIMEOUT_IMPLEMENT}s  $([ "$SKIP_IMPLEMENT" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    4. TEST     ${TIMEOUT_TEST}s  $([ "$SKIP_TEST" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    5. DOCS     ${TIMEOUT_DOCS}s  $([ "$SKIP_DOCS" = "1" ] && echo "[SKIP]" || echo "")"
+  echo "    6. REVIEW   ${TIMEOUT_REVIEW}s  $([ "$SKIP_REVIEW" = "1" ] && echo "[SKIP]" || echo "")"
+  echo ""
   echo "  Log dir: $RUN_LOG_DIR"
   echo ""
 
