@@ -139,3 +139,6 @@ gem "tailwindcss-rails", "~> 4.3"
 gem "meta-tags", "~> 2.22"
 gem "strong_migrations", "~> 2.0"
 gem "draper", "~> 4.0"
+
+# AI/LLM integration
+gem "ruby-openai", "~> 7.3"
