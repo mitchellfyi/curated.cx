@@ -1,0 +1,14 @@
+<div class="py-8">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <nav class="text-sm text-gray-500 mb-2">
+        <%= link_to t('admin.tagging_rules.title'), admin_tagging_rules_path, class: "hover:text-blue-600" %>
+      </nav>
+      <h1 class="text-3xl font-bold text-gray-900"><%= t('admin.tagging_rules.edit') %></h1>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <%= render 'form', tagging_rule: @tagging_rule, taxonomies: @taxonomies %>
+    </div>
+  </div>
+</div>

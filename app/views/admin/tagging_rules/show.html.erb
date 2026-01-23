@@ -1,0 +1,76 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <nav class="text-sm text-gray-500 mb-2">
+            <%= link_to t('admin.tagging_rules.title'), admin_tagging_rules_path, class: "hover:text-blue-600" %>
+          </nav>
+          <h1 class="text-3xl font-bold text-gray-900"><%= @tagging_rule.rule_type.humanize %> <%= t('admin.tagging_rules.rule') %></h1>
+          <p class="mt-2 text-gray-600">
+            <%= t('admin.tagging_rules.for_taxonomy') %>:
+            <%= link_to @tagging_rule.taxonomy.name, admin_taxonomy_path(@tagging_rule.taxonomy), class: "text-blue-600 hover:text-blue-500" %>
+          </p>
+        </div>
+        <div class="flex space-x-2">
+          <%= link_to t('actions.edit'), edit_admin_tagging_rule_path(@tagging_rule), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+          <%= link_to t('admin.tagging_rules.test_rule'), test_admin_tagging_rule_path(@tagging_rule), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+          <%= button_to t('actions.delete'), admin_tagging_rule_path(@tagging_rule), method: :delete, data: { confirm: t('admin.tagging_rules.confirm_delete') }, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <dl class="divide-y divide-gray-200">
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500"><%= t('admin.tagging_rules.form.priority') %></dt>
+          <dd class="text-sm text-gray-900 col-span-2"><%= @tagging_rule.priority %></dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500"><%= t('admin.tagging_rules.form.rule_type') %></dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <%= @tagging_rule.rule_type.humanize %>
+            </span>
+          </dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500"><%= t('admin.tagging_rules.form.pattern') %></dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <code class="bg-gray-100 px-2 py-1 rounded break-all"><%= @tagging_rule.pattern %></code>
+          </dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500"><%= t('admin.tagging_rules.form.status') %></dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <% if @tagging_rule.enabled? %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"><%= t('admin.tagging_rules.enabled') %></span>
+            <% else %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"><%= t('admin.tagging_rules.disabled') %></span>
+            <% end %>
+          </dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500"><%= t('admin.tagging_rules.form.taxonomy') %></dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <%= link_to @tagging_rule.taxonomy.full_path, admin_taxonomy_path(@tagging_rule.taxonomy), class: "text-blue-600 hover:text-blue-500" %>
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <h3 class="text-sm font-medium text-gray-900 mb-2"><%= t('admin.tagging_rules.rule_type_help') %></h3>
+      <% case @tagging_rule.rule_type %>
+      <% when 'url_pattern' %>
+        <p class="text-sm text-gray-600"><%= t('admin.tagging_rules.help.url_pattern') %></p>
+      <% when 'source' %>
+        <p class="text-sm text-gray-600"><%= t('admin.tagging_rules.help.source') %></p>
+      <% when 'keyword' %>
+        <p class="text-sm text-gray-600"><%= t('admin.tagging_rules.help.keyword') %></p>
+      <% when 'domain' %>
+        <p class="text-sm text-gray-600"><%= t('admin.tagging_rules.help.domain') %></p>
+      <% end %>
+    </div>
+  </div>
+</div>

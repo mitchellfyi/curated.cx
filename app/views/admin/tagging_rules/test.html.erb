@@ -1,0 +1,81 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <nav class="text-sm text-gray-500 mb-2">
+        <%= link_to t('admin.tagging_rules.title'), admin_tagging_rules_path, class: "hover:text-blue-600" %>
+        <span class="mx-1">/</span>
+        <%= link_to @tagging_rule.rule_type.humanize, admin_tagging_rule_path(@tagging_rule), class: "hover:text-blue-600" %>
+      </nav>
+      <h1 class="text-3xl font-bold text-gray-900"><%= t('admin.tagging_rules.test_results') %></h1>
+      <p class="mt-2 text-gray-600"><%= t('admin.tagging_rules.test_description') %></p>
+    </div>
+
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+      <h3 class="text-sm font-medium text-gray-900"><%= t('admin.tagging_rules.rule_details') %></h3>
+      <div class="mt-2 grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <span class="text-gray-500"><%= t('admin.tagging_rules.form.rule_type') %>:</span>
+          <span class="font-medium"><%= @tagging_rule.rule_type.humanize %></span>
+        </div>
+        <div>
+          <span class="text-gray-500"><%= t('admin.tagging_rules.form.pattern') %>:</span>
+          <code class="bg-gray-100 px-1 rounded"><%= @tagging_rule.pattern %></code>
+        </div>
+      </div>
+    </div>
+
+    <% if @results.any? %>
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t('admin.tagging_rules.test.content') %></th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t('admin.tagging_rules.test.match') %></th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t('admin.tagging_rules.test.confidence') %></th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t('admin.tagging_rules.test.reason') %></th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @results.each do |result| %>
+              <tr class="<%= result[:match_result][:match] ? 'bg-green-50' : '' %>">
+                <td class="px-6 py-4">
+                  <div class="text-sm font-medium text-gray-900"><%= truncate(result[:content_item].title || 'Untitled', length: 50) %></div>
+                  <div class="text-sm text-gray-500"><%= truncate(result[:content_item].url_canonical, length: 60) %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% if result[:match_result][:match] %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <%= t('admin.tagging_rules.test.matched') %>
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <%= t('admin.tagging_rules.test.no_match') %>
+                    </span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <% if result[:match_result][:match] %>
+                    <%= number_to_percentage(result[:match_result][:confidence] * 100, precision: 0) %>
+                  <% else %>
+                    -
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">
+                  <%= result[:match_result][:reason] || '-' %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-12 bg-white rounded-lg shadow">
+        <p class="text-gray-500"><%= t('admin.tagging_rules.test.no_content') %></p>
+      </div>
+    <% end %>
+
+    <div class="mt-6">
+      <%= link_to t('actions.back'), admin_tagging_rule_path(@tagging_rule), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+    </div>
+  </div>
+</div>
