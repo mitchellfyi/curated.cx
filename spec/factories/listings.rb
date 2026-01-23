@@ -122,5 +122,49 @@ FactoryBot.define do
     trait :unpublished do
       published_at { nil }
     end
+
+    # Monetisation traits
+
+    trait :tool do
+      listing_type { :tool }
+    end
+
+    trait :job do
+      listing_type { :job }
+      company { Faker::Company.name }
+      location { "#{Faker::Address.city}, #{Faker::Address.country}" }
+      salary_range { "$#{rand(50..150)}k - $#{rand(150..300)}k" }
+      apply_url { Faker::Internet.url(host: "jobs.example.com") }
+      expires_at { 30.days.from_now }
+    end
+
+    trait :service do
+      listing_type { :service }
+    end
+
+    trait :featured do
+      featured_from { 1.day.ago }
+      featured_until { 30.days.from_now }
+      association :featured_by, factory: :user
+    end
+
+    trait :featured_expired do
+      featured_from { 30.days.ago }
+      featured_until { 1.day.ago }
+    end
+
+    trait :expired do
+      expires_at { 1.day.ago }
+    end
+
+    trait :with_affiliate do
+      affiliate_url_template { "https://affiliate.example.com?url={url}&ref=curated" }
+      affiliate_attribution { { source: "curated", medium: "affiliate" } }
+    end
+
+    trait :paid do
+      paid { true }
+      payment_reference { "pay_#{SecureRandom.hex(8)}" }
+    end
   end
 end
