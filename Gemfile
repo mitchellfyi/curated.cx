@@ -119,6 +119,9 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 
+  # HTTP mocking for job specs
+  gem "webmock", "~> 3.23"
+
   # Accessibility testing (disabled due to loading issues)
   # gem "axe-core-rspec", "~> 4.7"
   # gem "axe-core-capybara", "~> 4.7"
