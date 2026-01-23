@@ -238,18 +238,12 @@ progress_filter() {
   local start_time
   start_time=$(date +%s)
 
-  # Clear line and move cursor
-  clear_line() {
-    printf '\r\033[K'
-  }
-
-  # Show a single-line status update
+  # Show a status update (appends to log, no line clearing)
   show_status() {
     local elapsed=$(( $(date +%s) - start_time ))
     local mins=$(( elapsed / 60 ))
     local secs=$(( elapsed % 60 ))
-    clear_line
-    printf "${CYAN}[%s]${NC} ${BOLD}%s${NC} %02d:%02d │ %s" "$AGENT_ID" "$phase_name" "$mins" "$secs" "$1"
+    printf "${CYAN}[%s]${NC} ${BOLD}%s${NC} %02d:%02d │ %s\n" "$AGENT_ID" "$phase_name" "$mins" "$secs" "$1"
   }
 
   while IFS= read -r line; do
@@ -285,7 +279,6 @@ progress_filter() {
           cost_usd=$(echo "$line" | jq -r '.cost_usd // empty' 2>/dev/null)
           if [ "$subtype" = "success" ]; then
             show_status "✓ Done"
-            echo ""  # Newline after completion
           elif [ -n "$cost_usd" ]; then
             show_status "💰 \$$cost_usd"
           fi
@@ -308,15 +301,11 @@ progress_filter() {
         fi
       elif echo "$line" | grep -q '"result"'; then
         show_status "✓ Done"
-        echo ""
       elif [ $((line_count % 10)) -eq 0 ]; then
         show_status "⋯ working"
       fi
     fi
   done
-
-  # Ensure we end with a newline
-  echo ""
 }
 
 # ============================================================================
