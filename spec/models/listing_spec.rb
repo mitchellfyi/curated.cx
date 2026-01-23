@@ -253,6 +253,373 @@ RSpec.describe Listing, type: :model do
     end
   end
 
+  describe 'monetisation' do
+    describe 'associations' do
+      it { should belong_to(:featured_by).class_name('User').optional }
+      it { should have_many(:affiliate_clicks).dependent(:destroy) }
+    end
+
+    describe 'enums' do
+      it 'defines listing_type enum' do
+        expect(Listing.listing_types).to eq({ 'tool' => 0, 'job' => 1, 'service' => 2 })
+      end
+
+      it 'defaults to tool' do
+        listing = build(:listing, tenant: tenant, category: category)
+        expect(listing.listing_type).to eq('tool')
+      end
+    end
+
+    describe '#featured?' do
+      it 'returns true when within featured date range' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        featured_from: 1.day.ago, featured_until: 1.day.from_now)
+        expect(listing).to be_featured
+      end
+
+      it 'returns true when featured_until is nil (perpetual featuring)' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        featured_from: 1.day.ago, featured_until: nil)
+        expect(listing).to be_featured
+      end
+
+      it 'returns false when featured_from is nil' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        featured_from: nil, featured_until: 1.day.from_now)
+        expect(listing).not_to be_featured
+      end
+
+      it 'returns false when before featured_from' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        featured_from: 1.day.from_now, featured_until: 2.days.from_now)
+        expect(listing).not_to be_featured
+      end
+
+      it 'returns false when after featured_until' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        featured_from: 2.days.ago, featured_until: 1.day.ago)
+        expect(listing).not_to be_featured
+      end
+    end
+
+    describe '#expired?' do
+      it 'returns true when past expires_at' do
+        listing = build(:listing, tenant: tenant, category: category, expires_at: 1.day.ago)
+        expect(listing).to be_expired
+      end
+
+      it 'returns false when before expires_at' do
+        listing = build(:listing, tenant: tenant, category: category, expires_at: 1.day.from_now)
+        expect(listing).not_to be_expired
+      end
+
+      it 'returns false when expires_at is nil' do
+        listing = build(:listing, tenant: tenant, category: category, expires_at: nil)
+        expect(listing).not_to be_expired
+      end
+    end
+
+    describe '#has_affiliate?' do
+      it 'returns true when affiliate_url_template is present' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        affiliate_url_template: 'https://affiliate.example.com?url={url}')
+        expect(listing).to have_affiliate
+      end
+
+      it 'returns false when affiliate_url_template is blank' do
+        listing = build(:listing, tenant: tenant, category: category, affiliate_url_template: nil)
+        expect(listing).not_to have_affiliate
+      end
+
+      it 'returns false when affiliate_url_template is empty string' do
+        listing = build(:listing, tenant: tenant, category: category, affiliate_url_template: '')
+        expect(listing).not_to have_affiliate
+      end
+    end
+
+    describe '#affiliate_url' do
+      it 'returns nil when no affiliate template' do
+        listing = build(:listing, tenant: tenant, category: category, affiliate_url_template: nil)
+        expect(listing.affiliate_url).to be_nil
+      end
+
+      it 'delegates to AffiliateUrlService' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        affiliate_url_template: 'https://affiliate.example.com?url={url}')
+        allow(AffiliateUrlService).to receive(:new).and_call_original
+        listing.affiliate_url
+        expect(AffiliateUrlService).to have_received(:new).with(listing)
+      end
+    end
+
+    describe '#display_url' do
+      it 'returns affiliate_url when present' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        url_raw: 'https://example.com',
+                        affiliate_url_template: 'https://affiliate.example.com?url={url}')
+        expect(listing.display_url).to start_with('https://affiliate.example.com')
+      end
+
+      it 'returns url_canonical when no affiliate' do
+        listing = create(:listing, tenant: tenant, category: category,
+                         url_raw: 'https://example.com', affiliate_url_template: nil)
+        expect(listing.display_url).to eq('https://example.com/')
+      end
+    end
+
+    describe '#affiliate_attribution' do
+      it 'returns empty hash when nil' do
+        listing = build(:listing, tenant: tenant, category: category)
+        listing.affiliate_attribution = nil
+        expect(listing.affiliate_attribution).to eq({})
+      end
+
+      it 'returns stored hash' do
+        listing = build(:listing, tenant: tenant, category: category,
+                        affiliate_attribution: { source: 'curated', medium: 'affiliate' })
+        expect(listing.affiliate_attribution).to eq({ 'source' => 'curated', 'medium' => 'affiliate' })
+      end
+    end
+  end
+
+  describe 'monetisation scopes' do
+    let!(:featured_listing) do
+      create(:listing, tenant: tenant, category: category,
+             featured_from: 1.day.ago, featured_until: 30.days.from_now)
+    end
+    let!(:non_featured_listing) do
+      create(:listing, tenant: tenant, category: category,
+             featured_from: nil, featured_until: nil)
+    end
+    let!(:expired_featured_listing) do
+      create(:listing, tenant: tenant, category: category,
+             featured_from: 30.days.ago, featured_until: 1.day.ago)
+    end
+    let!(:future_featured_listing) do
+      create(:listing, tenant: tenant, category: category,
+             featured_from: 1.day.from_now, featured_until: 30.days.from_now)
+    end
+    let!(:expired_listing) do
+      create(:listing, tenant: tenant, category: category,
+             expires_at: 1.day.ago)
+    end
+    let!(:active_listing) do
+      create(:listing, tenant: tenant, category: category,
+             expires_at: 30.days.from_now)
+    end
+    let!(:no_expiry_listing) do
+      create(:listing, tenant: tenant, category: category,
+             expires_at: nil)
+    end
+    let!(:job_listing) do
+      create(:listing, :job, tenant: tenant, category: category)
+    end
+    let!(:tool_listing) do
+      create(:listing, :tool, tenant: tenant, category: category)
+    end
+    let!(:service_listing) do
+      create(:listing, :service, tenant: tenant, category: category)
+    end
+    let!(:affiliate_listing) do
+      create(:listing, :with_affiliate, tenant: tenant, category: category)
+    end
+    let!(:paid_listing) do
+      create(:listing, :paid, tenant: tenant, category: category)
+    end
+
+    describe '.featured' do
+      it 'includes currently featured listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.featured).to include(featured_listing)
+        end
+      end
+
+      it 'excludes non-featured listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.featured).not_to include(non_featured_listing)
+        end
+      end
+
+      it 'excludes expired featured listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.featured).not_to include(expired_featured_listing)
+        end
+      end
+
+      it 'excludes future featured listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.featured).not_to include(future_featured_listing)
+        end
+      end
+    end
+
+    describe '.not_featured' do
+      it 'excludes currently featured listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.not_featured).not_to include(featured_listing)
+        end
+      end
+
+      it 'includes non-featured listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.not_featured).to include(non_featured_listing)
+        end
+      end
+
+      it 'includes expired featured listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.not_featured).to include(expired_featured_listing)
+        end
+      end
+    end
+
+    describe '.not_expired' do
+      it 'includes listings without expiry' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.not_expired).to include(no_expiry_listing)
+        end
+      end
+
+      it 'includes active listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.not_expired).to include(active_listing)
+        end
+      end
+
+      it 'excludes expired listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.not_expired).not_to include(expired_listing)
+        end
+      end
+    end
+
+    describe '.expired' do
+      it 'includes expired listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.expired).to include(expired_listing)
+        end
+      end
+
+      it 'excludes active listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.expired).not_to include(active_listing)
+        end
+      end
+
+      it 'excludes listings without expiry' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.expired).not_to include(no_expiry_listing)
+        end
+      end
+    end
+
+    describe '.jobs' do
+      it 'includes job listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.jobs).to include(job_listing)
+        end
+      end
+
+      it 'excludes tool listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.jobs).not_to include(tool_listing)
+        end
+      end
+    end
+
+    describe '.tools' do
+      it 'includes tool listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.tools).to include(tool_listing)
+        end
+      end
+
+      it 'excludes job listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.tools).not_to include(job_listing)
+        end
+      end
+    end
+
+    describe '.services' do
+      it 'includes service listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.services).to include(service_listing)
+        end
+      end
+
+      it 'excludes tool listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.services).not_to include(tool_listing)
+        end
+      end
+    end
+
+    describe '.active_jobs' do
+      let!(:active_job) do
+        create(:listing, :job, :published, tenant: tenant, category: category, expires_at: 30.days.from_now)
+      end
+      let!(:expired_job) do
+        create(:listing, :job, :published, tenant: tenant, category: category, expires_at: 1.day.ago)
+      end
+      let!(:unpublished_job) do
+        create(:listing, :job, :unpublished, tenant: tenant, category: category, expires_at: 30.days.from_now)
+      end
+
+      it 'includes published, non-expired jobs' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.active_jobs).to include(active_job)
+        end
+      end
+
+      it 'excludes expired jobs' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.active_jobs).not_to include(expired_job)
+        end
+      end
+
+      it 'excludes unpublished jobs' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.active_jobs).not_to include(unpublished_job)
+        end
+      end
+
+      it 'excludes tools' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.active_jobs).not_to include(tool_listing)
+        end
+      end
+    end
+
+    describe '.with_affiliate' do
+      it 'includes listings with affiliate template' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.with_affiliate).to include(affiliate_listing)
+        end
+      end
+
+      it 'excludes listings without affiliate template' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.with_affiliate).not_to include(tool_listing)
+        end
+      end
+    end
+
+    describe '.paid_listings' do
+      it 'includes paid listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.paid_listings).to include(paid_listing)
+        end
+      end
+
+      it 'excludes unpaid listings' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.paid_listings).not_to include(tool_listing)
+        end
+      end
+    end
+  end
+
   describe 'scopes' do
     let!(:published_listing) { create(:listing, tenant: tenant, category: category, published_at: 1.day.ago) }
     let!(:unpublished_listing) { create(:listing, tenant: tenant, category: category, published_at: nil) }

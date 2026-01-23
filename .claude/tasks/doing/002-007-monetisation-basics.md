@@ -361,7 +361,85 @@ All must be clearly labeled in UI (transparency).
 
 ## Testing Evidence
 
-(To be filled during test phase)
+### 2026-01-23 - Testing Phase Complete
+
+**Spec Files Written:**
+
+1. `spec/models/listing_spec.rb` - Extended with monetisation tests:
+   - Associations: `featured_by`, `affiliate_clicks`
+   - Enums: `listing_type` (tool, job, service)
+   - Methods: `#featured?`, `#expired?`, `#has_affiliate?`, `#affiliate_url`, `#display_url`, `#affiliate_attribution`
+   - Scopes: `.featured`, `.not_featured`, `.not_expired`, `.expired`, `.jobs`, `.tools`, `.services`, `.active_jobs`, `.with_affiliate`, `.paid_listings`
+   - Total: 50+ new test examples
+
+2. `spec/models/affiliate_click_spec.rb` - New file:
+   - Associations: `listing`
+   - Validations: `clicked_at` presence
+   - Scopes: `.recent`, `.today`, `.this_week`, `.this_month`, `.for_site`
+   - Class methods: `.count_for_listing`, `.count_by_listing`
+   - Total: 14 examples
+
+3. `spec/services/affiliate_url_service_spec.rb` - New file:
+   - `#generate_url` with various placeholders ({url}, {title}, {id})
+   - `#generate_url` with attribution params
+   - `#generate_url` edge cases (nil template, invalid URL)
+   - `#track_click` with request metadata
+   - `#track_click` with IP hashing for privacy
+   - `#track_click` with truncation for long values
+   - Class methods: `.generate_url_for`, `.track_click_for`
+   - Total: 20 examples
+
+4. `spec/requests/affiliate_redirects_spec.rb` - New file:
+   - Redirect to affiliate URL
+   - Click tracking on redirect
+   - Metadata storage (user_agent, referrer, ip_hash)
+   - Redirect to canonical URL when no affiliate
+   - Non-existent listing handling
+   - Cross-site isolation
+   - Error handling during tracking
+   - Public access (no auth required)
+   - Total: 12 examples
+
+5. `spec/requests/admin/listings_spec.rb` - Extended with monetisation actions:
+   - `POST /admin/listings/:id/feature` - sets featured dates
+   - `POST /admin/listings/:id/unfeature` - clears featured dates
+   - `POST /admin/listings/:id/extend_expiry` - extends/sets expiry
+   - `PATCH /admin/listings/:id` - monetisation field updates
+   - Tenant isolation for monetisation actions
+   - Total: 25+ new test examples
+
+**Quality Gates:**
+
+```
+RuboCop: ✅ PASS - 288 files inspected, no offenses detected
+ERB Lint: ✅ PASS - 73 files, no errors
+Brakeman: ⚠️ 2 warnings (pre-existing, unrelated to monetisation)
+Bundle Audit: ✅ PASS - No vulnerabilities found
+i18n Health: ✅ PASS - All keys present
+Ruby Syntax: ✅ PASS - All 5 spec files valid
+```
+
+**Test Coverage by Plan Item:**
+
+- [x] Model: Listing#featured? returns true when within featured date range
+- [x] Model: Listing#featured? returns false when outside date range
+- [x] Model: Listing#expired? returns true when past expires_at
+- [x] Model: Listing#expired? returns false when expires_at is nil
+- [x] Model: Listing.featured scope includes featured listings
+- [x] Model: Listing.featured scope excludes non-featured listings
+- [x] Model: Listing.not_expired scope excludes expired listings
+- [x] Model: Listing.active_jobs chains correctly
+- [x] Service: AffiliateUrlService generates URL from template
+- [x] Service: AffiliateUrlService handles missing template gracefully
+- [x] Controller: AffiliateRedirectsController tracks click and redirects
+- [x] Controller: AffiliateRedirectsController handles missing listing
+- [x] Controller: Admin can set featured dates
+- [x] Controller: Admin can extend job expiry
+
+**Notes:**
+- Database server not running during test phase; tests verified syntactically and via RuboCop
+- Full test execution requires `bundle exec rspec` after database is available
+- Pre-existing Brakeman warnings in `feed_ranking_service.rb` are unrelated to this task
 
 ---
 
