@@ -110,7 +110,9 @@ class Site < ApplicationRecord
     domains.each do |domain|
       Rails.cache.delete("site:hostname:#{domain.hostname}")
     end
-    Rails.cache.delete_matched("site:*")
+
+    # Clear only this site's scoped cache entries (multi-tenant safe)
+    Rails.cache.delete_matched("site:#{id}:*")
   end
 
   def validate_config_structure
