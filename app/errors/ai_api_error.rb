@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "application_error"
+
 # AI API error classes for editorialisation service.
 #
 # Error Hierarchy:

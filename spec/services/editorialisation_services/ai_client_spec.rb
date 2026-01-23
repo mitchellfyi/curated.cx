@@ -25,6 +25,7 @@ RSpec.describe EditorialisationServices::AiClient, type: :service do
 
     it "falls back to environment variable" do
       allow(Rails.application.credentials).to receive(:dig).with(:openai, :api_key).and_return(nil)
+      allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with("OPENAI_API_KEY").and_return("env-api-key")
 
       client = described_class.new
@@ -33,6 +34,7 @@ RSpec.describe EditorialisationServices::AiClient, type: :service do
 
     it "raises AiConfigurationError if no API key available" do
       allow(Rails.application.credentials).to receive(:dig).with(:openai, :api_key).and_return(nil)
+      allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with("OPENAI_API_KEY").and_return(nil)
 
       expect {
