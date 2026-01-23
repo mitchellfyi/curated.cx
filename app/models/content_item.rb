@@ -48,6 +48,7 @@ class ContentItem < ApplicationRecord
   before_validation :normalize_url_canonical
   before_validation :ensure_tags_is_array
   after_create :apply_tagging_rules
+  after_create :enqueue_editorialisation
 
   # Scopes
   scope :recent, -> { order(created_at: :desc) }
@@ -87,6 +88,19 @@ class ContentItem < ApplicationRecord
     super || []
   end
 
+  def ai_summary
+    super
+  end
+
+  def ai_suggested_tags
+    super || []
+  end
+
+  # Check if this item has been editorialised
+  def editorialised?
+    editorialised_at.present?
+  end
+
   private
 
   def apply_tagging_rules
@@ -114,5 +128,11 @@ class ContentItem < ApplicationRecord
 
   def ensure_tags_is_array
     self.tags = [] unless tags.is_a?(Array)
+  end
+
+  def enqueue_editorialisation
+    return unless source&.editorialisation_enabled?
+
+    EditorialiseContentItemJob.perform_later(id)
   end
 end

@@ -106,6 +106,11 @@ class Source < ApplicationRecord
     )
   end
 
+  # Check if AI editorialisation is enabled for this source
+  def editorialisation_enabled?
+    config["editorialise"] == true || config[:editorialise] == true
+  end
+
   # Callbacks
   before_validation :set_tenant_from_site, on: :create
 
