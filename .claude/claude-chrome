@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Alias for running Claude with Chrome integration and full permissions
+exec claude \
+  --allow-dangerously-skip-permissions \
+  --chrome \
+  --dangerously-skip-permissions \
+  --model opus \
+  --permission-mode dontAsk \
+  "$@"

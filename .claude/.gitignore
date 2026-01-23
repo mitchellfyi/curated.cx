@@ -1,0 +1,10 @@
+# Runtime files - not tracked in git
+logs/
+state/
+locks/
+
+# Keep the directory structure via .gitkeep files
+!logs/.gitkeep
+!logs/**/.gitkeep
+!state/.gitkeep
+!locks/.gitkeep
