@@ -5,9 +5,7 @@ class Admin::DashboardController < ApplicationController
 
   def index
     @tenant = Current.tenant.decorate
-    @categories = categories_service.all_categories
-    @categories = (@categories + Current.tenant.categories.to_a).uniq
-    @categories = @categories.select { |cat| cat.tenant_id == Current.tenant.id }
+    @categories = categories_service.all_categories.to_a
     if @categories.empty?
       @categories = [
         Category.create!(
@@ -37,12 +35,7 @@ class Admin::DashboardController < ApplicationController
       )
       @recent_listings = [ sample_listing ]
     end
-    @stats = {
-      total_categories: @categories.count,
-      total_listings: Current.tenant.listings.published.count,
-      published_listings: Current.tenant.listings.published.count,
-      listings_today: Current.tenant.listings.published.where(created_at: Time.current.beginning_of_day..Time.current.end_of_day).count
-    }
+    @stats = listing_stats_for_dashboard
 
     set_page_meta_tags(
       title: t("admin.dashboard.title"),
@@ -51,6 +44,21 @@ class Admin::DashboardController < ApplicationController
   end
 
   private
+
+  def listing_stats_for_dashboard
+    today_start = Time.current.beginning_of_day
+    result = Current.tenant.listings.select(
+      Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL) AS published_count"),
+      Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL AND created_at >= '#{today_start.iso8601}') AS today_count")
+    ).take
+
+    {
+      total_categories: @categories.size,
+      total_listings: result.attributes["published_count"].to_i,
+      published_listings: result.attributes["published_count"].to_i,
+      listings_today: result.attributes["today_count"].to_i
+    }
+  end
 
   def categories_service
     @categories_service ||= Admin::CategoriesService.new(Current.tenant)
