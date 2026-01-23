@@ -1,0 +1,7 @@
+<%# Turbo Stream response for deleting a comment %>
+<%= turbo_stream.remove dom_id(@comment) %>
+
+<%# Update comments count in header if on comments page %>
+<%= turbo_stream.update "comments_count" do %>
+  <%= t('comments.comment_count', count: @content_item.comments.count) %>
+<% end %>

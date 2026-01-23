@@ -1,0 +1,29 @@
+<%# Single comment view with replies %>
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <%# Breadcrumb %>
+  <nav class="mb-6">
+    <%= link_to content_item_comments_path(@content_item), class: "text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1" do %>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      <%= t('comments.back_to_comments') %>
+    <% end %>
+  </nav>
+
+  <%# Content item context %>
+  <div class="mb-6 text-sm text-gray-500">
+    <%= t('comments.on_content') %>
+    <%= link_to @content_item.title || t('feed.content.untitled'),
+                @content_item.url_canonical,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "text-blue-600 hover:text-blue-800" %>
+  </div>
+
+  <%# Comment and replies %>
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="px-6 py-4">
+      <%= render 'comments/comment', comment: @comment, depth: 0 %>
+    </div>
+  </div>
+</div>

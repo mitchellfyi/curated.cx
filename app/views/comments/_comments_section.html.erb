@@ -1,0 +1,58 @@
+<%# Comments section for embedding in content detail pages %>
+<%# locals: (content_item:, comments:) %>
+<section class="bg-white rounded-lg shadow-sm border border-gray-200">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <h2 class="text-lg font-medium text-gray-900" id="comments_count">
+      <%= t('comments.comment_count', count: comments.size) %>
+    </h2>
+  </div>
+
+  <%# Locked message %>
+  <% if content_item.comments_locked? %>
+    <div class="px-6 py-4 bg-amber-50 border-b border-amber-100">
+      <p class="text-sm text-amber-800">
+        <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        <%= t('comments.locked_message') %>
+      </p>
+    </div>
+  <% end %>
+
+  <%# Comment form %>
+  <% if user_signed_in? %>
+    <% if policy(Comment).create? && !content_item.comments_locked? %>
+      <div class="px-6 py-4 border-b border-gray-200">
+        <%= render 'comments/form',
+                   comment: Comment.new,
+                   content_item: content_item %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="px-6 py-4 border-b border-gray-200 text-center">
+      <%= link_to t('comments.sign_in_to_comment'),
+                  new_user_session_path,
+                  class: "text-blue-600 hover:text-blue-800" %>
+    </div>
+  <% end %>
+
+  <%# Comments list %>
+  <%= turbo_frame_tag "comments_list" do %>
+    <div class="divide-y divide-gray-100">
+      <% if comments.any? %>
+        <% comments.each do |comment| %>
+          <div class="px-6">
+            <%= render 'comments/comment', comment: comment, depth: 0 %>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="px-6 py-12 text-center text-gray-500">
+          <svg class="mx-auto w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+          <p><%= t('comments.empty') %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>

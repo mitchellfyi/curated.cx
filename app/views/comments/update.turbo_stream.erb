@@ -1,0 +1,12 @@
+<%# Turbo Stream response for updating a comment %>
+<%# Calculate depth based on parent chain %>
+<% depth = 0 %>
+<% parent = @comment.parent %>
+<% while parent && depth < 3 %>
+  <% depth += 1 %>
+  <% parent = parent.parent %>
+<% end %>
+
+<%= turbo_stream.replace dom_id(@comment) do %>
+  <%= render 'comments/comment', comment: @comment, depth: depth %>
+<% end %>

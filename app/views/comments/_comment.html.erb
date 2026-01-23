@@ -1,0 +1,94 @@
+<%# Comment partial with threaded display %>
+<%# locals: (comment:, depth: 0) %>
+<%= turbo_frame_tag dom_id(comment) do %>
+  <div class="<%= depth > 0 ? 'ml-6 pl-4 border-l-2 border-gray-200' : '' %>">
+    <article class="py-3" id="<%= dom_id(comment, :article) %>">
+      <div class="flex items-start gap-3">
+        <%# User avatar placeholder %>
+        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm font-medium">
+          <%= comment.user.email[0].upcase %>
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <%# Comment header %>
+          <div class="flex items-center gap-2 text-sm">
+            <span class="font-medium text-gray-900">
+              <%= comment.user.email.split('@').first %>
+            </span>
+            <time class="text-gray-500" datetime="<%= comment.created_at.iso8601 %>">
+              <%= t('time.ago', time: time_ago_in_words(comment.created_at)) %>
+            </time>
+            <% if comment.edited? %>
+              <span class="text-gray-400"><%= t('comments.edited') %></span>
+            <% end %>
+          </div>
+
+          <%# Comment body %>
+          <div class="mt-1 text-gray-700 prose prose-sm max-w-none">
+            <%= simple_format(comment.body, {}, sanitize: true) %>
+          </div>
+
+          <%# Actions %>
+          <div class="mt-2 flex items-center gap-4 text-sm">
+            <%# Reply button %>
+            <% if policy(Comment).create? && !comment.content_item.comments_locked? && depth < 3 %>
+              <button type="button"
+                      class="text-gray-500 hover:text-blue-600 transition-colors"
+                      data-controller="comment-reply"
+                      data-action="click->comment-reply#toggle"
+                      data-comment-reply-comment-id-value="<%= comment.id %>">
+                <%= t('comments.form.reply') %>
+              </button>
+            <% end %>
+
+            <%# Edit button - author only %>
+            <% if policy(comment).update? %>
+              <button type="button"
+                      class="text-gray-500 hover:text-blue-600 transition-colors"
+                      data-controller="comment-edit"
+                      data-action="click->comment-edit#toggle"
+                      data-comment-edit-comment-id-value="<%= comment.id %>">
+                <%= t('comments.form.edit') %>
+              </button>
+            <% end %>
+
+            <%# Delete button - admin only %>
+            <% if policy(comment).destroy? %>
+              <%= button_to content_item_comment_path(comment.content_item, comment),
+                            method: :delete,
+                            class: "text-gray-500 hover:text-red-600 transition-colors",
+                            data: { turbo_stream: true, turbo_confirm: t('comments.form.confirm_delete') } do %>
+                <%= t('comments.form.delete') %>
+              <% end %>
+            <% end %>
+          </div>
+
+          <%# Edit form placeholder %>
+          <div id="<%= dom_id(comment, :edit_form) %>" class="hidden mt-3">
+            <%= render 'comments/form',
+                       comment: comment,
+                       content_item: comment.content_item,
+                       editing: true %>
+          </div>
+
+          <%# Reply form placeholder %>
+          <div id="<%= dom_id(comment, :reply_form) %>" class="hidden mt-3">
+            <%= render 'comments/form',
+                       comment: Comment.new(parent_id: comment.id),
+                       content_item: comment.content_item,
+                       replying_to: comment %>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <%# Nested replies %>
+    <% if comment.replies.loaded? ? comment.replies.any? : comment.replies.exists? %>
+      <div class="space-y-0">
+        <% comment.replies.each do |reply| %>
+          <%= render 'comments/comment', comment: reply, depth: depth + 1 %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
