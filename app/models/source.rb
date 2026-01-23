@@ -53,6 +53,9 @@ class Source < ApplicationRecord
   validates :name, presence: true, uniqueness: { scope: :site_id }
   validates :kind, presence: true
   validates :enabled, inclusion: { in: [ true, false ] }
+  validates :quality_weight,
+            numericality: { greater_than_or_equal_to: 0.0, less_than_or_equal_to: 2.0 },
+            allow_nil: true
   validate :validate_config_structure
   validate :validate_schedule_structure
   validate :ensure_site_tenant_consistency
