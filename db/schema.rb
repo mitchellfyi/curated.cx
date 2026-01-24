@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_23_205525) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_24_100001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -177,6 +177,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_23_205525) do
     t.index ["site_id", "created_at"], name: "index_editorialisations_on_site_id_and_created_at"
     t.index ["site_id", "status"], name: "index_editorialisations_on_site_id_and_status"
     t.index ["site_id"], name: "index_editorialisations_on_site_id"
+  end
+
+  create_table "flags", force: :cascade do |t|
+    t.bigint "site_id", null: false
+    t.bigint "user_id", null: false
+    t.string "flaggable_type", null: false
+    t.bigint "flaggable_id", null: false
+    t.integer "reason", default: 0, null: false
+    t.text "details"
+    t.integer "status", default: 0, null: false
+    t.bigint "reviewed_by_id"
+    t.datetime "reviewed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["flaggable_type", "flaggable_id"], name: "index_flags_on_flaggable"
+    t.index ["reviewed_by_id"], name: "index_flags_on_reviewed_by_id"
+    t.index ["site_id", "status"], name: "index_flags_on_site_and_status"
+    t.index ["site_id", "user_id", "flaggable_type", "flaggable_id"], name: "index_flags_uniqueness", unique: true
+    t.index ["site_id"], name: "index_flags_on_site_id"
+    t.index ["user_id"], name: "index_flags_on_user_id"
   end
 
   create_table "heartbeat_logs", force: :cascade do |t|
@@ -424,6 +444,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_23_205525) do
   add_foreign_key "domains", "sites"
   add_foreign_key "editorialisations", "content_items"
   add_foreign_key "editorialisations", "sites"
+  add_foreign_key "flags", "sites"
+  add_foreign_key "flags", "users"
+  add_foreign_key "flags", "users", column: "reviewed_by_id"
   add_foreign_key "import_runs", "sites"
   add_foreign_key "import_runs", "sources"
   add_foreign_key "listings", "categories"
