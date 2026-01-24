@@ -61,6 +61,12 @@
                 <%= t('comments.form.delete') %>
               <% end %>
             <% end %>
+
+            <%# Flag button - for other users' comments %>
+            <% if user_signed_in? && comment.user_id != current_user.id %>
+              <% flagged = Flag.exists?(user: current_user, flaggable: comment, site: Current.site) %>
+              <%= render "flags/flag_button", flaggable: comment, flagged: flagged %>
+            <% end %>
           </div>
 
           <%# Edit form placeholder %>
