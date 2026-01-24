@@ -410,4 +410,51 @@ AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
 
 ---
 
-*Last Updated: 2026-01-23*
+### Flag (Content Reporting)
+
+**Purpose**: Represents a user's report of problematic content or comments.
+
+**Key Attributes**:
+- `site_id` - Site this flag belongs to
+- `user_id` - User who created the flag
+- `flaggable_type` / `flaggable_id` - Polymorphic reference (ContentItem, Comment)
+- `reason` - Enum: `spam`, `harassment`, `misinformation`, `inappropriate`, `other`
+- `status` - Enum: `pending`, `reviewed`, `dismissed`, `action_taken`
+- `details` - Optional explanation (max 1000 chars)
+- `reviewed_by_id` - Admin who reviewed the flag
+- `reviewed_at` - When the flag was reviewed
+
+**Associations**:
+- `belongs_to :site` - Site context
+- `belongs_to :user` - Reporter
+- `belongs_to :flaggable` - Polymorphic (ContentItem, Comment)
+- `belongs_to :reviewed_by` (User) - Admin reference
+
+**Scopes**:
+- `pending` - Awaiting review
+- `resolved` - Already reviewed (any status except pending)
+- `for_content_items` - Flags on ContentItem
+- `for_comments` - Flags on Comment
+- `recent` - Ordered by newest first
+
+**Example**:
+```ruby
+# Flag a content item for spam
+flag = Flag.create!(
+  site: Current.site,
+  user: current_user,
+  flaggable: content_item,
+  reason: :spam,
+  details: "Promoting a product"
+)
+
+# Admin dismisses the flag
+flag.dismiss!(admin_user)
+
+# Admin resolves with action taken
+flag.resolve!(admin_user, action: :action_taken)
+```
+
+---
+
+*Last Updated: 2026-01-24*
