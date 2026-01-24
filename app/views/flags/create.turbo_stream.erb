@@ -1,0 +1,3 @@
+<%= turbo_stream.replace dom_id(@flaggable, :flag) do %>
+  <%= render "flags/flag_button", flaggable: @flaggable, flagged: true %>
+<% end %>

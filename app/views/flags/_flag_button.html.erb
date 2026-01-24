@@ -1,0 +1,60 @@
+<%# Flag button partial for content items and comments %>
+<%# locals: (flaggable:, flagged: false) %>
+<%= turbo_frame_tag dom_id(flaggable, :flag) do %>
+  <% if user_signed_in? %>
+    <% if flagged %>
+      <span class="flex items-center gap-1 px-2 py-1 text-sm text-gray-400" title="<%= t('flags.already_flagged') %>">
+        <svg class="w-4 h-4" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+        </svg>
+        <span><%= t("flags.flagged") %></span>
+      </span>
+    <% else %>
+      <details class="relative">
+        <summary class="flex items-center gap-1 px-2 py-1 rounded text-gray-500 hover:text-red-600 hover:bg-gray-50 transition-colors cursor-pointer list-none" title="<%= t('flags.report_content') %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+          </svg>
+          <span class="text-sm"><%= t("flags.report") %></span>
+        </summary>
+        <div class="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-3">
+          <%= form_with url: flags_path, method: :post, data: { turbo_stream: true } do |form| %>
+            <%= form.hidden_field :flaggable_type, value: flaggable.class.name %>
+            <%= form.hidden_field :flaggable_id, value: flaggable.id %>
+
+            <fieldset class="space-y-2">
+              <legend class="text-sm font-medium text-gray-700 mb-2"><%= t("flags.select_reason") %></legend>
+
+              <% Flag::REASONS.keys.each do |reason| %>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                  <%= form.radio_button "flag[reason]", reason, class: "text-red-600 focus:ring-red-500", required: true %>
+                  <span class="text-sm text-gray-700"><%= t("flags.reasons.#{reason}") %></span>
+                </label>
+              <% end %>
+            </fieldset>
+
+            <div class="mt-3">
+              <%= form.text_area "flag[details]", placeholder: t("flags.details_placeholder"), rows: 2, class: "w-full text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-red-500 focus:border-red-500", maxlength: 1000 %>
+            </div>
+
+            <div class="mt-3 flex justify-end gap-2">
+              <button type="button" onclick="this.closest('details').open = false" class="text-sm text-gray-500 hover:text-gray-700 px-2 py-1">
+                <%= t("common.cancel") %>
+              </button>
+              <%= form.submit t("flags.submit"), class: "text-sm bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors cursor-pointer" %>
+            </div>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
+  <% else %>
+    <%= link_to new_user_session_path,
+                class: "flex items-center gap-1 px-2 py-1 rounded text-gray-500 hover:text-red-600 hover:bg-gray-50 transition-colors",
+                title: t("flags.sign_in_to_flag") do %>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+      </svg>
+      <span class="text-sm"><%= t("flags.report") %></span>
+    <% end %>
+  <% end %>
+<% end %>
