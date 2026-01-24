@@ -1,0 +1,105 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-6">
+    <%= link_to t("admin.flags.back_to_queue"), admin_flags_path, class: "text-blue-600 hover:text-blue-900" %>
+  </div>
+
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <h1 class="text-xl font-bold"><%= t("admin.flags.show.title") %></h1>
+    </div>
+
+    <div class="p-6">
+      <%# Flag Details %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.status") %></h3>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium <%= @flag.pending? ? 'bg-yellow-100 text-yellow-800' : (@flag.action_taken? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800') %>">
+            <%= t("flags.statuses.#{@flag.status}") %>
+          </span>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.reason") %></h3>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
+            <%= t("flags.reasons.#{@flag.reason}") %>
+          </span>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.flagged_by") %></h3>
+          <p class="text-gray-900"><%= @flag.user.email %></p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.created_at") %></h3>
+          <p class="text-gray-900"><%= l(@flag.created_at, format: :long) %></p>
+        </div>
+        <% if @flag.details.present? %>
+          <div class="md:col-span-2">
+            <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.details") %></h3>
+            <p class="text-gray-900 bg-gray-50 p-3 rounded"><%= @flag.details %></p>
+          </div>
+        <% end %>
+      </div>
+
+      <%# Flagged Content %>
+      <div class="border-t border-gray-200 pt-6 mb-8">
+        <h2 class="text-lg font-semibold mb-4"><%= t("admin.flags.show.flagged_content") %></h2>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="flex items-center mb-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= @flag.content_item? ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' %>">
+              <%= @flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment") %>
+            </span>
+          </div>
+          <% if @flag.content_item? %>
+            <% content_item = @flag.flaggable %>
+            <h3 class="font-medium text-gray-900 mb-2"><%= content_item.title %></h3>
+            <p class="text-sm text-gray-600 mb-2"><%= truncate(content_item.description, length: 200) %></p>
+            <p class="text-sm text-gray-500">
+              <%= t("admin.flags.show.url") %>: <%= link_to content_item.url_canonical, content_item.url_canonical, target: "_blank", class: "text-blue-600 hover:text-blue-900" %>
+            </p>
+            <% if content_item.hidden? %>
+              <p class="text-sm text-red-600 mt-2"><%= t("admin.flags.show.content_hidden") %></p>
+            <% end %>
+          <% elsif @flag.comment? %>
+            <% comment = @flag.flaggable %>
+            <div class="prose prose-sm max-w-none">
+              <%= simple_format(comment.body) %>
+            </div>
+            <p class="text-sm text-gray-500 mt-3">
+              <%= t("admin.flags.show.comment_by") %>: <%= comment.user.email %>
+            </p>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Reviewer Info (if resolved) %>
+      <% if @flag.reviewed? %>
+        <div class="border-t border-gray-200 pt-6 mb-8">
+          <h2 class="text-lg font-semibold mb-4"><%= t("admin.flags.show.review_info") %></h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.reviewed_by") %></h3>
+              <p class="text-gray-900"><%= @flag.reviewed_by&.email %></p>
+            </div>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.reviewed_at") %></h3>
+              <p class="text-gray-900"><%= l(@flag.reviewed_at, format: :long) %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Actions %>
+      <% if @flag.pending? %>
+        <div class="border-t border-gray-200 pt-6">
+          <h2 class="text-lg font-semibold mb-4"><%= t("admin.flags.show.actions") %></h2>
+          <div class="flex gap-3">
+            <%= button_to t("admin.flags.resolve"), resolve_admin_flag_path(@flag), method: :post, class: "px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors" %>
+            <%= button_to t("admin.flags.dismiss"), dismiss_admin_flag_path(@flag), method: :post, class: "px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors" %>
+            <% if @flag.content_item? && !@flag.flaggable.hidden? %>
+              <%= button_to t("admin.flags.hide_content"), hide_admin_content_item_path(@flag.flaggable), method: :post, class: "px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
