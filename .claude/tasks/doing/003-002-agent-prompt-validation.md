@@ -29,11 +29,11 @@ Early validation provides better user experience and faster failure.
 
 ## Acceptance Criteria
 
-- [ ] Health check validates all 7 prompt files exist
-- [ ] Clear error message if any prompt file is missing
-- [ ] Agent exits cleanly if validation fails
-- [ ] Only validates prompts that will be used (respect SKIP_* flags)
-- [ ] shellcheck passes on bin/agent
+- [x] Health check validates all 7 prompt files exist
+- [x] Clear error message if any prompt file is missing
+- [x] Agent exits cleanly if validation fails
+- [x] Only validates prompts that will be used (respect SKIP_* flags)
+- [x] shellcheck passes on bin/agent
 
 ---
 
@@ -114,12 +114,12 @@ fi
 ```
 
 #### Test Plan
-- [ ] Run `shellcheck bin/agent` - should pass
-- [ ] Run `shellcheck .claude/agent/lib/core.sh` - should pass (or document acceptable warnings)
-- [ ] Test with all prompts present: `./bin/agent 1` should pass health check
-- [ ] Test with missing prompt: `mv .claude/agent/prompts/3-implement.md /tmp/ && AGENT_DRY_RUN=1 ./bin/agent 1` - should fail with clear error
-- [ ] Test with skipped phase: `mv .claude/agent/prompts/3-implement.md /tmp/ && SKIP_IMPLEMENT=1 AGENT_DRY_RUN=1 ./bin/agent 1` - should pass (prompt not needed)
-- [ ] Restore prompt file after testing
+- [x] Run `shellcheck bin/agent` - should pass
+- [x] Run `shellcheck .claude/agent/lib/core.sh` - should pass (or document acceptable warnings)
+- [x] Test with all prompts present: `./bin/agent 1` should pass health check
+- [x] Test with missing prompt: `mv .claude/agent/prompts/3-implement.md /tmp/ && AGENT_DRY_RUN=1 ./bin/agent 1` - should fail with clear error
+- [x] Test with skipped phase: `mv .claude/agent/prompts/3-implement.md /tmp/ && SKIP_IMPLEMENT=1 AGENT_DRY_RUN=1 ./bin/agent 1` - should pass (prompt not needed)
+- [x] Restore prompt file after testing
 
 #### Docs to Update
 - [ ] None required - feature is self-documenting via error messages
@@ -174,11 +174,76 @@ fi
   - Total: 43 lines added
 - **Next:** Testing phase (verify all acceptance criteria met)
 
+### 2026-01-24 17:20 - Testing Complete
+
+**Tests executed:**
+- shellcheck on `bin/agent` - passes clean
+- shellcheck on `.claude/agent/lib/core.sh` - passes clean
+- Dry run with all prompts present - health check passes
+- Dry run with missing prompt - clear error message, exits cleanly
+- Dry run with SKIP_IMPLEMENT=1 and missing implement prompt - passes (skipped phase not validated)
+- Full RSpec suite: 1900 examples, 0 failures
+- Full quality suite (`./bin/quality`): All critical checks passed
+
+**All acceptance criteria verified:**
+- [x] Health check validates all 7 prompt files exist
+- [x] Clear error message if any prompt file is missing
+- [x] Agent exits cleanly if validation fails
+- [x] Only validates prompts that will be used (respect SKIP_* flags)
+- [x] shellcheck passes on bin/agent
+
+**Ready for:** DOCS phase
+
 ---
 
 ## Testing Evidence
 
-(To be filled during testing phase)
+### 2026-01-24 17:20 - Testing Complete
+
+**shellcheck verification:**
+```
+$ shellcheck bin/agent
+# No output - passes clean
+
+$ shellcheck .claude/agent/lib/core.sh
+# No output - passes clean
+```
+
+**Test: All prompts present (dry run)**
+```
+$ AGENT_DRY_RUN=1 ./bin/agent 1 2>&1 | grep "Prompt files"
+[worker-2 OK] Prompt files OK (non-skipped phases)
+```
+✅ Health check passes with all prompts present
+
+**Test: Missing prompt file**
+```
+$ mv .claude/agent/prompts/3-implement.md /tmp/
+$ AGENT_DRY_RUN=1 ./bin/agent 1 2>&1 | grep -A5 "Missing prompt\|ERROR"
+[worker-2 ERROR] Missing prompt files:
+  - 3-implement.md (phase: IMPLEMENT)
+  Expected location: /Users/mitchell/Dropbox/work/Personal/curated.www/.claude/agent/prompts/
+[worker-2 ERROR] Health check failed - aborting
+```
+✅ Clear error message listing missing file with phase name and expected path
+✅ Agent exits cleanly on validation failure
+
+**Test: SKIP_* flag respected**
+```
+$ mv .claude/agent/prompts/3-implement.md /tmp/
+$ SKIP_IMPLEMENT=1 AGENT_DRY_RUN=1 ./bin/agent 1 2>&1 | grep "Prompt files"
+[worker-2 OK] Prompt files OK (non-skipped phases)
+$ mv /tmp/3-implement.md .claude/agent/prompts/
+```
+✅ Skipped phases do not require prompt file validation
+
+**Quality gates:**
+- RuboCop: pass (not applicable - bash script)
+- Brakeman: pass (not applicable - bash script)
+- RSpec: 1900 examples, 0 failures, 1 pending
+- shellcheck bin/agent: pass
+- shellcheck .claude/agent/lib/core.sh: pass
+- Full quality suite (`./bin/quality`): All critical checks passed
 
 ---
 
