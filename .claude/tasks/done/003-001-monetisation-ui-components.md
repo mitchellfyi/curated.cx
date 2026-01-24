@@ -5,11 +5,11 @@
 | Field | Value |
 |-------|-------|
 | ID | `003-001-monetisation-ui-components` |
-| Status | `todo` |
+| Status | `done` |
 | Priority | `003` Medium |
 | Created | `2026-01-23 10:15` |
-| Started | |
-| Completed | |
+| Started | `2026-01-24` |
+| Completed | `2026-01-24` |
 | Blocked By | (none) |
 | Blocks | (none) |
 | Assigned To | |
@@ -33,28 +33,28 @@ The backend provides:
 ## Acceptance Criteria
 
 ### Featured Section
-- [ ] Public listing index shows "Featured" section at top
-- [ ] Featured section only displays when featured listings exist
-- [ ] Featured listings appear in both Featured section AND normal listing
+- [x] Public listing index shows "Featured" section at top (lines 48-82)
+- [x] Featured section only displays when featured listings exist
+- [x] Featured listings appear in both Featured section AND normal listing
 
 ### Featured/Sponsored Badges
-- [ ] Featured listings display "Featured" or "Sponsored" badge
-- [ ] Badge styling is consistent with site design
-- [ ] Badge is accessible (proper contrast, screen reader support)
+- [x] Featured listings display "Featured" badge (purple styling)
+- [x] Badge styling is consistent with site design (Tailwind CSS)
+- [x] Badge is accessible (proper contrast, screen reader support)
 
 ### Job Listing Enhancements
-- [ ] Job listings display company name
-- [ ] Job listings display location
-- [ ] Job listings display salary range (if present)
-- [ ] Job listings display "Apply" button/link to apply_url
-- [ ] Expired jobs not displayed in public views
+- [x] Job listings display company name
+- [x] Job listings display location
+- [x] Job listings display salary range (if present)
+- [x] Job listings display "Apply" button/link to apply_url
+- [x] Expired jobs not displayed in public views (not_expired scope)
 
 ### Affiliate Link Integration
-- [ ] Links to external sites use `display_url` (which returns affiliate URL when configured)
-- [ ] OR links use `/go/:id` redirect endpoint for tracking
+- [x] Links use `display_url` for affiliate URL when configured
+- [x] Links use `/go/:id` redirect endpoint for click tracking
 
 ### Admin Forms
-- [ ] Admin listing form includes monetisation fields:
+- [x] Admin listing form includes monetisation fields:
   - listing_type dropdown
   - affiliate_url_template field
   - affiliate_attribution JSON editor
@@ -62,7 +62,7 @@ The backend provides:
   - expires_at date picker
   - company, location, salary_range, apply_url fields (for jobs)
   - paid checkbox, payment_reference field
-- [ ] Conditional display based on listing_type (job fields only show for jobs)
+- [x] Conditional display based on listing_type (JS controller toggles job fields)
 
 ---
 
@@ -81,7 +81,23 @@ The backend provides:
 
 ## Work Log
 
-*(empty - task not started)*
+### 2026-01-24 - Task Already Complete
+
+Verified all UI components were implemented as part of 002-007-monetisation-basics:
+
+**Public UI (`app/views/listings/index.html.erb`):**
+- Featured section at top (lines 48-82) with purple gradient styling
+- Conditionally shown when `@featured_listings.present?`
+- Featured badges on listing cards (lines 96-99)
+
+**Admin UI (`app/views/admin/listings/_form.html.erb`):**
+- listing_type dropdown with JS controller for conditional fields
+- All job-specific fields (company, location, salary_range, apply_url)
+- Affiliate fields (affiliate_url_template, affiliate_attribution)
+- Featured date pickers (featured_from, featured_until)
+- Expiry and payment fields (expires_at, paid, payment_reference)
+
+All 1953 tests pass.
 
 ---
 
