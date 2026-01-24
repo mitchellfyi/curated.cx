@@ -5,11 +5,11 @@
 | Field | Value |
 |-------|-------|
 | ID | `003-003-fix-rate-limit-test-setup` |
-| Status | `todo` |
+| Status | `done` |
 | Priority | `003` Medium |
 | Created | `2026-01-23 12:05` |
-| Started | |
-| Completed | |
+| Started | `2026-01-24` |
+| Completed | `2026-01-24` |
 | Blocked By | |
 | Blocks | |
 | Assigned To | |
@@ -41,10 +41,10 @@ This was discovered during the review phase of task 003-001-add-comments-views.
 
 ## Acceptance Criteria
 
-- [ ] Rate limiting test correctly simulates hitting the rate limit
-- [ ] Test properly sets up `Current.site` or uses correct cache key
-- [ ] `spec/requests/comments_spec.rb` rate limiting test passes
-- [ ] Quality gates pass
+- [x] Rate limiting test correctly simulates hitting the rate limit
+- [x] Test properly sets up `Current.site` or uses correct cache key
+- [x] `spec/requests/comments_spec.rb` rate limiting test passes
+- [x] Quality gates pass
 
 ---
 
@@ -71,11 +71,45 @@ This was discovered during the review phase of task 003-001-add-comments-views.
 Created as follow-up from 003-001-add-comments-views review phase.
 The rate limit test at line 161-168 fails because the cache key doesn't match.
 
+### 2026-01-24 - Implementation Complete
+
+Root cause: Test environment uses `config.cache_store = :null_store` which doesn't persist values.
+
+Fix: Added `around` blocks to use MemoryStore during rate limiting tests:
+
+```ruby
+context "rate limiting" do
+  around do |example|
+    original_cache = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+    example.run
+    Rails.cache = original_cache
+  end
+  # tests...
+end
+```
+
+Applied to both `spec/requests/comments_spec.rb` and `spec/requests/votes_spec.rb`.
+
+All 1953 tests passing.
+
 ---
 
 ## Testing Evidence
 
-(To be filled during implementation)
+```
+bundle exec rspec spec/requests/comments_spec.rb -e "rate limiting"
+..
+
+Finished in 1.23 seconds
+2 examples, 0 failures
+
+bundle exec rspec spec/requests/votes_spec.rb -e "rate limiting"
+..
+
+Finished in 0.98 seconds
+2 examples, 0 failures
+```
 
 ---
 

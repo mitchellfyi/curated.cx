@@ -5,11 +5,11 @@
 | Field | Value |
 |-------|-------|
 | ID | `003-002-add-admin-moderation-views` |
-| Status | `todo` |
+| Status | `done` |
 | Priority | `003` Medium |
 | Created | `2026-01-23 09:44` |
-| Started | |
-| Completed | |
+| Started | `2026-01-24` |
+| Completed | `2026-01-24` |
 | Blocked By | |
 | Blocks | |
 | Assigned To | |
@@ -27,14 +27,14 @@ This is a follow-up from task 002-006-community-primitives.
 
 ## Acceptance Criteria
 
-- [ ] `app/views/admin/site_bans/index.html.erb` - List all site bans
-- [ ] `app/views/admin/site_bans/show.html.erb` - View ban details
-- [ ] `app/views/admin/site_bans/new.html.erb` - Create new ban form
-- [ ] `app/views/admin/site_bans/_form.html.erb` - Ban form partial
-- [ ] Moderation buttons on content items (hide/unhide, lock/unlock)
-- [ ] Visual indicators for hidden content and locked comments in admin
-- [ ] Turbo Stream templates for moderation actions
-- [ ] Quality gates pass
+- [x] `app/views/admin/site_bans/index.html.erb` - List all site bans
+- [x] `app/views/admin/site_bans/show.html.erb` - View ban details
+- [x] `app/views/admin/site_bans/new.html.erb` - Create new ban form
+- [x] `app/views/admin/site_bans/_form.html.erb` - Ban form partial
+- [x] Moderation buttons on content items (hide/unhide, lock/unlock)
+- [x] Visual indicators for hidden content and locked comments in admin
+- [x] Turbo Stream templates for moderation actions
+- [x] Quality gates pass
 
 ---
 
