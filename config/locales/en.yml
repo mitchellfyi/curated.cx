@@ -45,6 +45,42 @@ en:
         back_to_site: Back to Site
         sites_breadcrumb: Sites
       updated: Domain updated successfully
+    flags:
+      back_to_queue: Back to Moderation Queue
+      content: Content
+      content_deleted: "[Content Deleted]"
+      created_at: Flagged
+      details: Details
+      dismiss: Dismiss
+      dismissed: Flag dismissed
+      flagged_by: Flagged By
+      hide_content: Hide Content
+      index:
+        pending_count:
+          one: "%{count} pending flag"
+          other: "%{count} pending flags"
+        pending_section: Pending Flags
+        resolved_section: Recently Resolved
+        title: Content Moderation Queue
+      no_pending_flags: No pending flags. All content is clear!
+      no_resolved_flags: No recently resolved flags.
+      reason: Reason
+      resolve: Take Action
+      resolved: Flag marked as resolved
+      reviewed_at: Reviewed
+      reviewed_by: Reviewed By
+      show:
+        actions: Actions
+        comment_by: Comment by
+        content_hidden: This content is currently hidden
+        flagged_content: Flagged Content
+        review_info: Review Information
+        title: Flag Details
+        url: URL
+      status: Status
+      type:
+        comment: Comment
+        content_item: Content Item
     editorialisations:
       actions: Actions
       ai_model: AI Model
@@ -405,6 +441,7 @@ en:
   common:
     back: Back
     brand_name: Curated.cx
+    cancel: Cancel
     delete: Delete
     save: Save
     view: View
@@ -444,6 +481,49 @@ en:
       latest: Latest
       ranked: Ranked
       top_week: Top this week
+  flag_mailer:
+    new_flag_notification:
+      subject: "[%{site_name}] New content flagged for review"
+      header: New Flag on %{site_name}
+      intro: A user has flagged content for moderation review.
+      reason_label: Reason
+      details_label: Additional Details
+      flagged_by_label: Flagged By
+      flagged_at_label: Flagged At
+      flagged_content_header: Flagged Content
+      content_type_label: Content Type
+      content_type:
+        content_item: Content Item
+        comment: Comment
+      title_label: Title
+      url_label: URL
+      comment_body_label: Comment Body
+      comment_author_label: Author
+      review_button: Review in Admin
+      footer: This is an automated message from your content moderation system.
+  flags:
+    already_flagged: You have already flagged this content
+    banned: You are banned from flagging content on this site
+    created: Content has been flagged for review
+    details_placeholder: Provide additional details (optional)
+    flagged: Flagged
+    rate_limited: You're flagging too quickly. Please wait before flagging again.
+    reasons:
+      spam: Spam
+      harassment: Harassment
+      misinformation: Misinformation
+      inappropriate: Inappropriate Content
+      other: Other
+    report: Report
+    report_content: Report this content
+    select_reason: Select a reason
+    sign_in_to_flag: Sign in to report content
+    statuses:
+      pending: Pending Review
+      reviewed: Reviewed
+      dismissed: Dismissed
+      action_taken: Action Taken
+    submit: Submit Report
   listings:
     index:
       across_categories: across all categories
