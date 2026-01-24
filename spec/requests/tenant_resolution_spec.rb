@@ -10,20 +10,12 @@ RSpec.describe "Tenant Resolution", type: :request do
   let!(:tenant1) { create(:tenant, hostname: 'test1.example.com', slug: 'test1', title: 'Test Tenant 1') }
   let!(:tenant2) { create(:tenant, hostname: 'test2.example.com', slug: 'test2', title: 'Test Tenant 2') }
 
-  let!(:site1) do
-    site = create(:site, tenant: tenant1, slug: tenant1.slug, name: tenant1.title)
-    create(:domain, :primary, :verified, site: site, hostname: tenant1.hostname)
-    site
-  end
-
-  let!(:site2) do
-    site = create(:site, tenant: tenant2, slug: tenant2.slug, name: tenant2.title)
-    create(:domain, :primary, :verified, site: site, hostname: tenant2.hostname)
-    site
-  end
+  # Use the auto-created sites from tenant factory
+  let!(:site1) { tenant1.sites.first }
+  let!(:site2) { tenant2.sites.first }
 
   let!(:category1) { create(:category, site: site1, tenant: tenant1, key: 'news', name: 'News') }
-  let!(:category2) { create(:category, site: site2, tenant: tenant2, key: 'news', name: 'News') }
+  let!(:category2) { create(:category, site: site2, tenant: tenant2, key: 'news2', name: 'News 2') }
 
   describe "GET /" do
     context "when request has valid tenant hostname" do

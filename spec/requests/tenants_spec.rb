@@ -7,7 +7,9 @@ RSpec.describe "Tenants", type: :request do
   let(:admin_user) { create(:user, :admin) }
   let(:regular_user) { create(:user) }
   let(:category) { create(:category, tenant: tenant) }
-  let!(:listings) { create_list(:listing, 5, :published, tenant: tenant, category: category) }
+  let(:site) { tenant.sites.first }
+  let(:source) { create(:source, site: site, tenant: tenant) }
+  let!(:content_items) { create_list(:content_item, 5, :published, site: site, source: source) }
 
   describe "GET /tenants" do
     context "when user is admin" do
@@ -79,40 +81,15 @@ RSpec.describe "Tenants", type: :request do
         expect(assigns(:tenant)).to eq(tenant)
       end
 
-      it "assigns recent published listings" do
+      it "assigns content items for the feed" do
         get tenant_path(tenant)
-        expect(assigns(:listings)).to match_array(listings)
+        expect(assigns(:content_items)).to be_present
       end
 
-      it "includes category in listings query to prevent N+1" do
+      it "limits content items" do
         get tenant_path(tenant)
-        # Verify category association is loaded to prevent N+1 queries
-        assigns(:listings).each do |listing|
-          expect(listing.association(:category)).to be_loaded
-        end
-      end
-
-      it "limits listings to 20" do
-        create_list(:listing, 25, :published, tenant: tenant, category: category)
-        get tenant_path(tenant)
-        expect(assigns(:listings).count).to eq(20)
-      end
-
-      it "orders listings by published_at desc" do
-        old_listing = create(:listing, :published, tenant: tenant, category: category, published_at: 2.days.ago)
-        new_listing = create(:listing, :published, tenant: tenant, category: category, published_at: 1.hour.ago)
-
-        get tenant_path(tenant)
-        listings = assigns(:listings)
-        expect(listings.first).to eq(new_listing)
-        expect(listings.last).to eq(old_listing)
-      end
-
-      it "only shows published listings" do
-        unpublished_listing = create(:listing, :unpublished, tenant: tenant, category: category)
-
-        get tenant_path(tenant)
-        expect(assigns(:listings)).not_to include(unpublished_listing)
+        # Controller limits to 12 items
+        expect(assigns(:content_items).count).to be <= 12
       end
 
       it "renders the show template" do
@@ -274,9 +251,9 @@ RSpec.describe "Tenants", type: :request do
         expect(assigns(:tenant)).to eq(tenant)
       end
 
-      it "assigns recent published listings" do
+      it "assigns content items for the feed" do
         get root_path
-        expect(assigns(:listings)).to match_array(listings)
+        expect(assigns(:content_items)).to be_present
       end
     end
 

@@ -25,6 +25,9 @@ RSpec.describe 'i18n Integration', type: :i18n do
           next if string.match?(/^Content-Type$/) # Email headers
           next if string.match?(/^Breadcrumb$/) # Screen reader labels (should be translated though)
           next if string.match?(/^(Segoe UI|Helvetica|Helvetica Neue|Arial|sans-serif)$/i) # Font names
+          next if string.match?(/^DOMContentLoaded$/i) # JavaScript event names
+          next if string.match?(/^United States$/i) # Default location values (country names)
+          next if string.match?(/^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$/i) # HTTP methods
 
           missing_translations << "#{file}: #{string}"
         end
@@ -161,11 +164,14 @@ RSpec.describe 'i18n Integration', type: :i18n do
       view_files.each do |file|
         content = File.read(file)
 
-        # Look for t() helper usage
-        translation_calls = content.scan(/<%=?\s*t\(['"]([^'"]+)['"]/)
+        # Look for t() helper usage (only static string keys, not interpolated)
+        translation_calls = content.scan(/<%=?\s*t\(['"]([^'"#]+)['"]/)
 
         translation_calls.each do |match|
           key = match[0]
+
+          # Skip interpolated keys (e.g., admin.foo.#{bar})
+          next if key.include?('#')
 
           # Check key format (allow numbers for keys like a11y)
           expect(key).to match(/^[a-z0-9_]+(\.[a-z0-9_]+)*$/),

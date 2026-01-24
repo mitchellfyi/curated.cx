@@ -12,7 +12,8 @@ module AdminAccess
   private
 
   def require_admin_access
-    return if current_user&.admin? || (Current.tenant && current_user&.has_role?(:owner, Current.tenant))
+    return if current_user&.admin?
+    return if Current.tenant && %i[owner admin editor].any? { |role| current_user&.has_role?(role, Current.tenant) }
 
     if current_user.nil?
       redirect_to new_user_session_path

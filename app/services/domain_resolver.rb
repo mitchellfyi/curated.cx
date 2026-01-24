@@ -46,7 +46,8 @@ class DomainResolver
     return nil unless domain
 
     site = domain.site
-    site unless site&.disabled?
+    return nil if site&.disabled? || site&.tenant&.disabled?
+    site
   end
 
   def resolve_by_www_variant
@@ -57,7 +58,8 @@ class DomainResolver
     return nil unless domain
 
     site = domain.site
-    site unless site&.disabled?
+    return nil if site&.disabled? || site&.tenant&.disabled?
+    site
   end
 
   def resolve_by_apex_variant
@@ -68,7 +70,8 @@ class DomainResolver
     return nil unless domain
 
     site = domain.site
-    site unless site&.disabled?
+    return nil if site&.disabled? || site&.tenant&.disabled?
+    site
   end
 
   def resolve_by_subdomain_pattern
@@ -82,8 +85,8 @@ class DomainResolver
 
     site = domain.site
     return nil unless site&.setting("domains.subdomain_pattern_enabled", false)
-
-    site unless site&.disabled?
+    return nil if site&.disabled? || site&.tenant&.disabled?
+    site
   end
 
   def resolve_by_legacy_tenant

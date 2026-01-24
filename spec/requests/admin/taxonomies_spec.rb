@@ -5,8 +5,9 @@ require "rails_helper"
 RSpec.describe "Admin::Taxonomies", type: :request do
   let!(:tenant1) { create(:tenant, :ai_news) }
   let!(:tenant2) { create(:tenant, :construction) }
-  let!(:site1) { create(:site, tenant: tenant1, slug: "ai_site", name: "AI Site") }
-  let!(:site2) { create(:site, tenant: tenant2, slug: "construction_site", name: "Construction Site") }
+  # Use the auto-created sites from tenant factory
+  let!(:site1) { tenant1.sites.first }
+  let!(:site2) { tenant2.sites.first }
   let(:admin_user) { create(:user, :admin) }
   let(:tenant1_owner) { create(:user) }
   let(:tenant2_owner) { create(:user) }
@@ -19,7 +20,9 @@ RSpec.describe "Admin::Taxonomies", type: :request do
   describe "tenant scoping" do
     before do
       @tenant1_taxonomy = create(:taxonomy, tenant: tenant1, site: site1, name: "Tech Taxonomy")
-      @tenant2_taxonomy = create(:taxonomy, tenant: tenant2, site: site2, name: "Construction Taxonomy")
+      @tenant2_taxonomy = ActsAsTenant.without_tenant do
+        create(:taxonomy, tenant: tenant2, site: site2, name: "Construction Taxonomy")
+      end
     end
 
     context "when accessing as admin user" do

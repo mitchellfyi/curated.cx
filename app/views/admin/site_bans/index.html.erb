@@ -1,0 +1,42 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold"><%= t("admin.site_bans.index.title") %></h1>
+    <%= link_to t("admin.site_bans.new.title"), new_admin_site_ban_path, class: "btn btn-primary" %>
+  </div>
+
+  <% if @site_bans.any? %>
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.site_bans.user") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.site_bans.reason") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.site_bans.banned_by") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.site_bans.expires_at") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.site_bans.created_at") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @site_bans.each do |site_ban| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap"><%= site_ban.user&.email %></td>
+              <td class="px-6 py-4 whitespace-nowrap"><%= truncate(site_ban.reason, length: 50) %></td>
+              <td class="px-6 py-4 whitespace-nowrap"><%= site_ban.banned_by&.email %></td>
+              <td class="px-6 py-4 whitespace-nowrap"><%= site_ban.expires_at&.strftime("%Y-%m-%d %H:%M") || t("admin.site_bans.permanent") %></td>
+              <td class="px-6 py-4 whitespace-nowrap"><%= site_ban.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <%= link_to t("common.view"), admin_site_ban_path(site_ban), class: "text-blue-600 hover:text-blue-900 mr-3" %>
+                <%= button_to t("common.delete"), admin_site_ban_path(site_ban), method: :delete, class: "text-red-600 hover:text-red-900", data: { turbo_confirm: t("admin.site_bans.confirm_destroy") } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white shadow-md rounded-lg p-6 text-center text-gray-500">
+      <%= t("admin.site_bans.no_bans") %>
+    </div>
+  <% end %>
+</div>

@@ -105,8 +105,8 @@ RSpec.describe "Domain Routing", type: :request do
 
     it "resolves localhost to root tenant's site" do
       root_tenant = create(:tenant, :root)
-      root_site = create(:site, tenant: root_tenant, slug: 'root', name: 'Root')
-      create(:domain, :primary, :verified, site: root_site, hostname: 'curated.cx')
+      # Use the auto-created site from tenant factory (slug matches tenant.slug)
+      root_site = root_tenant.sites.first
 
       host! 'localhost'
 
@@ -118,8 +118,8 @@ RSpec.describe "Domain Routing", type: :request do
 
     it "resolves localhost:3000 to root tenant's site" do
       root_tenant = create(:tenant, :root)
-      root_site = create(:site, tenant: root_tenant, slug: 'root', name: 'Root')
-      create(:domain, :primary, :verified, site: root_site, hostname: 'curated.cx')
+      # Use the auto-created site from tenant factory (slug matches tenant.slug)
+      root_site = root_tenant.sites.first
 
       host! 'localhost:3000'
 
@@ -140,10 +140,10 @@ RSpec.describe "Domain Routing", type: :request do
   end
 
   describe "Subdomain pattern support (optional)" do
-    let!(:root_tenant) { create(:tenant, slug: 'root', hostname: 'curated.cx') }
+    let!(:root_tenant) { create(:tenant, :root) }
+    # Use the auto-created site from tenant factory
     let!(:root_site) do
-      site = create(:site, tenant: root_tenant, slug: 'root', name: 'Root Site')
-      create(:domain, :primary, :verified, site: site, hostname: 'curated.cx')
+      site = root_tenant.sites.first
       site.update!(config: { 'domains' => { 'subdomain_pattern_enabled' => true } })
       site
     end

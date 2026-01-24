@@ -90,6 +90,14 @@ RSpec.describe "Votes", type: :request do
       end
 
       context "rate limiting" do
+        # Use memory store for rate limiting tests since test env uses null_store
+        around do |example|
+          original_cache = Rails.cache
+          Rails.cache = ActiveSupport::Cache::MemoryStore.new
+          example.run
+          Rails.cache = original_cache
+        end
+
         it "allows votes within rate limit" do
           # The rate limit is 100 votes/hour, so first vote should work
           post vote_content_item_path(content_item), as: :json

@@ -289,9 +289,9 @@ RSpec.describe "Admin::SiteBans", type: :request do
     end
 
     it "cannot access bans from other sites" do
-      expect {
-        get admin_site_ban_path(@other_ban)
-      }.to raise_error(ActiveRecord::RecordNotFound)
+      get admin_site_ban_path(@other_ban)
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

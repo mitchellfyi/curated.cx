@@ -72,7 +72,10 @@ class Domain < ApplicationRecord
     return nil if hostname.blank?
 
     # Remove port if present (e.g., "example.com:3000" -> "example.com")
-    normalized = hostname.split(":").first
+    normalized = hostname.to_s.split(":").first
+
+    # Return nil if nothing left after removing port
+    return nil if normalized.blank?
 
     # Lowercase
     normalized = normalized.downcase
@@ -80,7 +83,7 @@ class Domain < ApplicationRecord
     # Strip trailing dots
     normalized = normalized.sub(/\.+$/, "")
 
-    normalized
+    normalized.presence
   end
 
   def self.find_by_hostname!(hostname)

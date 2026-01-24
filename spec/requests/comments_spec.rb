@@ -153,6 +153,14 @@ RSpec.describe "Comments", type: :request do
       end
 
       context "rate limiting" do
+        # Use memory store for rate limiting tests since test env uses null_store
+        around do |example|
+          original_cache = Rails.cache
+          Rails.cache = ActiveSupport::Cache::MemoryStore.new
+          example.run
+          Rails.cache = original_cache
+        end
+
         it "allows comments within rate limit" do
           post content_item_comments_path(content_item), params: valid_params, as: :json
           expect(response).to have_http_status(:created)

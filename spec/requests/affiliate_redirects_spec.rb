@@ -83,10 +83,16 @@ RSpec.describe 'Affiliate Redirects', type: :request do
     context 'with listing from another site' do
       let(:other_tenant) { create(:tenant, :enabled) }
       let(:other_site) { other_tenant.sites.first }
-      let(:other_category) { create(:category, tenant: other_tenant, site: other_site) }
+      let(:other_category) do
+        ActsAsTenant.without_tenant do
+          create(:category, tenant: other_tenant, site: other_site)
+        end
+      end
       let(:other_listing) do
-        create(:listing, :published, :with_affiliate,
-               tenant: other_tenant, site: other_site, category: other_category)
+        ActsAsTenant.without_tenant do
+          create(:listing, :published, :with_affiliate,
+                 tenant: other_tenant, site: other_site, category: other_category)
+        end
       end
 
       it 'redirects to root with alert' do

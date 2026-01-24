@@ -39,7 +39,7 @@
             <% @results.each do |result| %>
               <tr class="<%= result[:match_result][:match] ? 'bg-green-50' : '' %>">
                 <td class="px-6 py-4">
-                  <div class="text-sm font-medium text-gray-900"><%= truncate(result[:content_item].title || 'Untitled', length: 50) %></div>
+                  <div class="text-sm font-medium text-gray-900"><%= truncate(result[:content_item].title || t('admin.tagging_rules.test.untitled'), length: 50) %></div>
                   <div class="text-sm text-gray-500"><%= truncate(result[:content_item].url_canonical, length: 60) %></div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">

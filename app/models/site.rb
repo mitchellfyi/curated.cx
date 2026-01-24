@@ -40,6 +40,8 @@ class Site < ApplicationRecord
   has_many :votes, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :site_bans, dependent: :destroy
+  has_many :tagging_rules, dependent: :destroy
+  has_many :taxonomies, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }

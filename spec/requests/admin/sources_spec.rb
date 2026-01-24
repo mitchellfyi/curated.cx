@@ -18,8 +18,12 @@ RSpec.describe "Admin::Sources", type: :request do
     let!(:tenant2) { create(:tenant, :construction) }
     # Use the site created by the tenant2 factory
     let!(:site2) { tenant2.sites.first }
-    let!(:tenant1_source) { create(:source, :serp_api_google_news, site: site, name: "AI Source") }
-    let!(:tenant2_source) { create(:source, :serp_api_google_news, site: site2, name: "Construction Source") }
+    let!(:tenant1_source) { create(:source, :serp_api_google_news, site: site, name: "AI Source", tenant: tenant) }
+    let!(:tenant2_source) do
+      ActsAsTenant.without_tenant do
+        create(:source, :serp_api_google_news, site: site2, name: "Construction Source", tenant: tenant2)
+      end
+    end
 
     context "when accessing as admin user" do
       before { sign_in admin_user }
@@ -49,9 +53,9 @@ RSpec.describe "Admin::Sources", type: :request do
           end
 
           it "cannot access source from different tenant" do
-            expect {
-              get admin_source_path(tenant2_source)
-            }.to raise_error(ActiveRecord::RecordNotFound)
+            get admin_source_path(tenant2_source)
+
+            expect(response).to have_http_status(:not_found)
           end
         end
       end
@@ -143,7 +147,7 @@ RSpec.describe "Admin::Sources", type: :request do
         get new_admin_source_path
 
         config = assigns(:source).config
-        expect(config).to include(:api_key, :query, :location, :language, :max_results, :rate_limit_per_hour)
+        expect(config.keys).to include("api_key", "query", "location", "language", "max_results", "rate_limit_per_hour")
       end
     end
 
@@ -345,6 +349,11 @@ RSpec.describe "Admin::Sources", type: :request do
 
   describe "access control" do
     context "when accessing without authentication" do
+      before do
+        host! tenant.hostname
+        setup_tenant_context(tenant)
+      end
+
       it "redirects to login" do
         get admin_sources_path
 

@@ -116,7 +116,7 @@
               </div>
               <div>
                 <dt class="text-sm font-medium text-gray-500">Published</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @listing.published_at&.strftime("%Y-%m-%d %H:%M") || "Not published" %></dd>
+                <dd class="mt-1 text-sm text-gray-900"><%= @listing.published_at&.strftime("%Y-%m-%d %H:%M") || t("admin.listings.show.not_published") %></dd>
               </div>
             </dl>
           </div>
@@ -143,7 +143,7 @@
                 <div>
                   <dt class="text-sm font-medium text-gray-500"><%= t("admin.listings.form.expires_at") %></dt>
                   <dd class="mt-1 text-sm <%= @listing.expired? ? 'text-red-600' : 'text-gray-900' %>">
-                    <%= @listing.expires_at&.strftime("%Y-%m-%d %H:%M") || "No expiry" %>
+                    <%= @listing.expires_at&.strftime("%Y-%m-%d %H:%M") || t("admin.listings.show.no_expiry") %>
                     <% if @listing.expired? %>
                       <span class="text-red-600 font-medium">(Expired)</span>
                     <% end %>

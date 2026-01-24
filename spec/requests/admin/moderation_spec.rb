@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe "Admin::Moderation", type: :request do
   let(:tenant) { create(:tenant, :enabled) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
-  let(:source) { create(:source, site: site) }
+  let(:source) { create(:source, site: site, tenant: tenant) }
   let(:content_item) { create(:content_item, :published, site: site, source: source) }
   let(:admin) { create(:user, admin: true) }
   let(:owner) { create(:user).tap { |u| u.add_role(:owner, tenant) } }
@@ -308,17 +308,21 @@ RSpec.describe "Admin::Moderation", type: :request do
   end
 
   describe "site isolation" do
-    let(:other_tenant) { create(:tenant, :enabled) }
-    let(:other_site) { other_tenant.sites.first || create(:site, tenant: other_tenant) }
-    let(:other_source) { create(:source, site: other_site) }
-    let(:other_content_item) { create(:content_item, :published, site: other_site, source: other_source) }
+    let!(:other_content_item) do
+      ActsAsTenant.without_tenant do
+        other_tenant = create(:tenant, :enabled)
+        other_site = other_tenant.sites.first
+        other_source = create(:source, site: other_site, tenant: other_tenant)
+        create(:content_item, :published, site: other_site, source: other_source)
+      end
+    end
 
     before { sign_in admin }
 
     it "cannot hide content from other sites" do
-      expect {
-        post hide_admin_content_item_path(other_content_item), as: :json
-      }.to raise_error(ActiveRecord::RecordNotFound)
+      post hide_admin_content_item_path(other_content_item), as: :json
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

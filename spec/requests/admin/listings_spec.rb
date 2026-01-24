@@ -3,8 +3,9 @@ require 'rails_helper'
 RSpec.describe "Admin::Listings", type: :request do
   let!(:tenant1) { create(:tenant, :ai_news) }
   let!(:tenant2) { create(:tenant, :construction) }
-  let!(:site1) { create(:site, tenant: tenant1, slug: 'ai_site', name: 'AI Site') }
-  let!(:site2) { create(:site, tenant: tenant2, slug: 'construction_site', name: 'Construction Site') }
+  # Use the auto-created sites from tenant factory
+  let!(:site1) { tenant1.sites.first }
+  let!(:site2) { tenant2.sites.first }
   let(:admin_user) { create(:user, :admin) }
   let(:tenant1_owner) { create(:user) }
   let(:tenant2_owner) { create(:user) }
@@ -379,8 +380,16 @@ RSpec.describe "Admin::Listings", type: :request do
     end
 
     describe 'tenant isolation for monetisation actions' do
+      let!(:other_category) do
+        ActsAsTenant.without_tenant do
+          create(:category, :news, tenant: tenant2, site: site2)
+        end
+      end
+
       let!(:other_listing) do
-        create(:listing, tenant: tenant2, site: site2, category: @tenant2_category)
+        ActsAsTenant.without_tenant do
+          create(:listing, tenant: tenant2, site: site2, category: other_category)
+        end
       end
 
       it 'cannot feature listing from different tenant' do

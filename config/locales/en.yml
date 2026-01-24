@@ -90,22 +90,39 @@ en:
         affiliate_url_template: Affiliate URL Template
         affiliate_url_template_hint: Use {url}, {title}, {id} as placeholders
         apply_url: Apply URL
+        body_html: Body HTML
+        body_text: Body Text
+        body_text_placeholder: Plain text content...
+        category: Category
         company: Company
+        company_name_placeholder: Company name
+        create: Create Listing
+        description: Description
+        description_placeholder: Brief description of this listing
         expires_at: Expires At
         featured_from: Featured From
         featured_settings: Featured Settings
         featured_until: Featured Until
+        image_url: Image URL
         job_settings: Job Settings
         listing_type: Listing Type
         location: Location
         paid: Paid
         payment_reference: Payment Reference
+        payment_reference_placeholder: Payment ID or reference
         payment_settings: Payment Settings
+        published: Published
         salary_range: Salary Range
+        select_category: Select a category
+        title: Title
+        title_placeholder: Enter listing title
       listing_types:
         job: Job
         service: Service
         tool: Tool
+      show:
+        no_expiry: No expiry
+        not_published: Not published
       unfeatured: Listing is no longer featured
       updated: Updated
     moderation:
@@ -114,8 +131,23 @@ en:
       hidden: Content has been hidden
       unhidden: Content has been made visible again
     site_bans:
+      banned_by: Banned By
+      confirm_destroy: Are you sure you want to remove this ban?
       created: User has been banned from this site
+      created_at: Created At
       destroyed: User ban has been removed
+      expires_at: Expires At
+      expires_at_help: Leave blank for permanent ban
+      index:
+        title: Site Bans
+      new:
+        title: New Site Ban
+      no_bans: No users have been banned from this site
+      permanent: Permanent
+      reason: Reason
+      show:
+        title: Site Ban Details
+      user: User
     sites:
       created: Site created successfully
       deleted: Site deleted successfully
@@ -248,6 +280,7 @@ en:
         no_content: No content items to test against.
         no_match: No Match
         reason: Reason
+        untitled: Untitled
       test_description: See how this rule matches against recent content.
       test_results: Test Results
       test_rule: Test Rule
@@ -370,7 +403,11 @@ en:
     sign_in_to_comment: Sign in to comment
     updated: Comment updated
   common:
+    back: Back
     brand_name: Curated.cx
+    delete: Delete
+    save: Save
+    view: View
   counts:
     item: Item
     listing: Listing

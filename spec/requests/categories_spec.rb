@@ -306,9 +306,8 @@ RSpec.describe "Categories", type: :request do
     let!(:other_tenant) do
       ActsAsTenant.without_tenant { create(:tenant, :enabled) }
     end
-    let!(:other_site) do
-      ActsAsTenant.without_tenant { create(:site, tenant: other_tenant, slug: other_tenant.slug) }
-    end
+    # Use auto-created site from tenant factory
+    let!(:other_site) { other_tenant.sites.first }
     let!(:other_category) do
       ActsAsTenant.without_tenant { create(:category, tenant: other_tenant, site: other_site) }
     end

@@ -5,7 +5,7 @@ class Admin::ModerationController < ApplicationController
 
   before_action :set_content_item
 
-  # POST /admin/content_items/:content_item_id/hide
+  # POST /admin/content_items/:id/hide
   def hide
     authorize @content_item, :hide?
     @content_item.hide!(current_user)
@@ -17,7 +17,7 @@ class Admin::ModerationController < ApplicationController
     end
   end
 
-  # POST /admin/content_items/:content_item_id/unhide
+  # POST /admin/content_items/:id/unhide
   def unhide
     authorize @content_item, :unhide?
     @content_item.unhide!
@@ -29,7 +29,7 @@ class Admin::ModerationController < ApplicationController
     end
   end
 
-  # POST /admin/content_items/:content_item_id/lock_comments
+  # POST /admin/content_items/:id/lock_comments
   def lock_comments
     authorize @content_item, :lock_comments?
     @content_item.lock_comments!(current_user)
@@ -41,7 +41,7 @@ class Admin::ModerationController < ApplicationController
     end
   end
 
-  # POST /admin/content_items/:content_item_id/unlock_comments
+  # POST /admin/content_items/:id/unlock_comments
   def unlock_comments
     authorize @content_item, :unlock_comments?
     @content_item.unlock_comments!
@@ -56,6 +56,6 @@ class Admin::ModerationController < ApplicationController
   private
 
   def set_content_item
-    @content_item = ContentItem.find(params[:content_item_id])
+    @content_item = ContentItem.find(params[:id])
   end
 end

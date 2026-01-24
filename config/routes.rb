@@ -41,7 +41,7 @@ Rails.application.routes.draw do
     resources :site_bans, only: %i[index show new create destroy]
 
     # Content moderation
-    resources :content_items, only: [] do
+    resources :content_items, only: [], controller: "moderation" do
       member do
         post :hide
         post :unhide
