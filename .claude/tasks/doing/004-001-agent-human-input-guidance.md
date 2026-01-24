@@ -176,7 +176,30 @@ Since this is a documentation/process change (no code), testing is:
 
 ## Testing Evidence
 
-(To be filled during execution)
+### 2026-01-24 18:25 - Testing Complete
+
+**Verification Checks (from Test Plan):**
+
+| Check | Status |
+|-------|--------|
+| Task template Status field includes "blocked" option | ✅ Pass - Line 8: `\| Status \| \`todo\` / \`doing\` / \`blocked\` / \`done\` \|` |
+| blocked/ folder exists in tasks directory | ✅ Pass - `.claude/tasks/blocked/.gitkeep` exists |
+| CLAUDE.md Operating Loop mentions skipping blocked tasks | ✅ Pass - 17 occurrences of "blocked" in CLAUDE.md |
+| Triage prompt includes human input guidance | ✅ Pass - Section "Detect Human Input Requirements" (lines 22-29) and "When Human Input Required" (lines 49-77) |
+| Manual validation of all changes | ✅ Pass - All changes are consistent and clear |
+
+**Quality Gates:**
+
+| Gate | Status | Details |
+|------|--------|---------|
+| RuboCop | ✅ Pass | 303 files inspected, no offenses detected |
+| RSpec | ✅ Pass | 2029 examples, 0 failures, 2 pending |
+| Brakeman | ⚠️ Pre-existing | 2 medium SQL injection warnings in feed_ranking_service.rb (not related to this task) |
+
+**Notes:**
+- This task only modified markdown files (documentation), no code changes
+- All existing tests continue to pass
+- No new tests required (documentation-only change)
 
 ---
 
