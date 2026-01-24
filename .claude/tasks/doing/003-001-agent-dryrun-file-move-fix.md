@@ -98,6 +98,53 @@ Manual verification steps (to document in Testing Evidence):
 
 ## Work Log
 
+### 2026-01-24 17:09 - Documentation Sync
+
+Docs updated:
+- docs/agent-system.md - Rewrote "DRY RUN Mode" section (was "DRY RUN Moves Task Files")
+  - Changed from describing it as a known limitation/bug
+  - Now documents the correct behavior with example output
+  - Updated testing checklist to verify no file changes in dry-run mode
+
+Annotations:
+- Models annotated: No changes needed (bundle exec annotaterb models - unchanged)
+
+Consistency checks:
+- [x] Code matches docs - DRY_RUN behavior now documented correctly
+- [x] No broken links - All links in task file valid
+- [x] Schema annotations current - No model changes in this task
+
+Notes section updated:
+- Added "Fixed behavior" description
+- Renamed old behavior as "Previous behavior (now fixed)"
+
+Links section updated:
+- Added implementation file reference with line numbers
+- Added doc update note
+
+### 2026-01-24 17:07 - Testing Complete
+
+Tests executed:
+- Manual verification of dry-run behavior - 5 tests
+- All tests PASS
+
+Test results:
+- Test 1: Dry-run does not move task files ✅
+- Test 2: Task assignment metadata not modified ✅
+- Test 3: Accurate preview output ✅
+- Test 4: Shellcheck passes ✅
+- Test 5: Full quality suite passes ✅
+
+Quality gates:
+- RuboCop: PASS (291 files, no offenses)
+- ERB Lint: PASS (83 files, no errors)
+- Brakeman: PASS (no security warnings)
+- Bundle Audit: PASS (no vulnerabilities)
+- RSpec: PASS (all tests passing)
+- Shellcheck: PASS (no errors)
+
+All acceptance criteria verified - ready for docs and review phases.
+
 ### 2026-01-24 17:20 - Implementation Complete
 
 - Completed: Moved dry-run check BEFORE file operations in `run_agent_iteration()`
@@ -141,24 +188,123 @@ Manual verification steps (to document in Testing Evidence):
 
 ## Testing Evidence
 
-(To be filled during execution)
+### Manual Verification (2026-01-24 17:07)
+
+#### Test 1: Dry-run does not move task files
+
+**Setup:** Created test task `999-999-dry-run-test-task.md` in todo/
+
+**Before dry-run:**
+```
+Tasks in todo/: 4 files (including test task)
+Tasks in doing/: 1 file (003-001-agent-dryrun-file-move-fix.md)
+Lock files: 3 locks
+```
+
+**Command:** `AGENT_DRY_RUN=1 ./bin/agent 1`
+
+**Output shows:**
+```
+[worker-2 WARN] DRY RUN - would pick up task: 003-002-agent-prompt-validation
+[worker-2] Task file: .../todo/003-002-agent-prompt-validation.md
+[worker-2] Would move: todo/ → doing/
+[worker-2] Would acquire lock: .../003-002-agent-prompt-validation.lock
+[worker-2] Would assign to: worker-2
+[worker-2] Phases: TRIAGE|...|VERIFY
+[worker-2] Model: opus
+[worker-2] No file changes made
+```
+
+**After dry-run:**
+```
+Tasks in todo/: 4 files (unchanged - test task still there)
+Tasks in doing/: 1 file (unchanged)
+Lock files: 3 locks (no new lock created)
+```
+
+**Result:** ✅ PASS - Task NOT moved, no lock created
+
+#### Test 2: Task assignment metadata not modified
+
+**Command:** `grep -A1 "Assigned To" .claude/tasks/todo/003-002-agent-prompt-validation.md`
+
+**Output:**
+```
+| Assigned To | |
+| Assigned At | |
+```
+
+**Result:** ✅ PASS - Assignment fields remain empty
+
+#### Test 3: Accurate preview output
+
+**Verified the dry-run output shows:**
+- ✅ Which task would be selected (003-002-agent-prompt-validation)
+- ✅ What file operations would occur (move, lock, assign)
+- ✅ Which phases would run (all 7 phases listed)
+- ✅ Model configuration (opus)
+- ✅ Clear message "No file changes made"
+
+**Result:** ✅ PASS - Preview output is accurate and informative
+
+#### Test 4: Shellcheck passes
+
+**Command:** `shellcheck bin/agent .claude/agent/lib/core.sh`
+
+**Output:** No errors or warnings
+
+**Result:** ✅ PASS
+
+#### Test 5: Full quality suite
+
+**Command:** `./bin/quality`
+
+**Output:**
+```
+🎉 All critical quality checks passed!
+
+📊 Quality Summary:
+   ✅ Code style compliance (RuboCop + SOLID principles)
+   ✅ Security vulnerability scan (Brakeman)
+   ✅ Dependency security check (Bundle Audit)
+   ✅ Test suite with coverage (RSpec + Test Pyramid)
+   ✅ Route testing coverage (All routes tested)
+   ✅ Internationalization compliance (i18n-tasks)
+   ✅ SEO optimization (Meta tags, structured data, sitemaps)
+   ✅ Accessibility compliance (WCAG 2.1 AA)
+   ✅ Database schema validation
+   ✅ Multi-tenant isolation verification
+```
+
+**Result:** ✅ PASS - All critical gates pass
+
+#### Cleanup
+
+- Deleted test task: `rm -f .claude/tasks/todo/999-999-dry-run-test-task.md`
 
 ---
 
 ## Notes
 
-Current behavior (from testing):
-- Agent picks task from todo/
-- Moves file to doing/
-- Acquires lock
-- Then checks DRY_RUN and skips phases
-- On exit, releases lock and clears assignment
-- But file remains in doing/
+**Fixed behavior (after implementation):**
+- Agent checks DRY_RUN flag BEFORE any file operations
+- In dry-run mode, shows preview of what would happen
+- No file moves, no lock acquisition, no assignment metadata changes
+- Clear "No file changes made" message in output
+
+**Previous behavior (now fixed):**
+- Agent picked task from todo/
+- Moved file to doing/
+- Acquired lock
+- Then checked DRY_RUN and skipped phases
+- On exit, released lock and cleared assignment
+- But file remained in doing/
 
 ---
 
 ## Links
 
 - File: `bin/agent`
+- Implementation: `.claude/agent/lib/core.sh` (lines 1144-1184)
 - Related task: `001-001-agent-system-review`
-- Doc: `docs/agent-system.md`
+- Doc: `docs/agent-system.md` (updated section 1 - DRY RUN Mode)

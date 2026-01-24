@@ -106,18 +106,29 @@ Override default timeouts (in seconds):
 
 ## Edge Cases & Gotchas
 
-### 1. DRY RUN Moves Task Files
+### 1. DRY RUN Mode
 
-**Issue**: `AGENT_DRY_RUN=1` still moves tasks from `todo/` to `doing/` before the dry-run check.
+**Behavior**: `AGENT_DRY_RUN=1` previews what would happen without making any file system changes.
 
-**Impact**: Running multiple dry runs can leave tasks stranded in `doing/`.
+**What it shows**:
+- Which task would be selected from `todo/`
+- What file operations would occur (move, lock, assign)
+- Which phases would run
+- Current model configuration
 
-**Workaround**: After dry-run testing, move tasks back:
-```bash
-mv .claude/tasks/doing/*.md .claude/tasks/todo/
+**Example output**:
+```
+[worker-1 WARN] DRY RUN - would pick up task: 003-001-example-task
+[worker-1] Task file: .../todo/003-001-example-task.md
+[worker-1] Would move: todo/ → doing/
+[worker-1] Would acquire lock: .../003-001-example-task.lock
+[worker-1] Would assign to: worker-1
+[worker-1] Phases: TRIAGE|PLAN|IMPLEMENT|TEST|DOCS|REVIEW|VERIFY
+[worker-1] Model: opus
+[worker-1] No file changes made
 ```
 
-**Status**: Known limitation - dry-run primarily tests lock acquisition and phase configuration.
+**Note**: No lock files, file moves, or assignment metadata changes occur in dry-run mode.
 
 ### 2. Dead Process Lock Detection
 
@@ -268,7 +279,7 @@ When modifying `bin/agent`, verify:
 - [ ] `bash -n bin/agent` passes
 - [ ] Single agent run completes
 - [ ] SKIP_* flags show "[SKIP]" in header
-- [ ] DRY_RUN shows warning, no execution
+- [ ] DRY_RUN shows preview, no file changes (no move, no lock, no assignment)
 - [ ] QUIET mode shows "quiet" in header
 - [ ] Stale lock with dead PID is claimed
 - [ ] Age-based stale detection works (use low AGENT_LOCK_TIMEOUT)
