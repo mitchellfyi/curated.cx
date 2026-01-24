@@ -122,7 +122,7 @@ fi
 - [x] Restore prompt file after testing
 
 #### Docs to Update
-- [ ] None required - feature is self-documenting via error messages
+- [x] docs/agent-system.md - Updated Known Limitations to mark prompt validation as fixed
 
 ---
 
@@ -193,6 +193,19 @@ fi
 - [x] shellcheck passes on bin/agent
 
 **Ready for:** DOCS phase
+
+### 2026-01-24 17:23 - Documentation Sync
+
+Docs updated:
+- docs/agent-system.md - Updated Known Limitations section: marked item #3 ("Prompt files not validated at startup") as fixed
+
+Annotations:
+- Not applicable (bash script change, no Rails models modified)
+
+Consistency checks:
+- [x] Code matches docs - limitation marked as resolved
+- [x] No broken links
+- [x] Schema annotations current (N/A)
 
 ---
 
@@ -267,5 +280,6 @@ The `PROMPTS_DIR` variable is set to `$AGENT_DIR/prompts` which resolves to `.cl
 
 - File: `.claude/agent/lib/core.sh` (main implementation)
 - File: `bin/agent` (wrapper script)
+- File: `docs/agent-system.md` (updated Known Limitations)
 - Dir: `.claude/agent/prompts/`
 - Related task: `001-001-agent-system-review`

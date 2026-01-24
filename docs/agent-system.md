@@ -265,7 +265,7 @@ cat .claude/logs/claude-loop/<timestamp>/agent.log
 
 2. **Date parsing assumes BSD or GNU date** - Works on macOS and Linux, may fail on other systems.
 
-3. **Prompt files not validated at startup** - If a prompt file is missing, phase will fail at runtime.
+3. **~~Prompt files not validated at startup~~** - Fixed: Health check now validates all prompt files for non-skipped phases.
 
 4. **No inter-agent communication** - Agents work independently; can't coordinate on related tasks.
 
