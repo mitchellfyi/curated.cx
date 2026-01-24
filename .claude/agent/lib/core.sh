@@ -1140,6 +1140,13 @@ run_agent_iteration() {
   if [ -z "$task_file" ]; then
     log_info "No available tasks (all locked or empty)"
     log_info "Agent will create one from MISSION.md or wait for tasks"
+
+    # In dry-run mode, exit early since there's no task to preview
+    if [ "$AGENT_DRY_RUN" = "1" ]; then
+      log_warn "DRY RUN - no tasks available to preview"
+      save_session "$session_id" "$iteration" "dry-run"
+      return 0
+    fi
     # Let Claude handle creating a task
   else
     local task_id
@@ -1148,7 +1155,32 @@ run_agent_iteration() {
     # Check if already in doing/
     if [[ "$task_file" == *"/doing/"* ]]; then
       log_info "Resuming task: $task_id"
+
+      # Dry-run check for resuming task
+      if [ "$AGENT_DRY_RUN" = "1" ]; then
+        log_warn "DRY RUN - would resume task: $task_id"
+        log_info "Task file: $task_file"
+        log_info "Phases: ${PHASES[*]}"
+        log_info "Model: $CURRENT_MODEL"
+        log_info "No file changes made"
+        save_session "$session_id" "$iteration" "dry-run"
+        return 0
+      fi
     else
+      # Dry-run check BEFORE any file operations
+      if [ "$AGENT_DRY_RUN" = "1" ]; then
+        log_warn "DRY RUN - would pick up task: $task_id"
+        log_info "Task file: $task_file"
+        log_info "Would move: todo/ → doing/"
+        log_info "Would acquire lock: $LOCKS_DIR/${task_id}.lock"
+        log_info "Would assign to: $AGENT_ID"
+        log_info "Phases: ${PHASES[*]}"
+        log_info "Model: $CURRENT_MODEL"
+        log_info "No file changes made"
+        save_session "$session_id" "$iteration" "dry-run"
+        return 0
+      fi
+
       log_info "Picking up task: $task_id"
 
       # Acquire lock
@@ -1170,13 +1202,6 @@ run_agent_iteration() {
       # Commit the task pickup
       commit_task_files "chore: Start task $task_id" "$task_id"
     fi
-  fi
-
-  if [ "$AGENT_DRY_RUN" = "1" ]; then
-    log_warn "DRY RUN - would execute phases here"
-    log_info "Phases: ${PHASES[*]}"
-    save_session "$session_id" "$iteration" "dry-run"
-    return 0
   fi
 
   # Ensure we have a task to work on
