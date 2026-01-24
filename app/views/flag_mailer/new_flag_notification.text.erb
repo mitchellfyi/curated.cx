@@ -1,0 +1,32 @@
+<%= t(".header", site_name: @site.name) %>
+================================================================================
+
+<%= t(".intro") %>
+
+<%= t(".reason_label") %>: <%= t("flags.reasons.#{@flag.reason}") %>
+<% if @flag.details.present? -%>
+<%= t(".details_label") %>: <%= @flag.details %>
+<% end -%>
+<%= t(".flagged_by_label") %>: <%= @flag.user.email %>
+<%= t(".flagged_at_label") %>: <%= l(@flag.created_at, format: :long) %>
+
+<%= t(".flagged_content_header") %>
+--------------------------------------------------------------------------------
+
+<% if @flaggable.is_a?(ContentItem) -%>
+<%= t(".content_type_label") %>: <%= t(".content_type.content_item") %>
+<%= t(".title_label") %>: <%= @flaggable.title %>
+<%= t(".url_label") %>: <%= @flaggable.url_canonical %>
+<% elsif @flaggable.is_a?(Comment) -%>
+<%= t(".content_type_label") %>: <%= t(".content_type.comment") %>
+<%= t(".comment_body_label") %>:
+
+  <%= @flaggable.body %>
+
+<%= t(".comment_author_label") %>: <%= @flaggable.user.email %>
+<% end -%>
+
+<%= t(".review_button") %>: <%= admin_flags_url %>
+
+---
+<%= t(".footer") %>
