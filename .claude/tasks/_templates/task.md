@@ -5,7 +5,8 @@
 | Field | Value |
 |-------|-------|
 | ID | `PPP-SSS-slug` |
-| Status | `todo` / `doing` / `done` |
+| Status | `todo` / `doing` / `blocked` / `done` |
+| Blocked Reason | (human-input / credentials / design-approval / external-info) |
 | Priority | `001` Critical / `002` High / `003` Medium / `004` Low |
 | Created | `YYYY-MM-DD HH:MM` |
 | Started | `YYYY-MM-DD HH:MM` |
@@ -73,6 +74,15 @@ Timestamped record of actions and outcomes.
 
 - Action taken
 - Result: What happened
+
+### YYYY-MM-DD HH:MM - Blocked (Human Input Required)
+
+- **Why blocked**: [Clear description of what's needed]
+- **Type**: [human-input / credentials / design-approval / external-info]
+- **Question for human**: [Specific question(s) that need answering]
+- **Options considered**: [What alternatives were explored]
+- **Impact of waiting**: [How urgent is resolution]
+- **Resume instructions**: [What to do once unblocked]
 
 ### YYYY-MM-DD HH:MM - Completed
 
