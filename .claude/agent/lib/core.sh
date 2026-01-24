@@ -892,6 +892,42 @@ get_consecutive_failures() {
 }
 
 # ============================================================================
+# Prompt Validation
+# ============================================================================
+
+# Validate that all required prompt files exist before starting
+# Respects SKIP_* flags - only validates prompts for enabled phases
+validate_prompts() {
+  local missing=()
+
+  for phase_def in "${PHASES[@]}"; do
+    IFS='|' read -r name prompt_file timeout skip <<< "$phase_def"
+
+    # Skip if this phase is disabled
+    if [ "$skip" = "1" ]; then
+      continue
+    fi
+
+    # Check if prompt file exists
+    local prompt_path="$PROMPTS_DIR/$prompt_file"
+    if [ ! -f "$prompt_path" ]; then
+      missing+=("$prompt_file (phase: $name)")
+    fi
+  done
+
+  if [ ${#missing[@]} -gt 0 ]; then
+    log_error "Missing prompt files:"
+    for m in "${missing[@]}"; do
+      echo "  - $m" >&2
+    done
+    echo "  Expected location: $PROMPTS_DIR/" >&2
+    return 1
+  fi
+
+  return 0
+}
+
+# ============================================================================
 # Health Checks
 # ============================================================================
 
@@ -948,6 +984,13 @@ health_check() {
     log_warn "Low disk space: $((available_kb / 1024))MB available"
   else
     log_success "Disk space OK: $((available_kb / 1024))MB available"
+  fi
+
+  # Validate prompt files for enabled phases
+  if ! validate_prompts; then
+    ((issues++))
+  else
+    log_success "Prompt files OK (non-skipped phases)"
   fi
 
   # Show active agents
