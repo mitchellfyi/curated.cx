@@ -40,6 +40,7 @@ class Site < ApplicationRecord
   has_many :votes, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :site_bans, dependent: :destroy
+  has_many :flags, dependent: :destroy
   has_many :tagging_rules, dependent: :destroy
   has_many :taxonomies, dependent: :destroy
 
@@ -89,6 +90,15 @@ class Site < ApplicationRecord
 
   def monetisation_enabled?
     setting("monetisation.enabled", false)
+  end
+
+  # Moderation settings
+  def flag_threshold
+    setting("moderation.flag_threshold", 3)
+  end
+
+  def flag_notifications_enabled?
+    setting("moderation.flag_notifications_enabled", true)
   end
 
   # Status helpers
@@ -146,6 +156,13 @@ class Site < ApplicationRecord
     if config["monetisation"].present?
       unless config["monetisation"].is_a?(Hash)
         errors.add(:config, "monetisation must be a valid object")
+      end
+    end
+
+    # Validate moderation settings if present
+    if config["moderation"].present?
+      unless config["moderation"].is_a?(Hash)
+        errors.add(:config, "moderation must be a valid object")
       end
     end
   end

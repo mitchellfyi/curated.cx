@@ -62,6 +62,7 @@ class ContentItem < ApplicationRecord
   belongs_to :source
   has_many :votes, dependent: :destroy
   has_many :comments, dependent: :destroy
+  has_many :flags, as: :flaggable, dependent: :destroy
   belongs_to :hidden_by, class_name: "User", optional: true
   belongs_to :comments_locked_by, class_name: "User", optional: true
 
