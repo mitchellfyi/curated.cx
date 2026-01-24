@@ -8,7 +8,7 @@ set -euo pipefail
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 TASKS_DIR="$REPO_ROOT/.claude/tasks"
 OUTPUT_FILE="$REPO_ROOT/TASKBOARD.md"
 
@@ -30,10 +30,11 @@ log_success() {
 # Count tasks in each state
 count_todo=$(find "$TASKS_DIR/todo" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
 count_doing=$(find "$TASKS_DIR/doing" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+count_blocked=$(find "$TASKS_DIR/blocked" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
 count_done=$(find "$TASKS_DIR/done" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
 
 log_info "Generating TASKBOARD.md..."
-log_info "Found: $count_todo todo, $count_doing doing, $count_done done"
+log_info "Found: $count_todo todo, $count_doing doing, $count_blocked blocked, $count_done done"
 
 # Start generating the taskboard
 cat > "$OUTPUT_FILE" << 'HEADER'
@@ -54,6 +55,7 @@ sed -i "s/TIMESTAMP/$(date '+%Y-%m-%d %H:%M:%S')/" "$OUTPUT_FILE"
 
 # Add counts
 echo "| Doing | $count_doing |" >> "$OUTPUT_FILE"
+echo "| Blocked | $count_blocked |" >> "$OUTPUT_FILE"
 echo "| Todo | $count_todo |" >> "$OUTPUT_FILE"
 echo "| Done | $count_done |" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
@@ -91,6 +93,31 @@ else
         title=$(get_task_title "$file")
         priority=$(get_priority_label "$filename")
         echo "- **[$filename](.claude/tasks/doing/$filename)** - $title [$priority]" >> "$OUTPUT_FILE"
+    done
+fi
+echo "" >> "$OUTPUT_FILE"
+
+# Blocked section
+echo "---" >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+echo "## Blocked (Awaiting Human Input)" >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+
+if [ "$count_blocked" -eq 0 ]; then
+    echo "_No blocked tasks_" >> "$OUTPUT_FILE"
+else
+    for file in $(find "$TASKS_DIR/blocked" -maxdepth 1 -name "*.md" 2>/dev/null | sort); do
+        [ -f "$file" ] || continue
+        filename=$(basename "$file")
+        title=$(get_task_title "$file")
+        priority=$(get_priority_label "$filename")
+        # Try to extract blocked reason
+        blocked_reason=$(grep -m1 "| Blocked Reason |" "$file" 2>/dev/null | sed 's/.*| //' | sed 's/ |$//' || echo "")
+        if [ -n "$blocked_reason" ] && [ "$blocked_reason" != "|" ]; then
+            echo "- **[$filename](.claude/tasks/blocked/$filename)** - $title [$priority] - _$blocked_reason_" >> "$OUTPUT_FILE"
+        else
+            echo "- **[$filename](.claude/tasks/blocked/$filename)** - $title [$priority]" >> "$OUTPUT_FILE"
+        fi
     done
 fi
 echo "" >> "$OUTPUT_FILE"
@@ -153,6 +180,7 @@ cat >> "$OUTPUT_FILE" << 'FOOTER'
 # Check task counts
 echo "TODO: $(ls .claude/tasks/todo/*.md 2>/dev/null | wc -l)"
 echo "DOING: $(ls .claude/tasks/doing/*.md 2>/dev/null | wc -l)"
+echo "BLOCKED: $(ls .claude/tasks/blocked/*.md 2>/dev/null | wc -l)"
 echo "DONE: $(ls .claude/tasks/done/*.md 2>/dev/null | wc -l)"
 ```
 FOOTER
