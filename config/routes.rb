@@ -40,6 +40,14 @@ Rails.application.routes.draw do
     # Site bans management
     resources :site_bans, only: %i[index show new create destroy]
 
+    # Content flagging/moderation queue
+    resources :flags, only: %i[index show] do
+      member do
+        post :resolve
+        post :dismiss
+      end
+    end
+
     # Content moderation
     resources :content_items, only: [], controller: "moderation" do
       member do
@@ -76,6 +84,9 @@ Rails.application.routes.draw do
     # Comments
     resources :comments, only: %i[index show create update destroy]
   end
+
+  # User-facing flag creation (for content items and comments)
+  resources :flags, only: [ :create ]
 
   # Public routes for browsing content
   resources :categories, only: [ :index, :show ] do
