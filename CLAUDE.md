@@ -223,11 +223,16 @@ Examples:
 
 ```
 .claude/tasks/
-  todo/     <- Planned, ready to start (unassigned)
-  doing/    <- In progress (assigned to an agent)
-  done/     <- Completed with logs (unassigned)
+  todo/       <- Planned, ready to start (unassigned)
+  doing/      <- In progress (assigned to an agent)
+  blocked/    <- Waiting for human input (unassigned)
+  done/       <- Completed with logs (unassigned)
   _templates/ <- Task file template
 ```
+
+**Blocked Status**: Tasks that require human input (credentials, design approval,
+clarification, external info) go to `blocked/`. Agent clears assignment and picks
+another task. Human moves task back to `todo/` once input is provided.
 
 ### Task Assignment (Parallel Support)
 
@@ -250,8 +255,14 @@ When changing state, physically move the file:
 # Pick up task
 mv .claude/tasks/todo/003-001-example.md .claude/tasks/doing/
 
+# Block task (needs human input)
+mv .claude/tasks/doing/003-001-example.md .claude/tasks/blocked/
+
 # Complete task
 mv .claude/tasks/doing/003-001-example.md .claude/tasks/done/
+
+# Unblock task (human provides input, moves back to todo)
+mv .claude/tasks/blocked/003-001-example.md .claude/tasks/todo/
 ```
 
 ### Task File Template
@@ -391,6 +402,37 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
    - Move task back to todo/ with blocker noted
    - Pick a different task
    - Leave clear handoff notes
+
+### Human Input Required
+
+If a task cannot proceed without human intervention:
+
+1. **Recognize the situation**:
+   - **Credentials/Secrets**: API keys, passwords, tokens not in codebase
+   - **Design Approval**: UX decisions, architecture choices needing sign-off
+   - **Ambiguous Requirements**: Unclear spec that can't be reasonably inferred
+   - **External Information**: Data only a human can provide
+
+2. **Block the task**:
+   - Set Status to `blocked`
+   - Set Blocked Reason to: `human-input`, `credentials`, `design-approval`, or `external-info`
+   - Clear Assigned To and Assigned At fields
+   - Document in Work Log using the blocked template:
+     ```
+     ### YYYY-MM-DD HH:MM - Blocked (Human Input Required)
+
+     - **Why blocked**: [Clear description of what's needed]
+     - **Type**: [human-input / credentials / design-approval / external-info]
+     - **Question for human**: [Specific question(s) that need answering]
+     - **Options considered**: [What alternatives were explored]
+     - **Impact of waiting**: [How urgent is resolution]
+     - **Resume instructions**: [What to do once unblocked]
+     ```
+   - Move file to `.claude/tasks/blocked/`
+
+3. **Pick another task**: Return to Operating Loop and select next available task
+
+4. **Human unblocks**: When input is provided, human moves task back to `todo/`
 
 ### Flaky Tests
 
@@ -596,6 +638,7 @@ Generates TASKBOARD.md from task files.
   tasks/
     todo/          <- Tasks ready to work (unassigned)
     doing/         <- Current tasks (assigned to agents)
+    blocked/       <- Tasks waiting for human input (unassigned)
     done/          <- Completed tasks
     _templates/
       task.md      <- Task template
@@ -660,11 +703,12 @@ rm -rf .claude/state/* 2>/dev/null
 
 ```bash
 # Check folder structure
-ls -la .claude/tasks/{todo,doing,done,_templates}
+ls -la .claude/tasks/{todo,doing,blocked,done,_templates}
 
 # Count tasks by state
 echo "TODO: $(ls .claude/tasks/todo/*.md 2>/dev/null | wc -l)"
 echo "DOING: $(ls .claude/tasks/doing/*.md 2>/dev/null | wc -l)"
+echo "BLOCKED: $(ls .claude/tasks/blocked/*.md 2>/dev/null | wc -l)"
 echo "DONE: $(ls .claude/tasks/done/*.md 2>/dev/null | wc -l)"
 echo "LOCKS: $(ls .claude/locks/*.lock 2>/dev/null | wc -l)"
 ```
@@ -718,4 +762,11 @@ WHEN STUCK:
   2. Try 3 times
   3. Clear assignment, move back to todo
   4. Pick something else
+
+HUMAN INPUT NEEDED:
+  1. Set Status to "blocked", set Blocked Reason
+  2. Clear Assigned To/At
+  3. Document in Work Log (use blocked template)
+  4. Move to blocked/
+  5. Pick another task
 ```
