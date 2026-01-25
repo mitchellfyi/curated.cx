@@ -26,14 +26,15 @@ env:
   APP_URL: ${{ secrets.APP_URL || 'https://curated.cx' }}
 
 jobs:
-  # Run CI checks first (optional - uncomment to require CI to pass)
-  # ci:
-  #   uses: ./.github/workflows/ci.yml
+  # Require CI to pass before deployment
+  ci:
+    name: Run CI
+    uses: ./.github/workflows/ci.yml
 
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    # needs: [ci]  # Uncomment to require CI to pass first
+    needs: [ci]
     timeout-minutes: 30
 
     steps:

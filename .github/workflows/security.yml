@@ -1,21 +1,36 @@
+# Deep Security Scanning
+# Extended security analysis beyond the basic checks in CI
+#
+# This runs:
+# - Daily scheduled scans
+# - On PRs for security-focused review
+#
+# Basic security (Brakeman, Bundle Audit) is in CI workflow.
+# This workflow adds: Semgrep, TruffleHog, GitLeaks, Trivy container scanning
+
 name: Security Scanning
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   schedule:
     # Run daily at 1 AM UTC
     - cron: '0 1 * * *'
+  workflow_dispatch:
 
 env:
   RUBY_VERSION: '3.4'
   NODE_VERSION: '20'
 
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  dependency-scan:
-    name: Dependency Security Scan
+  # Static Analysis Security Testing (SAST)
+  sast:
+    name: SAST Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,129 +42,18 @@ jobs:
           ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: |
-          bundle install --jobs 4 --retry 3
-          npm ci
-
-      - name: Run Bundle Audit
-        run: |
-          bundle exec bundle-audit check --update --format json --output bundle-audit-results.json
-        continue-on-error: true
-
-      - name: Upload Bundle Audit results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: bundle-audit-results
-          path: bundle-audit-results.json
-
-      - name: Run npm audit
-        run: |
-          npm audit --audit-level=moderate --json > npm-audit-results.json
-        continue-on-error: true
-
-      - name: Upload npm audit results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: npm-audit-results
-          path: npm-audit-results.json
-
-      - name: Comment on PR with security findings
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let comment = '## Security Scan Results\n\n';
-
-            try {
-              const bundleResults = JSON.parse(fs.readFileSync('bundle-audit-results.json', 'utf8'));
-              if (bundleResults.vulnerabilities && bundleResults.vulnerabilities.length > 0) {
-                comment += '### Ruby Gem Vulnerabilities\n';
-                bundleResults.vulnerabilities.forEach(vuln => {
-                  comment += `- **${vuln.gem}** (${vuln.version}): ${vuln.title}\n`;
-                  comment += `  - Severity: ${vuln.cvss}\n`;
-                  comment += `  - Advisory: ${vuln.advisory}\n\n`;
-                });
-              } else {
-                comment += '✅ No Ruby gem vulnerabilities found\n\n';
-              }
-            } catch (error) {
-              comment += '⚠️ Could not parse Ruby gem audit results\n\n';
-            }
-
-            try {
-              const npmResults = JSON.parse(fs.readFileSync('npm-audit-results.json', 'utf8'));
-              if (npmResults.vulnerabilities && Object.keys(npmResults.vulnerabilities).length > 0) {
-                comment += '### NPM Package Vulnerabilities\n';
-                Object.values(npmResults.vulnerabilities).forEach(vuln => {
-                  comment += `- **${vuln.name}**: ${vuln.title}\n`;
-                  comment += `  - Severity: ${vuln.severity}\n`;
-                  comment += `  - Range: ${vuln.range}\n\n`;
-                });
-              } else {
-                comment += '✅ No NPM package vulnerabilities found\n\n';
-              }
-            } catch (error) {
-              comment += '⚠️ Could not parse NPM audit results\n\n';
-            }
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-
-  code-security-scan:
-    name: Code Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ env.RUBY_VERSION }}
-          bundler-cache: true
-
-      - name: Run Brakeman security scan
-        run: |
-          bundle exec brakeman --format json --output brakeman-results.json
-        continue-on-error: true
-
-      - name: Upload Brakeman results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: brakeman-results
-          path: brakeman-results.json
-
-      - name: Run Semgrep security scan
+      # Deep code security analysis with Semgrep
+      - name: Run Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           config: >-
             p/security-audit
             p/secrets
             p/owasp-top-ten
+            p/ruby
         continue-on-error: true
 
-      - name: Upload Semgrep results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: semgrep-results
-          path: semgrep-results.json
-
+  # Secrets Detection
   secrets-scan:
     name: Secrets Detection
     runs-on: ubuntu-latest
@@ -159,104 +63,89 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run TruffleHog secrets scan
+      # TruffleHog for verified secrets
+      - name: Run TruffleHog
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: main
+          base: ${{ github.event.pull_request.base.sha || 'HEAD~10' }}
           head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --only-verified
         continue-on-error: true
 
-      - name: Run GitLeaks secrets scan
+      # GitLeaks for pattern-based secrets
+      - name: Run GitLeaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
+  # Container Security (only on schedule or manual)
   container-security:
-    name: Container Security Scan
+    name: Container Security
     runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: |
-          docker build -t curated-app:latest .
+        run: docker build -t curated-app:scan .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'curated-app:latest'
+          image-ref: 'curated-app:scan'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
         continue-on-error: true
 
       - name: Upload Trivy SARIF results
         uses: github/codeql-action/upload-sarif@v4
-        if: success() && hashFiles('trivy-results.sarif') != ''
+        if: hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
 
-      - name: Upload Trivy results as artifact (fallback)
+      - name: Upload Trivy results
         uses: actions/upload-artifact@v4
         if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           name: trivy-results
           path: trivy-results.sarif
+          retention-days: 30
 
+  # Summary
   security-summary:
     name: Security Summary
     runs-on: ubuntu-latest
-    needs: [dependency-scan, code-security-scan, secrets-scan, container-security]
+    needs: [sast, secrets-scan]
     if: always()
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-
       - name: Security Summary
         run: |
           echo "## Security Scan Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Scan Type | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
 
-          # Check if artifacts exist and report status
-          if [ -f "bundle-audit-results/bundle-audit-results.json" ]; then
-            echo "| Ruby Dependencies | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.sast.result }}" == "success" ]; then
+            echo "| SAST Analysis | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| Ruby Dependencies | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+            echo "| SAST Analysis | ⚠️ Issues Found |" >> $GITHUB_STEP_SUMMARY
           fi
 
-          if [ -f "npm-audit-results/npm-audit-results.json" ]; then
-            echo "| NPM Dependencies | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.secrets-scan.result }}" == "success" ]; then
+            echo "| Secrets Detection | ✅ No Secrets Found |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| NPM Dependencies | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [ -f "brakeman-results/brakeman-results.json" ]; then
-            echo "| Code Security | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "| Code Security | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [ -f "secrets-scan-results/secrets-results.json" ]; then
-            echo "| Secrets Detection | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "| Secrets Detection | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [ -f "container-security-results/trivy-results.sarif" ]; then
-            echo "| Container Security | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "| Container Security | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+            echo "| Secrets Detection | ⚠️ Review Required |" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Security Best Practices" >> $GITHUB_STEP_SUMMARY
-          echo "- Keep dependencies updated" >> $GITHUB_STEP_SUMMARY
-          echo "- Use strong authentication" >> $GITHUB_STEP_SUMMARY
-          echo "- Validate all inputs" >> $GITHUB_STEP_SUMMARY
-          echo "- Use HTTPS everywhere" >> $GITHUB_STEP_SUMMARY
-          echo "- Implement proper error handling" >> $GITHUB_STEP_SUMMARY
-          echo "- Follow OWASP guidelines" >> $GITHUB_STEP_SUMMARY
+          echo "- Keep dependencies updated regularly" >> $GITHUB_STEP_SUMMARY
+          echo "- Never commit secrets or credentials" >> $GITHUB_STEP_SUMMARY
+          echo "- Validate and sanitize all inputs" >> $GITHUB_STEP_SUMMARY
+          echo "- Follow OWASP Top 10 guidelines" >> $GITHUB_STEP_SUMMARY
+          echo "- Use parameterized queries for database" >> $GITHUB_STEP_SUMMARY

@@ -39,17 +39,18 @@ graph TD
 
 #### Configuration:
 ```yaml
+# CRITICAL: No continue-on-error - these MUST pass
 - name: Run RuboCop
-  run: bundle exec rubocop --format progress --format json --out rubocop-results.json
-  continue-on-error: true
+  run: bundle exec rubocop --format progress
 
 - name: Run ERB Lint
-  run: bundle exec erb_lint --lint-all --format json --out erb-lint-results.json
-  continue-on-error: true
+  run: bundle exec erb_lint --lint-all
 
 - name: Run JavaScript linting
   run: npm run lint
-  continue-on-error: true
+
+- name: Check Prettier formatting
+  run: npm run format:check
 ```
 
 #### Success Criteria:
@@ -74,16 +75,16 @@ graph TD
 
 #### Configuration:
 ```yaml
+# CRITICAL: Brakeman and Bundle Audit MUST pass
 - name: Run Brakeman
-  run: bundle exec brakeman --format json --output brakeman-results.json
-  continue-on-error: true
+  run: bundle exec brakeman -q --no-pager
 
 - name: Run Bundle Audit
   run: bundle exec bundle-audit check --update
-  continue-on-error: true
 
+# ADVISORY: NPM Audit (warnings only for moderate issues)
 - name: Run NPM Audit
-  run: npm audit --audit-level=moderate --json > npm-audit-results.json
+  run: npm audit --audit-level=high || echo "::warning::NPM audit found issues"
   continue-on-error: true
 ```
 
