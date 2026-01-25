@@ -127,7 +127,11 @@ class Site < ApplicationRecord
     end
 
     # Clear only this site's scoped cache entries (multi-tenant safe)
+    # Note: delete_matched is not supported by SolidCache, so we skip it in production
     Rails.cache.delete_matched("site:#{id}:*")
+  rescue NotImplementedError
+    # SolidCache doesn't support delete_matched - individual keys will expire naturally
+    Rails.logger.debug { "Cache delete_matched not supported, skipping pattern deletion for site:#{id}" }
   end
 
   def validate_config_structure

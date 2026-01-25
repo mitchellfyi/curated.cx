@@ -237,6 +237,9 @@ class Listing < ApplicationRecord
     # Clear specific cache keys more efficiently (use site_id for isolation)
     Rails.cache.delete_matched("listings:recent:#{site_id}:*")
     Rails.cache.delete_matched("listings:count_by_category:#{site_id}:*")
+  rescue NotImplementedError
+    # SolidCache doesn't support delete_matched - individual keys will expire naturally
+    Rails.logger.debug { "Cache delete_matched not supported, skipping pattern deletion for listing:#{id}" }
   end
 
   def canonicalize_url

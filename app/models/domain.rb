@@ -206,6 +206,9 @@ class Domain < ApplicationRecord
 
     # Clear only the associated site's scoped cache entries (multi-tenant safe)
     Rails.cache.delete_matched("site:#{site_id}:*")
+  rescue NotImplementedError
+    # SolidCache doesn't support delete_matched - individual keys will expire naturally
+    Rails.logger.debug { "Cache delete_matched not supported, skipping pattern deletion for site:#{site_id}" }
   end
 
   def ensure_single_primary_per_site

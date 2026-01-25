@@ -78,6 +78,8 @@ class Tenant < ApplicationRecord
   # Use sparingly - prefer scoped invalidation via instance method.
   def self.clear_all_tenant_caches!
     Rails.cache.delete_matched("tenant:*")
+  rescue NotImplementedError
+    Rails.logger.debug { "Cache delete_matched not supported, skipping pattern deletion for all tenants" }
   end
 
   # Instance methods
