@@ -63,12 +63,10 @@ class FeedRankingService
       scope.order(published_at: :desc)
     when SORT_TOP_WEEK
       # Safe SQL: engagement_score_sql uses only column names, no user input
-      # brakeman:disable SQL
       scope.published_since(1.week.ago)
            .order(Arel.sql(engagement_score_sql + " DESC, published_at DESC"))
     when SORT_RANKED
       # Safe SQL: ranking_score_sql uses only constants and column names, no user input
-      # brakeman:disable SQL
       scope.joins(:source)
            .order(Arel.sql(ranking_score_sql + " DESC"))
     else
