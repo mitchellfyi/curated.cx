@@ -59,6 +59,24 @@ tenant_data = [
       }
     },
     status: "enabled"
+  },
+  {
+    slug: "dayz",
+    hostname: "dayz.cx",
+    title: "DayZ Community Hub",
+    description: "Your source for DayZ news, mods, servers, and community content",
+    settings: {
+      theme: {
+        primary_color: "green",
+        secondary_color: "gray"
+      },
+      categories: {
+        news: { enabled: true },
+        apps: { enabled: true },
+        services: { enabled: true }
+      }
+    },
+    status: "enabled"
   }
 ]
 
@@ -354,6 +372,77 @@ listings_data = {
         title: "Dodge Data & Analytics",
         description: "Construction project leads, market analytics, and business intelligence for the industry.",
         site_name: "Dodge",
+        published_at: nil
+      }
+    ]
+  },
+  "dayz" => {
+    "news" => [
+      {
+        url_raw: "https://dayz.com/article/devblog/status-report-january-2024",
+        title: "DayZ Status Report: January 2024 Update",
+        description: "Bohemia Interactive shares the latest development progress, upcoming features, and community highlights for DayZ.",
+        site_name: "DayZ Official",
+        published_at: 2.days.ago
+      },
+      {
+        url_raw: "https://www.reddit.com/r/dayz/comments/new-experimental-patch",
+        title: "Experimental 1.24 Patch Brings Major Base Building Changes",
+        description: "The latest experimental patch introduces significant improvements to base building mechanics and new construction options.",
+        site_name: "Reddit r/dayz",
+        published_at: 4.days.ago
+      },
+      {
+        url_raw: "https://store.steampowered.com/news/app/221100",
+        title: "DayZ Frostline DLC Announced for 2024",
+        description: "Bohemia Interactive announces new premium DLC featuring a frozen northern map with unique survival challenges.",
+        site_name: "Steam News",
+        published_at: 1.week.ago
+      }
+    ],
+    "apps" => [
+      {
+        url_raw: "https://dayzsalauncher.com",
+        title: "DayZSA Launcher",
+        description: "Popular community launcher for DayZ with mod management, server browser, and automatic mod downloads.",
+        site_name: "DayZSA Launcher",
+        published_at: nil
+      },
+      {
+        url_raw: "https://www.izurvive.com",
+        title: "iZurvive Map",
+        description: "Interactive map for DayZ and ARMA with loot spawns, vehicle locations, and community markers.",
+        site_name: "iZurvive",
+        published_at: nil
+      },
+      {
+        url_raw: "https://github.com/CFTools/cftools-sdk",
+        title: "CFTools Cloud",
+        description: "Server management platform for DayZ with player stats, ban lists, and real-time monitoring.",
+        site_name: "CFTools",
+        published_at: nil
+      }
+    ],
+    "services" => [
+      {
+        url_raw: "https://nitrado.net/dayz",
+        title: "Nitrado DayZ Servers",
+        description: "Official DayZ server hosting partner with instant deployment, mod support, and global locations.",
+        site_name: "Nitrado",
+        published_at: nil
+      },
+      {
+        url_raw: "https://www.gameservers.com/game_servers/dayz.php",
+        title: "GameServers.com DayZ Hosting",
+        description: "Premium DayZ server hosting with DDoS protection, instant setup, and 24/7 support.",
+        site_name: "GameServers",
+        published_at: nil
+      },
+      {
+        url_raw: "https://dayzunderground.com",
+        title: "DayZ Underground",
+        description: "Popular roleplay-focused DayZ community server with unique factions and immersive gameplay.",
+        site_name: "DayZ Underground",
         published_at: nil
       }
     ]
