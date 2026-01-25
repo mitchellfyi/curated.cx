@@ -416,7 +416,7 @@ listings_data = {
         published_at: nil
       },
       {
-        url_raw: "https://github.com/CFTools/cftools-sdk",
+        url_raw: "https://cftools.cloud",
         title: "CFTools Cloud",
         description: "Server management platform for DayZ with player stats, ban lists, and real-time monitoring.",
         site_name: "CFTools",
@@ -425,14 +425,14 @@ listings_data = {
     ],
     "services" => [
       {
-        url_raw: "https://nitrado.net/dayz",
+        url_raw: "https://nitrado.net",
         title: "Nitrado DayZ Servers",
         description: "Official DayZ server hosting partner with instant deployment, mod support, and global locations.",
         site_name: "Nitrado",
         published_at: nil
       },
       {
-        url_raw: "https://www.gameservers.com/game_servers/dayz.php",
+        url_raw: "https://gameservers.com",
         title: "GameServers.com DayZ Hosting",
         description: "Premium DayZ server hosting with DDoS protection, instant setup, and 24/7 support.",
         site_name: "GameServers",
