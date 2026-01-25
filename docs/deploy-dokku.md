@@ -1774,6 +1774,95 @@ ssh root@$DROPLET_IP 'dokku run curated rails console'
 3. **Set up error tracking**: Add Sentry or similar for error monitoring
 4. **Configure CDN**: Add Cloudflare for faster static asset delivery
 5. **Set up logging**: Configure centralized logging (optional)
+6. **Set up automatic domain sync**: See section below
+
+---
+
+
+## Automatic Domain Management
+
+### Overview
+
+This feature automatically synchronizes domains between your Rails application and Dokku. When you add or remove domains/tenants in Rails, they are automatically configured in Dokku with Let's Encrypt SSL certificates.
+
+### Components
+
+1. **Rails rake task** (`lib/tasks/dokku.rake`): Outputs active domains as JSON
+2. **Sync script** (`script/dokku/sync-domains.sh`): Host-side script that syncs domains
+
+### Setup on Dokku Host
+
+1. **Copy the sync script to your server**:
+   ```bash
+   scp script/dokku/sync-domains.sh root@$DROPLET_IP:/usr/local/bin/
+   ssh root@$DROPLET_IP 'chmod +x /usr/local/bin/sync-domains.sh'
+   ```
+
+2. **Test the sync script**:
+   ```bash
+   ssh root@$DROPLET_IP '/usr/local/bin/sync-domains.sh curated'
+   ```
+
+3. **Set up automatic sync via cron** (runs every 5 minutes):
+   ```bash
+   ssh root@$DROPLET_IP 'echo "*/5 * * * * root /usr/local/bin/sync-domains.sh curated >> /var/log/domain-sync.log 2>&1" > /etc/cron.d/domain-sync'
+   ```
+
+4. **Or set up as post-deploy hook**:
+   ```bash
+   ssh root@$DROPLET_IP 'mkdir -p /var/lib/dokku/plugins/enabled/domain-sync'
+   ssh root@$DROPLET_IP 'cat > /var/lib/dokku/plugins/enabled/domain-sync/post-deploy << "EOF"
+#!/usr/bin/env bash
+set -eo pipefail
+APP="$1"
+if [ "$APP" = "curated" ]; then
+    /usr/local/bin/sync-domains.sh curated
+fi
+EOF
+chmod +x /var/lib/dokku/plugins/enabled/domain-sync/post-deploy'
+   ```
+
+### How It Works
+
+1. The Rails app tracks domains in the `domains` table (with status `active`) and tenant hostnames in the `tenants` table
+2. The `dokku:domains` rake task outputs all required domains as JSON
+3. The sync script:
+   - Fetches required domains from Rails
+   - Compares with current Dokku domains
+   - Adds missing domains
+   - Removes stale domains (except the default Dokku domain)
+   - Re-enables Let's Encrypt if changes were made
+
+### Manual Domain Sync
+
+To manually trigger a domain sync:
+```bash
+ssh root@$DROPLET_IP '/usr/local/bin/sync-domains.sh curated'
+```
+
+### Viewing Sync Status
+
+```bash
+# Check current domains in Dokku
+ssh root@$DROPLET_IP 'dokku domains:report curated'
+
+# Check what domains Rails expects
+ssh root@$DROPLET_IP 'dokku run curated ./bin/rails dokku:domains'
+
+# Check domain sync logs
+ssh root@$DROPLET_IP 'tail -100 /var/log/domain-sync.log'
+```
+
+### Adding a New Tenant/Domain
+
+1. Add the tenant or domain in Rails (via admin panel or seeds)
+2. Wait for the cron to run (up to 5 minutes) or trigger manually
+3. The domain will be automatically added to Dokku with SSL
+
+### Removing a Tenant/Domain
+
+1. Set the tenant status to `disabled` or domain status to non-active
+2. The sync script will remove it from Dokku on next run
 
 ---
 
