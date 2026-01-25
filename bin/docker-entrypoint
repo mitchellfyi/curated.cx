@@ -8,7 +8,15 @@ fi
 
 # If running the rails server then create or migrate existing database and run seeds
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  # Prepare primary database
   ./bin/rails db:prepare
+
+  # Load schemas for secondary databases (cache, queue, cable)
+  # These share the same connection but have separate schema files
+  ./bin/rails db:schema:load:cache 2>/dev/null || ./bin/rails db:create:cache db:schema:load:cache 2>/dev/null || true
+  ./bin/rails db:schema:load:queue 2>/dev/null || ./bin/rails db:create:queue db:schema:load:queue 2>/dev/null || true
+  ./bin/rails db:schema:load:cable 2>/dev/null || ./bin/rails db:create:cable db:schema:load:cable 2>/dev/null || true
+
   ./bin/rails db:seed
 fi
 
