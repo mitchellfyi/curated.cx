@@ -16,10 +16,7 @@
     "lint": "eslint app/javascript/ --ext .js,.ts --format json --output-file tmp/quality-results/eslint-results.json",
     "lint:fix": "eslint app/javascript/ --ext .js,.ts --fix",
     "format": "prettier --write app/javascript/",
-    "format:check": "prettier --check app/javascript/",
-    "dk": "npx --yes dk",
-    "dk:init": "npx --yes dk init",
-    "dk:install": "npx --yes dk install"
+    "format:check": "prettier --check app/javascript/"
   },
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
