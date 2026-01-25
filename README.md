@@ -1,293 +1,281 @@
-# Curated.www
+# Curated
 
-A multi-tenant curated content platform built with Rails 8.
+**Launch your own content network in minutes.**
 
-## Development Setup
+Curated is a multi-tenant content platform that lets you create interconnected niche content sites—each with its own domain, branding, and community—all managed from a single codebase.
+
+## Why Curated?
+
+- **One Platform, Many Sites**: Run dozens of niche content sites from a single Rails application
+- **Network Effects**: Cross-promote content across your network with built-in discovery
+- **Own Your Audience**: Each site gets its own domain, SEO, and brand identity
+- **Content Aggregation**: Automatically pull content from RSS feeds, APIs, and custom sources
+- **Marketplace Ready**: Built-in listings system for directories, jobs, or classifieds
+- **Enterprise-Grade Quality**: Automated testing, security scanning, and accessibility compliance
+
+## How It Works
+
+### The Network Hub (curated.cx)
+
+The root domain serves as your network's home base:
+- **Site Directory**: Showcase all sites in your network
+- **Cross-Network Feed**: Surface the best content from across all sites
+- **Network Stats**: Display collective metrics (sites, content, listings)
+- **Marketing Pages**: Pricing, features, and onboarding for new publishers
+
+### Tenant Sites (yoursite.cx)
+
+Each tenant site is a fully-featured content hub:
+- **Content Feed**: Aggregated articles ranked by engagement and freshness
+- **Listings by Category**: Organized marketplace or directory sections
+- **Custom Branding**: Unique logo, colors, and domain
+- **Independent SEO**: Per-site meta tags, sitemaps, and structured data
+
+## Live Network
+
+| Site | Domain | Focus |
+|------|--------|-------|
+| Curated Hub | [curated.cx](https://curated.cx) | Network directory & discovery |
+| AI News | [ainews.cx](https://ainews.cx) | Artificial intelligence news |
+| Construction | [construction.cx](https://construction.cx) | Construction industry news |
+| DayZ | [dayz.cx](https://dayz.cx) | DayZ gaming community |
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
 - Ruby 3.4.2 (see `.ruby-version`)
-- Node.js (see `.node-version`)
-- PostgreSQL
+- Node.js 20+ (see `.node-version`)
+- PostgreSQL 16+
 
 ### Quick Start
 
 ```bash
-# Setup development environment
+# Clone and setup
+git clone https://github.com/mitchellfyi/curated.cx.git
+cd curated.cx
 ./bin/setup
 
-# Start the development server (includes quality automation via Guard)
+# Start development server
 ./bin/dev
 
-# Run tests
+# Run the test suite
 bundle exec rspec
 
-# Run code quality checks
+# Run quality checks
 ./bin/quality
 ```
 
-### Multi-Tenant Local Domains
+### Local Development Domains
 
-This is a multi-tenant application. In development, you can access different tenants using local domain patterns:
+Access different tenants using local domain patterns:
 
-**Root Tenant (Hub)**
-- `http://localhost:3000` - Access the root tenant (slug: `root`)
+| URL | Tenant |
+|-----|--------|
+| `http://localhost:3000` | Root hub (network directory) |
+| `http://ai.localhost:3000` | AI News tenant |
+| `http://construction.localhost:3000` | Construction tenant |
 
-**Subdomain Tenants**
-- `http://ai.localhost:3000` - Access the AI News tenant (slug: `ai`)
-- `http://construction.localhost:3000` - Access the Construction tenant (slug: `construction`)
+The tenant resolver automatically handles `localhost` and subdomain patterns in development.
 
-To use subdomain.localhost patterns, you may need to configure your `/etc/hosts` file (optional but recommended):
-
-```bash
-# Add to /etc/hosts for easier subdomain access
-127.0.0.1 ai.localhost
-127.0.0.1 construction.localhost
-```
-
-**Note:** The tenant resolver automatically handles `localhost`, `127.0.0.1`, and subdomain patterns like `subdomain.localhost` in development mode. Plain `localhost` resolves to the root tenant, while `subdomain.localhost` resolves to the tenant matching that slug.
-
-## Development Tools
-
-This project includes comprehensive development tools for code quality, security, and testing:
-
-### Testing
-- **RSpec** - Behavior-driven testing framework
-- **Factory Bot** - Test data generation
-- **Faker** - Realistic fake data for tests
-- **Database Cleaner** - Clean database state between tests
-- **SimpleCov** - Code coverage analysis (80% minimum threshold)
-
-### Code Quality & Security
-- **Brakeman** - Security vulnerability scanner
-- **RuboCop Rails Omakase** - Code style enforcement
-- **Bullet** - N+1 query detection
-- **Prosopite** - Alternative N+1 query detection
-
-### Development Experience
-- **Better Errors** - Enhanced error pages
-- **Letter Opener** - Email preview in development
-- **Listen** - File system change monitoring
-- **Annotaterb** - Annotate models with schema information (Rails 8 compatible)
-- **Meta Tags** - SEO and social media meta tags management
-- **Strong Migrations** - Safe database migration practices
-- **Draper** - Object-oriented presentation logic with decorators
-
-### Internationalization
-- **i18n-tasks** - Manage missing and unused translations
-
-### Running Tools Individually
-
-```bash
-bundle exec rspec                    # Run test suite
-bundle exec brakeman                 # Security scan
-bundle exec rubocop                  # Code style check
-bundle exec bullet                   # N+1 query detection (via web interface)
-bundle exec annotaterb models        # Annotate models with schema info
-bundle exec i18n-tasks health        # Check i18n translation health
-```
-
-### Development Scripts
-
-```bash
-./bin/setup                           # Setup development environment
-./script/dev/setup-quality-automation # Setup autonomous quality system
-./bin/quality                        # **MANDATORY** - Run ALL quality checks
-./script/dev/pre-push-quality        # Extended pre-push validation
-./script/dev/quality-dashboard       # Live quality metrics and status
-./script/dev/quality-check-file      # File-specific quality checks
-./script/dev/i18n-check-file         # i18n compliance for templates
-./script/dev/route-test-check        # Route testing validation
-./script/dev/migration-check         # Migration safety analysis
-./script/dev/i18n                    # Manage i18n translations
-./script/dev/migrations              # Database migration safety tools
-bundle exec guard                    # **RECOMMENDED** - Real-time quality monitoring
-```
-
-## Autonomous Quality Enforcement System (CRITICAL)
-
-**This codebase has a fully autonomous quality enforcement system that prevents poor implementations automatically.**
-
-### 🛡️ **Multi-Layer Protection System**:
-
-#### **Layer 1: Real-time Monitoring**
-```bash
-bundle exec guard  # Monitors files and runs quality checks automatically
-```
-
-#### **Layer 2: Pre-commit Hooks (Overcommit)**
-- **Automatically blocks commits** that fail quality gates
-- **12 comprehensive checks** run before every commit
-- **Zero bypass mechanisms** - quality failures prevent commits
-
-#### **Layer 3: Pre-push Hooks**
-- **Extended validation** before pushing to remote
-- **Database integrity** and schema validation
-- **Documentation synchronization** checks
-- **Deployment readiness** verification
-
-#### **Layer 4: CI/CD Pipeline**
-- **Comprehensive automated testing** on every push
-- **Production build validation**
-- **Security monitoring**
-
-### 🚀 **Getting Started with Autonomous Quality**:
-
-```bash
-# 1. Setup the autonomous system (run once)
-./script/dev/setup-quality-automation
-
-# 2. Start real-time monitoring (run during development)
-bundle exec guard
-
-# 3. Check quality status anytime
-./script/dev/quality-dashboard
-
-# 4. Develop normally - the system guides you automatically
-# Pre-commit and pre-push hooks run automatically
-# Guard provides real-time feedback on file changes
-```
-
-## Quality Enforcement (AUTONOMOUS SYSTEM)
-
-**Every code change is automatically validated by a comprehensive autonomous quality system:**
-
-```bash
-./bin/quality  # Must pass 100% - enforced automatically via git hooks
-```
-
-### 🛡️ **The 12 Autonomous Quality Gates**:
-- ✅ **Code Style**: Zero RuboCop violations (Rails Omakase) + SOLID principles
-- ✅ **Security**: Zero Brakeman high/medium issues + Bundle Audit
-- ✅ **Tests**: 100% passing, 80% minimum coverage + Test Pyramid compliance
-- ✅ **Route Testing**: Every route must have corresponding tests (automated check)
-- ✅ **i18n**: All static text uses translation keys (hardcoded string detection)
-- ✅ **Template Quality**: ERB lint compliance + semantic HTML
-- ✅ **SEO**: Meta tags, structured data, XML sitemaps (automated validation)
-- ✅ **Accessibility**: WCAG 2.1 AA compliance via axe-core testing
-- ✅ **Performance**: No N+1 queries + response time monitoring
-- ✅ **Database**: Proper indexes, constraints, migration safety
-- ✅ **Multi-tenant**: acts_as_tenant verification + data isolation
-- ✅ **Documentation**: Synchronization and consistency checks
-
-### 🤖 **Fully Automated Protection**:
-- **Pre-commit hooks** block commits that fail quality gates
-- **Pre-push hooks** run extended validation before pushing
-- **Real-time monitoring** via Guard provides immediate feedback
-- **CI/CD pipeline** ensures production readiness
-- **Quality dashboard** provides live metrics and guidance
-
-**Documentation**: See `doc/QUALITY_AUTOMATION.md` for complete autonomous system guide.
-
-## Internationalization & Accessibility
-
-The application is designed with internationalization in mind:
-
-### Supported Locales
-- **English (en)** - Default locale
-- **Spanish (es)** - Additional locale
-
-### Accessibility Features
-- WCAG 2.1 AA compliance testing with axe-core
-- Semantic HTML structure with proper landmarks
-- Screen reader compatibility with sr-only text
-- Keyboard navigation support with focus management
-- Color contrast validation and high contrast mode support
-- Skip links for improved navigation
-- Reduced motion support for accessibility preferences
-
-### Configuration
-- Locale detection and fallbacks configured in `config/application.rb`
-- Translation files in `config/locales/`
-
-## Architecture Patterns
-
-### Decorators (Draper)
-The application uses the **Decorator pattern** via Draper to handle presentation logic, keeping views clean and models focused on business logic.
-
-#### Key Benefits
-- **Separation of Concerns**: Model logic stays in models, presentation logic in decorators
-- **Testable**: Decorators are easily unit tested independently
-- **Reusable**: Presentation logic can be shared across different views
-- **Object-Oriented**: More maintainable than helper methods
-
-#### Usage Examples
-```ruby
-# In controllers
-@user = current_user.decorate
-@tenant = Current.tenant.decorate
-
-# In views
-<%= @user.avatar_image(size: 40) %>
-<%= @user.role_badges_for_tenant(@tenant) %>
-<%= @tenant.logo_image(css_class: "navbar-brand") %>
-```
-
-#### Available Decorators
-- **UserDecorator**: Avatar handling, role displays, user status
-- **TenantDecorator**: Logo management, theme variables, social media tags
-- **ApplicationDecorator**: Base decorator with common functionality
-
-### Tenant Branding System
-- **Root tenant** (`curated.cx`): Shows directory of all enabled platforms
-- **Other tenants**: Display sticky "Powered by Curated.cx" footer at bottom of page
-- **Development URLs**: Root tenant uses `http://localhost:3000`, child tenants use `http://slug.localhost:3000`
-- **Production URLs**: Uses `https://hostname` for live environments
-- **Responsive design**: Directory grid adapts to different screen sizes
-
-
-# Database Migrations
-
-The application uses **Strong Migrations** to prevent dangerous database migrations that could cause downtime in production.
-
-### Safe Migration Practices
-- Add columns without defaults, then backfill data
-- Create indexes concurrently on large tables
-- Use multi-step approach for column renames
-- Test migrations on production-sized datasets
-
-### Migration Tools
-```bash
-./script/dev/migrations              # Migration safety checker and helper
-bundle exec rails db:migrate:status  # Check migration status
-```
-
-See `doc/SAFE_MIGRATIONS.md` for detailed examples and best practices.
-
-## Database
-
-- **Primary Database**: PostgreSQL
-- **Multi-tenancy**: Using `acts_as_tenant` gem with subdomain-based tenant resolution
-- **Background Jobs**: Solid Queue (Rails 8 default)
-- **Caching**: Solid Cache (Rails 8 default)
-
-## Key Dependencies
-
-- **Rails 8.0.3** - Web framework
-- **Devise** - Authentication
-- **pg_search** - Full-text search
-- **acts_as_tenant** - Multi-tenancy
-- **Tailwind CSS** - Styling
-- **Stimulus & Turbo** - Frontend interactions
-
+---
 
 ## Architecture
 
-See `docs/ARCHITECTURE.md` for detailed architecture documentation including:
-- Multi-tenancy approach (row-scoped with hostname-based resolution)
-- Background job system (Solid Queue)
-- Data model (Tenant → Site → Domain hierarchy)
-- Deployment configuration
+### Multi-Tenant Design
+
+```
+Tenant (curated.cx)
+  └── Site
+       ├── Domains (ainews.cx, www.ainews.cx)
+       ├── Sources (RSS feeds, APIs)
+       ├── ContentItems (articles, posts)
+       ├── Categories
+       └── Listings (directory entries)
+```
+
+- **Row-Level Isolation**: All data scoped via `acts_as_tenant`
+- **Domain Resolution**: Automatic tenant detection from request hostname
+- **Cross-Site Queries**: Network-wide content aggregation for root tenant
+
+### Content Pipeline
+
+1. **Sources**: Configure RSS feeds or API endpoints per site
+2. **Ingestion**: Background jobs fetch and normalize content
+3. **Ranking**: FeedRankingService scores content by freshness and engagement
+4. **Display**: Responsive cards with source attribution
+
+### Key Services
+
+| Service | Purpose |
+|---------|---------|
+| `NetworkFeedService` | Cross-network content aggregation |
+| `TenantHomepageService` | Homepage data orchestration |
+| `FeedRankingService` | Content ranking algorithm |
+| `TenantResolver` | Domain-to-tenant resolution |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Rails 8.0 |
+| Database | PostgreSQL 16 |
+| Background Jobs | Solid Queue |
+| Caching | Solid Cache |
+| Search | pg_search |
+| Frontend | Hotwire (Turbo + Stimulus) |
+| Styling | Tailwind CSS |
+| Auth | Devise |
+
+---
+
+## Quality Assurance
+
+This codebase enforces quality automatically via git hooks and CI/CD.
+
+### The 12 Quality Gates
+
+Every commit must pass:
+
+1. **Code Style** - RuboCop (Rails Omakase)
+2. **Security** - Brakeman + Bundle Audit
+3. **Tests** - RSpec with 80% coverage minimum
+4. **Route Testing** - All routes must have tests
+5. **i18n** - No hardcoded strings
+6. **Template Quality** - ERB lint + semantic HTML
+7. **SEO** - Meta tags and structured data
+8. **Accessibility** - WCAG 2.1 AA via axe-core
+9. **Performance** - No N+1 queries (Bullet)
+10. **Database** - Safe migrations (Strong Migrations)
+11. **Multi-tenant** - Data isolation verification
+12. **Documentation** - Sync checks
+
+### Running Quality Checks
+
+```bash
+# Full quality suite (required before commit)
+./bin/quality
+
+# Real-time monitoring during development
+bundle exec guard
+
+# Quality dashboard
+./script/dev/quality-dashboard
+```
+
+---
+
+## Development Tools
+
+### Testing
+
+```bash
+bundle exec rspec                     # Full test suite
+bundle exec rspec spec/models/        # Model specs only
+bundle exec rspec --tag ~slow         # Skip slow tests
+```
+
+### Code Quality
+
+```bash
+bundle exec rubocop                   # Style check
+bundle exec rubocop -A                # Auto-fix
+bundle exec brakeman                  # Security scan
+bundle exec i18n-tasks health         # Translation health
+```
+
+### Database
+
+```bash
+bundle exec rails db:migrate          # Run migrations
+./script/dev/migration-check          # Migration safety analysis
+bundle exec annotaterb models         # Update model annotations
+```
+
+### Utilities
+
+```bash
+./script/dev/i18n                     # Manage translations
+./script/dev/route-test-check         # Verify route coverage
+./script/dev/quality-check-file FILE  # Check specific file
+```
+
+---
+
+## Internationalization
+
+### Supported Locales
+
+- **English (en)** - Default
+- **Spanish (es)** - Additional
+
+### Accessibility
+
+- WCAG 2.1 AA compliance
+- Semantic HTML with proper landmarks
+- Screen reader support
+- Keyboard navigation
+- Skip links and focus management
+- Reduced motion support
+
+---
 
 ## Deployment
 
-The application is deployed to Dokku with automatic SSL via Let's Encrypt.
+Deployed to Dokku with automatic SSL via Let's Encrypt.
 
-See `docs/deploy-dokku.md` for deployment instructions.
+```bash
+# Deploy (automatic on push to main)
+git push dokku main
 
-### Live Sites
+# Manual deployment
+./bin/deploy
+```
 
-- **curated.cx** - Root hub
-- **ainews.cx** - AI News
-- **construction.cx** - Construction News
-- **dayz.cx** - DayZ Community Hub
+See `docs/deploy-dokku.md` for detailed instructions.
+
+### CI/CD Pipeline
+
+- **Lint & Format**: RuboCop, ERB Lint, ESLint
+- **Security**: Brakeman, Bundle Audit, npm audit
+- **Tests**: RSpec with coverage
+- **Build**: Asset compilation verification
+- **Deploy**: Automatic on main branch
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| `docs/ARCHITECTURE.md` | System design and data model |
+| `docs/deploy-dokku.md` | Deployment guide |
+| `doc/QUALITY_AUTOMATION.md` | Quality system details |
+| `doc/SAFE_MIGRATIONS.md` | Migration best practices |
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes (quality gates will guide you)
+4. Commit (`git commit -m 'feat: Add amazing feature'`)
+5. Push (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+All PRs must pass CI checks before merge.
+
+---
+
+## License
+
+Proprietary. All rights reserved.
+
+---
+
+Built with Rails 8 by [Mitchell](https://mitchell.fyi)
