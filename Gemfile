@@ -3,11 +3,11 @@ source "https://rubygems.org"
 ruby "~> 3.4.0"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.0.3"
+gem "rails", "~> 8.1.2"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record
-gem "pg", "~> 1.1"
+gem "pg", "~> 1.6"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]
@@ -55,10 +55,10 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   # Test framework and utilities
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
   gem "factory_bot_rails", "~> 6.4"
-  gem "faker", "~> 3.5"
-  gem "shoulda-matchers", "~> 6.0"
+  gem "faker", "~> 3.6"
+  gem "shoulda-matchers", "~> 7.0"
   gem "rails-controller-testing", "~> 1.0"
 
   # Code quality and performance tools
@@ -68,7 +68,7 @@ group :development, :test do
   gem "erb_lint", require: false
 
   # Enhanced quality and automation tools
-  gem "guard", "~> 2.18"
+  gem "guard", "~> 2.20"
   gem "guard-rspec", require: false
   gem "guard-rubocop", require: false
   gem "guard-brakeman", require: false
@@ -80,14 +80,14 @@ group :development, :test do
   gem "reek", require: false        # Code smell detection
 
   # I18n tools
-  gem "i18n-tasks", "~> 1.0"
+  gem "i18n-tasks", "~> 1.1"
 
   # Performance testing tools
   gem "memory_profiler", "~> 1.0"
   gem "stackprof", "~> 0.2"
   gem "benchmark-ips", "~> 2.12"
 
-  gem "bundler-audit", "~> 0.9.2"
+  gem "bundler-audit", "~> 0.9.3"
 end
 
 group :development do
@@ -95,23 +95,23 @@ group :development do
   gem "web-console"
 
   # N+1 query detection [https://github.com/flyerhzm/bullet]
-  gem "bullet", "~> 8.0"
+  gem "bullet", "~> 8.1"
 
   # Database query analysis and optimization
-  gem "prosopite", "~> 1.4"
+  gem "prosopite", "~> 2.1"
 
   # Better error pages [https://github.com/BetterErrors/better_errors]
   gem "better_errors", "~> 2.10"
   gem "binding_of_caller", "~> 1.0"
 
   # Rails application preloader for faster development
-  gem "listen", "~> 3.9"
+  gem "listen", "~> 3.10"
 
   # Mail delivery in development
   gem "letter_opener", "~> 1.10"
 
   # Annotate models with schema information (Rails 8 compatible fork)
-  gem "annotaterb", "~> 4.19"
+  gem "annotaterb", "~> 4.20"
 end
 
 group :test do
@@ -127,7 +127,7 @@ group :test do
   # gem "axe-core-capybara", "~> 4.7"
 end
 
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 gem "pundit", "~> 2.3"
 gem "rolify", "~> 6.0"
 gem "pg_search", "~> 2.3"
@@ -135,10 +135,10 @@ gem "acts_as_tenant", "~> 1.0"
 gem "mission_control-jobs", "~> 1.1"
 gem "metainspector", "~> 5.16"
 gem "feedjira", "~> 4.0"
-gem "tailwindcss-rails", "~> 4.3"
+gem "tailwindcss-rails", "~> 4.4"
 gem "meta-tags", "~> 2.22"
-gem "strong_migrations", "~> 2.0"
+gem "strong_migrations", "~> 2.5"
 gem "draper", "~> 4.0"
 
 # AI/LLM integration
-gem "ruby-openai", "~> 7.3"
+gem "ruby-openai", "~> 8.3"
