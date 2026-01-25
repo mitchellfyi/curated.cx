@@ -66,7 +66,7 @@ RSpec.describe "Listings", type: :request do
       it "sets correct meta tags" do
         get listings_path
         expect(response.body).to include(I18n.t('listings.index.title'))
-        expect(response.body).to include(tenant.title)
+        expect(response.body).to include(CGI.escapeHTML(tenant.title))
       end
     end
 
@@ -169,8 +169,8 @@ RSpec.describe "Listings", type: :request do
 
       it "sets correct meta tags with category name" do
         get category_listings_path(category1)
-        expect(response.body).to include(category1.name)
-        expect(response.body).to include(tenant.title)
+        expect(response.body).to include(CGI.escapeHTML(category1.name))
+        expect(response.body).to include(CGI.escapeHTML(tenant.title))
       end
 
         context "when category belongs to different tenant" do
