@@ -194,10 +194,17 @@ jobs:
         continue-on-error: true
 
       - name: Upload Trivy SARIF results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: success() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
+
+      - name: Upload Trivy results as artifact (fallback)
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
 
   security-summary:
     name: Security Summary
