@@ -1,0 +1,81 @@
+<% content_for :title, @tenant&.title || t('app.tagline') %>
+
+<div class="container mx-auto px-4 py-8">
+  <%# Hero Section %>
+  <div class="text-center mb-12">
+    <h1 class="text-4xl font-bold text-gray-900 mb-4">
+      <%= t('network.hero.title') %>
+    </h1>
+    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+      <%= t('network.hero.tagline') %>
+    </p>
+
+    <% if @network_stats.present? %>
+      <div class="flex justify-center gap-8 mt-8">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-blue-600"><%= @network_stats[:site_count] %></div>
+          <div class="text-sm text-gray-500"><%= t('network.stats.sites') %></div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-blue-600"><%= number_with_delimiter(@network_stats[:content_count]) %></div>
+          <div class="text-sm text-gray-500"><%= t('network.stats.articles') %></div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-blue-600"><%= number_with_delimiter(@network_stats[:listing_count]) %></div>
+          <div class="text-sm text-gray-500"><%= t('network.stats.listings') %></div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Site Directory Section %>
+  <section class="mb-12">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-semibold text-gray-900">
+        <%= t('network.sites.title') %>
+      </h2>
+    </div>
+
+    <% if @sites.any? %>
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <% @sites.each do |site| %>
+          <%= render 'network/site_card', site: site %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <p class="text-gray-500"><%= t('network.sites.empty') %></p>
+      </div>
+    <% end %>
+  </section>
+
+  <%# Cross-Network Content Feed %>
+  <% if @network_feed.any? %>
+    <section class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900">
+          <%= t('network.feed.title') %>
+        </h2>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <% @network_feed.each do |item| %>
+          <%= render 'network/content_card', content_item: item %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <%# Marketing CTA Section %>
+  <section class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-8 text-center text-white">
+    <h2 class="text-2xl font-bold mb-4">
+      <%= t('network.cta.title') %>
+    </h2>
+    <p class="text-blue-100 mb-6 max-w-xl mx-auto">
+      <%= t('network.cta.description') %>
+    </p>
+    <%= link_to t('network.cta.button'),
+                "mailto:hello@curated.cx",
+                class: "inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-white hover:text-blue-600 transition-colors" %>
+  </section>
+</div>

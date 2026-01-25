@@ -18,6 +18,7 @@ en:
     show: Show
     update: Update Account
     view: View
+    view_all: View all
     view_arrow: View →
   admin:
     categories:
@@ -524,6 +525,8 @@ en:
       pending: Pending Review
       reviewed: Reviewed
     submit: Submit Report
+  homepage:
+    browse_by_category: Browse by Category
   listings:
     index:
       across_categories: across all categories
@@ -542,6 +545,57 @@ en:
       no_listings_yet: No listings yet
       title: All Listings
       view_details: View Details
+  marketing:
+    features:
+      cta: Get Started Today
+      description: Everything you need to curate and share content
+      list:
+      - title: AI-Powered Curation
+        description: Automatically discover, summarize, and categorize content from
+          across the web using advanced AI.
+      - title: Multi-Source Ingestion
+        description: Import content from RSS feeds, APIs, and custom sources with
+          flexible scheduling.
+      - title: Custom Domains
+        description: Launch your site on your own domain with full SSL support and
+          DNS verification.
+      - title: Engagement Tools
+        description: Built-in voting, comments, and flagging to build community around
+          your content.
+      - title: SEO Optimized
+        description: Automatic meta tags, structured data, and XML sitemaps for maximum
+          visibility.
+      - title: Analytics & Insights
+        description: Track engagement, monitor content performance, and understand
+          your audience.
+      subtitle: Everything you need to curate and share content
+      title: Features
+    pricing:
+      contact_us: Contact Us
+      custom_note: Need something custom? Contact us for enterprise pricing.
+      description: Simple, transparent pricing for curated content sites
+      plans:
+        pro:
+          description: For growing communities with advanced needs
+          features:
+          - Everything in Starter
+          - Custom domain support
+          - AI content summarization
+          - Advanced analytics
+          - Priority support
+          name: Pro
+          price: Contact us
+        starter:
+          description: Perfect for getting started with content curation
+          features:
+          - Up to 1,000 content items
+          - Basic RSS ingestion
+          - Community engagement tools
+          - Email support
+          name: Starter
+          price: Free
+      subtitle: Simple, transparent pricing for curated content sites
+      title: Pricing
   monetisation:
     badges:
       featured: Featured
@@ -564,6 +618,25 @@ en:
     powered_by: Powered by
     settings: Settings
     sign_up: Sign up
+  network:
+    cta:
+      button: Get in Touch
+      description: Launch your own curated content site and join the network.
+      title: Start Your Own Site
+    feed:
+      title: Latest Across the Network
+      view_on_site: View on %{site}
+    hero:
+      tagline: Discover curated content across specialized communities
+      title: Curated Network
+    sites:
+      empty: No sites are currently available.
+      title: Network Sites
+      visit: Visit
+    stats:
+      articles: Articles
+      listings: Listings
+      sites: Sites
   tenants:
     attributes:
       created_at: Created

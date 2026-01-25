@@ -99,6 +99,10 @@ Rails.application.routes.draw do
   # Public static pages (tenant-aware)
   get "about", to: "tenants#about"
 
+  # Marketing pages (root domain only)
+  get "pricing", to: "marketing#pricing"
+  get "features", to: "marketing#features"
+
   # Tenant routes
   resources :tenants, only: [ :index, :show ]
 

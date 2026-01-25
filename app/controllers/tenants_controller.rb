@@ -11,13 +11,14 @@ class TenantsController < ApplicationController
     authorize Current.tenant
     @tenant = Current.tenant
 
-    # Load ranked content feed for the homepage
-    @content_items = FeedRankingService.ranked_feed(
-      site: Current.site,
-      filters: {},
-      limit: 12,
-      offset: 0
-    )
+    service = TenantHomepageService.new(site: Current.site, tenant: @tenant)
+
+    if @tenant.root?
+      load_root_homepage(service)
+      render :show_root
+    else
+      load_tenant_homepage(service)
+    end
 
     set_page_meta_tags(
       title: Current.tenant&.title,
@@ -28,5 +29,20 @@ class TenantsController < ApplicationController
   def about
     authorize Current.tenant
     # Renders app/views/tenants/about.html.erb
+  end
+
+  private
+
+  def load_root_homepage(service)
+    data = service.root_tenant_data
+    @sites = data[:sites]
+    @network_feed = data[:network_feed]
+    @network_stats = data[:network_stats]
+  end
+
+  def load_tenant_homepage(service)
+    data = service.tenant_data
+    @content_items = data[:content_items]
+    @categories_with_listings = data[:categories_with_listings]
   end
 end
