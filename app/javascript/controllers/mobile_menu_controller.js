@@ -1,42 +1,42 @@
-import { Controller } from "@hotwired/stimulus"
+import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-  static targets = ["menu"]
+  static targets = ['menu'];
 
   connect() {
-    this.closeOnClickOutside = this.closeOnClickOutside.bind(this)
-    document.addEventListener("click", this.closeOnClickOutside)
+    this.closeOnClickOutside = this.closeOnClickOutside.bind(this);
+    document.addEventListener('click', this.closeOnClickOutside);
   }
 
   disconnect() {
-    document.removeEventListener("click", this.closeOnClickOutside)
+    document.removeEventListener('click', this.closeOnClickOutside);
   }
 
   toggle(event) {
-    event.stopPropagation()
+    event.stopPropagation();
     if (this.hasMenuTarget) {
-      this.menuTarget.classList.toggle("hidden")
+      this.menuTarget.classList.toggle('hidden');
 
       // Update aria-expanded
-      const button = event.currentTarget
-      const isExpanded = !this.menuTarget.classList.contains("hidden")
-      button.setAttribute("aria-expanded", isExpanded)
+      const button = event.currentTarget;
+      const isExpanded = !this.menuTarget.classList.contains('hidden');
+      button.setAttribute('aria-expanded', isExpanded);
     }
   }
 
   closeOnClickOutside(event) {
     if (!this.element.contains(event.target)) {
-      this.close()
+      this.close();
     }
   }
 
   close() {
     if (this.hasMenuTarget) {
-      this.menuTarget.classList.add("hidden")
+      this.menuTarget.classList.add('hidden');
     }
-    const button = this.element.querySelector('[aria-expanded]')
+    const button = this.element.querySelector('[aria-expanded]');
     if (button) {
-      button.setAttribute("aria-expanded", "false")
+      button.setAttribute('aria-expanded', 'false');
     }
   }
 }
