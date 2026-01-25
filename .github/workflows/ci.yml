@@ -66,9 +66,9 @@ jobs:
       - name: Run RuboCop
         run: bundle exec rubocop --format progress
 
-      # CRITICAL: ERB Lint must pass
+      # CRITICAL: ERB Lint must pass (only app views, not vendor/)
       - name: Run ERB Lint
-        run: bundle exec erb_lint --lint-all
+        run: bundle exec erb_lint app/views/
 
       # CRITICAL: JavaScript lint must pass
       - name: Run JavaScript linting

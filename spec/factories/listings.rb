@@ -149,7 +149,7 @@ FactoryBot.define do
     trait :news_article do
       # Category will be created in after(:build) with :news trait
       category_trait { :news }
-      url_raw { "https://#{Faker::Internet.domain_name}/#{Faker::Lorem.words(number: 3).join('-')}" }
+      sequence(:url_raw) { |n| "https://news-#{n}.example.com/#{Faker::Lorem.words(number: 3).join('-')}" }
       title { Faker::Lorem.sentence.chomp('.') }
       site_name { Faker::Company.name + ' News' }
       published_at { Faker::Time.between(from: 1.week.ago, to: Time.current) }
@@ -158,7 +158,7 @@ FactoryBot.define do
     trait :app_listing do
       # Category will be created in after(:build) with :apps trait
       category_trait { :apps }
-      url_raw { "https://#{Faker::Internet.domain_name}" }
+      sequence(:url_raw) { |n| "https://app-#{n}.example.com" }
       title { Faker::App.name }
       description { Faker::Lorem.sentence }
       site_name { title }
@@ -167,7 +167,7 @@ FactoryBot.define do
     trait :service_listing do
       # Category will be created in after(:build) with :services trait
       category_trait { :services }
-      url_raw { "https://#{Faker::Internet.domain_name}" }
+      sequence(:url_raw) { |n| "https://service-#{n}.example.com" }
       title { Faker::Company.name }
       description { Faker::Company.catch_phrase }
       site_name { title }
