@@ -843,13 +843,41 @@ ssh root@$DROPLET_IP 'dokku run curated rails db:migrate:all'
 
 **Important**: SSL won't work until DNS is pointing to your server!
 
-### 5.3 Enable Let's Encrypt SSL
+### 5.3 Verify Domains Before SSL
 
-**Once DNS is working, enable SSL**:
+**Before enabling SSL, verify your domains are correct**:
 
 ```bash
-# Enable SSL (this gets the certificate)
-ssh root@$DROPLET_IP 'dokku letsencrypt curated'
+# Check current domains
+ssh root@$DROPLET_IP 'dokku domains:report curated'
+```
+
+**What you should see**:
+```
+=====> curated domains information
+       Domains app vhosts:            curated.cx www.curated.cx
+```
+
+**If you see invalid domains** (like `curated.curated-cx` or other malformed names):
+```bash
+# Remove invalid domain
+ssh root@$DROPLET_IP 'dokku domains:remove curated invalid-domain-name'
+
+# Add correct domains if missing
+ssh root@$DROPLET_IP 'dokku domains:add curated curated.cx'
+ssh root@$DROPLET_IP 'dokku domains:add curated www.curated.cx'
+```
+
+### 5.4 Enable Let's Encrypt SSL
+
+**Once DNS is working and domains are correct, enable SSL**:
+
+```bash
+# Step 1: Set email address for Let's Encrypt notifications
+ssh root@$DROPLET_IP 'dokku letsencrypt:set curated email admin@curated.cx'
+
+# Step 2: Enable SSL (this gets the certificate)
+ssh root@$DROPLET_IP 'dokku letsencrypt:enable curated'
 ```
 
 **What will happen**:
@@ -860,42 +888,44 @@ ssh root@$DROPLET_IP 'dokku letsencrypt curated'
 
 **What you should see**:
 ```
-=====> Let's Encrypt curated
------> Updating letsencrypt docker image...
+=====> Enabling letsencrypt for curated
 -----> Enabling ACME proxy for curated...
------> Getting letsencrypt certificate for curated...
+-----> Getting letsencrypt certificate for curated via HTTP-01
        - Domain 'curated.cx'
        - Domain 'www.curated.cx'
 -----> Certificate retrieved successfully.
------> Certificate will be renewed automatically.
+-----> Installing let's encrypt certificates
+-----> Done
 ```
 
 **If it fails**:
+- **"Cannot request certificate without email"**: Run the `letsencrypt:set email` command first
+- **"Invalid identifiers"**: You have invalid domain names - check and fix with `dokku domains:report`
 - **"DNS not pointing to server"**: Wait longer for DNS propagation, then try again
 - **"Rate limit exceeded"**: You've requested too many certificates - wait 1 hour
 - **"Domain validation failed"**: Check your DNS settings
 
-### 5.4 Enable Auto-Renewal
+### 5.5 Enable Auto-Renewal
 
 **What this does**: Automatically renews your SSL certificate before it expires (certificates last 90 days).
 
 ```bash
-# Enable auto-renewal
-ssh root@$DROPLET_IP 'dokku letsencrypt:auto-renew curated'
+# Enable auto-renewal cron job
+ssh root@$DROPLET_IP 'dokku letsencrypt:cron-job --add'
 ```
 
 **What you should see**:
 ```
------> Auto-renewal enabled for curated
+-----> Added cron job to renew certificates
 ```
 
 **This is important!** Without auto-renewal, your SSL certificate will expire and your site will show security warnings.
 
-### 5.5 Verify SSL is Working
+### 5.6 Verify SSL is Working
 
 **Check certificate status**:
 ```bash
-ssh root@$DROPLET_IP 'dokku letsencrypt:list curated'
+ssh root@$DROPLET_IP 'dokku letsencrypt:list'
 ```
 
 **Test HTTPS**:
@@ -1360,9 +1390,17 @@ ssh root@$DROPLET_IP 'tar -xzf storage-backup.tar.gz -C /'
 #### 7. Re-enable SSL
 
 ```bash
+# Verify domains first
+ssh root@$DROPLET_IP 'dokku domains:report curated'
+
+# Set email for Let's Encrypt
+ssh root@$DROPLET_IP 'dokku letsencrypt:set curated email admin@curated.cx'
+
 # Enable SSL
-ssh root@$DROPLET_IP 'dokku letsencrypt curated'
-ssh root@$DROPLET_IP 'dokku letsencrypt:auto-renew curated'
+ssh root@$DROPLET_IP 'dokku letsencrypt:enable curated'
+
+# Enable auto-renewal
+ssh root@$DROPLET_IP 'dokku letsencrypt:cron-job --add'
 ```
 
 ---
@@ -1442,25 +1480,29 @@ ssh root@$DROPLET_IP 'dokku postgres:logs curated-db --tail 50'
 
 ```bash
 # 1. Check certificate status
-ssh root@$DROPLET_IP 'dokku letsencrypt:list curated'
+ssh root@$DROPLET_IP 'dokku letsencrypt:list'
 # Should show certificate expiration date
 
 # 2. Check if DNS is pointing to your server
 dig curated.cx
 # Look for "A" record - should match your server IP
 
-# 3. Check if domain is configured in Dokku
+# 3. Check if domains are configured correctly in Dokku
 ssh root@$DROPLET_IP 'dokku domains:report curated'
 # Should list curated.cx and www.curated.cx
+# If you see invalid domains like 'curated.curated-cx', remove them:
+ssh root@$DROPLET_IP 'dokku domains:remove curated curated.curated-cx'
 
-# 4. Force certificate renewal (if certificate exists but expired)
-ssh root@$DROPLET_IP 'dokku letsencrypt:renew curated'
+# 4. Verify email is set for Let's Encrypt
+ssh root@$DROPLET_IP 'dokku letsencrypt:set curated email admin@curated.cx'
 
-# 5. Re-enable Let's Encrypt (if certificate doesn't exist)
-ssh root@$DROPLET_IP 'dokku letsencrypt curated'
+# 5. Force certificate renewal (if certificate exists but expired)
+ssh root@$DROPLET_IP 'dokku letsencrypt:enable curated'
 ```
 
 **Common causes**:
+- **Invalid domain names**: Check for malformed domains (e.g., `appname.domain-name` pattern) and remove them
+- **Missing email**: Let's Encrypt requires an email - set it with `letsencrypt:set email`
 - **DNS not pointing to server**: Update DNS records, wait for propagation
 - **Certificate expired**: Auto-renewal might have failed, manually renew
 - **Rate limit**: Too many certificate requests, wait 1 hour
@@ -1736,5 +1778,5 @@ ssh root@$DROPLET_IP 'dokku run curated rails console'
 ---
 
 
-*Last Updated: 2025-01-20*
+*Last Updated: 2026-01-25*
 *Written for beginners new to Terraform, DigitalOcean, and Dokku*
