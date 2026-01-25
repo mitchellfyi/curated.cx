@@ -1,0 +1,78 @@
+name: Create Release
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Dokku"]
+    types:
+      - completed
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version info
+        id: version
+        run: |
+          # Generate version based on date and short SHA
+          VERSION="v$(date +'%Y.%m.%d')-${GITHUB_SHA::7}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Get commit message for release notes
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          echo "commit_msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
+
+          # Get list of changes since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            CHANGES=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s" --no-merges | head -20)
+          else
+            CHANGES=$(git log --pretty=format:"- %s" --no-merges -20)
+          fi
+
+          # Store changes in a file for multiline support
+          echo "$CHANGES" > /tmp/changes.txt
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          cat << 'EOF' > /tmp/release_notes.md
+          ## Deployed to Production
+
+          This release was automatically deployed to [curated.cx](https://curated.cx).
+
+          ### Recent Changes
+
+          EOF
+          cat /tmp/changes.txt >> /tmp/release_notes.md
+          cat << 'EOF' >> /tmp/release_notes.md
+
+          ### Deployment Info
+
+          - **Commit**: ${{ github.sha }}
+          - **Deployed at**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          - **Triggered by**: ${{ github.actor }}
+          EOF
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

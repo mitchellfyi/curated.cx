@@ -202,172 +202,74 @@ production:
 
 ---
 
-## Current Gaps & Risks
+## Resolved Gaps (Previously Identified)
 
-### 1. Custom Domains Support
+### 1. Custom Domains Support ✅ RESOLVED
 
-**Current State**:
-- ✅ Hostname-based resolution works for single hostname per tenant
-- ❌ **No custom domain support** - tenants can only use one hostname
-- ❌ **No domain mapping model** - no way to map multiple domains to one tenant
-- ❌ **No DNS validation** - no verification that custom domains point to the app
+**Implementation** (completed 2025-01):
+- ✅ `Domain` model with hostname, primary flag, verified status
+- ✅ `Site` model with multiple domains per site
+- ✅ `TenantResolver` middleware with multi-strategy resolution
+- ✅ DNS verification service (A, CNAME record checking)
+- ✅ Admin interface for domain management
+- ✅ www variant handling (automatic fallback)
+- ✅ Subdomain pattern support (configurable per site)
 
-**Risks**:
-- Cannot support multiple domains per tenant (e.g., `example.com` and `www.example.com`)
-- Cannot support custom domains for tenants (e.g., tenant wants to use their own domain)
-- No wildcard domain support
-- TenantResolver only handles single hostname per tenant
+See `docs/domain-routing.md` for complete domain resolution documentation.
+See `docs/DATA_MODEL.md` for Tenant → Site → Domain hierarchy.
 
-**Proposed Solution**:
-1. Create `Domain` model (belongs_to :tenant, hostname: string, verified: boolean, verified_at: datetime)
-2. Update `TenantResolver` to check `domains` table after primary hostname lookup
-3. Add DNS verification job (check for CNAME or A record pointing to app)
-4. Add admin interface to manage custom domains
-5. Support wildcard domains in resolver (e.g., `*.example.com` → tenant)
+### 2. Scheduled Content Ingestion ✅ RESOLVED
 
-### 2. Scheduled Content Ingestion
+**Implementation** (completed 2025-01):
+- ✅ `Source` model with kind enum (serp_api_google_news, rss, api, web_scraper)
+- ✅ `ImportRun` model for batch execution tracking
+- ✅ `ContentItem` model for normalized content storage
+- ✅ URL canonicalisation and deduplication
+- ✅ Solid Queue recurring tasks via `config/recurring.yml`
+- ✅ Rate limiting and retry logic
+- ✅ Admin interface for source management
 
-**Current State**:
-- ✅ Solid Queue recurring jobs infrastructure exists
-- ✅ `config/recurring.yml` configured for recurring tasks
-- ❌ **No Source model** - no way to define content sources
-- ❌ **No ingestion jobs** - no jobs to fetch content
-- ❌ **No scheduling per tenant** - no tenant-specific ingestion schedules
+See `docs/ingestion-model.md` for ingestion system documentation.
+See `docs/background-jobs.md` for job configuration.
 
-**Risks**:
-- No automated content fetching (relies on manual admin input)
-- No way to schedule periodic content updates
-- No tenant-specific ingestion configuration
-- No rate limiting for external API calls
+### 3. Infrastructure for Dokku ✅ RESOLVED
 
-**Proposed Solution**:
-1. Create `Source` model (tenant_id, kind: enum, name, config: jsonb, schedule: jsonb, enabled: boolean, last_run_at, last_status)
-2. Implement ingestion jobs:
-   - `FetchSerpApiNewsJob` - Google News via SerpAPI
-   - `FetchRssJob` - RSS/Atom feeds (Feedjira gem already included)
-   - `UpsertListingsJob` - Normalize and dedupe discovered URLs
-3. Create `SourceSchedulerJob` - runs periodically, enqueues source-specific jobs based on schedule
-4. Use Solid Queue recurring tasks for per-source scheduling with jitter
-5. Add rate limiting and retry logic with exponential backoff
-6. Add source management admin interface
+**Implementation** (completed 2025-01):
+- ✅ `Procfile` with web process
+- ✅ Database configuration using `DATABASE_URL`
+- ✅ Multi-database setup (primary, cache, queue, cable)
+- ✅ Dokku deployment documentation
+- ✅ Let's Encrypt SSL via dokku-letsencrypt plugin
+- ✅ Domain sync script for automated domain management
+- ✅ Production deployment working at curated.cx
 
-### 3. Infrastructure for Dokku/DigitalOcean VPS
-
-**Current State**:
-- ✅ Dockerfile exists (compatible with Dokku)
-- ✅ Procfile.dev exists (development only)
-- ❌ **No Procfile** - Dokku requires Procfile for process definition
-- ❌ **No Dokku-specific config** - no app.json or nginx configuration
-- ❌ **Single-server assumptions** - designed for Kamal, needs adjustment for Dokku
-
-**Risks**:
-- Kamal deployment config won't work on Dokku without modification
-- No Procfile means Dokku can't determine process types
-- Database connection pooling may need adjustment for Dokku
-- SSL certificate management differs (Dokku uses Let's Encrypt plugin)
-
-**Proposed Solution**:
-1. Create `Procfile` with web and worker processes:
-   ```
-   web: bundle exec puma -C config/puma.rb
-   worker: bundle exec rails solid_queue:start
-   ```
-2. Update `config/database.yml` to use `DATABASE_URL` (Dokku standard)
-3. Document Dokku deployment process (app creation, database provisioning, SSL)
-4. Consider Dokku-specific environment variables for multi-database setup
-5. Add `app.json` for Dokku app configuration (optional but helpful)
+See `docs/deploy-dokku.md` for complete deployment guide.
 
 ---
 
-## Proposed Direction
+## Future Enhancements
 
-### Phase 1: Custom Domains (High Priority)
+### Potential Improvements
 
-1. **Model & Migration**:
-   ```ruby
-   # Migration: Create domains table
-   create_table :domains do |t|
-     t.references :tenant, null: false, foreign_key: true
-     t.string :hostname, null: false
-     t.boolean :verified, default: false
-     t.datetime :verified_at
-     t.timestamps
-   end
-   add_index :domains, :hostname, unique: true
-   ```
+1. **Personalized Feeds**:
+   - User reading history tracking
+   - Topic preference learning
+   - Source preference management
 
-2. **Update TenantResolver**:
-   - Try primary hostname lookup first
-   - Fallback to `Domain` lookup if not found
-   - Return 404 if domain exists but not verified
+2. **Advanced Analytics**:
+   - Detailed engagement metrics dashboard
+   - A/B testing framework
+   - Click-through rate optimization
 
-3. **DNS Verification**:
-   - Background job: `VerifyDomainJob`
-   - Check DNS records (A, CNAME) point to app
-   - Update `verified_at` on success
+3. **API & Integrations**:
+   - Public API for content access
+   - Webhook notifications for new content
+   - Third-party integrations (Slack, Discord)
 
-4. **Admin Interface**:
-   - Add domain management to admin panel
-   - Show verification status
-   - Manual verification trigger
-
-### Phase 2: Scheduled Ingestion (High Priority)
-
-1. **Source Model**:
-   ```ruby
-   # Migration: Create sources table
-   create_table :sources do |t|
-     t.references :tenant, null: false, foreign_key: true
-     t.integer :kind, null: false  # enum: serp_api_google_news, rss, api, web_scraper
-     t.string :name, null: false
-     t.jsonb :config, default: {}, null: false
-     t.jsonb :schedule, default: {}, null: false
-     t.boolean :enabled, default: true
-     t.datetime :last_run_at
-     t.string :last_status
-     t.timestamps
-   end
-   add_index :sources, [:tenant_id, :name], unique: true
-   ```
-
-2. **Ingestion Jobs**:
-   - `FetchSerpApiNewsJob` - accepts source_id, calls SerpAPI
-   - `FetchRssJob` - accepts source_id, parses feed
-   - `UpsertListingsJob` - accepts source_id, raw_items array, normalizes URLs
-   - `SourceSchedulerJob` - runs every 5 minutes, checks enabled sources, enqueues fetch jobs
-
-3. **Recurring Tasks**:
-   - Add per-source recurring tasks via Solid Queue recurring API
-   - Support cron expressions in `schedule` JSONB field
-   - Add jitter to prevent thundering herd
-
-4. **Admin Interface**:
-   - Source CRUD in admin panel
-   - Test source button (manual run)
-   - Source execution history
-
-### Phase 3: Dokku Deployment (Medium Priority)
-
-1. **Procfile**:
-   ```procfile
-   web: bundle exec puma -C config/puma.rb
-   worker: bundle exec rails solid_queue:start
-   ```
-
-2. **Database Configuration**:
-   - Update `config/database.yml` to use `DATABASE_URL` in production
-   - Handle multi-database setup via environment variables
-
-3. **Documentation**:
-   - Dokku deployment guide
-   - Environment variable setup
-   - SSL certificate configuration
-   - Database backup procedures
-
-4. **Optional Enhancements**:
-   - `app.json` for Dokku app metadata
-   - Health check endpoint (`/up`) already exists
-   - Log aggregation setup (optional)
+4. **Multi-Region Support**:
+   - CDN integration for static assets
+   - Database read replicas
+   - Geographic content filtering
 
 ---
 
@@ -394,20 +296,21 @@ production:
 
 **Current Strengths**:
 - ✅ Solid multi-tenancy foundation with row-level scoping
-- ✅ Hostname-based tenant resolution working well
-- ✅ Modern job system (Solid Queue) integrated
-- ✅ Containerization ready (Docker + Kamal)
+- ✅ Site/Domain hierarchy for flexible domain management
+- ✅ Hostname-based resolution with multiple fallback strategies
+- ✅ Modern job system (Solid Queue) with recurring tasks
+- ✅ Content ingestion pipeline (Source → ImportRun → ContentItem)
+- ✅ AI editorialisation for content enhancement
+- ✅ Community features (voting, comments, flagging, moderation)
+- ✅ Monetisation support (affiliate tracking, featured placements)
+- ✅ Production deployment on Dokku with SSL
 
-**Immediate Gaps**:
-- ❌ No custom domain support
-- ❌ No scheduled content ingestion
-- ❌ Dokku deployment needs configuration
-
-**Next Steps**:
-1. Implement custom domains (Domain model + TenantResolver update)
-2. Implement scheduled ingestion (Source model + jobs)
-3. Add Dokku deployment configuration (Procfile + docs)
+**Deployed Sites**:
+- curated.cx (root hub)
+- ainews.cx (AI News)
+- construction.cx (Construction News)
+- dayz.cx (DayZ Community Hub)
 
 ---
 
-*Last Updated: 2025-01-20*
+*Last Updated: 2025-01-25*

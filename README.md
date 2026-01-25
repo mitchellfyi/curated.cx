@@ -9,7 +9,6 @@ A multi-tenant curated content platform built with Rails 8.
 - Ruby 3.4.2 (see `.ruby-version`)
 - Node.js (see `.node-version`)
 - PostgreSQL
-- Redis (for background jobs)
 
 ### Quick Start
 
@@ -271,12 +270,24 @@ See `doc/SAFE_MIGRATIONS.md` for detailed examples and best practices.
 - **Tailwind CSS** - Styling
 - **Stimulus & Turbo** - Frontend interactions
 
+
 ## Architecture
 
-See `doc/adr/` for Architecture Decision Records documenting major technical decisions.
+See `docs/ARCHITECTURE.md` for detailed architecture documentation including:
+- Multi-tenancy approach (row-scoped with hostname-based resolution)
+- Background job system (Solid Queue)
+- Data model (Tenant → Site → Domain hierarchy)
+- Deployment configuration
 
+## Deployment
 
-### Use with Claude
+The application is deployed to Dokku with automatic SSL via Let's Encrypt.
 
-`claude  --allow-dangerously-skip-permissions   --chrome  --dangerously-skip-permissions --model opus --permission-mode dontAsk`
+See `docs/deploy-dokku.md` for deployment instructions.
 
+### Live Sites
+
+- **curated.cx** - Root hub
+- **ainews.cx** - AI News
+- **construction.cx** - Construction News
+- **dayz.cx** - DayZ Community Hub
