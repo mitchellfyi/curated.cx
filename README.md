@@ -252,10 +252,11 @@ See `docs/deploy-dokku.md` for detailed instructions.
 
 | Document | Description |
 |----------|-------------|
-| `docs/ARCHITECTURE.md` | System design and data model |
-| `docs/deploy-dokku.md` | Deployment guide |
-| `doc/QUALITY_AUTOMATION.md` | Quality system details |
-| `doc/SAFE_MIGRATIONS.md` | Migration best practices |
+| [docs/README.md](docs/README.md) | Documentation index |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design and data model |
+| [docs/deploy-dokku.md](docs/deploy-dokku.md) | Deployment guide |
+| [docs/quality-enforcement.md](docs/quality-enforcement.md) | Quality system details |
+| [docs/safe-migrations.md](docs/safe-migrations.md) | Migration best practices |
 
 ---
 

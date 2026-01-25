@@ -506,7 +506,7 @@ This script runs all quality checks in the correct order:
 
 ## CI/CD Integration
 
-See `doc/CI_CD_QUALITY.md` for detailed CI/CD workflow documentation.
+See [ci-cd-quality.md](ci-cd-quality.md) for detailed CI/CD workflow documentation.
 
 ### Quality Gates in CI:
 - **Fast Feedback**: Lint, format, basic security

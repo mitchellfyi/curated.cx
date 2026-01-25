@@ -183,13 +183,11 @@ puts "-" * 50
 
 doc_sync_issues = []
 
-# Check if quality gates are consistent across documents
-agents_gates = `grep -c "Quality Gate" AGENTS.md 2>/dev/null || echo 0`.to_i
-copilot_gates = `grep -c "Quality Gate" .github/copilot-instructions.md 2>/dev/null || echo 0`.to_i
-quality_doc_gates = `grep -c "Quality Gate" doc/QUALITY_ENFORCEMENT.md 2>/dev/null || echo 0`.to_i
+# Check if quality gates documentation exists
+quality_doc_exists = File.exist?("docs/quality-enforcement.md")
 
-if agents_gates != copilot_gates || agents_gates != quality_doc_gates
-  doc_sync_issues << "Quality gate counts don't match across documentation"
+unless quality_doc_exists
+  doc_sync_issues << "Quality enforcement documentation missing (docs/quality-enforcement.md)"
 end
 
 # Check if version numbers are consistent

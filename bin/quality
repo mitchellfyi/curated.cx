@@ -41,7 +41,7 @@ end
 
 puts_header("CURATED.WWW QUALITY ENFORCEMENT")
 puts "Comprehensive quality checks for Rails 8 multi-tenant curation platform"
-puts "Documentation: doc/QUALITY_ENFORCEMENT.md"
+puts "Documentation: docs/quality-enforcement.md"
 
 # Pre-flight checks
 puts_section("Pre-flight Environment Checks")
@@ -98,7 +98,7 @@ if Dir.glob("db/migrate/*.rb").any?
   else
     puts "❌ Unsafe migrations detected:"
     puts unsafe_migrations
-    puts "💡 See doc/SAFE_MIGRATIONS.md for guidance"
+    puts "💡 See docs/safe-migrations.md for guidance"
     exit 1
   end
 else
@@ -415,8 +415,8 @@ puts "   ✅ Database schema validation"
 puts "   ✅ Multi-tenant isolation verification"
 puts ""
 puts "📚 Documentation:"
-puts "   • Quality standards: doc/QUALITY_ENFORCEMENT.md"
-puts "   • CI/CD workflows: doc/CI_CD_QUALITY.md"
+puts "   • Quality standards: docs/quality-enforcement.md"
+puts "   • CI/CD workflows: docs/ci-cd-quality.md"
 puts "   • Development guide: README.md"
 puts ""
 puts "🚀 Ready for commit and deployment!"
