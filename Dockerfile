@@ -48,9 +48,9 @@ RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
-# Install node modules
+# Install node modules (production only - skip devDependencies)
 COPY package.json yarn.lock ./
-RUN yarn install --immutable
+RUN yarn install --production --frozen-lockfile
 
 # Copy application code
 COPY . .
