@@ -31,7 +31,8 @@ RSpec.describe EditorialisationService, type: :service do
   end
 
   before do
-    # Stub AiClient to avoid real API calls
+    # Stub AiClient to avoid real API calls (including API key validation)
+    allow_any_instance_of(EditorialisationServices::AiClient).to receive(:validate_api_key!)
     allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response)
     # Prevent editorialisation job from running on content_item creation
     allow_any_instance_of(ContentItem).to receive(:enqueue_editorialisation)

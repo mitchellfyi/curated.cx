@@ -32,7 +32,8 @@ RSpec.describe EditorialiseContentItemJob, type: :job do
   before do
     # Prevent editorialisation job from running on content_item creation
     allow_any_instance_of(ContentItem).to receive(:enqueue_editorialisation)
-    # Stub AiClient
+    # Stub AiClient (including API key validation for CI environment)
+    allow_any_instance_of(EditorialisationServices::AiClient).to receive(:validate_api_key!)
     allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response)
   end
 

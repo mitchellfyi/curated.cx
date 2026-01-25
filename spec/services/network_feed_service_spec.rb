@@ -13,6 +13,11 @@ RSpec.describe NetworkFeedService do
   let!(:disabled_site) { create(:site, tenant: disabled_tenant, status: :enabled) }
   let!(:site_in_disabled_tenant) { create(:site, tenant: disabled_tenant, status: :disabled) }
 
+  # Clear the network feed cache before each test to avoid stale data
+  before do
+    Rails.cache.delete_matched(/network_feed:/)
+  end
+
   describe ".sites_directory" do
     it "returns enabled sites from all enabled tenants except root" do
       result = described_class.sites_directory(tenant: root_tenant)
@@ -25,8 +30,12 @@ RSpec.describe NetworkFeedService do
     it "orders sites by name" do
       result = described_class.sites_directory(tenant: root_tenant)
 
-      expect(result.first.name).to eq("Alpha Site")
-      expect(result.last.name).to eq("Zebra Site")
+      # Verify the results are sorted alphabetically by name
+      names = result.map(&:name)
+      expect(names).to eq(names.sort)
+      # Verify our test sites are included and in correct relative order
+      expect(result).to include(site1, site2)
+      expect(result.index(site1)).to be < result.index(site2)
     end
 
     it "excludes sites from disabled tenants" do
