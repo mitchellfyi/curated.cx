@@ -10,7 +10,7 @@ on:
     - cron: '0 1 * * *'
 
 env:
-  RUBY_VERSION: '3.3'
+  RUBY_VERSION: '3.4'
   NODE_VERSION: '20'
 
 jobs:
