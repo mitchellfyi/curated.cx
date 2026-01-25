@@ -124,8 +124,18 @@ main() {
     DOMAINS_TO_ADD=$(comm -23 "$TEMP_REQUIRED" "$TEMP_CURRENT" | grep -v '^$' || true)
 
     # Find domains to remove (in current but not in required)
-    # Filter out the default Dokku domain pattern (appname.*)
-    DOMAINS_TO_REMOVE=$(comm -13 "$TEMP_REQUIRED" "$TEMP_CURRENT" | grep -v "^${APP_NAME}\." | grep -v '^$' || true)
+    # Filter out: default Dokku domain pattern (appname.*) and www variants of required domains
+    DOMAINS_TO_REMOVE=""
+    for domain in $(comm -13 "$TEMP_REQUIRED" "$TEMP_CURRENT" | grep -v "^${APP_NAME}\." | grep -v '^$'); do
+        # Skip www variants of required domains
+        base_domain="${domain#www.}"
+        if ! grep -q "^${base_domain}$" "$TEMP_REQUIRED" 2>/dev/null; then
+            DOMAINS_TO_REMOVE="${DOMAINS_TO_REMOVE} ${domain}"
+        else
+            log_info "Preserving www variant: $domain (base: $base_domain is required)"
+        fi
+    done
+    DOMAINS_TO_REMOVE=$(echo "$DOMAINS_TO_REMOVE" | tr ' ' '\n' | grep -v '^$' | sort -u || true)
 
     # Add missing domains
     if [ -n "$DOMAINS_TO_ADD" ]; then
