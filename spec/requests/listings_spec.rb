@@ -376,19 +376,21 @@ RSpec.describe "Listings", type: :request do
     it "sets correct meta tags for index action" do
       get listings_path
       expect(response.body).to include(I18n.t('listings.index.title'))
-      expect(response.body).to include(I18n.t('listings.index.description', category: I18n.t('nav.all_categories'), tenant: tenant.title))
+      expected_description = I18n.t('listings.index.description', category: I18n.t('nav.all_categories'), tenant: tenant.title)
+      expect(response.body).to include(CGI.escapeHTML(expected_description))
     end
 
     it "sets correct meta tags for category listings" do
       get category_listings_path(category1)
       expect(response.body).to include(category1.name)
-      expect(response.body).to include(I18n.t('listings.index.description', category: category1.name, tenant: tenant.title))
+      expected_description = I18n.t('listings.index.description', category: category1.name, tenant: tenant.title)
+      expect(response.body).to include(CGI.escapeHTML(expected_description))
     end
 
     it "sets correct meta tags for show action" do
       get listing_path(listing1)
-      expect(response.body).to include(listing1.title)
-      expect(response.body).to include(listing1.description)
+      expect(response.body).to include(CGI.escapeHTML(listing1.title))
+      expect(response.body).to include(CGI.escapeHTML(listing1.description))
       expect(response.body).to include(listing1.url_canonical)
     end
   end
