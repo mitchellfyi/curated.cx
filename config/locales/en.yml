@@ -615,7 +615,7 @@ en:
     login: Login
     logout: Logout
     main_navigation: Main navigation
-    powered_by: Powered by
+    powered_by: Powered by %{brand}
     settings: Settings
     sign_up: Sign up
   network:
