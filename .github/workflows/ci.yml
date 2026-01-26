@@ -16,7 +16,7 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [develop]  # main is handled by deploy.yml which calls this workflow
   pull_request:
     branches: [main, develop]
   workflow_call:
@@ -28,9 +28,9 @@ env:
   RAILS_ENV: test
   DATABASE_URL: postgres://postgres:password@localhost:5432/curated_test
 
-# Cancel in-progress runs for the same branch
+# Cancel in-progress runs for the same branch/PR
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
