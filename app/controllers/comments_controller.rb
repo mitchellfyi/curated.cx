@@ -2,16 +2,13 @@
 
 class CommentsController < ApplicationController
   include RateLimitable
+  include BanCheckable
 
   before_action :authenticate_user!, except: %i[index show]
   before_action :set_content_item
   before_action :set_comment, only: %i[show update destroy]
   before_action :check_ban_status, only: %i[create update]
   before_action :check_comments_locked, only: :create
-
-  # Rate limit: 10 comments per hour
-  COMMENT_RATE_LIMIT = 10
-  COMMENT_RATE_PERIOD = 1.hour
 
   # GET /content_items/:content_item_id/comments
   def index
@@ -37,7 +34,7 @@ class CommentsController < ApplicationController
 
     authorize @comment
 
-    if rate_limited?(current_user, :comment, limit: COMMENT_RATE_LIMIT, period: COMMENT_RATE_PERIOD)
+    if rate_limited?(current_user, :comment, **RateLimitable::LIMITS[:comment])
       return render_rate_limited(message: I18n.t("comments.rate_limited"))
     end
 
@@ -99,16 +96,6 @@ class CommentsController < ApplicationController
 
   def comment_params
     params.require(:comment).permit(:body, :parent_id)
-  end
-
-  def check_ban_status
-    if current_user.banned_from?(Current.site)
-      respond_to do |format|
-        format.html { redirect_back fallback_location: root_path, alert: I18n.t("comments.banned") }
-        format.json { render json: { error: I18n.t("comments.banned") }, status: :forbidden }
-        format.turbo_stream { head :forbidden }
-      end
-    end
   end
 
   def check_comments_locked

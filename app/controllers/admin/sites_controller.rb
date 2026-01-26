@@ -21,14 +21,7 @@ class Admin::SitesController < ApplicationController
   def create
     @site = Site.new(site_params.except(:topics))
     @site.tenant = Current.tenant
-
-    # Handle topics separately
-    topics_string = params[:site][:topics]
-    if topics_string.present?
-      topics_array = topics_string.split(",").map(&:strip).reject(&:blank?)
-      @site.config ||= {}
-      @site.config["topics"] = topics_array
-    end
+    apply_topics_to_config(@site)
 
     if @site.save
       redirect_to admin_site_path(@site), notice: t("admin.sites.created")
@@ -42,15 +35,8 @@ class Admin::SitesController < ApplicationController
 
   def update
     update_params = site_params.except(:topics)
-
-    # Handle topics separately
-    topics_string = params[:site][:topics]
-    if topics_string.present?
-      topics_array = topics_string.split(",").map(&:strip).reject(&:blank?)
-      @site.config ||= {}
-      @site.config["topics"] = topics_array
-      update_params[:config] = @site.config
-    end
+    apply_topics_to_config(@site)
+    update_params[:config] = @site.config if @site.config_changed?
 
     if @site.update(update_params)
       redirect_to admin_site_path(@site), notice: t("admin.sites.updated")
@@ -72,5 +58,14 @@ class Admin::SitesController < ApplicationController
 
   def site_params
     params.require(:site).permit(:name, :slug, :description)
+  end
+
+  def apply_topics_to_config(site)
+    topics_string = params[:site][:topics]
+    return unless topics_string.present?
+
+    topics_array = topics_string.split(",").map(&:strip).reject(&:blank?)
+    site.config ||= {}
+    site.config["topics"] = topics_array
   end
 end

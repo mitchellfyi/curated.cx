@@ -93,7 +93,7 @@ RSpec.describe "Admin::Taxonomies", type: :request do
             post admin_taxonomies_path, params: {
               taxonomy: { name: "", slug: "" }
             }
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
           end
         end
 
@@ -123,7 +123,7 @@ RSpec.describe "Admin::Taxonomies", type: :request do
             patch admin_taxonomy_path(@tenant1_taxonomy), params: {
               taxonomy: { name: "" }
             }
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
           end
         end
 

@@ -2,14 +2,11 @@
 
 class FlagsController < ApplicationController
   include RateLimitable
+  include BanCheckable
 
   before_action :authenticate_user!
   before_action :set_flaggable
   before_action :check_ban_status
-
-  # Rate limit: 20 flags per hour
-  FLAG_RATE_LIMIT = 20
-  FLAG_RATE_PERIOD = 1.hour
 
   # POST /flags
   def create
@@ -19,7 +16,7 @@ class FlagsController < ApplicationController
 
     authorize @flag
 
-    if rate_limited?(current_user, :flag, limit: FLAG_RATE_LIMIT, period: FLAG_RATE_PERIOD)
+    if rate_limited?(current_user, :flag, **RateLimitable::LIMITS[:flag])
       return render_rate_limited(message: I18n.t("flags.rate_limited"))
     end
 
@@ -56,15 +53,5 @@ class FlagsController < ApplicationController
 
   def flag_params
     params.require(:flag).permit(:reason, :details)
-  end
-
-  def check_ban_status
-    return unless current_user.banned_from?(Current.site)
-
-    respond_to do |format|
-      format.html { redirect_back fallback_location: root_path, alert: I18n.t("flags.banned") }
-      format.json { render json: { error: I18n.t("flags.banned") }, status: :forbidden }
-      format.turbo_stream { head :forbidden }
-    end
   end
 end

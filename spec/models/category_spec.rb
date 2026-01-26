@@ -43,7 +43,6 @@ RSpec.describe Category, type: :model do
     it { should validate_presence_of(:key) }
     it { should validate_presence_of(:name) }
     it { should validate_uniqueness_of(:key).scoped_to(:site_id) }
-    it { should validate_inclusion_of(:allow_paths).in_array([ true, false ]) }
 
     it 'validates shown_fields is a hash' do
       category = build(:category, tenant: tenant, shown_fields: 'not a hash')

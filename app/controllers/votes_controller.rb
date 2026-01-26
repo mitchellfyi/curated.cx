@@ -2,20 +2,17 @@
 
 class VotesController < ApplicationController
   include RateLimitable
+  include BanCheckable
 
   before_action :authenticate_user!
   before_action :set_content_item
   before_action :check_ban_status
 
-  # Rate limit: 100 votes per hour
-  VOTE_RATE_LIMIT = 100
-  VOTE_RATE_PERIOD = 1.hour
-
   # POST /content_items/:id/vote
   def toggle
     authorize Vote
 
-    if rate_limited?(current_user, :vote, limit: VOTE_RATE_LIMIT, period: VOTE_RATE_PERIOD)
+    if rate_limited?(current_user, :vote, **RateLimitable::LIMITS[:vote])
       return render_rate_limited(message: I18n.t("votes.rate_limited"))
     end
 
@@ -41,16 +38,6 @@ class VotesController < ApplicationController
 
   def set_content_item
     @content_item = ContentItem.find(params[:id])
-  end
-
-  def check_ban_status
-    if current_user.banned_from?(Current.site)
-      respond_to do |format|
-        format.html { redirect_back fallback_location: root_path, alert: I18n.t("votes.banned") }
-        format.json { render json: { error: I18n.t("votes.banned") }, status: :forbidden }
-        format.turbo_stream { head :forbidden }
-      end
-    end
   end
 
   def render_vote_update

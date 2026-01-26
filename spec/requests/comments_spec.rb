@@ -107,7 +107,7 @@ RSpec.describe "Comments", type: :request do
         it "returns unprocessable entity" do
           post content_item_comments_path(content_item), params: invalid_params, as: :json
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it "returns error messages" do

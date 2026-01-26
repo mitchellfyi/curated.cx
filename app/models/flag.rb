@@ -136,7 +136,15 @@ class Flag < ApplicationRecord
 
     return unless flag_count >= threshold
 
-    flaggable.update!(hidden: true) if flaggable.respond_to?(:hidden=)
+    # Use hide! method for ContentItem (uses hidden_at timestamp)
+    # or hidden= setter for other flaggable types
+    if flaggable.respond_to?(:hide!)
+      # hide! requires a user, but we don't have one in the callback context
+      # so we set hidden_at directly without tracking who hid it
+      flaggable.update!(hidden_at: Time.current)
+    elsif flaggable.respond_to?(:hidden=)
+      flaggable.update!(hidden: true)
+    end
   end
 
   def notify_admins

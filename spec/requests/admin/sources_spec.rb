@@ -204,10 +204,10 @@ RSpec.describe "Admin::Sources", type: :request do
           }.not_to change(Source, :count)
         end
 
-        it "renders new with unprocessable_entity status" do
+        it "renders new with unprocessable_content status" do
           post admin_sources_path, params: invalid_params
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
     end
@@ -269,10 +269,10 @@ RSpec.describe "Admin::Sources", type: :request do
           expect(source.name).not_to be_blank
         end
 
-        it "renders edit with unprocessable_entity status" do
+        it "renders edit with unprocessable_content status" do
           patch admin_source_path(source), params: invalid_params
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
     end

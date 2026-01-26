@@ -413,7 +413,6 @@ en:
   comments:
     back_to_comments: Back to comments
     back_to_feed: Back to feed
-    banned: You are banned from commenting on this site
     comment_count:
       one: 1 comment
       other: "%{count} comments"
@@ -454,6 +453,7 @@ en:
       one: "%{count} error prevented this from being saved"
       other: "%{count} errors prevented this from being saved"
     rate_limited: You have exceeded the rate limit. Please try again later.
+    user_banned: You are banned from this site.
   feed:
     content:
       untitled: Untitled
@@ -504,7 +504,6 @@ en:
       url_label: URL
   flags:
     already_flagged: You have already flagged this content
-    banned: You are banned from flagging content on this site
     created: Content has been flagged for review
     details_placeholder: Provide additional details (optional)
     flagged: Flagged
@@ -663,6 +662,5 @@ en:
       long: "%B %d, %Y at %I:%M %p"
       short: "%b %d"
   votes:
-    banned: You are banned from voting on this site
     rate_limited: You're voting too quickly. Please wait before voting again.
     sign_in_to_vote: Sign in to vote

@@ -110,7 +110,7 @@ RSpec.describe "Admin::TaggingRules", type: :request do
             post admin_tagging_rules_path, params: {
               tagging_rule: { pattern: "", priority: nil }
             }
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
           end
         end
 
@@ -140,7 +140,7 @@ RSpec.describe "Admin::TaggingRules", type: :request do
             patch admin_tagging_rule_path(@tenant1_rule), params: {
               tagging_rule: { pattern: "" }
             }
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
           end
         end
 

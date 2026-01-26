@@ -8,13 +8,21 @@
 #     include RateLimitable
 #
 #     def create
-#       return render_rate_limited if rate_limited?(current_user, :vote, limit: 100, period: 1.hour)
+#       return render_rate_limited if rate_limited?(current_user, :vote, **LIMITS[:vote])
 #       track_action(current_user, :vote)
 #       # ... create vote
 #     end
 #   end
 module RateLimitable
   extend ActiveSupport::Concern
+
+  # Centralized rate limit configuration
+  # Keys are action symbols, values are hashes with :limit and :period
+  LIMITS = {
+    vote: { limit: 100, period: 1.hour },
+    comment: { limit: 10, period: 1.hour },
+    flag: { limit: 20, period: 1.hour }
+  }.freeze
 
   # Track an action for rate limiting purposes
   # @param user [User] the user performing the action

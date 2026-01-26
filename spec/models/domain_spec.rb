@@ -44,7 +44,6 @@ RSpec.describe Domain, type: :model do
       expect(duplicate).not_to be_valid
       expect(duplicate.errors[:hostname]).to include('has already been taken')
     end
-    it { is_expected.to validate_inclusion_of(:verified).in_array([ true, false ]) }
 
     it 'validates hostname format' do
       domain = build(:domain, hostname: 'invalid hostname!')

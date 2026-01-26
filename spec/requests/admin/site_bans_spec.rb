@@ -163,7 +163,7 @@ RSpec.describe "Admin::SiteBans", type: :request do
         it "returns unprocessable entity" do
           post admin_site_bans_path, params: invalid_params
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it "renders new template" do
@@ -181,7 +181,7 @@ RSpec.describe "Admin::SiteBans", type: :request do
         it "returns unprocessable entity" do
           post admin_site_bans_path, params: valid_params
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
 
@@ -198,7 +198,7 @@ RSpec.describe "Admin::SiteBans", type: :request do
         it "returns unprocessable entity" do
           post admin_site_bans_path, params: self_ban_params
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
     end

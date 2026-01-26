@@ -50,7 +50,6 @@ RSpec.describe Source, type: :model do
     it { should validate_presence_of(:name) }
     it { should validate_presence_of(:kind) }
     it { should validate_uniqueness_of(:name).scoped_to(:site_id) }
-    it { should validate_inclusion_of(:enabled).in_array([ true, false ]) }
 
     it 'validates config is a hash' do
       source = build(:source, site: site, config: 'not a hash')

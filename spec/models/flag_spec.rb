@@ -301,8 +301,10 @@ RSpec.describe Flag, type: :model do
           allow(site).to receive(:setting).with("moderation.flag_notifications_enabled", true).and_return(false)
         end
 
-        it "hides content when threshold is reached", skip: "ContentItem may not have hidden attribute" do
-          hideable_content = create(:content_item, site: site, source: source, hidden: false)
+        it "hides content when threshold is reached" do
+          hideable_content = create(:content_item, site: site, source: source)
+          expect(hideable_content.hidden?).to be false
+
           user1 = create(:user)
           user2 = create(:user)
 
