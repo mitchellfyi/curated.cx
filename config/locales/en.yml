@@ -448,44 +448,44 @@ en:
   counts:
     item: Item
     listing: Listing
-  digest_subscriptions:
-    title: Email Digest
-    description: Get the best content delivered to your inbox
-    subscribed: You're subscribed
-    subscribe: Subscribe to Digest
-    resubscribe: Resubscribe
-    update: Update Preferences
-    unsubscribe_button: Unsubscribe
-    confirm_unsubscribe: Are you sure you want to unsubscribe?
-    frequency_label: Frequency
-    frequency:
-      weekly: Weekly (every Monday)
-      daily: Daily
-    created: You're now subscribed to the digest
-    updated: Your preferences have been updated
-    unsubscribed: You've been unsubscribed
-    currently_unsubscribed: You're currently unsubscribed
-    unsubscribed_title: Unsubscribed
-    unsubscribed_message: You've been unsubscribed from %{site} digest emails.
-    error_title: Invalid Link
-    error_message: This unsubscribe link is invalid or has expired.
-    back_to_site: Back to Site
   digest_mailer:
-    weekly_digest:
-      subject: "Your weekly digest from %{site}"
-      intro: Here's what you missed this week
     daily_digest:
-      subject: "Today's highlights from %{site}"
       intro: Here's what's happening today
-    sections:
-      top_content: Top Content
-      todays_highlights: Today's Highlights
-      new_listings: New Listings
-    view_more: View More
+      subject: Today's highlights from %{site}
     footer:
-      sent_to: "Sent to %{email}"
-      unsubscribe: Unsubscribe
       manage_preferences: Manage Preferences
+      sent_to: Sent to %{email}
+      unsubscribe: Unsubscribe
+    sections:
+      new_listings: New Listings
+      todays_highlights: Today's Highlights
+      top_content: Top Content
+    view_more: View More
+    weekly_digest:
+      intro: Here's what you missed this week
+      subject: Your weekly digest from %{site}
+  digest_subscriptions:
+    back_to_site: Back to Site
+    confirm_unsubscribe: Are you sure you want to unsubscribe?
+    created: You're now subscribed to the digest
+    currently_unsubscribed: You're currently unsubscribed
+    description: Get the best content delivered to your inbox
+    error_message: This unsubscribe link is invalid or has expired.
+    error_title: Invalid Link
+    frequency:
+      daily: Daily
+      weekly: Weekly (every Monday)
+    frequency_label: Frequency
+    resubscribe: Resubscribe
+    subscribe: Subscribe to Digest
+    subscribed: You're subscribed
+    title: Email Digest
+    unsubscribe_button: Unsubscribe
+    unsubscribed: You've been unsubscribed
+    unsubscribed_message: You've been unsubscribed from %{site} digest emails.
+    unsubscribed_title: Unsubscribed
+    update: Update Preferences
+    updated: Your preferences have been updated
   errors:
     form_errors:
       one: "%{count} error prevented this from being saved"
@@ -656,33 +656,6 @@ en:
     search_placeholder: Search...
     settings: Settings
     sign_up: Sign up
-  search:
-    title: Search
-    results_title: "Search: %{query}"
-    description: Search content and listings
-    placeholder: Search content, listings, and more...
-    button: Search
-    filter_by: Filter by
-    types:
-      all: All
-      content: Content
-      listings: Listings
-    sections:
-      content: Content
-      listings: Listings
-    results_count:
-      one: Found 1 result for "%{query}"
-      other: Found %{count} results for "%{query}"
-    no_results:
-      title: No results found
-      description: We couldn't find anything matching "%{query}"
-      suggestions_title: Suggestions
-      suggestion_spelling: Check your spelling
-      suggestion_keywords: Try different keywords
-      suggestion_broader: Use more general terms
-    empty:
-      title: Start searching
-      description: Enter a search term to find content and listings
   network:
     cta:
       button: Get in Touch
@@ -702,6 +675,33 @@ en:
       articles: Articles
       listings: Listings
       sites: Sites
+  search:
+    button: Search
+    description: Search content and listings
+    empty:
+      description: Enter a search term to find content and listings
+      title: Start searching
+    filter_by: Filter by
+    no_results:
+      description: We couldn't find anything matching "%{query}"
+      suggestion_broader: Use more general terms
+      suggestion_keywords: Try different keywords
+      suggestion_spelling: Check your spelling
+      suggestions_title: Suggestions
+      title: No results found
+    placeholder: Search content, listings, and more...
+    results_count:
+      one: Found 1 result for "%{query}"
+      other: Found %{count} results for "%{query}"
+    results_title: 'Search: %{query}'
+    sections:
+      content: Content
+      listings: Listings
+    title: Search
+    types:
+      all: All
+      content: Content
+      listings: Listings
   tenants:
     attributes:
       created_at: Created
