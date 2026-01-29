@@ -4,17 +4,21 @@
   <div class="<%= depth > 0 ? 'ml-6 pl-4 border-l-2 border-gray-200' : '' %>">
     <article class="py-3" id="<%= dom_id(comment, :article) %>">
       <div class="flex items-start gap-3">
-        <%# User avatar placeholder %>
-        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm font-medium">
-          <%= comment.user.email[0].upcase %>
-        </div>
+        <%# User avatar %>
+        <%= link_to profile_path(comment.user), class: "flex-shrink-0" do %>
+          <% if comment.user.avatar_url.present? %>
+            <%= image_tag comment.user.avatar_url, alt: comment.user.profile_name, class: "w-8 h-8 rounded-full object-cover" %>
+          <% else %>
+            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
+              <%= comment.user.initials %>
+            </div>
+          <% end %>
+        <% end %>
 
         <div class="flex-1 min-w-0">
           <%# Comment header %>
           <div class="flex items-center gap-2 text-sm">
-            <span class="font-medium text-gray-900">
-              <%= comment.user.email.split('@').first %>
-            </span>
+            <%= link_to comment.user.profile_name, profile_path(comment.user), class: "font-medium text-gray-900 hover:text-blue-600" %>
             <time class="text-gray-500" datetime="<%= comment.created_at.iso8601 %>">
               <%= t('time.ago', time: time_ago_in_words(comment.created_at)) %>
             </time>

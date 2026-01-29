@@ -83,6 +83,9 @@ Rails.application.routes.draw do
   # Bookmarks (My Saves)
   resources :bookmarks, only: [ :index, :create, :destroy ]
 
+  # User profiles
+  resources :profiles, only: [ :show, :edit, :update ]
+
   # Public feed routes
   resources :feed, only: [ :index ], controller: "feed"
   get "feed/rss", to: "feed#rss", as: :feed_rss, defaults: { format: :rss }

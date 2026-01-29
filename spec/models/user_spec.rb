@@ -4,6 +4,9 @@
 #
 #  id                     :bigint           not null, primary key
 #  admin                  :boolean          default(FALSE), not null
+#  avatar_url             :string
+#  bio                    :text
+#  display_name           :string
 #  email                  :string           default(""), not null
 #  encrypted_password     :string           default(""), not null
 #  remember_created_at    :datetime

@@ -693,6 +693,29 @@ en:
       articles: Articles
       listings: Listings
       sites: Sites
+  profiles:
+    commented_on: Commented on
+    default_description: View %{name}'s profile and activity
+    edit: Edit Profile
+    edit_title: Edit Profile
+    form:
+      avatar_hint: Enter a URL to an image for your avatar
+      bio_hint: A short bio about yourself (500 characters max)
+      bio_placeholder: Tell us a bit about yourself
+      display_name_hint: How your name appears to others (50 characters max)
+      display_name_placeholder: Your display name
+      save: Save Changes
+    member_since: Member since %{date}
+    no_comments: No comments yet
+    no_votes: No votes yet
+    stats:
+      comments: comments
+      votes: votes
+    tabs:
+      comments: Comments
+      votes: Votes
+    title: "%{name}'s Profile"
+    updated: Profile updated
   search:
     button: Search
     description: Search content and listings

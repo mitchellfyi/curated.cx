@@ -6,6 +6,9 @@
 #
 #  id                     :bigint           not null, primary key
 #  admin                  :boolean          default(FALSE), not null
+#  avatar_url             :string
+#  bio                    :text
+#  display_name           :string
 #  email                  :string           default(""), not null
 #  encrypted_password     :string           default(""), not null
 #  remember_created_at    :datetime
@@ -39,6 +42,9 @@ class User < ApplicationRecord
   # Validations
   validates :email, presence: true, uniqueness: true
   validates :admin, inclusion: { in: [ true, false ] }
+  validates :display_name, length: { maximum: 50 }, allow_blank: true
+  validates :bio, length: { maximum: 500 }, allow_blank: true
+  validates :avatar_url, length: { maximum: 500 }, allow_blank: true
 
   # Scopes
   scope :admins, -> { where(admin: true) }
@@ -67,5 +73,20 @@ class User < ApplicationRecord
 
   def banned_from?(site)
     site_bans.for_site(site).active.exists?
+  end
+
+  # Profile methods
+  def profile_name
+    display_name.presence || email.split("@").first
+  end
+
+  def initials
+    name = profile_name
+    words = name.split(/[\s_.-]+/)
+    if words.length >= 2
+      "#{words.first[0]}#{words.last[0]}".upcase
+    else
+      name[0..1].upcase
+    end
   end
 end

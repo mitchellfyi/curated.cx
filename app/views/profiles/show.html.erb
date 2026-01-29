@@ -1,0 +1,139 @@
+<% content_for :title, t('profiles.title', name: @user.profile_name) %>
+
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+  <%# Profile Header %>
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <div class="flex items-start gap-6">
+      <%# Avatar %>
+      <div class="flex-shrink-0">
+        <% if @user.avatar_url.present? %>
+          <%= image_tag @user.avatar_url, alt: @user.profile_name, class: "w-24 h-24 rounded-full object-cover" %>
+        <% else %>
+          <div class="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+            <span class="text-2xl font-bold text-blue-600"><%= @user.initials %></span>
+          </div>
+        <% end %>
+      </div>
+
+      <%# Profile Info %>
+      <div class="flex-1">
+        <div class="flex items-start justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900"><%= @user.profile_name %></h1>
+            <p class="text-gray-500 text-sm mt-1">
+              <%= t('profiles.member_since', date: @user.created_at.strftime('%B %Y')) %>
+            </p>
+          </div>
+
+          <% if user_signed_in? && current_user.id == @user.id %>
+            <%= link_to edit_profile_path(@user), class: "inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm" do %>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              <%= t('profiles.edit') %>
+            <% end %>
+          <% end %>
+        </div>
+
+        <% if @user.bio.present? %>
+          <p class="mt-4 text-gray-700"><%= @user.bio %></p>
+        <% end %>
+
+        <%# Stats %>
+        <div class="flex items-center gap-6 mt-4 text-sm">
+          <div class="flex items-center gap-1">
+            <span class="font-semibold text-gray-900"><%= @comments.size %></span>
+            <span class="text-gray-500"><%= t('profiles.stats.comments') %></span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="font-semibold text-gray-900"><%= @votes.size %></span>
+            <span class="text-gray-500"><%= t('profiles.stats.votes') %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Activity Tabs %>
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="border-b border-gray-200">
+      <nav class="flex -mb-px" aria-label="Tabs">
+        <button class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600" data-tab="comments">
+          <%= t('profiles.tabs.comments') %> (<%= @comments.size %>)
+        </button>
+        <button class="px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent" data-tab="votes">
+          <%= t('profiles.tabs.votes') %> (<%= @votes.size %>)
+        </button>
+      </nav>
+    </div>
+
+    <%# Comments Tab %>
+    <div id="tab-comments" class="p-6">
+      <% if @comments.any? %>
+        <div class="space-y-4">
+          <% @comments.each do |comment| %>
+            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+              <p class="text-gray-700"><%= truncate(comment.body, length: 200) %></p>
+              <div class="mt-2 text-sm text-gray-500">
+                <% if comment.content_item %>
+                  <%= t('profiles.commented_on') %>
+                  <a href="<%= comment.content_item.url_canonical %>" class="text-blue-600 hover:underline" target="_blank" rel="noopener">
+                    <%= comment.content_item.title.presence || t('feed.content.untitled') %>
+                  </a>
+                <% end %>
+                <span class="mx-2">&middot;</span>
+                <%= time_ago_in_words(comment.created_at) %> ago
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-center py-8"><%= t('profiles.no_comments') %></p>
+      <% end %>
+    </div>
+
+    <%# Votes Tab (hidden by default) %>
+    <div id="tab-votes" class="p-6 hidden">
+      <% if @votes.any? %>
+        <div class="space-y-4">
+          <% @votes.each do |vote| %>
+            <% if vote.content_item %>
+              <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                <a href="<%= vote.content_item.url_canonical %>" class="font-medium text-gray-900 hover:text-blue-600" target="_blank" rel="noopener">
+                  <%= vote.content_item.title.presence || t('feed.content.untitled') %>
+                </a>
+                <div class="mt-1 text-sm text-gray-500">
+                  <%= time_ago_in_words(vote.created_at) %> ago
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-center py-8"><%= t('profiles.no_votes') %></p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('[data-tab]');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Update tab styles
+        tabs.forEach(t => {
+          t.classList.remove('text-blue-600', 'border-blue-600');
+          t.classList.add('text-gray-500', 'border-transparent');
+        });
+        this.classList.remove('text-gray-500', 'border-transparent');
+        this.classList.add('text-blue-600', 'border-blue-600');
+
+        // Show/hide content
+        document.getElementById('tab-comments').classList.add('hidden');
+        document.getElementById('tab-votes').classList.add('hidden');
+        document.getElementById('tab-' + this.dataset.tab).classList.remove('hidden');
+      });
+    });
+  });
+</script>

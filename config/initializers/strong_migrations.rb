@@ -34,7 +34,8 @@ StrongMigrations.add_check do |method, args|
       # For large tables, suggest using safer migration patterns
       case method
       when :add_column
-        if args.length > 2 && args[2]&.key?(:default) && args[2][:default]
+        options = args[2].is_a?(Hash) ? args[2] : {}
+        if options.key?(:default) && options[:default]
           stop! <<~MSG
             Adding a column with a default value to #{table_name} can cause downtime.
 
