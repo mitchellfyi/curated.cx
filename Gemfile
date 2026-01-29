@@ -140,5 +140,10 @@ gem "meta-tags", "~> 2.22"
 gem "strong_migrations", "~> 2.5"
 gem "draper", "~> 4.0"
 
+# Charts and analytics
+gem "chartkick", "~> 5.1"
+gem "groupdate", "~> 6.5"
+gem "csv"
+
 # AI/LLM integration
 gem "ruby-openai", "~> 8.3"

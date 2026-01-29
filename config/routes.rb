@@ -57,6 +57,13 @@ Rails.application.routes.draw do
         post :unlock_comments
       end
     end
+
+    # Affiliate analytics
+    resources :affiliate_clicks, only: [ :index ] do
+      collection do
+        get :export
+      end
+    end
   end
   devise_for :users
 

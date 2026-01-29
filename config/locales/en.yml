@@ -21,6 +21,29 @@ en:
     view_all: View all
     view_arrow: View →
   admin:
+    affiliate_clicks:
+      chart_title: Clicks Over Time
+      clicks: clicks
+      description: Track affiliate link performance and optimize revenue
+      export_csv: Export CSV
+      filters:
+        all_categories: All Categories
+        apply: Apply Filters
+        category: Category
+        period: Time Period
+      no_clicks: No affiliate clicks recorded for this period
+      periods:
+        30d: Last 30 days
+        365d: Last year
+        7d: Last 7 days
+        90d: Last 90 days
+      stats:
+        clicks_this_week: This Week
+        clicks_today: Today
+        total_clicks: Total Clicks
+        unique_listings: Unique Listings
+      title: Affiliate Analytics
+      top_listings: Top Performing Listings
     categories:
       created: Created
       deleted: Deleted
