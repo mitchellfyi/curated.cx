@@ -713,6 +713,7 @@ en:
       votes: votes
     tabs:
       comments: Comments
+      navigation: Activity tabs
       votes: Votes
     title: "%{name}'s Profile"
     updated: Profile updated
