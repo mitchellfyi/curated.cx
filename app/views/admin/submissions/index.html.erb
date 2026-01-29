@@ -1,0 +1,180 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.submissions.title") %></h1>
+      <p class="mt-2 text-gray-600"><%= t("admin.submissions.description") %></p>
+    </div>
+
+    <%# Stats %>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.pending") %></dt>
+                <dd class="text-lg font-medium text-gray-900"><%= @stats[:pending] %></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.approved") %></dt>
+                <dd class="text-lg font-medium text-gray-900"><%= @stats[:approved] %></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.rejected") %></dt>
+                <dd class="text-lg font-medium text-gray-900"><%= @stats[:rejected] %></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# Filters %>
+    <div class="bg-white shadow rounded-lg mb-8">
+      <div class="px-4 py-3 border-b border-gray-200">
+        <nav class="flex space-x-4" aria-label="<%= t('admin.submissions.filters.tabs') %>">
+          <%= link_to admin_submissions_path(status: "pending"),
+                      class: "px-3 py-2 text-sm font-medium rounded-md #{@status == 'pending' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'}" do %>
+            <%= t("admin.submissions.filters.pending") %>
+            <% if @stats[:pending] > 0 %>
+              <span class="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-yellow-200 text-yellow-800">
+                <%= @stats[:pending] %>
+              </span>
+            <% end %>
+          <% end %>
+          <%= link_to admin_submissions_path(status: "approved"),
+                      class: "px-3 py-2 text-sm font-medium rounded-md #{@status == 'approved' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'}" do %>
+            <%= t("admin.submissions.filters.approved") %>
+          <% end %>
+          <%= link_to admin_submissions_path(status: "rejected"),
+                      class: "px-3 py-2 text-sm font-medium rounded-md #{@status == 'rejected' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'}" do %>
+            <%= t("admin.submissions.filters.rejected") %>
+          <% end %>
+          <%= link_to admin_submissions_path(status: "all"),
+                      class: "px-3 py-2 text-sm font-medium rounded-md #{@status == 'all' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'}" do %>
+            <%= t("admin.submissions.filters.all") %>
+          <% end %>
+        </nav>
+      </div>
+    </div>
+
+    <%# Submissions List %>
+    <% if @submissions.any? %>
+      <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <ul class="divide-y divide-gray-200">
+          <% @submissions.each do |submission| %>
+            <%= turbo_frame_tag dom_id(submission) do %>
+              <li class="p-4 hover:bg-gray-50" id="<%= dom_id(submission) %>">
+                <div class="flex items-start">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-sm font-medium text-gray-900">
+                        <%= link_to submission.title, admin_submission_path(submission), class: "hover:text-blue-600" %>
+                      </h3>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                        <%= t("submissions.types.#{submission.listing_type}") %>
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-500 truncate mt-1">
+                      <a href="<%= submission.url %>" target="_blank" rel="noopener" class="hover:underline"><%= submission.url %></a>
+                    </p>
+                    <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                      <span><%= submission.user.profile_name %></span>
+                      <span>&bull;</span>
+                      <span><%= submission.category.name %></span>
+                      <span>&bull;</span>
+                      <span><%= time_ago_in_words(submission.created_at) %> <%= t("time.ago_suffix") %></span>
+                    </div>
+                  </div>
+
+                  <% if submission.pending? %>
+                    <div class="ml-4 flex-shrink-0 flex gap-2">
+                      <%= button_to approve_admin_submission_path(submission),
+                                    method: :post,
+                                    class: "inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700",
+                                    data: { turbo_stream: true } do %>
+                        <svg class="mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <%= t("admin.submissions.actions.approve") %>
+                      <% end %>
+                      <%= button_to reject_admin_submission_path(submission),
+                                    method: :post,
+                                    class: "inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50",
+                                    data: { turbo_stream: true } do %>
+                        <svg class="mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        <%= t("admin.submissions.actions.reject") %>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <div class="ml-4 flex-shrink-0">
+                      <% case submission.status %>
+                      <% when "approved" %>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <%= t("submissions.status.approved") %>
+                        </span>
+                      <% when "rejected" %>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <%= t("submissions.status.rejected") %>
+                        </span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </li>
+            <% end %>
+          <% end %>
+        </ul>
+      </div>
+    <% else %>
+      <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t("admin.submissions.empty.title") %></h3>
+        <p class="mt-1 text-sm text-gray-500"><%= t("admin.submissions.empty.description") %></p>
+      </div>
+    <% end %>
+  </div>
+</div>

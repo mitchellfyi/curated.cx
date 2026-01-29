@@ -64,6 +64,14 @@ Rails.application.routes.draw do
         get :export
       end
     end
+
+    # User submissions moderation
+    resources :submissions, only: [ :index, :show ] do
+      member do
+        post :approve
+        post :reject
+      end
+    end
   end
   devise_for :users
 
@@ -92,6 +100,9 @@ Rails.application.routes.draw do
 
   # User profiles
   resources :profiles, only: [ :show, :edit, :update ]
+
+  # User submissions
+  resources :submissions, only: [ :index, :show, :new, :create ]
 
   # Public feed routes
   resources :feed, only: [ :index ], controller: "feed"

@@ -1,0 +1,69 @@
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+  <div class="mb-8 flex justify-between items-start">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900"><%= t("submissions.index.title") %></h1>
+      <p class="mt-2 text-gray-600"><%= t("submissions.index.description") %></p>
+    </div>
+    <%= link_to new_submission_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+      <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      <%= t("submissions.new_submission") %>
+    <% end %>
+  </div>
+
+  <% if @submissions.any? %>
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+      <ul class="divide-y divide-gray-200">
+        <% @submissions.each do |submission| %>
+          <li class="p-4 hover:bg-gray-50">
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-medium text-gray-900 truncate">
+                  <%= link_to submission.title, submission_path(submission), class: "hover:text-blue-600" %>
+                </h3>
+                <p class="text-sm text-gray-500 truncate mt-1"><%= submission.url %></p>
+                <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                  <span><%= submission.category.name %></span>
+                  <span>&bull;</span>
+                  <span><%= t("submissions.types.#{submission.listing_type}") %></span>
+                  <span>&bull;</span>
+                  <span><%= time_ago_in_words(submission.created_at) %> <%= t("time.ago_suffix") %></span>
+                </div>
+              </div>
+              <div class="ml-4 flex-shrink-0">
+                <% case submission.status %>
+                <% when "pending" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <%= t("submissions.status.pending") %>
+                  </span>
+                <% when "approved" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <%= t("submissions.status.approved") %>
+                  </span>
+                <% when "rejected" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    <%= t("submissions.status.rejected") %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% else %>
+    <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t("submissions.empty.title") %></h3>
+      <p class="mt-1 text-sm text-gray-500"><%= t("submissions.empty.description") %></p>
+      <div class="mt-6">
+        <%= link_to new_submission_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+          <%= t("submissions.new_submission") %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

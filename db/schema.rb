@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_29_213841) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_29_215435) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -373,6 +373,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_213841) do
     t.index ["tenant_id"], name: "index_sources_on_tenant_id"
   end
 
+  create_table "submissions", force: :cascade do |t|
+    t.bigint "category_id", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "ip_address"
+    t.bigint "listing_id"
+    t.integer "listing_type", default: 0, null: false
+    t.datetime "reviewed_at"
+    t.bigint "reviewed_by_id"
+    t.text "reviewer_notes"
+    t.bigint "site_id", null: false
+    t.integer "status", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.text "url", null: false
+    t.bigint "user_id", null: false
+    t.index ["category_id"], name: "index_submissions_on_category_id"
+    t.index ["listing_id"], name: "index_submissions_on_listing_id"
+    t.index ["reviewed_by_id"], name: "index_submissions_on_reviewed_by_id"
+    t.index ["site_id", "status"], name: "index_submissions_on_site_id_and_status"
+    t.index ["site_id"], name: "index_submissions_on_site_id"
+    t.index ["status"], name: "index_submissions_on_status"
+    t.index ["user_id", "status"], name: "index_submissions_on_user_id_and_status"
+    t.index ["user_id"], name: "index_submissions_on_user_id"
+  end
+
   create_table "tagging_rules", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "enabled", default: true, null: false
@@ -494,6 +520,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_213841) do
   add_foreign_key "sites", "tenants"
   add_foreign_key "sources", "sites"
   add_foreign_key "sources", "tenants"
+  add_foreign_key "submissions", "categories"
+  add_foreign_key "submissions", "listings"
+  add_foreign_key "submissions", "sites"
+  add_foreign_key "submissions", "users"
+  add_foreign_key "submissions", "users", column: "reviewed_by_id"
   add_foreign_key "tagging_rules", "sites"
   add_foreign_key "tagging_rules", "taxonomies"
   add_foreign_key "tagging_rules", "tenants"
