@@ -121,6 +121,7 @@
 
                   <!-- Menu Items -->
                   <%= link_to t("nav.dashboard"), "#", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" %>
+                  <%= link_to t("nav.my_saves"), bookmarks_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" %>
 
                   <!-- Admin Link -->
                   <% if current_user.admin? || (Current.tenant && current_user.has_role?(:owner, Current.tenant)) %>
@@ -222,6 +223,7 @@
             </div>
             <div class="mt-3 px-2 space-y-1">
               <%= link_to t("nav.dashboard"), "#", class: "text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium" %>
+              <%= link_to t("nav.my_saves"), bookmarks_path, class: "text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium" %>
 
               <!-- Mobile Admin Link -->
               <% if current_user.admin? || (Current.tenant && current_user.has_role?(:owner, Current.tenant)) %>

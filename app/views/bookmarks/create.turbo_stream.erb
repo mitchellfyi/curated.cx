@@ -1,0 +1,3 @@
+<%= turbo_stream.replace "bookmark_button_#{@bookmarkable.class.name.underscore}_#{@bookmarkable.id}" do %>
+  <%= render "bookmarks/button", bookmarkable: @bookmarkable %>
+<% end %>

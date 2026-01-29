@@ -80,6 +80,9 @@ Rails.application.routes.draw do
   resource :digest_subscription, only: [ :show, :create, :update, :destroy ]
   get "unsubscribe/:token", to: "digest_subscriptions#unsubscribe", as: :unsubscribe_digest
 
+  # Bookmarks (My Saves)
+  resources :bookmarks, only: [ :index, :create, :destroy ]
+
   # Public feed routes
   resources :feed, only: [ :index ], controller: "feed"
   get "feed/rss", to: "feed#rss", as: :feed_rss, defaults: { format: :rss }

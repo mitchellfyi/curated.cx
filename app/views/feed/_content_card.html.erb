@@ -82,6 +82,9 @@
             <%= content_item.comments_count %>
           </span>
         <% end %>
+        <%# Bookmark button %>
+        <%= render "bookmarks/button", bookmarkable: content_item %>
+
         <%# Flag button %>
         <% if user_signed_in? %>
           <% flagged = Flag.exists?(user: current_user, flaggable: content_item, site: Current.site) %>

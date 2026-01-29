@@ -1,0 +1,38 @@
+<%# Bookmark toggle button for content items and listings %>
+<% bookmarked = user_signed_in? && Bookmark.bookmarked?(current_user, bookmarkable) %>
+<% bookmark = current_user&.bookmarks&.find_by(bookmarkable: bookmarkable) %>
+
+<div id="bookmark_button_<%= bookmarkable.class.name.underscore %>_<%= bookmarkable.id %>">
+  <% if user_signed_in? %>
+    <% if bookmarked %>
+      <%= button_to bookmark_path(bookmark),
+          method: :delete,
+          class: "inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm",
+          title: t('bookmarks.remove'),
+          data: { turbo_method: :delete } do %>
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+        </svg>
+        <span><%= t('bookmarks.saved') %></span>
+      <% end %>
+    <% else %>
+      <%= button_to bookmarks_path(bookmarkable_type: bookmarkable.class.name, bookmarkable_id: bookmarkable.id),
+          method: :post,
+          class: "inline-flex items-center gap-1 text-gray-500 hover:text-blue-600 text-sm",
+          title: t('bookmarks.save'),
+          data: { turbo_method: :post } do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+        </svg>
+        <span><%= t('bookmarks.save') %></span>
+      <% end %>
+    <% end %>
+  <% else %>
+    <%= link_to new_user_session_path, class: "inline-flex items-center gap-1 text-gray-500 hover:text-blue-600 text-sm", title: t('bookmarks.sign_in_to_save') do %>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+      </svg>
+      <span><%= t('bookmarks.save') %></span>
+    <% end %>
+  <% end %>
+</div>

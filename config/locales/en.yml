@@ -403,6 +403,23 @@ en:
     unlocks:
       resend_button: Resend unlock instructions
       resend_instructions: Didn't receive unlock instructions?
+  bookmarks:
+    confirm_remove: Remove this item from your saves?
+    created: Item saved
+    destroyed: Item removed from saves
+    empty:
+      browse: Browse Content
+      description: Items you save will appear here for easy access later.
+      title: No saved items
+    remove: Remove from saves
+    save: Save
+    saved: Saved
+    saved_on: Saved on %{date}
+    sign_in_to_save: Sign in to save
+    title: My Saves
+    types:
+      content: Content
+      listing: Listing
   categories:
     index:
       browse_content: Browse content
@@ -652,6 +669,7 @@ en:
     login: Login
     logout: Logout
     main_navigation: Main navigation
+    my_saves: My Saves
     powered_by: Powered by %{brand}
     search_placeholder: Search...
     settings: Settings

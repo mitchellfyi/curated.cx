@@ -94,6 +94,7 @@ class Listing < ApplicationRecord
   belongs_to :source, optional: true
   belongs_to :featured_by, class_name: "User", optional: true
   has_many :affiliate_clicks, dependent: :destroy
+  has_many :bookmarks, as: :bookmarkable, dependent: :destroy
 
   # Validations
   validates :category, presence: true

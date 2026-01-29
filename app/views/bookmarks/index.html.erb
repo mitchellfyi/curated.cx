@@ -1,0 +1,82 @@
+<% content_for :title, t('bookmarks.title') %>
+
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">
+    <%= t('bookmarks.title') %>
+  </h1>
+
+  <% if @bookmarks.any? %>
+    <div class="space-y-4">
+      <% @bookmarks.each do |bookmark| %>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow" id="<%= dom_id(bookmark) %>">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <% if bookmark.bookmarkable.is_a?(ContentItem) %>
+                <% item = bookmark.bookmarkable %>
+                <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                  <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded"><%= t('bookmarks.types.content') %></span>
+                  <span><%= item.source&.name %></span>
+                  <span><%= time_ago_in_words(item.published_at) %> ago</span>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-1">
+                  <a href="<%= item.url_canonical %>" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600">
+                    <%= item.title.presence || t('feed.content.untitled') %>
+                  </a>
+                </h3>
+                <% if item.ai_summary.present? %>
+                  <p class="text-gray-600 text-sm line-clamp-2">
+                    <%= truncate(item.ai_summary, length: 200) %>
+                  </p>
+                <% end %>
+
+              <% elsif bookmark.bookmarkable.is_a?(Listing) %>
+                <% listing = bookmark.bookmarkable %>
+                <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                  <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded"><%= t('bookmarks.types.listing') %></span>
+                  <span><%= listing.category.name %></span>
+                  <span class="capitalize"><%= listing.listing_type %></span>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-1">
+                  <%= link_to listing.title, listing_path(listing), class: "hover:text-blue-600" %>
+                </h3>
+                <% if listing.company.present? %>
+                  <p class="text-sm text-gray-700"><%= listing.company %></p>
+                <% end %>
+                <% if listing.description.present? %>
+                  <p class="text-gray-600 text-sm line-clamp-2">
+                    <%= truncate(listing.description, length: 200) %>
+                  </p>
+                <% end %>
+              <% end %>
+            </div>
+
+            <div class="ml-4">
+              <%= button_to bookmark_path(bookmark),
+                  method: :delete,
+                  class: "p-2 text-gray-400 hover:text-red-500 transition-colors",
+                  title: t('bookmarks.remove'),
+                  data: { turbo_method: :delete, turbo_confirm: t('bookmarks.confirm_remove') } do %>
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="mt-2 text-xs text-gray-400">
+            <%= t('bookmarks.saved_on', date: bookmark.created_at.strftime('%b %d, %Y')) %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+      </svg>
+      <h3 class="mt-4 text-lg font-medium text-gray-900"><%= t('bookmarks.empty.title') %></h3>
+      <p class="mt-2 text-gray-500"><%= t('bookmarks.empty.description') %></p>
+      <%= link_to t('bookmarks.empty.browse'), feed_index_path, class: "mt-4 inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors" %>
+    </div>
+  <% end %>
+</div>

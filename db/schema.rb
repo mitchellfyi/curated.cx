@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_29_212243) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_29_213257) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -63,6 +63,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_212243) do
     t.index ["clicked_at"], name: "index_affiliate_clicks_on_clicked_at"
     t.index ["listing_id", "clicked_at"], name: "index_affiliate_clicks_on_listing_clicked"
     t.index ["listing_id"], name: "index_affiliate_clicks_on_listing_id"
+  end
+
+  create_table "bookmarks", force: :cascade do |t|
+    t.bigint "bookmarkable_id", null: false
+    t.string "bookmarkable_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["bookmarkable_type", "bookmarkable_id"], name: "index_bookmarks_on_bookmarkable"
+    t.index ["user_id", "bookmarkable_type", "bookmarkable_id"], name: "index_bookmarks_uniqueness", unique: true
+    t.index ["user_id"], name: "index_bookmarks_on_user_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -448,6 +459,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_212243) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "affiliate_clicks", "listings"
+  add_foreign_key "bookmarks", "users"
   add_foreign_key "categories", "sites"
   add_foreign_key "categories", "tenants"
   add_foreign_key "comments", "comments", column: "parent_id"
