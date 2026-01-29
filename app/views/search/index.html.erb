@@ -1,0 +1,168 @@
+<% content_for :title, @query.present? ? t('search.results_title', query: @query) : t('search.title') %>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">
+      <%= t('search.title') %>
+    </h1>
+
+    <%# Search form %>
+    <%= form_with url: search_path, method: :get, class: "mb-6", data: { turbo_frame: "_top" } do |f| %>
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <label for="search_q" class="sr-only"><%= t('search.placeholder') %></label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+            <%= f.text_field :q,
+                value: @query,
+                class: "block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: t('search.placeholder'),
+                autofocus: @query.blank?,
+                autocomplete: "off" %>
+          </div>
+        </div>
+        <%= f.submit t('search.button'), class: "px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors cursor-pointer" %>
+      </div>
+    <% end %>
+
+    <%# Type filter %>
+    <% if @query.present? %>
+      <div class="flex items-center gap-2 mb-6">
+        <span class="text-sm text-gray-500"><%= t('search.filter_by') %></span>
+        <div class="flex rounded-lg border border-gray-200 bg-white overflow-hidden">
+          <%= link_to t('search.types.all'),
+                      search_path(q: @query),
+                      class: "px-3 py-1.5 text-sm #{@type_filter.blank? ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}" %>
+          <%= link_to t('search.types.content'),
+                      search_path(q: @query, type: 'content'),
+                      class: "px-3 py-1.5 text-sm border-l border-gray-200 #{@type_filter == 'content' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}" %>
+          <%= link_to t('search.types.listings'),
+                      search_path(q: @query, type: 'listings'),
+                      class: "px-3 py-1.5 text-sm border-l border-gray-200 #{@type_filter == 'listings' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @query.present? %>
+    <% if @total_count > 0 %>
+      <p class="text-sm text-gray-600 mb-6">
+        <%= t('search.results_count', count: @total_count, query: @query) %>
+      </p>
+
+      <%# Content Items Results %>
+      <% if @content_items.any? %>
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <%= t('search.sections.content') %>
+            <span class="text-sm font-normal text-gray-500">(<%= @content_items.size %>)</span>
+          </h2>
+          <div class="space-y-4">
+            <% @content_items.each do |item| %>
+              <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <h3 class="text-lg font-medium text-gray-900 mb-1">
+                  <a href="<%= item.url_canonical %>" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600">
+                    <%= item.title.presence || t('feed.content.untitled') %>
+                  </a>
+                </h3>
+                <% if item.description.present? %>
+                  <p class="text-gray-600 text-sm line-clamp-2 mb-2">
+                    <%= truncate(item.description, length: 200) %>
+                  </p>
+                <% elsif item.ai_summary.present? %>
+                  <p class="text-gray-600 text-sm line-clamp-2 mb-2">
+                    <%= truncate(item.ai_summary, length: 200) %>
+                  </p>
+                <% end %>
+                <div class="flex items-center gap-4 text-xs text-gray-500">
+                  <span><%= item.source&.name %></span>
+                  <span><%= time_ago_in_words(item.published_at) %> ago</span>
+                  <% if item.topic_tags.any? %>
+                    <div class="flex gap-1">
+                      <% item.topic_tags.first(3).each do |tag| %>
+                        <span class="bg-gray-100 px-2 py-0.5 rounded"><%= tag %></span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Listings Results %>
+      <% if @listings.any? %>
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <%= t('search.sections.listings') %>
+            <span class="text-sm font-normal text-gray-500">(<%= @listings.size %>)</span>
+          </h2>
+          <div class="space-y-4">
+            <% @listings.each do |listing| %>
+              <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-1">
+                      <%= link_to listing.title, listing_path(listing), class: "hover:text-blue-600" %>
+                    </h3>
+                    <% if listing.company.present? %>
+                      <p class="text-sm text-gray-700 mb-1"><%= listing.company %></p>
+                    <% end %>
+                    <% if listing.description.present? %>
+                      <p class="text-gray-600 text-sm line-clamp-2 mb-2">
+                        <%= truncate(listing.description, length: 200) %>
+                      </p>
+                    <% end %>
+                  </div>
+                  <% if listing.featured? %>
+                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">
+                      <%= t('monetisation.badges.featured') %>
+                    </span>
+                  <% end %>
+                </div>
+                <div class="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                  <span class="capitalize"><%= listing.listing_type %></span>
+                  <span><%= listing.category.name %></span>
+                  <% if listing.location.present? %>
+                    <span><%= listing.location %></span>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <%# No results %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900"><%= t('search.no_results.title') %></h3>
+        <p class="mt-2 text-gray-500"><%= t('search.no_results.description', query: @query) %></p>
+        <div class="mt-4">
+          <p class="text-sm text-gray-500"><%= t('search.no_results.suggestions_title') %></p>
+          <ul class="mt-2 text-sm text-gray-500 list-disc list-inside">
+            <li><%= t('search.no_results.suggestion_spelling') %></li>
+            <li><%= t('search.no_results.suggestion_keywords') %></li>
+            <li><%= t('search.no_results.suggestion_broader') %></li>
+          </ul>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <%# Empty state - no query yet %>
+    <div class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <h3 class="mt-4 text-lg font-medium text-gray-900"><%= t('search.empty.title') %></h3>
+      <p class="mt-2 text-gray-500"><%= t('search.empty.description') %></p>
+    </div>
+  <% end %>
+</div>

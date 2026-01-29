@@ -57,6 +57,18 @@
 #
 class ContentItem < ApplicationRecord
   include SiteScoped
+  include PgSearch::Model
+
+  # Full-text search
+  pg_search_scope :search_content,
+    against: {
+      title: "A",
+      description: "B",
+      ai_summary: "C"
+    },
+    using: {
+      tsearch: { prefix: true, dictionary: "english" }
+    }
 
   # Associations
   belongs_to :source

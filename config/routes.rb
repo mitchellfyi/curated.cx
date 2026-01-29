@@ -73,6 +73,13 @@ Rails.application.routes.draw do
   # Affiliate tracking redirect
   get "/go/:id", to: "affiliate_redirects#show", as: :affiliate_redirect
 
+  # Search
+  get "search", to: "search#index", as: :search
+
+  # Digest subscriptions
+  resource :digest_subscription, only: [ :show, :create, :update, :destroy ]
+  get "unsubscribe/:token", to: "digest_subscriptions#unsubscribe", as: :unsubscribe_digest
+
   # Public feed routes
   resources :feed, only: [ :index ], controller: "feed"
   get "feed/rss", to: "feed#rss", as: :feed_rss, defaults: { format: :rss }

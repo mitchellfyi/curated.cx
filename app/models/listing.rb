@@ -71,6 +71,19 @@
 class Listing < ApplicationRecord
   include TenantScoped
   include SiteScoped
+  include PgSearch::Model
+
+  # Full-text search
+  pg_search_scope :search_content,
+    against: {
+      title: "A",
+      description: "B",
+      company: "C",
+      body_text: "D"
+    },
+    using: {
+      tsearch: { prefix: true, dictionary: "english" }
+    }
 
   # Enums
   enum :listing_type, { tool: 0, job: 1, service: 2 }, default: :tool

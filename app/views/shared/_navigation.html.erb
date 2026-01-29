@@ -15,6 +15,23 @@
 
       <!-- Desktop Navigation -->
       <div class="hidden md:flex items-center space-x-8">
+        <!-- Search Box -->
+        <div class="relative" data-controller="search-box">
+          <%= form_with url: search_path, method: :get, class: "flex items-center" do |f| %>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+              <%= f.text_field :q,
+                  class: "block w-48 pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:w-64 transition-all",
+                  placeholder: t("nav.search_placeholder"),
+                  autocomplete: "off" %>
+            </div>
+          <% end %>
+        </div>
+
         <!-- Main Navigation Links -->
         <div class="flex items-center space-x-4">
           <%= link_to t("nav.home"), root_path, class: "text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium" %>
@@ -162,6 +179,21 @@
     <!-- Mobile Navigation Menu -->
     <div class="hidden md:hidden" data-mobile-menu-target="menu">
       <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
+        <%# Mobile Search %>
+        <%= form_with url: search_path, method: :get, class: "px-3 py-2" do |f| %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+            <%= f.text_field :q,
+                class: "block w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500",
+                placeholder: t("nav.search_placeholder"),
+                autocomplete: "off" %>
+          </div>
+        <% end %>
+
         <%= link_to t("nav.home"), root_path, class: "text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium" %>
 
         <!-- Mobile Categories -->
