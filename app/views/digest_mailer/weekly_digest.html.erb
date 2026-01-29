@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f3f4f6; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .card { background: #ffffff; border-radius: 8px; padding: 24px; margin-bottom: 20px; }
+    .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px; }
+    .logo { font-size: 24px; font-weight: bold; color: #1f2937; }
+    h1 { font-size: 20px; margin: 0 0 8px 0; }
+    h2 { font-size: 16px; color: #6b7280; margin: 20px 0 12px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+    .item { padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+    .item:last-child { border-bottom: none; }
+    .item-title { font-weight: 600; color: #1f2937; text-decoration: none; }
+    .item-title:hover { color: #2563eb; }
+    .item-meta { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+    .item-description { font-size: 14px; color: #6b7280; margin-top: 8px; }
+    .footer { text-align: center; font-size: 12px; color: #9ca3af; padding: 20px; }
+    .footer a { color: #6b7280; }
+    .btn { display: inline-block; padding: 10px 20px; background: #2563eb; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="logo"><%= @site.name %></div>
+        <p style="color: #6b7280; margin: 8px 0 0 0;"><%= t('digest_mailer.weekly_digest.intro') %></p>
+      </div>
+
+      <% if @content_items.any? %>
+        <h2><%= t('digest_mailer.sections.top_content') %></h2>
+        <% @content_items.each do |item| %>
+          <div class="item">
+            <a href="<%= item.url_canonical %>" class="item-title"><%= item.title.presence || t('feed.content.untitled') %></a>
+            <div class="item-meta">
+              <%= item.source&.name %> &middot; <%= time_ago_in_words(item.published_at) %> ago
+              <% if item.upvotes_count > 0 || item.comments_count > 0 %>
+                &middot; <%= item.upvotes_count %> votes, <%= item.comments_count %> comments
+              <% end %>
+            </div>
+            <% if item.ai_summary.present? %>
+              <div class="item-description"><%= truncate(item.ai_summary, length: 150) %></div>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+
+      <% if @listings.any? %>
+        <h2><%= t('digest_mailer.sections.new_listings') %></h2>
+        <% @listings.each do |listing| %>
+          <div class="item">
+            <a href="<%= listing_url(listing, host: @site.primary_hostname) %>" class="item-title"><%= listing.title %></a>
+            <div class="item-meta">
+              <%= listing.category.name %> &middot; <%= listing.listing_type.titleize %>
+              <% if listing.company.present? %>
+                &middot; <%= listing.company %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+
+      <div style="text-align: center; margin-top: 24px;">
+        <a href="<%= root_url(host: @site.primary_hostname) %>" class="btn"><%= t('digest_mailer.view_more') %></a>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><%= t('digest_mailer.footer.sent_to', email: @user.email) %></p>
+      <p>
+        <a href="<%= unsubscribe_digest_url(token: @subscription.unsubscribe_token, host: @site.primary_hostname) %>"><%= t('digest_mailer.footer.unsubscribe') %></a>
+        &middot;
+        <a href="<%= digest_subscription_url(host: @site.primary_hostname) %>"><%= t('digest_mailer.footer.manage_preferences') %></a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

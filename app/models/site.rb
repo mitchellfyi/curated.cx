@@ -43,6 +43,7 @@ class Site < ApplicationRecord
   has_many :flags, dependent: :destroy
   has_many :tagging_rules, dependent: :destroy
   has_many :taxonomies, dependent: :destroy
+  has_many :digest_subscriptions, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }

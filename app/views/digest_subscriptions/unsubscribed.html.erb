@@ -1,0 +1,21 @@
+<% content_for :title, t('digest_subscriptions.unsubscribed_title') %>
+
+<div class="container mx-auto px-4 py-16 max-w-lg text-center">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+    <div class="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+      <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+
+    <h1 class="text-2xl font-bold text-gray-900 mb-4">
+      <%= t('digest_subscriptions.unsubscribed_title') %>
+    </h1>
+
+    <p class="text-gray-600 mb-6">
+      <%= t('digest_subscriptions.unsubscribed_message', site: @site.name) %>
+    </p>
+
+    <%= link_to t('digest_subscriptions.back_to_site'), root_path, class: "inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors" %>
+  </div>
+</div>

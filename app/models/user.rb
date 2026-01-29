@@ -33,6 +33,7 @@ class User < ApplicationRecord
   has_many :site_bans, dependent: :destroy
   has_many :flags, dependent: :destroy
   has_many :reviewed_flags, class_name: "Flag", foreign_key: :reviewed_by_id, dependent: :nullify, inverse_of: :reviewed_by
+  has_many :digest_subscriptions, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true

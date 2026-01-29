@@ -1,0 +1,33 @@
+<%= @site.name %> - <%= t('digest_mailer.daily_digest.intro') %>
+
+<% if @content_items.any? %>
+<%= t('digest_mailer.sections.todays_highlights') %>
+================================================================================
+<% @content_items.each do |item| %>
+
+* <%= item.title.presence || t('feed.content.untitled') %>
+  <%= item.url_canonical %>
+  <%= item.source&.name %> - <%= time_ago_in_words(item.published_at) %> ago
+<% if item.ai_summary.present? %>
+  <%= truncate(item.ai_summary, length: 150) %>
+<% end %>
+<% end %>
+<% end %>
+
+<% if @listings.any? %>
+<%= t('digest_mailer.sections.new_listings') %>
+================================================================================
+<% @listings.each do |listing| %>
+
+* <%= listing.title %>
+  <%= listing_url(listing, host: @site.primary_hostname) %>
+  <%= listing.category.name %> - <%= listing.listing_type.titleize %>
+<% end %>
+<% end %>
+
+--------------------------------------------------------------------------------
+<%= t('digest_mailer.view_more') %>: <%= root_url(host: @site.primary_hostname) %>
+
+<%= t('digest_mailer.footer.sent_to', email: @user.email) %>
+<%= t('digest_mailer.footer.unsubscribe') %>: <%= unsubscribe_digest_url(token: @subscription.unsubscribe_token, host: @site.primary_hostname) %>
+<%= t('digest_mailer.footer.manage_preferences') %>: <%= digest_subscription_url(host: @site.primary_hostname) %>
