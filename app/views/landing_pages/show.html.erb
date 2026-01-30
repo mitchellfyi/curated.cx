@@ -1,5 +1,5 @@
 <% if @landing_page.custom_css.present? %>
-  <style><%= @landing_page.custom_css.html_safe %></style>
+  <style><%= sanitize_css(@landing_page.custom_css) %></style>
 <% end %>
 
 <div class="landing-page landing-page--<%= @landing_page.theme %>" data-landing-page-slug="<%= @landing_page.slug %>">
