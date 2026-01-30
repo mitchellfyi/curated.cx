@@ -29,14 +29,11 @@ class ProcessSequenceEnrollmentsJob < ApplicationJob
     end
 
     ActsAsTenant.with_tenant(site.tenant) do
-      mailer = SequenceMailer.step_email(sequence_email)
-
-      # deliver_later returns nil if the mailer action returns early
-      if mailer&.message&.present?
-        mailer.deliver_later
-        sequence_email.mark_sent!
-        enrollment.schedule_next_email!
-      end
+      # We already checked subscription.active? above, so the mailer should always send
+      # Note: We can't check mailer.message.present? in Rails 8+ before deliver_later
+      SequenceMailer.step_email(sequence_email).deliver_later
+      sequence_email.mark_sent!
+      enrollment.schedule_next_email!
     end
   rescue StandardError => e
     Rails.logger.error("Failed to send sequence email #{sequence_email.id}: #{e.message}")

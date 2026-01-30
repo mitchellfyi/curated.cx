@@ -50,6 +50,15 @@ en:
       description: Description
       title: Title
       updated: Updated
+    common:
+      confirm_delete: Are you sure you want to delete this?
+      delete: Delete
+      disable: Disable
+      disabled: Disabled
+      edit: Edit
+      enable: Enable
+      enabled: Enabled
+      view: View
     dashboard:
       description: Description
       title: Title
@@ -104,6 +113,59 @@ en:
       tokens: Tokens
       view: View
       why_it_matters: Why It Matters
+    email_sequences:
+      back_to_list: Back to Email Sequences
+      create_first: Create your first email sequence
+      created: Email sequence created successfully.
+      deleted: Email sequence deleted successfully.
+      description: Automated email sequences for subscriber lifecycle
+      disabled: Email sequence has been disabled.
+      edit: Edit Email Sequence
+      enabled: Email sequence has been enabled.
+      form:
+        cancel: Cancel
+        enabled: Enabled
+        errors: Please fix the following errors
+        name: Name
+        trigger_config: Trigger Configuration (JSON)
+        trigger_config_help: 'JSON object with trigger settings. Example: {"milestone":
+          3}'
+        trigger_type: Trigger
+      new: New Email Sequence
+      no_sequences: No email sequences configured yet.
+      show:
+        add_step: Add Step
+        no_steps: No steps defined yet.
+        steps_section: Email Steps
+      table:
+        actions: Actions
+        enrollments: Enrollments
+        name: Name
+        status: Status
+        steps: Steps
+        trigger: Trigger
+      title: Email Sequences
+      trigger_types:
+        referral_milestone: Referral Milestone
+        subscriber_joined: New Subscriber
+      updated: Email sequence updated successfully.
+    email_steps:
+      back_to_sequence: Back to Sequence
+      created: Email step created successfully.
+      deleted: Email step deleted successfully.
+      edit: Edit Email Step
+      form:
+        body_html: HTML Body
+        body_text: Plain Text Body
+        cancel: Cancel
+        delay_help: Time to wait before sending (0 = immediately)
+        delay_seconds: Delay (seconds)
+        errors: Please fix the following errors
+        position: Position
+        position_help: Order in sequence (0 = first)
+        subject: Subject
+      new: New Email Step
+      updated: Email step updated successfully.
     flags:
       back_to_queue: Back to Moderation Queue
       content: Content
@@ -222,68 +284,6 @@ en:
         type: Reward Type
       title: Referral Reward Tiers
       updated: Reward tier updated successfully.
-    common:
-      confirm_delete: Are you sure you want to delete this?
-      delete: Delete
-      disable: Disable
-      disabled: Disabled
-      edit: Edit
-      enable: Enable
-      enabled: Enabled
-      view: View
-    email_sequences:
-      back_to_list: Back to Email Sequences
-      create_first: Create your first email sequence
-      created: Email sequence created successfully.
-      deleted: Email sequence deleted successfully.
-      description: Automated email sequences for subscriber lifecycle
-      disabled: Email sequence has been disabled.
-      edit: Edit Email Sequence
-      enabled: Email sequence has been enabled.
-      form:
-        cancel: Cancel
-        enabled: Enabled
-        errors: Please fix the following errors
-        name: Name
-        trigger_config: Trigger Configuration (JSON)
-        trigger_config_help: 'JSON object with trigger settings. Example: {"milestone":
-          3}'
-        trigger_type: Trigger
-      new: New Email Sequence
-      no_sequences: No email sequences configured yet.
-      show:
-        add_step: Add Step
-        no_steps: No steps defined yet.
-        steps_section: Email Steps
-      table:
-        actions: Actions
-        enrollments: Enrollments
-        name: Name
-        status: Status
-        steps: Steps
-        trigger: Trigger
-      title: Email Sequences
-      trigger_types:
-        referral_milestone: Referral Milestone
-        subscriber_joined: New Subscriber
-      updated: Email sequence updated successfully.
-    email_steps:
-      back_to_sequence: Back to Sequence
-      created: Email step created successfully.
-      deleted: Email step deleted successfully.
-      edit: Edit Email Step
-      form:
-        body_html: HTML Body
-        body_text: Plain Text Body
-        cancel: Cancel
-        delay_help: Time to wait before sending (0 = immediately)
-        delay_seconds: Delay (seconds)
-        errors: Please fix the following errors
-        position: Position
-        position_help: Order in sequence (0 = first)
-        subject: Subject
-      new: New Email Step
-      updated: Email step updated successfully.
     referrals:
       back_to_list: Back to Referrals
       cannot_update: Cannot update this referral.
@@ -688,10 +688,6 @@ en:
     weekly_digest:
       intro: Here's what you missed this week
       subject: Your weekly digest from %{site}
-  sequence_mailer:
-    footer:
-      sent_to: Sent to %{email}
-      unsubscribe: Unsubscribe
   digest_subscriptions:
     back_to_site: Back to Site
     confirm_unsubscribe: Are you sure you want to unsubscribe?
@@ -1036,6 +1032,10 @@ en:
       all: All
       content: Content
       listings: Listings
+  sequence_mailer:
+    footer:
+      sent_to: Sent to %{email}
+      unsubscribe: Unsubscribe
   share:
     copy_link: Copy link
     facebook: Share on Facebook
