@@ -115,6 +115,8 @@ Tenant (curated.cx)
 | `TenantHomepageService` | Homepage data orchestration |
 | `FeedRankingService` | Content ranking algorithm |
 | `TenantResolver` | Domain-to-tenant resolution |
+| `ReferralAttributionService` | Referral tracking with fraud prevention |
+| `ReferralRewardService` | Milestone detection and reward tracking |
 
 ---
 

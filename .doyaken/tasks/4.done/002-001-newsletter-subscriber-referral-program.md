@@ -5,11 +5,11 @@
 | Field       | Value                                                  |
 | ----------- | ------------------------------------------------------ |
 | ID          | `002-001-newsletter-subscriber-referral-program`       |
-| Status      | `doing`                                                |
+| Status      | `done`                                                 |
 | Priority    | `002` High                                             |
 | Created     | `2026-01-30 15:30`                                     |
 | Started     | `2026-01-30 15:08`                                     |
-| Completed   |                                                        |
+| Completed   | `2026-01-30 15:41`                                     |
 | Blocked By  |                                                        |
 | Blocks      |                                                        |
 | Assigned To | `worker-1` |
@@ -47,44 +47,44 @@ The implementation builds on existing patterns:
 All must be checked before moving to done:
 
 ### Data Model
-- [ ] `referral_code` column added to `digest_subscriptions` table (unique, auto-generated on create)
-- [ ] `Referral` model created with: `referrer_subscription_id`, `referee_subscription_id`, `site_id`, `status` (enum: pending, confirmed, rewarded, cancelled), `confirmed_at`, `rewarded_at`
-- [ ] `ReferralRewardTier` model created with: `site_id`, `milestone` (integer, e.g., 1, 3, 5), `reward_type` (enum: digital_download, featured_mention, custom), `reward_data` (jsonb for URLs, descriptions, etc.), `active` (boolean)
+- [x] `referral_code` column added to `digest_subscriptions` table (unique, auto-generated on create)
+- [x] `Referral` model created with: `referrer_subscription_id`, `referee_subscription_id`, `site_id`, `status` (enum: pending, confirmed, rewarded, cancelled), `confirmed_at`, `rewarded_at`
+- [x] `ReferralRewardTier` model created with: `site_id`, `milestone` (integer, e.g., 1, 3, 5), `reward_type` (enum: digital_download, featured_mention, custom), `reward_data` (jsonb for URLs, descriptions, etc.), `active` (boolean)
 
 ### Referral Flow
-- [ ] Referral code generated on DigestSubscription creation using `SecureRandom.urlsafe_base64(8)` (shorter, URL-friendly)
-- [ ] Referral link format: `https://{site_domain}/subscribe?ref={referral_code}`
-- [ ] When new subscriber signs up with `ref` param, a pending Referral record is created
-- [ ] Referral confirmed when referee's DigestSubscription is active for 24 hours (prevents instant unsubscribes)
-- [ ] Fraud prevention: reject referrals where referee email domain matches referrer, or same IP within 24h
+- [x] Referral code generated on DigestSubscription creation using `SecureRandom.urlsafe_base64(8)` (shorter, URL-friendly)
+- [x] Referral link format: `https://{site_domain}/subscribe?ref={referral_code}`
+- [x] When new subscriber signs up with `ref` param, a pending Referral record is created
+- [x] Referral confirmed when referee's DigestSubscription is active for 24 hours (prevents instant unsubscribes)
+- [x] Fraud prevention: reject referrals where referee email domain matches referrer, or same IP within 24h
 
 ### Subscriber Dashboard
-- [ ] `/referrals` page showing: referral code, shareable link, total referrals, confirmed referrals, rewards earned
-- [ ] Copy-to-clipboard button for referral link
-- [ ] Social share buttons (Twitter, LinkedIn, Email)
-- [ ] List of earned rewards with claim instructions
+- [x] `/referrals` page showing: referral code, shareable link, total referrals, confirmed referrals, rewards earned
+- [x] Copy-to-clipboard button for referral link
+- [x] Social share buttons (Twitter, LinkedIn, Email)
+- [x] List of earned rewards with claim instructions
 
 ### Admin Dashboard
-- [ ] `/admin/referrals` page showing: total referrals, conversion rate, top referrers, reward distribution
-- [ ] `/admin/referral_reward_tiers` CRUD for configuring reward tiers per site
-- [ ] Ability to manually mark referrals as rewarded
+- [x] `/admin/referrals` page showing: total referrals, conversion rate, top referrers, reward distribution
+- [x] `/admin/referral_reward_tiers` CRUD for configuring reward tiers per site
+- [x] Ability to manually mark referrals as rewarded
 
 ### Email Notifications
-- [ ] Email to referrer when referral is confirmed
-- [ ] Email to referrer when milestone reward is unlocked
-- [ ] Emails use existing DigestMailer patterns
+- [x] Email to referrer when referral is confirmed
+- [x] Email to referrer when milestone reward is unlocked
+- [x] Emails use existing DigestMailer patterns (ReferralMailer follows same pattern)
 
 ### Testing
-- [ ] Model specs for Referral, ReferralRewardTier
-- [ ] Updated DigestSubscription specs for referral_code
-- [ ] Request specs for referral dashboard
-- [ ] Request specs for admin referral management
-- [ ] Factory definitions for all new models
+- [x] Model specs for Referral, ReferralRewardTier
+- [x] Updated DigestSubscription specs for referral_code
+- [x] Request specs for referral dashboard
+- [x] Request specs for admin referral management
+- [x] Factory definitions for all new models
 
 ### Quality
-- [ ] All tests pass
-- [ ] Quality gates pass (lint, type check if applicable)
-- [ ] Changes committed with task reference
+- [x] All tests pass
+- [x] Quality gates pass (lint, type check if applicable)
+- [x] Changes committed with task reference
 
 ---
 
@@ -368,12 +368,48 @@ All must be checked before moving to done:
 
 ### Docs to Update
 
-- [ ] No user-facing documentation required (admin-configurable via UI)
-- [ ] Add section to `AGENTS.md` if referral patterns should be documented for future AI agents
+- [x] `docs/DATA_MODEL.md` - Added DigestSubscription, Referral, ReferralRewardTier model documentation
+- [x] `README.md` - Added referral services to Key Services table
+- [x] `docs/README.md` - Added Growth section with link to referral docs
+- [x] No AGENTS.md update needed (patterns follow existing SiteScoped conventions)
 
 ---
 
 ## Work Log
+
+### 2026-01-30 15:41 - Review Complete
+
+**Findings Ledger:**
+- Blockers: 0
+- High: 0
+- Medium: 0
+- Low: 0
+
+**Multi-Pass Review:**
+
+| Pass | Result | Notes |
+|------|--------|-------|
+| Correctness | pass | Happy path and edge cases handled correctly. Token generation uses proper entropy. Status transitions (confirm!, mark_rewarded!, cancel!) have guard conditions. |
+| Design | pass | Follows existing patterns (SiteScoped, AdminAccess, token generation). Service layer properly separates attribution and reward logic. |
+| Security | pass | IP hashed with SHA256; email domain fraud prevention exempts common providers; admin routes protected by AdminAccess concern; SiteScoped default_scope prevents cross-tenant access; no injection vectors (uses Rails parameterized queries). |
+| Performance | pass | Proper indexes on referrer_subscription_id, status, site_id. Admin views include eager loading (includes). Pagination not implemented but view limited to 100 records. |
+| Tests | pass | 166 examples, 0 failures. Covers models, services, jobs, mailers, request specs. Tenant isolation tested. |
+
+**Security Checklist (OWASP):**
+- [x] A01: Authorization enforced via AdminAccess concern and ReferralPolicy
+- [x] A02: IP hashed, no secrets in code
+- [x] A03: No SQL injection (uses ActiveRecord), no XSS (Rails auto-escapes)
+- [x] A04: Secure defaults (pending → confirmed → rewarded flow)
+- [x] A05: No debug info exposed
+- [x] A09: Error logging in job and controller
+
+**All criteria met:** Yes
+
+**Follow-up tasks:** None (no medium/low findings requiring future work)
+
+**Status:** COMPLETE
+
+---
 
 ### 2026-01-30 15:26 - Implementation Complete
 
@@ -500,7 +536,56 @@ Ready: yes
 
 ## Testing Evidence
 
-_No tests run yet._
+### 2026-01-30 15:27 - Testing Complete
+
+**Tests written: 188 examples, 0 failures**
+
+| Spec File | Examples | Type |
+|-----------|----------|------|
+| `spec/models/referral_spec.rb` | 25 | Unit |
+| `spec/models/referral_reward_tier_spec.rb` | 23 | Unit |
+| `spec/models/digest_subscription_spec.rb` | 22 (12 new) | Unit |
+| `spec/services/referral_attribution_service_spec.rb` | 22 | Unit |
+| `spec/services/referral_reward_service_spec.rb` | 22 | Unit |
+| `spec/jobs/confirm_referral_job_spec.rb` | 13 | Unit |
+| `spec/mailers/referral_mailer_spec.rb` | 15 | Unit |
+| `spec/requests/referrals_spec.rb` | 10 | Integration |
+| `spec/requests/admin/referrals_spec.rb` | 15 | Integration |
+| `spec/requests/admin/referral_reward_tiers_spec.rb` | 21 | Integration |
+
+**Coverage:**
+- Model associations, validations, enums, scopes
+- Status transition methods (confirm!, mark_rewarded!, cancel!)
+- Referral attribution with fraud prevention (IP, email domain)
+- Reward milestone detection and awarding
+- Job confirmation/cancellation logic
+- Mailer content and recipients
+- Controller authentication and authorization
+- Admin CRUD operations
+- Tenant isolation
+
+**Quality gates:**
+- Lint: pass (rubocop - 0 offenses)
+- Types: N/A (Ruby project)
+- Tests: pass (1325 total examples in models/services/jobs/mailers)
+- Build: pass (all migrations up)
+
+**CI ready:** Yes
+
+---
+
+### 2026-01-30 15:40 - Documentation Sync
+
+Docs updated:
+- `docs/DATA_MODEL.md` - Added DigestSubscription, Referral, ReferralRewardTier model documentation with schemas, associations, scopes, and examples
+- `README.md` - Added ReferralAttributionService and ReferralRewardService to Key Services table
+- `docs/README.md` - Added Growth section linking to referral documentation in DATA_MODEL.md
+
+Inline comments:
+- `app/services/referral_attribution_service.rb:1-22` - Comprehensive header doc with usage examples
+- Model schema annotations auto-generated by annotaterb
+
+Consistency: Verified - Code and docs describe same behavior
 
 ---
 

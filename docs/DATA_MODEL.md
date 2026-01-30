@@ -457,4 +457,144 @@ flag.resolve!(admin_user, action: :action_taken)
 
 ---
 
-*Last Updated: 2026-01-24*
+---
+
+### DigestSubscription (Newsletter Subscription)
+
+**Purpose**: Represents a user's subscription to a site's newsletter digest.
+
+**Key Attributes**:
+- `site_id` - Site this subscription belongs to
+- `user_id` - Subscriber user account
+- `frequency` - Enum: `weekly`, `daily`
+- `active` - Boolean subscription status
+- `referral_code` - Unique code for referral program (auto-generated)
+- `unsubscribe_token` - Token for unsubscribe links
+- `last_sent_at` - Last digest sent timestamp
+- `preferences` (JSONB) - Content preferences
+
+**Associations**:
+- `belongs_to :site` - Parent site
+- `belongs_to :user` - Subscriber
+- `has_many :referrals_as_referrer` (Referral) - Referrals made by this subscriber
+- `has_one :referral_as_referee` (Referral) - Referral that created this subscription
+
+**Scopes**:
+- `active` - Active subscriptions
+- `due_for_weekly` - Weekly digests ready to send
+- `due_for_daily` - Daily digests ready to send
+
+**Example**:
+```ruby
+# Create subscription with auto-generated referral code
+subscription = DigestSubscription.create!(
+  site: site,
+  user: user,
+  frequency: :weekly
+)
+
+# Get shareable referral link
+subscription.referral_link  # => "https://ainews.cx/subscribe?ref=abc123xyz"
+
+# Check referral stats
+subscription.confirmed_referrals_count  # => 5
+```
+
+---
+
+### Referral (Referral Tracking)
+
+**Purpose**: Tracks subscriber referrals for the referral program.
+
+**Key Attributes**:
+- `site_id` - Site context
+- `referrer_subscription_id` - Subscription that made the referral
+- `referee_subscription_id` - New subscription created via referral (unique)
+- `status` - Enum: `pending`, `confirmed`, `rewarded`, `cancelled`
+- `referee_ip_hash` - SHA256 hash of referee IP (fraud prevention)
+- `confirmed_at` - When referral was confirmed (24h after signup)
+- `rewarded_at` - When reward was granted
+
+**Associations**:
+- `belongs_to :site` - Site context
+- `belongs_to :referrer_subscription` (DigestSubscription) - The referrer
+- `belongs_to :referee_subscription` (DigestSubscription) - The referred subscriber
+
+**Lifecycle**:
+1. `pending` - Created when new subscriber uses referral link
+2. `confirmed` - After 24h if referee subscription still active
+3. `rewarded` - When referrer reaches milestone and claims reward
+4. `cancelled` - If referee unsubscribes before confirmation
+
+**Scopes**:
+- `pending`, `confirmed`, `rewarded`, `cancelled` - By status
+- `for_referrer(subscription)` - All referrals by a subscriber
+- `recent` - Ordered by newest first
+
+**Example**:
+```ruby
+# Referral created via ReferralAttributionService
+referral = Referral.create!(
+  site: site,
+  referrer_subscription: referrer,
+  referee_subscription: new_subscriber,
+  referee_ip_hash: Digest::SHA256.hexdigest(ip_address)
+)
+
+# After 24h verification
+referral.confirm!
+
+# When reward tier is reached
+referral.mark_rewarded!
+```
+
+---
+
+### ReferralRewardTier (Milestone Rewards)
+
+**Purpose**: Configures milestone-based rewards for the referral program.
+
+**Key Attributes**:
+- `site_id` - Site context
+- `milestone` - Number of referrals required (unique per site)
+- `reward_type` - Enum: `digital_download`, `featured_mention`, `custom`
+- `name` - Display name (e.g., "Bronze Tier")
+- `description` - Optional description
+- `reward_data` (JSONB) - Type-specific data:
+  - `download_url` - For digital downloads
+  - `mention_details` - For featured mentions
+  - `instructions` - For custom rewards
+- `active` - Boolean to enable/disable tier
+
+**Associations**:
+- `belongs_to :site` - Site context
+
+**Scopes**:
+- `active` - Enabled tiers only
+- `ordered_by_milestone` - Sorted by milestone ascending
+
+**Example**:
+```ruby
+# Configure reward tiers
+ReferralRewardTier.create!(
+  site: site,
+  milestone: 3,
+  reward_type: :digital_download,
+  name: "Bronze Tier",
+  description: "Get our exclusive eBook",
+  reward_data: { download_url: "https://example.com/ebook.pdf" }
+)
+
+ReferralRewardTier.create!(
+  site: site,
+  milestone: 10,
+  reward_type: :featured_mention,
+  name: "Gold Tier",
+  description: "Get featured in our newsletter",
+  reward_data: { mention_details: "Top of the newsletter for one issue" }
+)
+```
+
+---
+
+*Last Updated: 2026-01-30*

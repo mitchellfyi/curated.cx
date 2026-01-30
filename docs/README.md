@@ -31,6 +31,12 @@ Technical documentation for the Curated.cx multi-tenant content platform.
 | [Onboarding](onboarding.md) | Site and domain setup flow |
 | [Tagging](tagging.md) | Tag management and organization |
 
+## Growth
+
+| Document | Description |
+|----------|-------------|
+| [Data Model](DATA_MODEL.md) | See DigestSubscription, Referral, ReferralRewardTier sections |
+
 ## Security & Quality
 
 | Document | Description |
