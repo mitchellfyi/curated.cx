@@ -111,35 +111,35 @@ en:
       uncategorized: Uncategorized
       view_all_listings: View all listings
     discussions:
-      title: Community Discussions
+      actions:
+        delete: Delete
+        lock: Lock
+        pin: Pin
+        unlock: Unlock
+        unpin: Unpin
+        view: View
+        view_public: View Public Discussion
+      confirm_delete: Are you sure? This will delete all posts in this discussion.
       description: Manage and moderate community discussions
+      destroyed: Discussion has been deleted.
+      locked: Discussion has been locked.
       no_discussions: No discussions yet.
+      pinned: Discussion has been pinned.
+      show:
+        back: Back to Discussions
+        moderation: Moderation Actions
+        posts_section: Posts
       table:
-        title: Title
+        actions: Actions
         author: Author
-        visibility: Visibility
+        created: Created
         posts: Posts
         status: Status
-        created: Created
-        actions: Actions
-      actions:
-        view: View
-        lock: Lock
-        unlock: Unlock
-        pin: Pin
-        unpin: Unpin
-        delete: Delete
-      locked: Discussion has been locked.
+        title: Title
+        visibility: Visibility
+      title: Community Discussions
       unlocked: Discussion has been unlocked.
-      pinned: Discussion has been pinned.
       unpinned: Discussion has been unpinned.
-      destroyed: Discussion has been deleted.
-      show:
-        title: Discussion Details
-        back: Back to Discussions
-        posts_section: Posts
-        moderation: Moderation Actions
-      confirm_delete: Are you sure? This will delete all posts in this discussion.
     domains:
       created: Domain added successfully
       deleted: Domain deleted successfully
@@ -838,6 +838,63 @@ en:
     unsubscribed_title: Unsubscribed
     update: Update Preferences
     updated: Your preferences have been updated
+  discussion_posts:
+    confirm_delete: Are you sure you want to delete this post?
+    created: Post added successfully
+    deleted: Post deleted successfully
+    form:
+      placeholder: Write your reply...
+      submit: Post Reply
+    hidden: Hidden
+    rate_limited: You're posting too quickly. Please wait before posting again.
+    reply: Reply
+    replying_to: Replying to %{user}
+    updated: Post updated successfully
+  discussions:
+    back_to_discussions: Back to discussions
+    confirm_delete: Are you sure you want to delete this discussion? All posts will
+      be deleted.
+    created: Discussion created successfully
+    deleted: Discussion deleted successfully
+    disabled: Discussions are not enabled for this site.
+    empty:
+      description: Be the first to start a conversation!
+      title: No discussions yet
+    form:
+      body: Description (optional)
+      body_hint: Provide additional context for your discussion
+      body_placeholder: Add more context to your discussion...
+      create: Create Discussion
+      title: Title
+      title_hint: Max %{max} characters
+      title_placeholder: What would you like to discuss?
+      update: Update Discussion
+      visibility: Visibility
+      visibility_hint: Choose who can see and participate in this discussion
+    index:
+      title: Community Discussions
+    last_activity: Last activity %{time} ago
+    locked: This discussion is locked and no longer accepting new posts.
+    locked_badge: Locked
+    locked_message: This discussion has been locked.
+    new: New Discussion
+    new_title: Start a Discussion
+    pinned: Pinned
+    posts_count:
+      one: 1 post
+      other: "%{count} posts"
+      zero: No posts yet
+    posts_count_label: posts
+    rate_limited: You're creating discussions too quickly. Please wait before starting
+      another.
+    sign_in_to_post: Sign in to join the discussion
+    start_first: Start the first discussion
+    started: Started %{time} ago
+    subscribers_only: Subscribers Only
+    updated: Discussion updated successfully
+    visibility:
+      public: Public - Anyone can view
+      subscribers_only: Subscribers Only - Only subscribers can view
   errors:
     form_errors:
       one: "%{count} error prevented this from being saved"
@@ -1016,61 +1073,6 @@ en:
     search_placeholder: Search...
     settings: Settings
     sign_up: Sign up
-  discussions:
-    index:
-      title: Community Discussions
-    new: New Discussion
-    new_title: Start a Discussion
-    back_to_discussions: Back to discussions
-    created: Discussion created successfully
-    updated: Discussion updated successfully
-    deleted: Discussion deleted successfully
-    rate_limited: You're creating discussions too quickly. Please wait before starting another.
-    disabled: Discussions are not enabled for this site.
-    locked: This discussion is locked and no longer accepting new posts.
-    locked_message: This discussion has been locked.
-    locked_badge: Locked
-    pinned: Pinned
-    subscribers_only: Subscribers Only
-    posts_count_label: posts
-    posts_count:
-      zero: No posts yet
-      one: 1 post
-      other: "%{count} posts"
-    last_activity: "Last activity %{time} ago"
-    started: "Started %{time} ago"
-    sign_in_to_post: Sign in to join the discussion
-    confirm_delete: Are you sure you want to delete this discussion? All posts will be deleted.
-    start_first: Start the first discussion
-    empty:
-      title: No discussions yet
-      description: Be the first to start a conversation!
-    form:
-      title: Title
-      title_placeholder: What would you like to discuss?
-      title_hint: Max %{max} characters
-      body: Description (optional)
-      body_placeholder: Add more context to your discussion...
-      body_hint: Provide additional context for your discussion
-      visibility: Visibility
-      visibility_hint: Choose who can see and participate in this discussion
-      create: Create Discussion
-      update: Update Discussion
-    visibility:
-      public: Public - Anyone can view
-      subscribers_only: Subscribers Only - Only subscribers can view
-  discussion_posts:
-    created: Post added successfully
-    updated: Post updated successfully
-    deleted: Post deleted successfully
-    rate_limited: You're posting too quickly. Please wait before posting again.
-    reply: Reply
-    replying_to: "Replying to %{user}"
-    confirm_delete: Are you sure you want to delete this post?
-    hidden: Hidden
-    form:
-      placeholder: Write your reply...
-      submit: Post Reply
   network:
     cta:
       button: Get in Touch
