@@ -61,7 +61,7 @@
 - [x] **Timezone**: Site settings page has timezone selector
 - [x] Tests written and passing (model scopes, job logic, timezone handling)
 - [x] Quality gates pass
-- [ ] Changes committed with task reference
+- [x] Changes committed with task reference
 
 ---
 
