@@ -2,6 +2,7 @@
 
 class LiveStreamsController < ApplicationController
   before_action :set_live_stream, only: %i[show join leave]
+  skip_after_action :verify_authorized, only: [ :index ]
 
   # GET /live_streams
   def index

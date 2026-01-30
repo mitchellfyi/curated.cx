@@ -140,78 +140,6 @@ en:
       title: Community Discussions
       unlocked: Discussion has been unlocked.
       unpinned: Discussion has been unpinned.
-    live_streams:
-      actions:
-        delete: Delete
-        edit: Edit
-        end_stream: End Stream
-        start: Start Stream
-        view: View
-      cannot_end: Cannot end this stream.
-      cannot_start: Cannot start this stream.
-      confirm_delete: Are you sure you want to delete this stream?
-      created: Live stream scheduled successfully.
-      description: Manage live video streams and webinars
-      destroyed: Live stream deleted successfully.
-      disabled: Live streaming is not enabled for this site.
-      edit: Edit Live Stream
-      ended: Live stream has ended.
-      form:
-        cancel: Cancel
-        create: Schedule Stream
-        description: Description
-        description_hint: Describe what viewers can expect
-        scheduled_at: Scheduled At
-        title: Title
-        title_hint: Give your stream a title
-        update: Update Stream
-        visibility: Visibility
-        visibility_hint: Choose who can watch this stream
-      index:
-        description: Schedule and manage live streams
-        new_stream: New Stream
-        no_streams: No live streams scheduled yet.
-        title: Live Streams
-      mux_error: 'Error creating stream: %{error}'
-      mux_not_configured: Mux is not configured. Please set MUX_TOKEN_ID and MUX_TOKEN_SECRET.
-      new: New Live Stream
-      show:
-        analytics: Analytics
-        back: Back to Live Streams
-        chat_link: View Live Chat
-        created: Created
-        discussion: Live Chat
-        live_indicator: LIVE
-        moderation: Moderation Actions
-        no_discussion: No chat associated
-        peak_viewers: Peak Viewers
-        playback_url: Playback URL
-        replay_available: Replay Available
-        replay_playback_id: Replay Playback ID
-        scheduled: Scheduled
-        started: Started
-        status: Status
-        stream_dashboard: Stream Dashboard
-        stream_key: Stream Key
-        stream_key_warning: Keep this secret! Only share with the broadcaster.
-        viewer_count: Current Viewers
-      started: Live stream has started.
-      status:
-        archived: Archived
-        ended: Ended
-        live: Live
-        scheduled: Scheduled
-      table:
-        actions: Actions
-        scheduled: Scheduled
-        status: Status
-        title: Title
-        viewers: Viewers
-        visibility: Visibility
-      updated: Live stream updated successfully.
-      visibility:
-        public_access: Public
-        subscribers_only: Subscribers Only
     domains:
       created: Domain added successfully
       deleted: Domain deleted successfully
@@ -408,6 +336,76 @@ en:
       unfeatured: Listing is no longer featured
       unscheduled: Listing schedule cancelled
       updated: Updated
+    live_streams:
+      actions:
+        delete: Delete
+        edit: Edit
+        end_stream: End Stream
+        start: Start Stream
+        view: View
+      cannot_end: Cannot end this stream.
+      cannot_start: Cannot start this stream.
+      confirm_delete: Are you sure you want to delete this stream?
+      created: Live stream scheduled successfully.
+      destroyed: Live stream deleted successfully.
+      disabled: Live streaming is not enabled for this site.
+      edit: Edit Live Stream
+      ended: Live stream has ended.
+      form:
+        cancel: Cancel
+        create: Schedule Stream
+        description: Description
+        description_hint: Describe what viewers can expect
+        scheduled_at: Scheduled At
+        title: Title
+        title_hint: Give your stream a title
+        update: Update Stream
+        visibility: Visibility
+        visibility_hint: Choose who can watch this stream
+      index:
+        description: Schedule and manage live streams
+        new_stream: New Stream
+        no_streams: No live streams scheduled yet.
+        title: Live Streams
+      mux_error: 'Error creating stream: %{error}'
+      mux_not_configured: Mux is not configured. Please set MUX_TOKEN_ID and MUX_TOKEN_SECRET.
+      new: New Live Stream
+      show:
+        analytics: Analytics
+        back: Back to Live Streams
+        chat_link: View Live Chat
+        created: Created
+        discussion: Live Chat
+        live_indicator: LIVE
+        no_discussion: No chat associated
+        peak_viewers: Peak Viewers
+        playback_url: Playback URL
+        replay_available: Replay Available
+        replay_playback_id: Replay Playback ID
+        scheduled: Scheduled
+        started: Started
+        status: Status
+        stream_dashboard: Stream Dashboard
+        stream_key: Stream Key
+        stream_key_warning: Keep this secret! Only share with the broadcaster.
+        viewer_count: Current Viewers
+      started: Live stream has started.
+      status:
+        archived: Archived
+        ended: Ended
+        live: Live
+        scheduled: Scheduled
+      table:
+        actions: Actions
+        scheduled: Scheduled
+        status: Status
+        title: Title
+        viewers: Viewers
+        visibility: Visibility
+      updated: Live stream updated successfully.
+      visibility:
+        public_access: Public
+        subscribers_only: Subscribers Only
     moderation:
       comments_locked: Comments have been locked on this content
       comments_unlocked: Comments have been unlocked on this content
@@ -973,46 +971,6 @@ en:
       other: "%{count} errors prevented this from being saved"
     rate_limited: You have exceeded the rate limit. Please try again later.
     user_banned: You are banned from this site.
-  live_stream_mailer:
-    footer:
-      manage_preferences: Manage Preferences
-      sent_to: Sent to %{email}
-      unsubscribe: Unsubscribe
-    stream_live_notification:
-      live_now: Live Now
-      subject: "%{title} is live on %{site}"
-      watch_now: Watch Now
-  live_streams:
-    archived: This stream has ended and no replay is available.
-    back: Back to streams
-    chat_disabled: Chat is not available for this stream.
-    chat_title: Live Chat
-    ended: This stream has ended.
-    index:
-      description: Watch live broadcasts and replays
-      live_now: Live Now
-      no_streams: No live streams scheduled.
-      past_streams: Past Streams
-      title: Live Streams
-      upcoming: Upcoming
-    join_chat: Join the chat
-    live_badge: LIVE
-    replay: Replay
-    scheduled_for: Scheduled for %{time}
-    show:
-      title: "%{title} - Live Stream"
-      viewer_count:
-        one: 1 viewer
-        other: "%{count} viewers"
-    sign_in_to_watch: Sign in to watch this stream
-    status:
-      archived: Archived
-      ended: Ended
-      live: Live
-      scheduled: Scheduled
-    subscribers_only: This stream is for subscribers only.
-    watch_now: Watch Now
-    watch_replay: Watch Replay
   feed:
     content:
       untitled: Untitled
@@ -1109,6 +1067,42 @@ en:
       no_listings_yet: No listings yet
       title: All Listings
       view_details: View Details
+  live_stream_mailer:
+    footer:
+      manage_preferences: Manage Preferences
+      sent_to: Sent to %{email}
+      unsubscribe: Unsubscribe
+    stream_live_notification:
+      live_now: Live Now
+      subject: "%{title} is live on %{site}"
+      watch_now: Watch Now
+  live_streams:
+    back: Back to streams
+    chat_disabled: Chat is not available for this stream.
+    chat_title: Live Chat
+    ended: This stream has ended.
+    index:
+      description: Watch live broadcasts and replays
+      live_now: Live Now
+      no_streams: No live streams scheduled.
+      past_streams: Past Streams
+      title: Live Streams
+      upcoming: Upcoming
+    live_badge: LIVE
+    replay: Replay
+    scheduled_for: Scheduled for %{time}
+    show:
+      title: "%{title} - Live Stream"
+      viewer_count:
+        one: 1 viewer
+        other: "%{count} viewers"
+    status:
+      archived: Archived
+      ended: Ended
+      live: Live
+      scheduled: Scheduled
+    watch_now: Watch Now
+    watch_replay: Watch Replay
   marketing:
     features:
       cta: Get Started Today
