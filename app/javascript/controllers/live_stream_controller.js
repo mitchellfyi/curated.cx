@@ -32,7 +32,10 @@ export default class extends Controller {
   }
 
   disconnect() {
-    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    document.removeEventListener(
+      'visibilitychange',
+      this.handleVisibilityChange
+    );
     this.leaveStream();
   }
 
@@ -60,6 +63,7 @@ export default class extends Controller {
         this.joined = true;
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to join stream:', error);
     }
   }
@@ -84,6 +88,7 @@ export default class extends Controller {
 
       this.joined = false;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to leave stream:', error);
     }
   }
