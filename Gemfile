@@ -150,3 +150,6 @@ gem "ruby-openai", "~> 8.3"
 
 # Payment processing
 gem "stripe", "~> 13.0"
+
+# Live video streaming
+gem "mux_ruby", "~> 3.0"

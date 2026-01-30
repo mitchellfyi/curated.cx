@@ -1,0 +1,133 @@
+<% content_for :title, t("live_streams.show.title", title: @live_stream.title) %>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-4">
+    <%= link_to t("live_streams.back"), live_streams_path, class: "text-blue-600 hover:text-blue-800 text-sm" %>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Video Player -->
+    <div class="lg:col-span-2">
+      <div class="bg-black rounded-lg overflow-hidden">
+        <% if @live_stream.status_live? && @live_stream.mux_playback_id.present? %>
+          <div class="aspect-video" data-controller="live-stream" data-live-stream-playback-id-value="<%= @live_stream.mux_playback_id %>" data-live-stream-join-url-value="<%= join_live_stream_path(@live_stream) %>" data-live-stream-leave-url-value="<%= leave_live_stream_path(@live_stream) %>">
+            <mux-player
+              playback-id="<%= @live_stream.mux_playback_id %>"
+              stream-type="live"
+              autoplay
+              muted
+              class="w-full h-full"
+            ></mux-player>
+          </div>
+        <% elsif @live_stream.replay_available? %>
+          <div class="aspect-video" data-controller="live-stream" data-live-stream-playback-id-value="<%= @live_stream.replay_playback_id %>">
+            <mux-player
+              playback-id="<%= @live_stream.replay_playback_id %>"
+              stream-type="on-demand"
+              class="w-full h-full"
+            ></mux-player>
+          </div>
+        <% elsif @live_stream.status_scheduled? %>
+          <div class="aspect-video bg-gray-900 flex items-center justify-center">
+            <div class="text-center text-white">
+              <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="text-lg font-medium"><%= t("live_streams.scheduled_for", time: l(@live_stream.scheduled_at, format: :long)) %></p>
+            </div>
+          </div>
+        <% else %>
+          <div class="aspect-video bg-gray-900 flex items-center justify-center">
+            <div class="text-center text-white">
+              <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <p class="text-lg font-medium"><%= t("live_streams.ended") %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="mt-4">
+        <div class="flex items-center justify-between">
+          <h1 class="text-2xl font-bold"><%= @live_stream.title %></h1>
+          <% if @live_stream.status_live? %>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-600 text-white animate-pulse">
+                <%= t("live_streams.live_badge") %>
+              </span>
+              <span class="text-gray-500 text-sm" id="viewer-count">
+                <%= t("live_streams.show.viewer_count", count: @live_stream.viewer_count) %>
+              </span>
+            </div>
+          <% elsif @live_stream.replay_available? %>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+              <%= t("live_streams.replay") %>
+            </span>
+          <% end %>
+        </div>
+
+        <% if @live_stream.description.present? %>
+          <p class="text-gray-600 mt-2"><%= @live_stream.description %></p>
+        <% end %>
+
+        <div class="text-sm text-gray-500 mt-2">
+          <% if @live_stream.started_at %>
+            Started <%= time_ago_in_words(@live_stream.started_at) %> ago
+          <% else %>
+            Scheduled for <%= l(@live_stream.scheduled_at, format: :long) %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Chat (Discussion) -->
+    <div class="lg:col-span-1">
+      <div class="bg-white shadow-md rounded-lg h-[600px] flex flex-col">
+        <div class="px-4 py-3 border-b border-gray-200">
+          <h2 class="font-semibold"><%= t("live_streams.chat_title") %></h2>
+        </div>
+
+        <% if @live_stream.discussion %>
+          <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chat-messages">
+            <% @live_stream.discussion.posts.root_posts.includes(:user, replies: :user).oldest_first.each do |post| %>
+              <div class="flex gap-2">
+                <div class="flex-shrink-0">
+                  <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
+                    <%= post.user.email.first.upcase %>
+                  </div>
+                </div>
+                <div>
+                  <div class="text-sm">
+                    <span class="font-medium"><%= post.user.display_name || post.user.email.split("@").first %></span>
+                    <span class="text-gray-500 text-xs ml-2"><%= time_ago_in_words(post.created_at) %> ago</span>
+                  </div>
+                  <p class="text-sm text-gray-700"><%= post.body %></p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <% if user_signed_in? %>
+            <div class="p-4 border-t border-gray-200">
+              <%= form_with model: [@live_stream.discussion, DiscussionPost.new], local: true, class: "flex gap-2" do |f| %>
+                <%= f.text_field :body, placeholder: t("discussion_posts.form.placeholder"), class: "flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+                <%= f.submit t("discussion_posts.form.submit"), class: "inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 cursor-pointer" %>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="p-4 border-t border-gray-200 text-center">
+              <p class="text-sm text-gray-500">
+                <%= link_to t("discussions.sign_in_to_post"), new_user_session_path, class: "text-blue-600 hover:text-blue-800" %>
+              </p>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="flex-1 flex items-center justify-center text-gray-500">
+            <p><%= t("live_streams.chat_disabled") %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

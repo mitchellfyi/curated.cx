@@ -49,6 +49,8 @@ class Site < ApplicationRecord
   has_many :boost_payouts, dependent: :destroy
   has_many :discussions, dependent: :destroy
   has_many :discussion_posts, dependent: :destroy
+  has_many :live_streams, dependent: :destroy
+  has_many :live_stream_viewers, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
@@ -147,6 +149,15 @@ class Site < ApplicationRecord
     setting("discussions.default_visibility", "public_access")
   end
 
+  # Streaming settings
+  def streaming_enabled?
+    setting("streaming.enabled", false)
+  end
+
+  def streaming_notify_on_live?
+    setting("streaming.notify_on_live", true)
+  end
+
   # Status helpers
   def publicly_accessible?
     enabled?
@@ -227,6 +238,13 @@ class Site < ApplicationRecord
     if config["discussions"].present?
       unless config["discussions"].is_a?(Hash)
         errors.add(:config, "discussions must be a valid object")
+      end
+    end
+
+    # Validate streaming settings if present
+    if config["streaming"].present?
+      unless config["streaming"].is_a?(Hash)
+        errors.add(:config, "streaming must be a valid object")
       end
     end
   end

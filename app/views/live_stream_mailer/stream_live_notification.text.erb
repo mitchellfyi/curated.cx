@@ -1,0 +1,18 @@
+<%= @site.name %>
+================================================================================
+
+<%= t('live_stream_mailer.stream_live_notification.live_now').upcase %>
+
+<%= @stream.title %>
+<% if @stream.description.present? %>
+
+<%= truncate(@stream.description, length: 300) %>
+<% end %>
+
+<%= t('live_stream_mailer.stream_live_notification.watch_now') %>:
+<%= live_stream_url(@stream, host: @site.primary_hostname) %>
+
+--------------------------------------------------------------------------------
+
+<%= t('live_stream_mailer.footer.sent_to', email: @user.email) %>
+<%= t('live_stream_mailer.footer.unsubscribe') %>: <%= unsubscribe_digest_url(token: @subscription.unsubscribe_token, host: @site.primary_hostname) %>

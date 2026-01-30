@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_202103) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_212038) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -467,6 +467,51 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_202103) do
     t.index ["tenant_id"], name: "index_listings_on_tenant_id"
   end
 
+  create_table "live_stream_viewers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "duration_seconds"
+    t.datetime "joined_at", null: false
+    t.datetime "left_at"
+    t.bigint "live_stream_id", null: false
+    t.string "session_id"
+    t.bigint "site_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["live_stream_id", "session_id"], name: "index_live_stream_viewers_on_stream_and_session", unique: true, where: "(session_id IS NOT NULL)"
+    t.index ["live_stream_id", "user_id"], name: "index_live_stream_viewers_on_stream_and_user", unique: true, where: "(user_id IS NOT NULL)"
+    t.index ["live_stream_id"], name: "index_live_stream_viewers_on_live_stream_id"
+    t.index ["site_id"], name: "index_live_stream_viewers_on_site_id"
+    t.index ["user_id"], name: "index_live_stream_viewers_on_user_id"
+  end
+
+  create_table "live_streams", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.bigint "discussion_id"
+    t.datetime "ended_at"
+    t.string "mux_asset_id"
+    t.string "mux_playback_id"
+    t.string "mux_stream_id"
+    t.integer "peak_viewers", default: 0, null: false
+    t.string "replay_playback_id"
+    t.datetime "scheduled_at", null: false
+    t.bigint "site_id", null: false
+    t.datetime "started_at"
+    t.integer "status", default: 0, null: false
+    t.string "stream_key"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.integer "viewer_count", default: 0, null: false
+    t.integer "visibility", default: 0, null: false
+    t.index ["discussion_id"], name: "index_live_streams_on_discussion_id"
+    t.index ["mux_stream_id"], name: "index_live_streams_on_mux_stream_id", unique: true
+    t.index ["site_id", "scheduled_at"], name: "index_live_streams_on_site_id_and_scheduled_at"
+    t.index ["site_id", "status"], name: "index_live_streams_on_site_id_and_status"
+    t.index ["site_id"], name: "index_live_streams_on_site_id"
+    t.index ["user_id"], name: "index_live_streams_on_user_id"
+  end
+
   create_table "network_boosts", force: :cascade do |t|
     t.decimal "cpc_rate", precision: 8, scale: 2, null: false
     t.datetime "created_at", null: false
@@ -765,6 +810,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_202103) do
   add_foreign_key "listings", "sources"
   add_foreign_key "listings", "tenants"
   add_foreign_key "listings", "users", column: "featured_by_id"
+  add_foreign_key "live_stream_viewers", "live_streams"
+  add_foreign_key "live_stream_viewers", "sites"
+  add_foreign_key "live_stream_viewers", "users"
+  add_foreign_key "live_streams", "discussions"
+  add_foreign_key "live_streams", "sites"
+  add_foreign_key "live_streams", "users"
   add_foreign_key "network_boosts", "sites", column: "source_site_id"
   add_foreign_key "network_boosts", "sites", column: "target_site_id"
   add_foreign_key "referral_reward_tiers", "sites"

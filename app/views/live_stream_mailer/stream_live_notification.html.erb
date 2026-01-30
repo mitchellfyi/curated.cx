@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f3f4f6; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .card { background: #ffffff; border-radius: 8px; padding: 24px; margin-bottom: 20px; }
+    .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px; }
+    .logo { font-size: 24px; font-weight: bold; color: #1f2937; }
+    .live-badge { display: inline-block; background: #dc2626; color: #ffffff; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 12px; }
+    h1 { font-size: 22px; margin: 12px 0 8px 0; }
+    .description { font-size: 14px; color: #6b7280; margin: 12px 0 20px 0; }
+    .footer { text-align: center; font-size: 12px; color: #9ca3af; padding: 20px; }
+    .footer a { color: #6b7280; }
+    .btn { display: inline-block; padding: 14px 28px; background: #dc2626; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="logo"><%= @site.name %></div>
+      </div>
+
+      <div style="text-align: center;">
+        <span class="live-badge"><%= t('live_stream_mailer.stream_live_notification.live_now') %></span>
+        <h1><%= @stream.title %></h1>
+        <% if @stream.description.present? %>
+          <p class="description"><%= truncate(@stream.description, length: 200) %></p>
+        <% end %>
+
+        <div style="margin-top: 24px;">
+          <a href="<%= live_stream_url(@stream, host: @site.primary_hostname) %>" class="btn">
+            <%= t('live_stream_mailer.stream_live_notification.watch_now') %>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><%= t('live_stream_mailer.footer.sent_to', email: @user.email) %></p>
+      <p>
+        <a href="<%= unsubscribe_digest_url(token: @subscription.unsubscribe_token, host: @site.primary_hostname) %>"><%= t('live_stream_mailer.footer.unsubscribe') %></a>
+        &middot;
+        <a href="<%= digest_subscription_url(host: @site.primary_hostname) %>"><%= t('live_stream_mailer.footer.manage_preferences') %></a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

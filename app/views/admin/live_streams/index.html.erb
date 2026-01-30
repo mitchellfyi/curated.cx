@@ -1,0 +1,93 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold"><%= t("admin.live_streams.index.title") %></h1>
+      <p class="text-sm text-gray-500 mt-1"><%= t("admin.live_streams.index.description") %></p>
+    </div>
+    <% if Current.site.streaming_enabled? %>
+      <%= link_to t("admin.live_streams.index.new_stream"), new_admin_live_stream_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700" %>
+    <% end %>
+  </div>
+
+  <% unless Current.site.streaming_enabled? %>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-yellow-700"><%= t("admin.live_streams.disabled") %></p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @live_streams.any? %>
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.live_streams.table.title") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.live_streams.table.status") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.live_streams.table.visibility") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.live_streams.table.scheduled") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.live_streams.table.viewers") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.live_streams.table.actions") %></th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @live_streams.each do |stream| %>
+            <tr>
+              <td class="px-6 py-4">
+                <span class="text-sm font-medium text-gray-900 truncate max-w-xs">
+                  <%= link_to truncate(stream.title, length: 50), admin_live_stream_path(stream), class: "hover:text-blue-600" %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% case stream.status %>
+                <% when "scheduled" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <%= t("admin.live_streams.status.scheduled") %>
+                  </span>
+                <% when "live" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
+                    <%= t("admin.live_streams.status.live") %>
+                  </span>
+                <% when "ended" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    <%= t("admin.live_streams.status.ended") %>
+                  </span>
+                <% when "archived" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                    <%= t("admin.live_streams.status.archived") %>
+                  </span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= stream.visibility_public_access? ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800' %>">
+                  <%= t("admin.live_streams.visibility.#{stream.visibility}") %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= l(stream.scheduled_at, format: :long) %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= stream.viewer_count %> / <%= stream.peak_viewers %> peak
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                <%= link_to t("admin.live_streams.actions.view"), admin_live_stream_path(stream), class: "text-blue-600 hover:text-blue-900" %>
+                <%= link_to t("admin.live_streams.actions.edit"), edit_admin_live_stream_path(stream), class: "text-gray-600 hover:text-gray-900" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white shadow-md rounded-lg p-6 text-center text-gray-500">
+      <%= t("admin.live_streams.index.no_streams") %>
+    </div>
+  <% end %>
+</div>

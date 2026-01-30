@@ -110,6 +110,14 @@ Rails.application.routes.draw do
         post :unpin
       end
     end
+
+    # Live streams management
+    resources :live_streams do
+      member do
+        post :start
+        post :end_stream
+      end
+    end
   end
   devise_for :users
 
@@ -186,6 +194,14 @@ Rails.application.routes.draw do
     resources :posts, controller: "discussion_posts", only: %i[create update destroy]
   end
 
+  # Live streams
+  resources :live_streams, only: %i[index show] do
+    member do
+      post :join
+      post :leave
+    end
+  end
+
   # Public routes for browsing content
   resources :categories, only: [ :index, :show ] do
     resources :listings, only: [ :index, :show ]
@@ -202,6 +218,9 @@ Rails.application.routes.draw do
 
   # Stripe webhooks
   post "webhooks/stripe", to: "stripe_webhooks#create"
+
+  # Mux webhooks (live video streaming)
+  post "webhooks/mux", to: "mux_webhooks#create"
 
   # Public static pages (tenant-aware)
   get "about", to: "tenants#about"

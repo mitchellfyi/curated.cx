@@ -1,0 +1,13 @@
+<%# Live Now Indicator - shows when a stream is currently live %>
+<% if Current.site&.streaming_enabled? %>
+  <% live_stream = LiveStream.live_now.first %>
+  <% if live_stream %>
+    <%= link_to live_stream_path(live_stream), class: "inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors" do %>
+      <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+      </span>
+      <%= t("live_streams.live_badge") %>
+    <% end %>
+  <% end %>
+<% end %>
