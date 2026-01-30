@@ -1,0 +1,19 @@
+<%= t("digital_product_mailer.purchase_receipt.header") %>
+
+<%= t("digital_product_mailer.purchase_receipt.greeting") %>
+
+Product: <%= @digital_product.title %>
+Amount: <%= @purchase.amount_cents > 0 ? @purchase.formatted_amount : t("digital_product_mailer.purchase_receipt.free") %>
+Date: <%= l(@purchase.purchased_at, format: :long) %>
+
+Download your product:
+<%= @download_url %>
+
+<%= t("digital_product_mailer.purchase_receipt.important") %>
+- <%= t("digital_product_mailer.purchase_receipt.expires_at", time: l(@expires_at, format: :long)) %>
+- <%= t("digital_product_mailer.purchase_receipt.max_downloads", count: @max_downloads) %>
+
+<%= t("digital_product_mailer.purchase_receipt.regenerate_info") %>
+
+<%= t("digital_product_mailer.purchase_receipt.questions") %>
+<%= t("digital_product_mailer.purchase_receipt.thank_you") %>

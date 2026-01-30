@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_212038) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_223946) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -232,6 +232,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_212038) do
     t.index ["user_id"], name: "index_digest_subscriptions_on_user_id"
   end
 
+  create_table "digital_products", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "download_count", default: 0, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.integer "price_cents", default: 0, null: false
+    t.bigint "site_id", null: false
+    t.string "slug", null: false
+    t.integer "status", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "slug"], name: "index_digital_products_on_site_id_and_slug", unique: true
+    t.index ["site_id", "status"], name: "index_digital_products_on_site_id_and_status"
+    t.index ["site_id"], name: "index_digital_products_on_site_id"
+  end
+
   create_table "discussion_posts", force: :cascade do |t|
     t.text "body", null: false
     t.datetime "created_at", null: false
@@ -288,6 +304,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_212038) do
     t.index ["site_id"], name: "index_domains_on_site_id"
     t.index ["site_id"], name: "index_domains_on_site_id_where_primary", unique: true, where: "(\"primary\" = true)"
     t.index ["status"], name: "index_domains_on_status"
+  end
+
+  create_table "download_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "download_count", default: 0, null: false
+    t.datetime "expires_at", null: false
+    t.datetime "last_downloaded_at"
+    t.integer "max_downloads", default: 5, null: false
+    t.bigint "purchase_id", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_download_tokens_on_expires_at"
+    t.index ["purchase_id"], name: "index_download_tokens_on_purchase_id"
+    t.index ["token"], name: "index_download_tokens_on_token", unique: true
   end
 
   create_table "editorialisations", force: :cascade do |t|
@@ -527,16 +557,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_212038) do
     t.index ["target_site_id"], name: "index_network_boosts_on_target_site_id"
   end
 
+  create_table "purchases", force: :cascade do |t|
+    t.integer "amount_cents", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.bigint "digital_product_id", null: false
+    t.string "email", null: false
+    t.datetime "purchased_at", null: false
+    t.bigint "site_id", null: false
+    t.integer "source", default: 0, null: false
+    t.string "stripe_checkout_session_id"
+    t.string "stripe_payment_intent_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["digital_product_id"], name: "index_purchases_on_digital_product_id"
+    t.index ["site_id", "digital_product_id", "email"], name: "index_purchases_on_site_id_and_digital_product_id_and_email"
+    t.index ["site_id", "purchased_at"], name: "index_purchases_on_site_id_and_purchased_at"
+    t.index ["site_id"], name: "index_purchases_on_site_id"
+    t.index ["stripe_checkout_session_id"], name: "index_purchases_on_stripe_checkout_session_id", unique: true, where: "(stripe_checkout_session_id IS NOT NULL)"
+    t.index ["stripe_payment_intent_id"], name: "index_purchases_on_stripe_payment_intent_id", unique: true, where: "(stripe_payment_intent_id IS NOT NULL)"
+    t.index ["user_id"], name: "index_purchases_on_user_id"
+  end
+
   create_table "referral_reward_tiers", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.text "description"
+    t.bigint "digital_product_id"
     t.integer "milestone", null: false
     t.string "name", null: false
     t.jsonb "reward_data", default: {}, null: false
     t.integer "reward_type", default: 0, null: false
     t.bigint "site_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["digital_product_id"], name: "index_referral_reward_tiers_on_digital_product_id"
     t.index ["site_id", "active"], name: "index_referral_reward_tiers_on_site_id_and_active"
     t.index ["site_id", "milestone"], name: "index_referral_reward_tiers_on_site_id_and_milestone", unique: true
     t.index ["site_id"], name: "index_referral_reward_tiers_on_site_id"
@@ -786,6 +839,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_212038) do
   add_foreign_key "content_views", "users"
   add_foreign_key "digest_subscriptions", "sites"
   add_foreign_key "digest_subscriptions", "users"
+  add_foreign_key "digital_products", "sites"
   add_foreign_key "discussion_posts", "discussion_posts", column: "parent_id"
   add_foreign_key "discussion_posts", "discussions"
   add_foreign_key "discussion_posts", "sites"
@@ -794,6 +848,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_212038) do
   add_foreign_key "discussions", "users"
   add_foreign_key "discussions", "users", column: "locked_by_id"
   add_foreign_key "domains", "sites"
+  add_foreign_key "download_tokens", "purchases"
   add_foreign_key "editorialisations", "content_items"
   add_foreign_key "editorialisations", "sites"
   add_foreign_key "email_sequences", "sites"
@@ -818,6 +873,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_212038) do
   add_foreign_key "live_streams", "users"
   add_foreign_key "network_boosts", "sites", column: "source_site_id"
   add_foreign_key "network_boosts", "sites", column: "target_site_id"
+  add_foreign_key "purchases", "digital_products"
+  add_foreign_key "purchases", "sites"
+  add_foreign_key "purchases", "users"
+  add_foreign_key "referral_reward_tiers", "digital_products"
   add_foreign_key "referral_reward_tiers", "sites"
   add_foreign_key "referrals", "digest_subscriptions", column: "referee_subscription_id"
   add_foreign_key "referrals", "digest_subscriptions", column: "referrer_subscription_id"

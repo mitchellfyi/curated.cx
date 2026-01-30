@@ -1,0 +1,18 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-4">
+    <%= link_to admin_digital_product_path(@digital_product), class: "inline-flex items-center text-sm text-gray-500 hover:text-gray-700" do %>
+      <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      <%= t("admin.digital_products.back_to_product") %>
+    <% end %>
+  </div>
+
+  <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="p-6">
+      <h1 class="text-2xl font-bold text-gray-900"><%= t("admin.digital_products.edit") %></h1>
+
+      <%= render "form", digital_product: @digital_product %>
+    </div>
+  </div>
+</div>

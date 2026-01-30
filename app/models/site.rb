@@ -51,6 +51,8 @@ class Site < ApplicationRecord
   has_many :discussion_posts, dependent: :destroy
   has_many :live_streams, dependent: :destroy
   has_many :live_stream_viewers, dependent: :destroy
+  has_many :digital_products, dependent: :destroy
+  has_many :purchases, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
@@ -158,6 +160,11 @@ class Site < ApplicationRecord
     setting("streaming.notify_on_live", true)
   end
 
+  # Digital products settings
+  def digital_products_enabled?
+    setting("digital_products.enabled", false)
+  end
+
   # Status helpers
   def publicly_accessible?
     enabled?
@@ -245,6 +252,13 @@ class Site < ApplicationRecord
     if config["streaming"].present?
       unless config["streaming"].is_a?(Hash)
         errors.add(:config, "streaming must be a valid object")
+      end
+    end
+
+    # Validate digital_products settings if present
+    if config["digital_products"].present?
+      unless config["digital_products"].is_a?(Hash)
+        errors.add(:config, "digital_products must be a valid object")
       end
     end
   end

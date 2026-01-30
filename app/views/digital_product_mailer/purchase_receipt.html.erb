@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #059669; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+    .product-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .download-button { display: inline-block; background: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
+    .download-button:hover { background: #047857; }
+    .amount { font-size: 24px; font-weight: bold; color: #059669; }
+    .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+    .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 6px; margin: 15px 0; }
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 8px 0; }
+    .label { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><%= t("digital_product_mailer.purchase_receipt.header") %></h1>
+  </div>
+
+  <div class="content">
+    <p><%= t("digital_product_mailer.purchase_receipt.greeting") %></p>
+
+    <div class="product-details">
+      <h2><%= @digital_product.title %></h2>
+
+      <% if @purchase.amount_cents > 0 %>
+        <p class="amount"><%= @purchase.formatted_amount %></p>
+      <% else %>
+        <p class="amount"><%= t("digital_product_mailer.purchase_receipt.free") %></p>
+      <% end %>
+
+      <table>
+        <tr>
+          <td class="label"><%= t("digital_product_mailer.purchase_receipt.date") %></td>
+          <td><%= l(@purchase.purchased_at, format: :long) %></td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="<%= @download_url %>" class="download-button">
+        <%= t("digital_product_mailer.purchase_receipt.download_button") %>
+      </a>
+    </div>
+
+    <div class="warning">
+      <strong><%= t("digital_product_mailer.purchase_receipt.important") %></strong>
+      <ul>
+        <li><%= t("digital_product_mailer.purchase_receipt.expires_at", time: l(@expires_at, format: :long)) %></li>
+        <li><%= t("digital_product_mailer.purchase_receipt.max_downloads", count: @max_downloads) %></li>
+      </ul>
+    </div>
+
+    <p><%= t("digital_product_mailer.purchase_receipt.regenerate_info") %></p>
+  </div>
+
+  <div class="footer">
+    <p><%= t("digital_product_mailer.purchase_receipt.questions") %></p>
+    <p><%= t("digital_product_mailer.purchase_receipt.thank_you") %></p>
+  </div>
+</body>
+</html>

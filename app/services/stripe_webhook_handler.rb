@@ -39,6 +39,18 @@ class StripeWebhookHandler
 
   # Handle successful checkout completion
   def handle_checkout_completed(session)
+    checkout_type = session.metadata["checkout_type"]
+
+    # Route to appropriate handler based on checkout type
+    if checkout_type == "digital_product"
+      handle_digital_product_purchase(session)
+    else
+      handle_listing_checkout(session)
+    end
+  end
+
+  # Handle listing-based checkout (jobs, featured placements)
+  def handle_listing_checkout(session)
     listing = find_listing_by_session(session.id)
     return true unless listing
 
@@ -65,6 +77,44 @@ class StripeWebhookHandler
     true
   rescue StandardError => e
     Rails.logger.error("Error handling checkout.session.completed: #{e.message}")
+    raise
+  end
+
+  # Handle digital product purchase
+  def handle_digital_product_purchase(session)
+    digital_product_id = session.metadata["digital_product_id"]
+    purchaser_email = session.metadata["purchaser_email"]
+    site_id = session.metadata["site_id"]
+
+    # Check if purchase already exists (idempotency)
+    existing_purchase = Purchase.find_by(stripe_checkout_session_id: session.id)
+    return true if existing_purchase
+
+    digital_product = DigitalProduct.unscoped.find(digital_product_id)
+
+    purchase = nil
+    ActiveRecord::Base.transaction do
+      purchase = Purchase.create!(
+        site_id: site_id,
+        digital_product: digital_product,
+        email: purchaser_email,
+        amount_cents: session.amount_total,
+        stripe_payment_intent_id: session.payment_intent,
+        stripe_checkout_session_id: session.id,
+        source: :checkout,
+        purchased_at: Time.current
+      )
+
+      DownloadToken.create!(purchase: purchase)
+    end
+
+    # Send delivery email with download link
+    DigitalProductMailer.purchase_receipt(purchase).deliver_later
+
+    Rails.logger.info("Digital product purchase completed: #{purchase.id}")
+    true
+  rescue StandardError => e
+    Rails.logger.error("Error handling digital product purchase: #{e.message}")
     raise
   end
 

@@ -118,6 +118,9 @@ Rails.application.routes.draw do
         post :end_stream
       end
     end
+
+    # Digital products management
+    resources :digital_products
   end
   devise_for :users
 
@@ -192,6 +195,26 @@ Rails.application.routes.draw do
   # Community discussions
   resources :discussions, only: %i[index show new create update destroy] do
     resources :posts, controller: "discussion_posts", only: %i[create update destroy]
+  end
+
+  # Digital products marketplace
+  resources :products, only: %i[index show], controller: "digital_products" do
+    resource :checkout, only: %i[create], controller: "product_checkouts" do
+      get :success
+      get :cancel
+    end
+  end
+
+  # Token-based downloads (no login required)
+  get "downloads/:token", to: "downloads#show", as: :download
+
+  # User purchase history
+  namespace :my do
+    resources :purchases, only: %i[index show] do
+      member do
+        post :regenerate_token
+      end
+    end
   end
 
   # Live streams

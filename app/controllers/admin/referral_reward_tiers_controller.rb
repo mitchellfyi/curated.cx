@@ -51,7 +51,7 @@ class Admin::ReferralRewardTiersController < ApplicationController
   end
 
   def tier_params
-    params.require(:referral_reward_tier).permit(:milestone, :reward_type, :name, :description, :active).tap do |p|
+    params.require(:referral_reward_tier).permit(:milestone, :reward_type, :name, :description, :active, :digital_product_id).tap do |p|
       # Handle reward_data as JSON
       if params[:referral_reward_tier][:reward_data].present?
         begin

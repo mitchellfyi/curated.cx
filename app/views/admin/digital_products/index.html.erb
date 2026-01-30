@@ -1,0 +1,114 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold"><%= t("admin.digital_products.title") %></h1>
+      <p class="text-sm text-gray-500 mt-1"><%= t("admin.digital_products.description") %></p>
+    </div>
+    <% if Current.site.digital_products_enabled? %>
+      <%= link_to t("admin.digital_products.new"), new_admin_digital_product_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700" %>
+    <% end %>
+  </div>
+
+  <% unless Current.site.digital_products_enabled? %>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-yellow-700"><%= t("admin.digital_products.disabled") %></p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Dashboard Stats %>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="text-sm text-gray-500"><%= t("admin.digital_products.stats.total_revenue") %></div>
+      <div class="text-2xl font-bold text-green-600"><%= number_to_currency(@dashboard_stats[:total_revenue] / 100.0) %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="text-sm text-gray-500"><%= t("admin.digital_products.stats.total_products") %></div>
+      <div class="text-2xl font-bold"><%= @dashboard_stats[:total_products] %></div>
+      <div class="text-xs text-gray-400">
+        <%= @dashboard_stats[:published_products] %> <%= t("admin.digital_products.stats.published") %> /
+        <%= @dashboard_stats[:draft_products] %> <%= t("admin.digital_products.stats.draft") %>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="text-sm text-gray-500"><%= t("admin.digital_products.stats.total_purchases") %></div>
+      <div class="text-2xl font-bold"><%= @dashboard_stats[:total_purchases] %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="text-sm text-gray-500"><%= t("admin.digital_products.stats.total_downloads") %></div>
+      <div class="text-2xl font-bold"><%= @dashboard_stats[:total_downloads] %></div>
+    </div>
+  </div>
+
+  <% if @digital_products.any? %>
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.digital_products.table.title") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.digital_products.table.price") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.digital_products.table.status") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.digital_products.table.downloads") %></th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t("admin.digital_products.table.actions") %></th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @digital_products.each do |product| %>
+            <tr>
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">
+                      <%= link_to truncate(product.title, length: 50), admin_digital_product_path(product), class: "hover:text-blue-600" %>
+                    </div>
+                    <div class="text-sm text-gray-500"><%= product.slug %></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="text-sm <%= product.free? ? 'text-green-600 font-medium' : 'text-gray-900' %>">
+                  <%= product.formatted_price %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% case product.status %>
+                <% when "draft" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    <%= t("admin.digital_products.statuses.draft") %>
+                  </span>
+                <% when "published" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <%= t("admin.digital_products.statuses.published") %>
+                  </span>
+                <% when "archived" %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <%= t("admin.digital_products.statuses.archived") %>
+                  </span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= product.download_count %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                <%= link_to t("admin.common.view"), admin_digital_product_path(product), class: "text-blue-600 hover:text-blue-900" %>
+                <%= link_to t("admin.common.edit"), edit_admin_digital_product_path(product), class: "text-gray-600 hover:text-gray-900" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white shadow-md rounded-lg p-6 text-center text-gray-500">
+      <%= t("admin.digital_products.no_products") %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,18 @@
+<%# Invalid download token page %>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <div class="text-center">
+    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
+      <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </div>
+
+    <h1 class="mt-6 text-2xl font-bold text-gray-900">
+      <%= t("downloads.not_found.title") %>
+    </h1>
+
+    <p class="mt-4 text-gray-600">
+      <%= t("downloads.not_found.message") %>
+    </p>
+  </div>
+</div>

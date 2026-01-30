@@ -91,7 +91,32 @@ class ReferralRewardService
   end
 
   def send_reward_email(tier)
-    ReferralMailer.reward_unlocked(subscription, tier).deliver_later
+    # If tier grants a digital product, create a purchase and send product email
+    if tier.grants_digital_product?
+      grant_digital_product(tier)
+    else
+      ReferralMailer.reward_unlocked(subscription, tier).deliver_later
+    end
+  end
+
+  def grant_digital_product(tier)
+    digital_product = tier.digital_product
+
+    # Create a purchase record with $0 amount
+    purchase = Purchase.create!(
+      site: subscription.site,
+      digital_product: digital_product,
+      email: subscription.email,
+      amount_cents: 0,
+      source: :referral,
+      purchased_at: Time.current
+    )
+
+    # Create a download token
+    DownloadToken.create!(purchase: purchase)
+
+    # Send the product delivery email instead of the generic reward email
+    DigitalProductMailer.purchase_receipt(purchase).deliver_later
   end
 
   def enroll_in_milestone_sequences(milestone)

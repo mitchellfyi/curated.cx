@@ -1,0 +1,104 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-4">
+    <%= link_to admin_digital_products_path, class: "inline-flex items-center text-sm text-gray-500 hover:text-gray-700" do %>
+      <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      <%= t("admin.digital_products.back_to_list") %>
+    <% end %>
+  </div>
+
+  <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900"><%= @digital_product.title %></h1>
+          <p class="text-sm text-gray-500 mt-1">/<%= @digital_product.slug %></p>
+        </div>
+        <div class="space-x-2">
+          <%= link_to t("admin.common.edit"), edit_admin_digital_product_path(@digital_product), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+          <%= button_to t("admin.common.delete"), admin_digital_product_path(@digital_product), method: :delete, data: { confirm: t("admin.common.confirm_delete") }, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700" %>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <dt class="text-sm font-medium text-gray-500"><%= t("admin.digital_products.form.price") %></dt>
+          <dd class="mt-1 text-lg font-semibold <%= @digital_product.free? ? 'text-green-600' : 'text-gray-900' %>">
+            <%= @digital_product.formatted_price %>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500"><%= t("admin.digital_products.form.status") %></dt>
+          <dd class="mt-1">
+            <% case @digital_product.status %>
+            <% when "draft" %>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                <%= t("admin.digital_products.statuses.draft") %>
+              </span>
+            <% when "published" %>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <%= t("admin.digital_products.statuses.published") %>
+              </span>
+            <% when "archived" %>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                <%= t("admin.digital_products.statuses.archived") %>
+              </span>
+            <% end %>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500"><%= t("admin.digital_products.stats.total_downloads") %></dt>
+          <dd class="mt-1 text-lg font-semibold text-gray-900"><%= @digital_product.download_count %></dd>
+        </div>
+      </div>
+
+      <% if @digital_product.description.present? %>
+        <div class="mt-6">
+          <dt class="text-sm font-medium text-gray-500"><%= t("admin.digital_products.form.description") %></dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= simple_format(@digital_product.description) %></dd>
+        </div>
+      <% end %>
+
+      <% if @digital_product.file.attached? %>
+        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+          <dt class="text-sm font-medium text-gray-500"><%= t("admin.digital_products.file_info") %></dt>
+          <dd class="mt-1">
+            <p class="text-sm text-gray-900"><%= @digital_product.file.filename %></p>
+            <p class="text-xs text-gray-500"><%= number_to_human_size(@digital_product.file.byte_size) %></p>
+          </dd>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Purchases Section %>
+    <div class="border-t border-gray-200 px-6 py-4">
+      <h2 class="text-lg font-semibold text-gray-900"><%= t("admin.digital_products.purchases_section") %></h2>
+
+      <% if @purchases.any? %>
+        <table class="mt-4 min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"><%= t("admin.digital_products.purchases_table.email") %></th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"><%= t("admin.digital_products.purchases_table.amount") %></th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"><%= t("admin.digital_products.purchases_table.source") %></th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"><%= t("admin.digital_products.purchases_table.date") %></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <% @purchases.each do |purchase| %>
+              <tr>
+                <td class="px-4 py-2 text-sm text-gray-900"><%= purchase.email %></td>
+                <td class="px-4 py-2 text-sm text-gray-900"><%= purchase.formatted_amount %></td>
+                <td class="px-4 py-2 text-sm text-gray-500"><%= purchase.source.humanize %></td>
+                <td class="px-4 py-2 text-sm text-gray-500"><%= l(purchase.purchased_at, format: :short) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="mt-4 text-sm text-gray-500"><%= t("admin.digital_products.no_purchases") %></p>
+      <% end %>
+    </div>
+  </div>
+</div>

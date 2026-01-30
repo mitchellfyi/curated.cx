@@ -1,0 +1,36 @@
+<%# Product card partial for grid display %>
+<%= link_to product_path(product.slug), class: "group block bg-white rounded-lg shadow hover:shadow-md transition-shadow" do %>
+  <div class="p-6">
+    <div class="flex items-start justify-between">
+      <div class="flex-1 min-w-0">
+        <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 truncate">
+          <%= product.title %>
+        </h3>
+        <% if product.description.present? %>
+          <p class="mt-2 text-sm text-gray-500 line-clamp-2">
+            <%= truncate(product.description, length: 120) %>
+          </p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between">
+      <span class="<%= product.free? ? 'text-green-600' : 'text-gray-900' %> font-bold text-lg">
+        <%= product.formatted_price %>
+      </span>
+
+      <span class="inline-flex items-center text-sm text-blue-600 group-hover:text-blue-700">
+        <%= t("digital_products.view_details") %>
+        <svg class="ml-1 h-4 w-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </span>
+    </div>
+
+    <% if product.download_count > 0 %>
+      <div class="mt-3 text-xs text-gray-400">
+        <%= t("digital_products.download_count", count: product.download_count) %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

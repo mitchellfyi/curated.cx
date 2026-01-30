@@ -1,0 +1,48 @@
+<%# Purchase history page %>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900"><%= t("my.purchases.title") %></h1>
+    <p class="mt-2 text-gray-600"><%= t("my.purchases.subtitle") %></p>
+  </div>
+
+  <% if @purchases.any? %>
+    <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
+      <% @purchases.each do |purchase| %>
+        <div class="p-6 hover:bg-gray-50">
+          <div class="flex items-center justify-between">
+            <div class="flex-1 min-w-0">
+              <h3 class="text-lg font-semibold text-gray-900">
+                <%= purchase.digital_product.title %>
+              </h3>
+              <p class="mt-1 text-sm text-gray-500">
+                <%= t("my.purchases.purchased_on", date: l(purchase.purchased_at, format: :long)) %>
+              </p>
+              <p class="mt-1 text-sm text-gray-500">
+                <%= purchase.formatted_amount %>
+              </p>
+            </div>
+
+            <div class="ml-4 flex-shrink-0">
+              <%= link_to my_purchase_path(purchase), class: "inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+                <%= t("my.purchases.view_details") %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12 bg-white rounded-lg shadow">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t("my.purchases.empty.title") %></h3>
+      <p class="mt-1 text-sm text-gray-500"><%= t("my.purchases.empty.description") %></p>
+      <div class="mt-6">
+        <%= link_to products_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+          <%= t("my.purchases.browse_products") %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

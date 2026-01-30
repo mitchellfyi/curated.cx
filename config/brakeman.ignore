@@ -11,6 +11,10 @@
     {
       "fingerprint": "460ed9e97a39096e2a6f2e26b4a4755f4ae06191cdf21404866d8f94c84c07ce",
       "note": "Intentional: Admin-only email HTML preview. AdminAccess authorization protects this view."
+    },
+    {
+      "fingerprint": "51efa1bade83e0905fda8eeb044bfafee0a93da53b28f4903d1d243cb8417cf7",
+      "note": "Intentional: Redirect to signed S3 URL for secure file downloads. Token validation ensures authorized access."
     }
   ],
   "updated": "2026-01-30",
