@@ -21,7 +21,7 @@ Users can flag content and comments that violate community guidelines. This enab
 ```ruby
 Flag
   - user_id        # User who flagged
-  - flaggable      # Polymorphic (ContentItem, Comment)
+  - flaggable      # Polymorphic (ContentItem, Comment, DiscussionPost)
   - reason         # Enum: spam, harassment, misinformation, inappropriate, other
   - status         # Enum: pending, reviewed, dismissed, action_taken
   - details        # Optional additional context (max 1000 chars)
@@ -210,6 +210,118 @@ POST /admin/content_items/:id/unlock_comments
 
 ---
 
+## Discussion Moderation
+
+Discussions have additional moderation controls for locking and pinning.
+
+### Locking Discussions
+
+Locked discussions prevent new posts while keeping existing content visible.
+
+**When to use**:
+- Discussion has become unproductive
+- Topic is resolved or outdated
+- Preventing off-topic replies
+
+**How it works**:
+- `locked_at` timestamp is set when locked
+- `locked_by_id` tracks which admin locked the discussion
+- Existing posts remain visible
+- New posts are blocked (returns 403)
+
+**API**:
+```ruby
+# Lock a discussion
+discussion.lock!(current_user)
+
+# Unlock a discussion
+discussion.unlock!
+
+# Check status
+discussion.locked?  # => true/false
+```
+
+**Admin Routes**:
+```
+POST /admin/discussions/:id/lock
+POST /admin/discussions/:id/unlock
+```
+
+### Pinning Discussions
+
+Pinned discussions appear at the top of the discussions list.
+
+**When to use**:
+- Important announcements
+- Welcome/intro threads
+- Community guidelines
+
+**How it works**:
+- `pinned` boolean marks the discussion as pinned
+- `pinned_at` tracks when pinned
+- Pinned discussions sort before unpinned in listings
+
+**API**:
+```ruby
+# Pin a discussion
+discussion.pin!
+
+# Unpin a discussion
+discussion.unpin!
+
+# Check status
+discussion.pinned?  # => true/false
+```
+
+**Admin Routes**:
+```
+POST /admin/discussions/:id/pin
+POST /admin/discussions/:id/unpin
+```
+
+### Flagging Discussion Posts
+
+Discussion posts use the existing Flag system (polymorphic flagging).
+
+**Creating Flags**:
+```ruby
+# Flag a discussion post
+Flag.create!(
+  user: current_user,
+  site: Current.site,
+  flaggable: discussion_post,
+  reason: :spam
+)
+```
+
+Discussion posts support auto-hide at flag threshold (same as comments):
+- When flag count >= `site.setting("moderation.flag_threshold")`, post's `hidden_at` is set
+- Hidden posts are excluded via `DiscussionPost.visible` scope
+- Admins can manually unhide after review
+
+### Authorization
+
+| Action              | Required Role |
+|---------------------|---------------|
+| Create discussion   | authenticated, not banned |
+| Edit discussion     | author or admin/owner |
+| Delete discussion   | admin, owner |
+| Lock/unlock         | admin, owner |
+| Pin/unpin           | admin, owner |
+| Create post         | authenticated, not banned, discussion not locked |
+| Edit post           | author (discussion not locked) |
+| Delete post         | author or admin/owner |
+| Flag post           | authenticated |
+
+### Rate Limiting
+
+| Action          | Limit  | Period |
+|-----------------|--------|--------|
+| Discussions     | 5      | 1 hour |
+| Discussion Posts| 20     | 1 hour |
+
+---
+
 ## User Bans
 
 Site bans prevent users from participating in a specific site's community.
@@ -254,7 +366,9 @@ SiteBan.expired
 When a user is banned:
 - **Cannot vote** - VotePolicy denies create
 - **Cannot comment** - CommentPolicy denies create
-- **Existing content remains** - Previous votes/comments are preserved
+- **Cannot create discussions** - DiscussionPolicy denies create
+- **Cannot post in discussions** - DiscussionPostPolicy denies create
+- **Existing content remains** - Previous votes/comments/posts are preserved
 
 ### Admin Interface
 
@@ -276,11 +390,13 @@ Rate limiting prevents abuse of community features.
 
 ### Limits
 
-| Action   | Limit        | Period |
-|----------|--------------|--------|
-| Votes    | 100          | 1 hour |
-| Comments | 10           | 1 hour |
-| Flags    | 20           | 1 hour |
+| Action           | Limit  | Period |
+|------------------|--------|--------|
+| Votes            | 100    | 1 hour |
+| Comments         | 10     | 1 hour |
+| Flags            | 20     | 1 hour |
+| Discussions      | 5      | 1 hour |
+| Discussion Posts | 20     | 1 hour |
 
 ### Implementation
 
@@ -392,4 +508,4 @@ This allows admins to review who took actions and when.
 
 ---
 
-*Last Updated: 2026-01-24*
+*Last Updated: 2026-01-30*

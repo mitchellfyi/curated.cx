@@ -412,12 +412,12 @@ AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
 
 ### Flag (Content Reporting)
 
-**Purpose**: Represents a user's report of problematic content or comments.
+**Purpose**: Represents a user's report of problematic content, comments, or discussion posts.
 
 **Key Attributes**:
 - `site_id` - Site this flag belongs to
 - `user_id` - User who created the flag
-- `flaggable_type` / `flaggable_id` - Polymorphic reference (ContentItem, Comment)
+- `flaggable_type` / `flaggable_id` - Polymorphic reference (ContentItem, Comment, DiscussionPost)
 - `reason` - Enum: `spam`, `harassment`, `misinformation`, `inappropriate`, `other`
 - `status` - Enum: `pending`, `reviewed`, `dismissed`, `action_taken`
 - `details` - Optional explanation (max 1000 chars)
@@ -456,6 +456,127 @@ flag.resolve!(admin_user, action: :action_taken)
 ```
 
 ---
+
+### Discussion (Community Thread)
+
+**Purpose**: Represents a standalone community discussion thread where users can engage in conversations independent of content items.
+
+**Key Attributes**:
+- `site_id` - Site this discussion belongs to
+- `user_id` - User who created the discussion
+- `title` - Discussion title (max 200 chars)
+- `body` - Optional description/introduction (max 10,000 chars)
+- `visibility` - Enum: `public_access` (anyone can view), `subscribers_only` (requires DigestSubscription)
+- `pinned` - Boolean (appears first in listings)
+- `pinned_at` - When pinned
+- `locked_at` - When locked (no new posts)
+- `locked_by_id` - Admin who locked the discussion
+- `posts_count` - Counter cache of DiscussionPosts
+- `last_post_at` - Last activity timestamp (for sorting)
+
+**Associations**:
+- `belongs_to :site` (via SiteScoped)
+- `belongs_to :user` - Creator
+- `belongs_to :locked_by` (User, optional) - Admin who locked
+- `has_many :posts` (DiscussionPost) - Discussion posts
+
+**Scopes**:
+- `pinned_first` - Pinned DESC, then by activity
+- `recent_activity` - Ordered by last_post_at
+- `publicly_visible` - Public discussions only
+- `unlocked` - Discussions that aren't locked
+
+**Methods**:
+- `locked?` - Whether discussion is locked
+- `lock!(user)` - Lock the discussion
+- `unlock!` - Unlock the discussion
+- `pin!` - Pin to top of listings
+- `unpin!` - Remove pin
+- `touch_last_post!` - Update last_post_at
+
+**Example**:
+```ruby
+# Create a discussion
+discussion = Discussion.create!(
+  site: Current.site,
+  user: current_user,
+  title: "Welcome to our community!",
+  body: "Introduce yourself here...",
+  visibility: :public_access
+)
+
+# Pin it (admin)
+discussion.pin!
+
+# Lock when needed (admin)
+discussion.lock!(admin_user)
+discussion.locked?  # => true
+```
+
+---
+
+### DiscussionPost (Discussion Message)
+
+**Purpose**: Represents a single post/message within a discussion, supporting flat threading (one level of replies).
+
+**Key Attributes**:
+- `site_id` - Site this post belongs to
+- `discussion_id` - Parent discussion
+- `user_id` - Author
+- `body` - Post content (max 10,000 chars)
+- `parent_id` - Parent post for replies (nil for root posts)
+- `edited_at` - When post was edited
+- `hidden_at` - When post was hidden (for moderation)
+
+**Associations**:
+- `belongs_to :site` (via SiteScoped)
+- `belongs_to :user` - Author
+- `belongs_to :discussion` (counter_cache: :posts_count)
+- `belongs_to :parent` (DiscussionPost, optional) - Parent post for replies
+- `has_many :replies` (DiscussionPost) - Child replies
+- `has_many :flags` (as: :flaggable) - User reports
+
+**Scopes**:
+- `root_posts` - Top-level posts (parent_id nil)
+- `oldest_first` - Chronological order
+- `recent` - Reverse chronological
+- `visible` - Not hidden
+
+**Callbacks**:
+- `after_create :touch_discussion_last_post` - Updates discussion's last_post_at
+
+**Methods**:
+- `root?` - Is this a top-level post?
+- `reply?` - Is this a reply to another post?
+- `edited?` - Has this post been edited?
+- `hidden?` - Is this post hidden?
+- `mark_as_edited!` - Set edited_at timestamp
+
+**Example**:
+```ruby
+# Create a post in a discussion
+post = DiscussionPost.create!(
+  site: Current.site,
+  discussion: discussion,
+  user: current_user,
+  body: "This is my contribution to the discussion."
+)
+
+# Reply to the post
+reply = DiscussionPost.create!(
+  site: Current.site,
+  discussion: discussion,
+  user: another_user,
+  parent: post,
+  body: "Great point! I agree."
+)
+
+# Check relationships
+post.root?    # => true
+reply.reply?  # => true
+reply.parent  # => post
+post.replies  # => [reply]
+```
 
 ---
 

@@ -51,7 +51,7 @@ RSpec.describe "Landing Pages", type: :request do
       it "sets meta tags" do
         get landing_page_path(landing_page.slug)
 
-        expect(response.body).to include("<title>#{landing_page.title}")
+        expect(response.body).to include("<title>#{CGI.escapeHTML(landing_page.title)}")
       end
     end
 
