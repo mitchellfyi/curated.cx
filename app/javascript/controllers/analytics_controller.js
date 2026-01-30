@@ -1,4 +1,4 @@
-import { Controller } from "@hotwired/stimulus"
+import { Controller } from '@hotwired/stimulus';
 
 // Analytics controller for Google Analytics 4 event tracking.
 // Handles click tracking, page views, and custom events.
@@ -13,110 +13,110 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static values = {
     event: String,
-    params: { type: Object, default: {} }
-  }
+    params: { type: Object, default: {} },
+  };
 
   connect() {
     // Track page view if this is a pageview controller
-    if (this.eventValue === "page_view") {
-      this.trackPageView()
+    if (this.eventValue === 'page_view') {
+      this.trackPageView();
     }
   }
 
   // Track a custom event
-  track(event) {
-    if (!this.hasEventValue) return
-    if (!this.isGtagAvailable()) return
+  track(_event) {
+    if (!this.hasEventValue) return;
+    if (!this.isGtagAvailable()) return;
 
-    const eventName = this.eventValue
-    const params = this.paramsValue
+    const eventName = this.eventValue;
+    const params = this.paramsValue;
 
-    this.sendEvent(eventName, params)
+    this.sendEvent(eventName, params);
   }
 
   // Track affiliate link clicks
   trackAffiliate(event) {
-    if (!this.isGtagAvailable()) return
+    if (!this.isGtagAvailable()) return;
 
-    const link = event.currentTarget
-    const listingId = link.dataset.listingId
-    const category = link.dataset.category || ""
+    const link = event.currentTarget;
+    const listingId = link.dataset.listingId;
+    const category = link.dataset.category || '';
 
-    this.sendEvent("affiliate_click", {
+    this.sendEvent('affiliate_click', {
       listing_id: listingId,
       category: category,
-      link_url: link.href
-    })
+      link_url: link.href,
+    });
   }
 
   // Track social share events
   trackShare(event) {
-    if (!this.isGtagAvailable()) return
+    if (!this.isGtagAvailable()) return;
 
-    const button = event.currentTarget
-    const platform = button.dataset.platform || "unknown"
-    const contentType = button.dataset.contentType || "page"
-    const contentId = button.dataset.contentId || ""
+    const button = event.currentTarget;
+    const platform = button.dataset.platform || 'unknown';
+    const contentType = button.dataset.contentType || 'page';
+    const contentId = button.dataset.contentId || '';
 
-    this.sendEvent("share", {
+    this.sendEvent('share', {
       method: platform,
       content_type: contentType,
-      item_id: contentId
-    })
+      item_id: contentId,
+    });
   }
 
   // Track voting events
   trackVote(event) {
-    if (!this.isGtagAvailable()) return
+    if (!this.isGtagAvailable()) return;
 
-    const button = event.currentTarget
-    const contentId = button.dataset.contentId || ""
-    const contentType = button.dataset.contentType || "content_item"
+    const button = event.currentTarget;
+    const contentId = button.dataset.contentId || '';
+    const contentType = button.dataset.contentType || 'content_item';
 
-    this.sendEvent("vote", {
+    this.sendEvent('vote', {
       content_id: contentId,
-      content_type: contentType
-    })
+      content_type: contentType,
+    });
   }
 
   // Track search events
   trackSearch(event) {
-    if (!this.isGtagAvailable()) return
+    if (!this.isGtagAvailable()) return;
 
-    const form = event.currentTarget
-    const searchInput = form.querySelector('input[name="q"]')
-    const searchTerm = searchInput?.value || ""
+    const form = event.currentTarget;
+    const searchInput = form.querySelector('input[name="q"]');
+    const searchTerm = searchInput?.value || '';
 
     if (searchTerm.trim()) {
-      this.sendEvent("search", {
-        search_term: searchTerm.trim()
-      })
+      this.sendEvent('search', {
+        search_term: searchTerm.trim(),
+      });
     }
   }
 
   // Track form submissions
   trackSubmission(event) {
-    if (!this.isGtagAvailable()) return
+    if (!this.isGtagAvailable()) return;
 
-    const form = event.currentTarget
-    const formType = form.dataset.formType || "submission"
+    const form = event.currentTarget;
+    const formType = form.dataset.formType || 'submission';
 
-    this.sendEvent("form_submit", {
-      form_type: formType
-    })
+    this.sendEvent('form_submit', {
+      form_type: formType,
+    });
   }
 
   // Track content engagement (time on page, scroll depth)
   trackEngagement(event) {
-    if (!this.isGtagAvailable()) return
+    if (!this.isGtagAvailable()) return;
 
-    const element = event.currentTarget
-    const contentId = element.dataset.contentId || ""
+    const element = event.currentTarget;
+    const contentId = element.dataset.contentId || '';
 
-    this.sendEvent("content_engagement", {
+    this.sendEvent('content_engagement', {
       content_id: contentId,
-      engagement_type: "scroll_50"
-    })
+      engagement_type: 'scroll_50',
+    });
   }
 
   // Private: Send event to GA4
@@ -125,23 +125,23 @@ export default class extends Controller {
     const enrichedParams = {
       ...params,
       page_location: window.location.href,
-      page_title: document.title
-    }
+      page_title: document.title,
+    };
 
-    window.gtag("event", eventName, enrichedParams)
+    window.gtag('event', eventName, enrichedParams);
   }
 
   // Private: Track page view
   trackPageView() {
-    if (!this.isGtagAvailable()) return
+    if (!this.isGtagAvailable()) return;
 
-    this.sendEvent("page_view", {
-      page_path: window.location.pathname
-    })
+    this.sendEvent('page_view', {
+      page_path: window.location.pathname,
+    });
   }
 
   // Private: Check if gtag is available
   isGtagAvailable() {
-    return typeof window.gtag === "function"
+    return typeof window.gtag === 'function';
   }
 }
