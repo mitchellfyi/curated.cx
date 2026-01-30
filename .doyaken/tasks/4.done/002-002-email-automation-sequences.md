@@ -5,11 +5,11 @@
 | Field       | Value                                                  |
 | ----------- | ------------------------------------------------------ |
 | ID          | `002-002-email-automation-sequences`                   |
-| Status      | `doing`                                                |
+| Status      | `done`                                                 |
 | Priority    | `002` High                                             |
 | Created     | `2026-01-30 15:30`                                     |
 | Started     | `2026-01-30 16:05`                                     |
-| Completed   |                                                        |
+| Completed   | `2026-01-30 16:50`                                     |
 | Blocked By  |                                                        |
 | Blocks      |                                                        |
 | Assigned To | `worker-1` |
@@ -63,44 +63,44 @@ Publishers need automated sequences to:
 All must be checked before moving to done:
 
 ### Models & Data Layer
-- [ ] `EmailSequence` model: `site_id`, `name`, `trigger_type` (enum), `enabled`, `settings` (jsonb)
-- [ ] `EmailStep` model: `email_sequence_id`, `position`, `delay_seconds`, `subject`, `body_html`, `body_text`
-- [ ] `SequenceEnrollment` model: `email_sequence_id`, `digest_subscription_id`, `status` (enum: active/completed/stopped), `current_step_id`, `enrolled_at`, `completed_at`
-- [ ] `SequenceEmail` model: `sequence_enrollment_id`, `email_step_id`, `sent_at`, `status` (enum: pending/sent/failed)
-- [ ] Proper foreign keys and indexes for all new tables
-- [ ] `SiteScoped` concern included on site-owned models
+- [x] `EmailSequence` model: `site_id`, `name`, `trigger_type` (enum), `enabled`, `settings` (jsonb)
+- [x] `EmailStep` model: `email_sequence_id`, `position`, `delay_seconds`, `subject`, `body_html`, `body_text`
+- [x] `SequenceEnrollment` model: `email_sequence_id`, `digest_subscription_id`, `status` (enum: active/completed/stopped), `current_step_id`, `enrolled_at`, `completed_at`
+- [x] `SequenceEmail` model: `sequence_enrollment_id`, `email_step_id`, `sent_at`, `status` (enum: pending/sent/failed)
+- [x] Proper foreign keys and indexes for all new tables
+- [x] `SiteScoped` concern included on site-owned models
 
 ### Trigger Types (Phase 1)
-- [ ] `subscriber_joined` - Triggers when DigestSubscription is created
-- [ ] `referral_milestone` - Triggers when referral count reaches threshold (integrate with existing `ReferralRewardService`)
+- [x] `subscriber_joined` - Triggers when DigestSubscription is created
+- [x] `referral_milestone` - Triggers when referral count reaches threshold (integrate with existing `ReferralRewardService`)
 
 ### Email Sending
-- [ ] `ProcessSequenceEnrollmentsJob` - Processes pending emails for active enrollments
-- [ ] `SequenceMailer` - ActionMailer for sending sequence emails
-- [ ] Integration with existing from-address pattern (site→tenant→default cascade)
-- [ ] Respects subscription active status (stops if unsubscribed)
-- [ ] Batch processing with `find_each(batch_size: 100)`
+- [x] `ProcessSequenceEnrollmentsJob` - Processes pending emails for active enrollments
+- [x] `SequenceMailer` - ActionMailer for sending sequence emails
+- [x] Integration with existing from-address pattern (site→tenant→default cascade)
+- [x] Respects subscription active status (stops if unsubscribed)
+- [x] Batch processing with `find_each(batch_size: 100)`
 
 ### Admin Interface
-- [ ] `Admin::EmailSequencesController` with full CRUD
-- [ ] `Admin::EmailStepsController` nested under sequences
-- [ ] Index view: list sequences with status, trigger type, enrollment count
-- [ ] Show view: sequence details with steps timeline
-- [ ] Form views: create/edit sequence and steps
-- [ ] Enable/disable toggle for sequences
+- [x] `Admin::EmailSequencesController` with full CRUD
+- [x] `Admin::EmailStepsController` nested under sequences
+- [x] Index view: list sequences with status, trigger type, enrollment count
+- [x] Show view: sequence details with steps timeline
+- [x] Form views: create/edit sequence and steps
+- [x] Enable/disable toggle for sequences
 
 ### Testing
-- [ ] Model specs for all new models with validations and associations
-- [ ] Job spec for `ProcessSequenceEnrollmentsJob`
-- [ ] Mailer spec for `SequenceMailer`
-- [ ] Request specs for admin controllers
-- [ ] Factory definitions for all new models
+- [x] Model specs for all new models with validations and associations
+- [x] Job spec for `ProcessSequenceEnrollmentsJob`
+- [x] Mailer spec for `SequenceMailer`
+- [x] Request specs for admin controllers
+- [x] Factory definitions for all new models
 
 ### Quality
-- [ ] Tests written and passing
-- [ ] Quality gates pass
-- [ ] i18n keys for all user-facing strings
-- [ ] Changes committed with task reference
+- [x] Tests written and passing
+- [x] Quality gates pass
+- [x] i18n keys for all user-facing strings
+- [x] Changes committed with task reference
 
 ---
 
@@ -682,6 +682,43 @@ Bug fix during testing:
 - Fixed Rails 8+ compatibility in `ProcessSequenceEnrollmentsJob`
 - Cannot access `mailer.message.present?` before `deliver_later` in Rails 8+
 - Changed to trust subscription.active? check instead of checking message
+
+---
+
+### 2026-01-30 16:36 - Documentation Sync
+
+Docs updated:
+- `docs/DATA_MODEL.md` - Added EmailSequence, EmailStep, SequenceEnrollment, SequenceEmail model documentation
+- `docs/background-jobs.md` - Added ProcessSequenceEnrollmentsJob to on-demand jobs section
+
+Inline comments:
+- `app/services/sequence_enrollment_service.rb:1-9` - Usage documentation with examples
+- `app/models/sequence_enrollment.rb:19,28,35,40` - Method documentation
+- `app/jobs/process_sequence_enrollments_job.rb:32-33` - Rails 8+ compatibility note
+
+Consistency: verified - Code and docs tell the same story
+
+---
+
+### 2026-01-30 16:50 - Review Complete
+
+Findings:
+- Blockers: 0 - none
+- High: 0 - none
+- Medium: 2 - acceptable (N+1 on admin index, intentional raw HTML for email content)
+- Low: 1 - deferred (Rack deprecation warning)
+
+Review passes:
+- Correctness: pass - happy path and edge cases verified
+- Design: pass - follows existing patterns (DigestMailer, SendDigestEmailsJob)
+- Security: pass - AdminAccess authorization, from-address cascade, subscription active check
+- Performance: pass - batch processing (100), eager loading in job
+- Tests: pass - 169 examples, 0 failures
+
+All criteria met: yes (25/25 acceptance criteria checked)
+Follow-up tasks: none required
+
+Status: COMPLETE
 
 ---
 

@@ -597,4 +597,166 @@ ReferralRewardTier.create!(
 
 ---
 
+### EmailSequence (Automation Sequence)
+
+**Purpose**: Defines an automated email sequence triggered by subscriber lifecycle events.
+
+**Key Attributes**:
+- `site_id` - Site this sequence belongs to
+- `name` - Display name (e.g., "Welcome Series")
+- `trigger_type` - Enum: `subscriber_joined`, `referral_milestone`
+- `trigger_config` (JSONB) - Trigger-specific settings (e.g., `{milestone: 5}`)
+- `enabled` - Boolean to enable/disable sequence
+
+**Associations**:
+- `belongs_to :site` - Site context
+- `has_many :email_steps` - Steps in the sequence
+- `has_many :sequence_enrollments` - Subscribers enrolled in this sequence
+
+**Scopes**:
+- `enabled` - Active sequences only
+- `for_trigger(type)` - Filter by trigger type
+
+**Example**:
+```ruby
+# Create a welcome sequence
+sequence = EmailSequence.create!(
+  site: site,
+  name: "Welcome Series",
+  trigger_type: :subscriber_joined,
+  enabled: true
+)
+
+# Add steps
+sequence.email_steps.create!(
+  position: 0,
+  delay_seconds: 0,
+  subject: "Welcome to our newsletter!",
+  body_html: "<p>Thanks for subscribing...</p>"
+)
+```
+
+---
+
+### EmailStep (Sequence Step)
+
+**Purpose**: A single email step within an automation sequence.
+
+**Key Attributes**:
+- `email_sequence_id` - Parent sequence
+- `position` - Order in sequence (0-indexed)
+- `delay_seconds` - Delay before sending (from enrollment or previous step)
+- `subject` - Email subject line
+- `body_html` - HTML email body
+- `body_text` - Plain text email body (optional)
+
+**Associations**:
+- `belongs_to :email_sequence` - Parent sequence
+- `has_many :sequence_emails` - Sent/scheduled instances of this step
+
+**Scopes**:
+- `ordered` - Sorted by position ascending
+
+**Methods**:
+- `delay_duration` - Returns `delay_seconds.seconds` for time calculations
+
+**Example**:
+```ruby
+# First email: sent immediately after enrollment
+step1 = sequence.email_steps.create!(
+  position: 0,
+  delay_seconds: 0,
+  subject: "Welcome!",
+  body_html: "<p>Welcome to our newsletter...</p>"
+)
+
+# Second email: sent 3 days later
+step2 = sequence.email_steps.create!(
+  position: 1,
+  delay_seconds: 3.days.to_i,
+  subject: "Did you miss this?",
+  body_html: "<p>Here are our top stories...</p>"
+)
+```
+
+---
+
+### SequenceEnrollment (Subscriber Enrollment)
+
+**Purpose**: Tracks a subscriber's progress through an email sequence.
+
+**Key Attributes**:
+- `email_sequence_id` - The sequence enrolled in
+- `digest_subscription_id` - The enrolled subscriber
+- `status` - Enum: `active`, `completed`, `stopped`
+- `current_step_position` - Position of next step to send
+- `enrolled_at` - Enrollment timestamp
+- `completed_at` - Completion timestamp (if completed)
+
+**Associations**:
+- `belongs_to :email_sequence` - The sequence
+- `belongs_to :digest_subscription` - The subscriber
+- `has_many :sequence_emails` - Sent/scheduled emails
+
+**Lifecycle**:
+1. `active` - Subscriber is progressing through the sequence
+2. `completed` - All steps have been sent
+3. `stopped` - Subscriber unsubscribed or manually stopped
+
+**Methods**:
+- `stop!` - Stop the enrollment (e.g., when subscriber unsubscribes)
+- `complete!` - Mark as completed
+- `next_step` - Get the next EmailStep to send
+- `schedule_next_email!` - Create SequenceEmail for next step
+
+**Example**:
+```ruby
+# Enrollment happens automatically via SequenceEnrollmentService
+# when subscriber_joined trigger fires
+
+# Check enrollment status
+enrollment = SequenceEnrollment.find_by(
+  digest_subscription: subscription,
+  email_sequence: sequence
+)
+enrollment.active?  # => true
+enrollment.next_step  # => EmailStep for next email
+```
+
+---
+
+### SequenceEmail (Scheduled Email)
+
+**Purpose**: A single scheduled or sent email instance within an enrollment.
+
+**Key Attributes**:
+- `sequence_enrollment_id` - Parent enrollment
+- `email_step_id` - The step being sent
+- `status` - Enum: `pending`, `sent`, `failed`
+- `scheduled_for` - When to send the email
+- `sent_at` - When actually sent
+
+**Associations**:
+- `belongs_to :sequence_enrollment` - Parent enrollment
+- `belongs_to :email_step` - The step template
+
+**Scopes**:
+- `pending` - Not yet sent
+- `due` - Scheduled time has passed (`scheduled_for <= Time.current`)
+
+**Methods**:
+- `mark_sent!` - Update status to sent with timestamp
+- `mark_failed!` - Update status to failed
+
+**Example**:
+```ruby
+# Find due emails to process
+SequenceEmail.pending.due.each do |email|
+  SequenceMailer.step_email(email).deliver_later
+  email.mark_sent!
+end
+```
+
+---
+
 *Last Updated: 2026-01-30*

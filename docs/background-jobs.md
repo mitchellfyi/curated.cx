@@ -155,6 +155,19 @@ schedule: "*/15 * * * *"  # Every 15 minutes
   - `AiInvalidResponseError`, `AiConfigurationError`: Discarded (no retry)
 - **Documentation**: See [docs/editorialisation.md](editorialisation.md)
 
+**Process Sequence Enrollments**:
+- **Class**: `ProcessSequenceEnrollmentsJob`
+- **Queue**: `default`
+- **Trigger**: Run via recurring schedule or manually
+- **Purpose**: Process pending emails for active email automation enrollments
+- **Batch Size**: 100
+- **Behavior**:
+  - Finds all `SequenceEmail` records that are `pending` and `due`
+  - Checks if subscriber is still active (stops enrollment if not)
+  - Sends email via `SequenceMailer.step_email.deliver_later`
+  - Schedules the next step in the sequence
+  - On error: logs failure, marks email as failed, continues to next
+
 ---
 
 ## Heartbeat Job
