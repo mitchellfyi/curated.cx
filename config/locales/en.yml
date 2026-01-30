@@ -791,6 +791,12 @@ en:
       all: All
       content: Content
       listings: Listings
+  share:
+    copy_link: Copy link
+    facebook: Share on Facebook
+    linkedin: Share on LinkedIn
+    native: Share
+    twitter: Share on X
   submissions:
     back_to_list: Back to submissions
     created: Your submission has been received and is pending review.

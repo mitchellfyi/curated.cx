@@ -135,6 +135,12 @@ es:
       tagging_rules: Reglas de Etiquetado
       title: Taxonomías
       updated: Taxonomía actualizada exitosamente
+  share:
+    copy_link: Copiar enlace
+    facebook: Compartir en Facebook
+    linkedin: Compartir en LinkedIn
+    native: Compartir
+    twitter: Compartir en X
   nav:
     dashboard: Dashboard
     home: Home

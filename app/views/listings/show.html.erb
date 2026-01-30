@@ -99,6 +99,10 @@
           </div>
 
           <div class="flex items-center gap-3">
+            <%= render "shared/share_buttons",
+                        url: listing_url(@listing),
+                        title: @listing.title,
+                        description: @listing.description %>
             <% if @listing.job? && @listing.apply_url.present? %>
               <%= link_to @listing.apply_url,
                   target: "_blank",
