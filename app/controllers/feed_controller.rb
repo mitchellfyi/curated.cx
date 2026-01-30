@@ -22,6 +22,7 @@ class FeedController < ApplicationController
     @content_types = content_types_for_site
 
     set_feed_meta_tags
+    set_feed_canonical_and_pagination
   end
 
   def rss
@@ -73,5 +74,21 @@ class FeedController < ApplicationController
       type: "website"
     )
     set_meta_tags(alternate: { "application/rss+xml" => feed_rss_url })
+  end
+
+  def set_feed_canonical_and_pagination
+    # Canonical URL includes filter params (tag, content_type) but not sort/page
+    # This follows Google's recommendation for self-referencing canonicals on filtered views
+    set_canonical_url(params: %i[tag content_type])
+
+    # Set pagination links for SEO
+    current_page = [ params[:page].to_i, 1 ].max
+    # We don't know total pages without an extra query, so we set next if we have a full page
+    has_more = @content_items.size >= PER_PAGE
+    set_pagination_links(
+      current_page: current_page,
+      total_pages: has_more ? nil : current_page,
+      base_params: { tag: params[:tag], content_type: params[:content_type] }.compact
+    )
   end
 end

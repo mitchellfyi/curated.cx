@@ -43,6 +43,8 @@ class ListingsController < ApplicationController
     authorize @listing
 
     set_listing_meta_tags(@listing)
+    # Set canonical URL to the clean listing URL without any query params
+    set_canonical_url(params: [])
   end
 
   private
