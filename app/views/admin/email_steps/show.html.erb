@@ -1,0 +1,54 @@
+<% content_for :title, @step.subject %>
+
+<div class="max-w-4xl mx-auto py-8 px-4">
+  <div class="mb-6">
+    <%= link_to "← #{t('admin.email_steps.back_to_sequence')}", admin_email_sequence_path(@sequence), class: "text-blue-600 hover:underline" %>
+  </div>
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold"><%= @step.subject %></h1>
+    <%= link_to t("admin.common.edit"),
+                edit_admin_email_sequence_email_step_path(@sequence, @step),
+                class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <dl class="grid grid-cols-2 gap-4 mb-6">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.email_steps.form.position") %></dt>
+        <dd class="mt-1">Step <%= @step.position + 1 %></dd>
+      </div>
+
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.email_steps.form.delay_seconds") %></dt>
+        <dd class="mt-1">
+          <% if @step.delay_seconds == 0 %>
+            Immediately
+          <% else %>
+            <%= distance_of_time_in_words(@step.delay_seconds) %>
+          <% end %>
+        </dd>
+      </div>
+    </dl>
+
+    <div class="border-t pt-6">
+      <h3 class="text-lg font-semibold mb-4">Email Preview</h3>
+      <div class="border rounded-lg overflow-hidden">
+        <div class="bg-gray-100 px-4 py-2 border-b">
+          <span class="text-sm text-gray-600">Subject:</span>
+          <span class="font-semibold"><%= @step.subject %></span>
+        </div>
+        <div class="p-4 bg-white">
+          <%= raw @step.body_html %>
+        </div>
+      </div>
+    </div>
+
+    <% if @step.body_text.present? %>
+      <div class="border-t pt-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4">Plain Text Version</h3>
+        <pre class="bg-gray-50 p-4 rounded-lg text-sm whitespace-pre-wrap"><%= @step.body_text %></pre>
+      </div>
+    <% end %>
+  </div>
+</div>

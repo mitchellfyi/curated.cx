@@ -1,0 +1,7 @@
+<%= @site.name %>
+
+<%= @step.body_text.presence || strip_tags(@step.body_html) %>
+
+--------------------------------------------------------------------------------
+<%= t('sequence_mailer.footer.sent_to', email: @user.email) %>
+<%= t('sequence_mailer.footer.unsubscribe') %>: <%= unsubscribe_digest_url(token: @subscription.unsubscribe_token, host: @site.primary_hostname) %>

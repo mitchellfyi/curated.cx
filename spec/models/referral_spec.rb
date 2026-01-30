@@ -15,6 +15,21 @@
 #  referrer_subscription_id :bigint           not null
 #  site_id                  :bigint           not null
 #
+# Indexes
+#
+#  index_referrals_on_referee_subscription_id              (referee_subscription_id) UNIQUE
+#  index_referrals_on_referrer_subscription_id             (referrer_subscription_id)
+#  index_referrals_on_referrer_subscription_id_and_status  (referrer_subscription_id,status)
+#  index_referrals_on_site_id                              (site_id)
+#  index_referrals_on_site_id_and_created_at               (site_id,created_at)
+#  index_referrals_on_status                               (status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (referee_subscription_id => digest_subscriptions.id)
+#  fk_rails_...  (referrer_subscription_id => digest_subscriptions.id)
+#  fk_rails_...  (site_id => sites.id)
+#
 require "rails_helper"
 
 RSpec.describe Referral, type: :model do

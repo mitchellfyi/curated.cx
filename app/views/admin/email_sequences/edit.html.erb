@@ -1,0 +1,13 @@
+<% content_for :title, t("admin.email_sequences.edit") %>
+
+<div class="max-w-2xl mx-auto py-8 px-4">
+  <div class="mb-6">
+    <%= link_to "← #{t('admin.email_sequences.back_to_list')}", admin_email_sequences_path, class: "text-blue-600 hover:underline" %>
+  </div>
+
+  <h1 class="text-3xl font-bold mb-6"><%= t("admin.email_sequences.edit") %></h1>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <%= render "form" %>
+  </div>
+</div>

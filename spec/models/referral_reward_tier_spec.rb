@@ -15,6 +15,16 @@
 #  updated_at  :datetime         not null
 #  site_id     :bigint           not null
 #
+# Indexes
+#
+#  index_referral_reward_tiers_on_site_id                (site_id)
+#  index_referral_reward_tiers_on_site_id_and_active     (site_id,active)
+#  index_referral_reward_tiers_on_site_id_and_milestone  (site_id,milestone) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#
 require "rails_helper"
 
 RSpec.describe ReferralRewardTier, type: :model do

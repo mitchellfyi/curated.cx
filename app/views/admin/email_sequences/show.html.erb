@@ -1,0 +1,109 @@
+<% content_for :title, @sequence.name %>
+
+<div class="max-w-4xl mx-auto py-8 px-4">
+  <div class="mb-6">
+    <%= link_to "← #{t('admin.email_sequences.back_to_list')}", admin_email_sequences_path, class: "text-blue-600 hover:underline" %>
+  </div>
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold"><%= @sequence.name %></h1>
+    <div class="flex gap-2">
+      <% if @sequence.enabled? %>
+        <%= button_to t("admin.common.disable"),
+                      disable_admin_email_sequence_path(@sequence),
+                      method: :post,
+                      class: "px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition" %>
+      <% else %>
+        <%= button_to t("admin.common.enable"),
+                      enable_admin_email_sequence_path(@sequence),
+                      method: :post,
+                      class: "px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition" %>
+      <% end %>
+      <%= link_to t("admin.common.edit"),
+                  edit_admin_email_sequence_path(@sequence),
+                  class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" %>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <dl class="grid grid-cols-2 gap-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.email_sequences.table.trigger") %></dt>
+        <dd class="mt-1"><%= t("admin.email_sequences.trigger_types.#{@sequence.trigger_type}") %></dd>
+      </div>
+
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.email_sequences.table.status") %></dt>
+        <dd class="mt-1">
+          <span class="px-2 py-1 text-sm rounded-full <%= @sequence.enabled? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+            <%= @sequence.enabled? ? t("admin.common.enabled") : t("admin.common.disabled") %>
+          </span>
+        </dd>
+      </div>
+
+      <% if @sequence.trigger_config.present? %>
+        <div class="col-span-2">
+          <dt class="text-sm font-medium text-gray-500"><%= t("admin.email_sequences.form.trigger_config") %></dt>
+          <dd class="mt-1 font-mono text-sm bg-gray-50 p-2 rounded"><%= JSON.pretty_generate(@sequence.trigger_config) %></dd>
+        </div>
+      <% end %>
+
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.email_sequences.table.enrollments") %></dt>
+        <dd class="mt-1"><%= @sequence.sequence_enrollments.count %> total (<%= @sequence.sequence_enrollments.active.count %> active)</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="bg-white rounded-lg shadow">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h2 class="text-xl font-semibold"><%= t("admin.email_sequences.show.steps_section") %></h2>
+      <%= link_to t("admin.email_sequences.show.add_step"),
+                  new_admin_email_sequence_email_step_path(@sequence),
+                  class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" %>
+    </div>
+
+    <% if @steps.any? %>
+      <div class="divide-y">
+        <% @steps.each do |step| %>
+          <div class="p-4 hover:bg-gray-50">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-semibold">
+                    <%= step.position + 1 %>
+                  </span>
+                  <h3 class="font-semibold"><%= step.subject %></h3>
+                </div>
+                <p class="text-sm text-gray-500 ml-11">
+                  <% if step.delay_seconds == 0 %>
+                    Sent immediately
+                  <% else %>
+                    Sent after <%= distance_of_time_in_words(step.delay_seconds) %>
+                  <% end %>
+                </p>
+              </div>
+              <div class="flex gap-2">
+                <%= link_to t("admin.common.view"),
+                            admin_email_sequence_email_step_path(@sequence, step),
+                            class: "text-blue-600 hover:underline" %>
+                <%= link_to t("admin.common.edit"),
+                            edit_admin_email_sequence_email_step_path(@sequence, step),
+                            class: "text-blue-600 hover:underline" %>
+                <%= button_to t("admin.common.delete"),
+                              admin_email_sequence_email_step_path(@sequence, step),
+                              method: :delete,
+                              data: { turbo_confirm: t("admin.common.confirm_delete") },
+                              class: "text-red-600 hover:underline" %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="p-6 text-center text-gray-600">
+        <%= t("admin.email_sequences.show.no_steps") %>
+      </div>
+    <% end %>
+  </div>
+</div>

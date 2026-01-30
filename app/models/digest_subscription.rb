@@ -44,6 +44,9 @@ class DigestSubscription < ApplicationRecord
   has_many :referrals_as_referrer, class_name: "Referral", foreign_key: :referrer_subscription_id, dependent: :nullify, inverse_of: :referrer_subscription
   has_one :referral_as_referee, class_name: "Referral", foreign_key: :referee_subscription_id, dependent: :nullify, inverse_of: :referee_subscription
 
+  # Associations for email sequences
+  has_many :sequence_enrollments, dependent: :destroy
+
   # Validations
   validates :user_id, uniqueness: { scope: :site_id, message: "already subscribed to this site" }
   validates :unsubscribe_token, presence: true, uniqueness: true
@@ -53,6 +56,7 @@ class DigestSubscription < ApplicationRecord
   # Callbacks
   before_validation :generate_unsubscribe_token, on: :create
   before_validation :generate_referral_code, on: :create
+  after_create_commit :enroll_in_sequences
 
   # Scopes
   scope :active, -> { where(active: true) }
@@ -98,5 +102,9 @@ class DigestSubscription < ApplicationRecord
 
   def generate_referral_code
     self.referral_code ||= SecureRandom.urlsafe_base64(8)
+  end
+
+  def enroll_in_sequences
+    SequenceEnrollmentService.new(self).enroll_on_subscription!
   end
 end

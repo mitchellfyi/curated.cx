@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_150200) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_161103) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -209,6 +209,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_150200) do
     t.index ["site_id"], name: "index_editorialisations_on_site_id"
   end
 
+  create_table "email_sequences", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: false, null: false
+    t.string "name", null: false
+    t.bigint "site_id", null: false
+    t.jsonb "trigger_config", default: {}
+    t.integer "trigger_type", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "trigger_type", "enabled"], name: "index_email_sequences_on_site_id_and_trigger_type_and_enabled"
+    t.index ["site_id"], name: "index_email_sequences_on_site_id"
+  end
+
+  create_table "email_steps", force: :cascade do |t|
+    t.text "body_html", null: false
+    t.text "body_text"
+    t.datetime "created_at", null: false
+    t.integer "delay_seconds", default: 0, null: false
+    t.bigint "email_sequence_id", null: false
+    t.integer "position", default: 0, null: false
+    t.string "subject", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email_sequence_id", "position"], name: "index_email_steps_on_email_sequence_id_and_position", unique: true
+    t.index ["email_sequence_id"], name: "index_email_steps_on_email_sequence_id"
+  end
+
   create_table "flags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "details"
@@ -380,6 +405,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_150200) do
     t.datetime "updated_at", null: false
     t.index ["name", "resource_type", "resource_id"], name: "index_roles_on_name_and_resource_type_and_resource_id"
     t.index ["resource_type", "resource_id"], name: "index_roles_on_resource"
+  end
+
+  create_table "sequence_emails", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "email_step_id", null: false
+    t.datetime "scheduled_for", null: false
+    t.datetime "sent_at"
+    t.bigint "sequence_enrollment_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["email_step_id"], name: "index_sequence_emails_on_email_step_id"
+    t.index ["sequence_enrollment_id"], name: "index_sequence_emails_on_sequence_enrollment_id"
+    t.index ["status", "scheduled_for"], name: "index_sequence_emails_on_status_and_scheduled_for"
+  end
+
+  create_table "sequence_enrollments", force: :cascade do |t|
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.integer "current_step_position", default: 0, null: false
+    t.bigint "digest_subscription_id", null: false
+    t.bigint "email_sequence_id", null: false
+    t.datetime "enrolled_at", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["digest_subscription_id"], name: "index_sequence_enrollments_on_digest_subscription_id"
+    t.index ["email_sequence_id", "digest_subscription_id"], name: "idx_enrollments_sequence_subscription", unique: true
+    t.index ["email_sequence_id"], name: "index_sequence_enrollments_on_email_sequence_id"
+    t.index ["status"], name: "index_sequence_enrollments_on_status"
   end
 
   create_table "site_bans", force: :cascade do |t|
@@ -565,6 +618,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_150200) do
   add_foreign_key "domains", "sites"
   add_foreign_key "editorialisations", "content_items"
   add_foreign_key "editorialisations", "sites"
+  add_foreign_key "email_sequences", "sites"
+  add_foreign_key "email_steps", "email_sequences"
   add_foreign_key "flags", "sites"
   add_foreign_key "flags", "users"
   add_foreign_key "flags", "users", column: "reviewed_by_id"
@@ -581,6 +636,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_150200) do
   add_foreign_key "referrals", "digest_subscriptions", column: "referee_subscription_id"
   add_foreign_key "referrals", "digest_subscriptions", column: "referrer_subscription_id"
   add_foreign_key "referrals", "sites"
+  add_foreign_key "sequence_emails", "email_steps"
+  add_foreign_key "sequence_emails", "sequence_enrollments"
+  add_foreign_key "sequence_enrollments", "digest_subscriptions"
+  add_foreign_key "sequence_enrollments", "email_sequences"
   add_foreign_key "site_bans", "sites"
   add_foreign_key "site_bans", "users"
   add_foreign_key "site_bans", "users", column: "banned_by_id"

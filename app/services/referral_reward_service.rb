@@ -28,6 +28,7 @@ class ReferralRewardService
 
       mark_referrals_rewarded_up_to(tier.milestone)
       send_reward_email(tier)
+      enroll_in_milestone_sequences(tier.milestone)
       newly_earned << tier
     end
 
@@ -91,5 +92,9 @@ class ReferralRewardService
 
   def send_reward_email(tier)
     ReferralMailer.reward_unlocked(subscription, tier).deliver_later
+  end
+
+  def enroll_in_milestone_sequences(milestone)
+    SequenceEnrollmentService.new(subscription).enroll_on_referral_milestone!(milestone)
   end
 end

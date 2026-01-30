@@ -76,6 +76,15 @@ Rails.application.routes.draw do
     # Referral program management
     resources :referrals, only: [ :index, :show, :update ]
     resources :referral_reward_tiers
+
+    # Email automation sequences
+    resources :email_sequences do
+      member do
+        post :enable
+        post :disable
+      end
+      resources :email_steps, except: [ :index ]
+    end
   end
   devise_for :users
 
