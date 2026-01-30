@@ -8,6 +8,13 @@
 
     <%= yield :head %>
 
+    <%# Structured data for SEO %>
+    <% if Current.tenant %>
+      <%= json_ld_tag(organization_schema) %>
+      <%= json_ld_tag(website_schema) %>
+    <% end %>
+    <%= yield :structured_data %>
+
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
     <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
 

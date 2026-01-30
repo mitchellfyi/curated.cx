@@ -1,3 +1,12 @@
+<% content_for :structured_data do %>
+  <%= json_ld_tag(listing_schema(@listing)) %>
+  <%= json_ld_tag(breadcrumb_schema([
+    { name: t('nav.categories'), url: categories_url },
+    { name: @listing.category.name, url: category_url(@listing.category) },
+    { name: @listing.title, url: listing_url(@listing) }
+  ])) %>
+<% end %>
+
 <div class="py-8">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Breadcrumb -->
