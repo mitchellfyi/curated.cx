@@ -28,6 +28,8 @@ RSpec.describe 'i18n Integration', type: :i18n do
           next if string.match?(/^DOMContentLoaded$/i) # JavaScript event names
           next if string.match?(/^United States$/i) # Default location values (country names)
           next if string.match?(/^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$/i) # HTTP methods
+          next if string.match?(/^UTF-8$/i) # XML encoding
+          next if file.match?(/\.xml\.erb$/) # XML templates don't need i18n
 
           missing_translations << "#{file}: #{string}"
         end
