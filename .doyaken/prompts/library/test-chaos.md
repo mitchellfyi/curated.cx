@@ -1,7 +1,3 @@
----
-description: Apply test-chaos methodology
----
-
 # Chaos Testing Methodology
 
 ## Purpose
@@ -190,7 +186,3 @@ dk upgrade list-backups
 |----------|-------------|-------------|
 | CRITICAL | ... | ... |
 ```
-
----
-
-Apply this methodology to the current context. If given a specific file or code, analyze it according to these guidelines.

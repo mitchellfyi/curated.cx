@@ -2,7 +2,7 @@
   "name": "app",
   "private": true,
   "devDependencies": {
-    "@doyaken/doyaken": "^0.1.13",
+    "@doyaken/doyaken": "^0.1.16",
     "@eslint/js": "^9.39.2",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
