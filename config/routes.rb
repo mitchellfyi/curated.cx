@@ -117,6 +117,13 @@ Rails.application.routes.draw do
   resources :feed, only: [ :index ], controller: "feed"
   get "feed/rss", to: "feed#rss", as: :feed_rss, defaults: { format: :rss }
 
+  # RSS/Atom syndication feeds
+  scope :feeds, controller: "feeds" do
+    get "content", action: :content, as: :feeds_content, defaults: { format: :rss }
+    get "listings", action: :listings, as: :feeds_listings, defaults: { format: :rss }
+    get "categories/:id", action: :category, as: :feeds_category, defaults: { format: :rss }
+  end
+
   # Content item engagement routes
   resources :content_items, only: [] do
     # Vote toggle

@@ -8,6 +8,13 @@
 
     <%= yield :head %>
 
+    <%# RSS/Atom feed autodiscovery %>
+    <% if Current.tenant %>
+      <%= auto_discovery_link_tag :rss, feeds_content_url(format: :rss), title: "#{Current.tenant.title} - Content Feed" %>
+      <%= auto_discovery_link_tag :atom, feeds_content_url(format: :atom), title: "#{Current.tenant.title} - Content Feed (Atom)" %>
+      <%= auto_discovery_link_tag :rss, feeds_listings_url(format: :rss), title: "#{Current.tenant.title} - Listings" %>
+    <% end %>
+
     <%# Structured data for SEO %>
     <% if Current.tenant %>
       <%= json_ld_tag(organization_schema) %>
