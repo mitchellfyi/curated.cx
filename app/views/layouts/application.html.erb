@@ -6,6 +6,9 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <%# Google Analytics 4 %>
+    <%= render "shared/analytics/ga4" %>
+
     <%= yield :head %>
 
     <%# RSS/Atom feed autodiscovery %>
@@ -53,5 +56,8 @@
         <%= render 'shared/powered_by_footer', tenant: Current.tenant.decorate %>
       <% end %>
     </footer>
+
+    <%# Cookie consent banner %>
+    <%= render "shared/analytics/cookie_consent" %>
   </body>
 </html>

@@ -1,0 +1,44 @@
+<%# Google Analytics 4 script tags %>
+<%# Only rendered when analytics is configured for the current site %>
+<% if analytics_enabled? && ga_measurement_id.present? %>
+  <%# Google Analytics 4 - with consent mode %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%= ga_measurement_id %>"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+
+    // Default consent state - denied until user accepts
+    gtag('consent', 'default', {
+      'analytics_storage': 'denied',
+      'ad_storage': 'denied',
+      'wait_for_update': 500
+    });
+
+    gtag('js', new Date());
+    gtag('config', '<%= ga_measurement_id %>', {
+      'anonymize_ip': true,
+      'send_page_view': false // We'll send this after consent check
+    });
+
+    // Check for existing consent and update if granted
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        var stored = localStorage.getItem('analytics_consent');
+        if (stored) {
+          var data = JSON.parse(stored);
+          if (data.value === true) {
+            gtag('consent', 'update', { 'analytics_storage': 'granted' });
+            gtag('event', 'page_view');
+          }
+        }
+      } catch(e) {
+        // Check cookie fallback
+        var cookie = document.cookie.match(/analytics_consent=([^;]+)/);
+        if (cookie && cookie[1] === '1') {
+          gtag('consent', 'update', { 'analytics_storage': 'granted' });
+          gtag('event', 'page_view');
+        }
+      }
+    });
+  </script>
+<% end %>

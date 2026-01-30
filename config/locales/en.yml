@@ -407,6 +407,14 @@ en:
       updated: Taxonomy updated successfully
   affiliate:
     listing_not_found: The requested listing could not be found.
+  analytics:
+    consent:
+      accept: Accept
+      description: We use cookies to analyze site traffic and improve your experience.
+        Your data is anonymized and never sold.
+      learn_more: Learn more
+      reject: Decline
+      title: Cookie Preferences
   app:
     description: Curated platform for discovering and sharing content
     name: Curated

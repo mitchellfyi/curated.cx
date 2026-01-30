@@ -1,5 +1,13 @@
 ---
 es:
+  analytics:
+    consent:
+      accept: Aceptar
+      description: Usamos cookies para analizar el tráfico del sitio y mejorar tu
+        experiencia. Tus datos son anónimos y nunca se venden.
+      learn_more: Saber más
+      reject: Rechazar
+      title: Preferencias de Cookies
   actions:
     actions: Acciones
     back: Volver

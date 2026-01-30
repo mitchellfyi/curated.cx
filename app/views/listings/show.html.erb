@@ -102,7 +102,9 @@
             <%= render "shared/share_buttons",
                         url: listing_url(@listing),
                         title: @listing.title,
-                        description: @listing.description %>
+                        description: @listing.description,
+                        content_type: "listing",
+                        content_id: @listing.id.to_s %>
             <% if @listing.job? && @listing.apply_url.present? %>
               <%= link_to @listing.apply_url,
                   target: "_blank",

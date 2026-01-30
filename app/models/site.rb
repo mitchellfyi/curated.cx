@@ -102,6 +102,15 @@ class Site < ApplicationRecord
     setting("moderation.flag_notifications_enabled", true)
   end
 
+  # Analytics settings
+  def ga_measurement_id
+    setting("analytics.ga_measurement_id")
+  end
+
+  def analytics_enabled?
+    ga_measurement_id.present?
+  end
+
   # Status helpers
   def publicly_accessible?
     enabled?

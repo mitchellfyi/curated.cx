@@ -22,7 +22,7 @@ RSpec.describe "Share Buttons", type: :system do
     it "renders share buttons container" do
       visit listing_path(listing)
 
-      expect(page).to have_css('[data-controller="share"]')
+      expect(page).to have_css('[data-controller~="share"]')
     end
 
     it "renders Twitter/X share link with correct URL" do
@@ -58,7 +58,7 @@ RSpec.describe "Share Buttons", type: :system do
       visit listing_path(listing)
 
       copy_button = page.find('button[title="' + I18n.t("share.copy_link") + '"]')
-      expect(copy_button["data-action"]).to eq("click->share#copyLink")
+      expect(copy_button["data-action"]).to include("click->share#copyLink")
       expect(copy_button["data-share-url-value"]).to include("/listings/#{listing.id}")
     end
 
@@ -66,7 +66,7 @@ RSpec.describe "Share Buttons", type: :system do
       visit listing_path(listing)
 
       native_button = page.find('button[title="' + I18n.t("share.native") + '"]', visible: :all)
-      expect(native_button["data-action"]).to eq("click->share#nativeShare")
+      expect(native_button["data-action"]).to include("click->share#nativeShare")
       expect(native_button["data-share-target"]).to eq("nativeButton")
       expect(native_button[:class]).to include("hidden")
     end
