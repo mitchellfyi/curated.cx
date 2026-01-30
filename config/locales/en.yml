@@ -1036,6 +1036,7 @@ en:
         type: Reward Type
         status: Status
         actions: Actions
+      delete: Delete
       form:
         errors: Please fix the following errors
         milestone: Milestone
@@ -1047,3 +1048,4 @@ en:
         reward_data_help: 'JSON object with reward details. Examples: {"download_url": "https://..."} or {"instructions": "Contact us..."}'
         active: Active
         cancel: Cancel
+        submit: Save

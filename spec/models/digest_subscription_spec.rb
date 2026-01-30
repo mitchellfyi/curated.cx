@@ -139,4 +139,112 @@ RSpec.describe DigestSubscription, type: :model do
       expect(subscription.active).to be true
     end
   end
+
+  describe "referral_code" do
+    describe "generation" do
+      it "generates referral_code on create" do
+        subscription = build(:digest_subscription, user: user, site: site, referral_code: nil)
+        subscription.save!
+
+        expect(subscription.referral_code).to be_present
+        expect(subscription.referral_code.length).to be >= 8
+      end
+
+      it "does not overwrite existing referral_code" do
+        subscription = build(:digest_subscription, user: user, site: site, referral_code: "existing123")
+        subscription.save!
+
+        expect(subscription.referral_code).to eq("existing123")
+      end
+
+      it "validates uniqueness of referral_code" do
+        subscription1 = create(:digest_subscription, user: user, site: site)
+        other_user = create(:user)
+        subscription2 = build(:digest_subscription, user: other_user, site: site, referral_code: subscription1.referral_code)
+
+        expect(subscription2).not_to be_valid
+        expect(subscription2.errors[:referral_code]).to include("has already been taken")
+      end
+    end
+
+    describe "#referral_link" do
+      let(:subscription) { create(:digest_subscription, user: user, site: site) }
+
+      it "returns a properly formatted referral URL" do
+        allow(site).to receive(:primary_hostname).and_return("example.com")
+
+        expect(subscription.referral_link).to eq("https://example.com/subscribe?ref=#{subscription.referral_code}")
+      end
+
+      it "uses curated.cx as fallback hostname" do
+        allow(site).to receive(:primary_hostname).and_return(nil)
+
+        expect(subscription.referral_link).to eq("https://curated.cx/subscribe?ref=#{subscription.referral_code}")
+      end
+    end
+
+    describe "#confirmed_referrals_count" do
+      let(:subscription) { create(:digest_subscription, user: user, site: site) }
+
+      it "returns 0 when no referrals" do
+        expect(subscription.confirmed_referrals_count).to eq(0)
+      end
+
+      it "counts confirmed referrals" do
+        referee1 = create(:user)
+        referee1_sub = create(:digest_subscription, user: referee1, site: site)
+        create(:referral, :confirmed, referrer_subscription: subscription, referee_subscription: referee1_sub, site: site)
+
+        expect(subscription.confirmed_referrals_count).to eq(1)
+      end
+
+      it "counts rewarded referrals" do
+        referee1 = create(:user)
+        referee1_sub = create(:digest_subscription, user: referee1, site: site)
+        create(:referral, :rewarded, referrer_subscription: subscription, referee_subscription: referee1_sub, site: site)
+
+        expect(subscription.confirmed_referrals_count).to eq(1)
+      end
+
+      it "does not count pending referrals" do
+        referee1 = create(:user)
+        referee1_sub = create(:digest_subscription, user: referee1, site: site)
+        create(:referral, referrer_subscription: subscription, referee_subscription: referee1_sub, site: site, status: :pending)
+
+        expect(subscription.confirmed_referrals_count).to eq(0)
+      end
+
+      it "does not count cancelled referrals" do
+        referee1 = create(:user)
+        referee1_sub = create(:digest_subscription, user: referee1, site: site)
+        create(:referral, :cancelled, referrer_subscription: subscription, referee_subscription: referee1_sub, site: site)
+
+        expect(subscription.confirmed_referrals_count).to eq(0)
+      end
+    end
+  end
+
+  describe "referral associations" do
+    let(:subscription) { create(:digest_subscription, user: user, site: site) }
+
+    describe "referrals_as_referrer" do
+      it "returns referrals where this subscription is the referrer" do
+        referee = create(:user)
+        referee_sub = create(:digest_subscription, user: referee, site: site)
+        referral = create(:referral, referrer_subscription: subscription, referee_subscription: referee_sub, site: site)
+
+        expect(subscription.referrals_as_referrer).to include(referral)
+      end
+    end
+
+    describe "referral_as_referee" do
+      it "returns the referral where this subscription is the referee" do
+        referrer = create(:user)
+        referrer_sub = create(:digest_subscription, user: referrer, site: site)
+        referral = create(:referral, referrer_subscription: referrer_sub, referee_subscription: subscription, site: site)
+
+        expect(subscription.referral_as_referee).to eq(referral)
+      end
+    end
+  end
 end
