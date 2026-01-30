@@ -36,6 +36,11 @@
         <div class="flex items-center space-x-4">
           <%= link_to t("nav.home"), root_path, class: "text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium" %>
 
+          <%# Community link - only show when discussions are enabled %>
+          <% if Current.site&.discussions_enabled? %>
+            <%= link_to t("nav.community"), discussions_path, class: "text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium" %>
+          <% end %>
+
           <!-- Categories Dropdown -->
           <% if Current.tenant %>
             <div class="relative" data-controller="dropdown">
@@ -196,6 +201,11 @@
         <% end %>
 
         <%= link_to t("nav.home"), root_path, class: "text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium" %>
+
+        <%# Mobile Community link - only show when discussions are enabled %>
+        <% if Current.site&.discussions_enabled? %>
+          <%= link_to t("nav.community"), discussions_path, class: "text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium" %>
+        <% end %>
 
         <!-- Mobile Categories -->
         <% if Current.tenant %>

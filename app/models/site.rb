@@ -47,6 +47,8 @@ class Site < ApplicationRecord
   has_many :boosts_as_source, class_name: "NetworkBoost", foreign_key: :source_site_id, dependent: :destroy, inverse_of: :source_site
   has_many :boosts_as_target, class_name: "NetworkBoost", foreign_key: :target_site_id, dependent: :destroy, inverse_of: :target_site
   has_many :boost_payouts, dependent: :destroy
+  has_many :discussions, dependent: :destroy
+  has_many :discussion_posts, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
@@ -136,6 +138,15 @@ class Site < ApplicationRecord
     setting("scheduling.timezone", "UTC")
   end
 
+  # Discussion settings
+  def discussions_enabled?
+    setting("discussions.enabled", false)
+  end
+
+  def discussions_default_visibility
+    setting("discussions.default_visibility", "public_access")
+  end
+
   # Status helpers
   def publicly_accessible?
     enabled?
@@ -209,6 +220,13 @@ class Site < ApplicationRecord
     if config["boosts"].present?
       unless config["boosts"].is_a?(Hash)
         errors.add(:config, "boosts must be a valid object")
+      end
+    end
+
+    # Validate discussions settings if present
+    if config["discussions"].present?
+      unless config["discussions"].is_a?(Hash)
+        errors.add(:config, "discussions must be a valid object")
       end
     end
   end

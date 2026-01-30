@@ -1,0 +1,16 @@
+<%# New discussion page %>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <%= link_to discussions_path, class: "text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1" do %>
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      <%= t("discussions.back_to_discussions") %>
+    <% end %>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-6">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6"><%= t("discussions.new_title") %></h1>
+    <%= render "discussions/form", discussion: @discussion %>
+  </div>
+</div>

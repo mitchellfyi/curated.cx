@@ -1,0 +1,29 @@
+<%# Turbo Stream response for creating a discussion post %>
+<% if @post.root? %>
+  <%# Append root post to posts list %>
+  <%= turbo_stream.append "posts_list" do %>
+    <%= render "discussion_posts/post", post: @post, depth: 0 %>
+  <% end %>
+<% else %>
+  <%# Append reply to parent post %>
+  <%= turbo_stream.append dom_id(@post.parent) do %>
+    <div class="space-y-0 divide-y divide-gray-100">
+      <%= render "discussion_posts/post", post: @post, depth: [@post.parent.replies.count, 3].min %>
+    </div>
+  <% end %>
+
+  <%# Hide the reply form %>
+  <%= turbo_stream.replace dom_id(@post.parent, :reply_form) do %>
+    <div id="<%= dom_id(@post.parent, :reply_form) %>" class="hidden mt-3">
+      <%= render "discussion_posts/form",
+                 post: DiscussionPost.new(parent_id: @post.parent_id),
+                 discussion: @discussion,
+                 replying_to: @post.parent %>
+    </div>
+  <% end %>
+<% end %>
+
+<%# Update posts count in header %>
+<%= turbo_stream.update "posts_count" do %>
+  <%= t("discussions.posts_count", count: @discussion.posts_count) %>
+<% end %>

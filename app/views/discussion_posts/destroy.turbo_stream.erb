@@ -1,0 +1,7 @@
+<%# Turbo Stream response for deleting a discussion post %>
+<%= turbo_stream.remove dom_id(@post) %>
+
+<%# Update posts count in header %>
+<%= turbo_stream.update "posts_count" do %>
+  <%= t("discussions.posts_count", count: @discussion.reload.posts_count) %>
+<% end %>

@@ -1,0 +1,72 @@
+<%# Discussion form partial %>
+<%# locals: (discussion:) %>
+<%= form_with model: discussion, class: "space-y-4", data: { turbo: true } do |f| %>
+  <% if discussion.errors.any? %>
+    <div class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            <%= t("errors.form_errors", count: discussion.errors.count) %>
+          </h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc pl-5 space-y-1">
+              <% discussion.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :title, t("discussions.form.title"), class: "block text-sm font-medium text-gray-700" %>
+    <%= f.text_field :title,
+                     class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm",
+                     placeholder: t("discussions.form.title_placeholder"),
+                     maxlength: Discussion::TITLE_MAX_LENGTH,
+                     required: true %>
+    <p class="mt-1 text-xs text-gray-500"><%= t("discussions.form.title_hint", max: Discussion::TITLE_MAX_LENGTH) %></p>
+  </div>
+
+  <div>
+    <%= f.label :body, t("discussions.form.body"), class: "block text-sm font-medium text-gray-700" %>
+    <%= f.text_area :body,
+                    rows: 5,
+                    class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm",
+                    placeholder: t("discussions.form.body_placeholder"),
+                    maxlength: Discussion::BODY_MAX_LENGTH,
+                    data: { controller: "character-counter", character_counter_max_value: Discussion::BODY_MAX_LENGTH } %>
+    <div class="mt-1 flex justify-between text-xs text-gray-500">
+      <span><%= t("discussions.form.body_hint") %></span>
+      <span data-character-counter-target="display"><%= Discussion::BODY_MAX_LENGTH %> <%= t("comments.form.characters_remaining") %></span>
+    </div>
+  </div>
+
+  <%# Visibility selector - admin only %>
+  <% if current_user&.admin? || (Current.tenant && current_user&.has_role?(:owner, Current.tenant)) %>
+    <div>
+      <%= f.label :visibility, t("discussions.form.visibility"), class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :visibility,
+                   options_for_select([
+                     [t("discussions.visibility.public"), "public_access"],
+                     [t("discussions.visibility.subscribers_only"), "subscribers_only"]
+                   ], discussion.visibility || "public_access"),
+                   {},
+                   class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      <p class="mt-1 text-xs text-gray-500"><%= t("discussions.form.visibility_hint") %></p>
+    </div>
+  <% end %>
+
+  <div class="flex justify-end gap-3">
+    <%= link_to t("actions.cancel"), discussions_path, class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
+    <%= f.submit discussion.persisted? ? t("discussions.form.update") : t("discussions.form.create"),
+                 class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer" %>
+  </div>
+<% end %>

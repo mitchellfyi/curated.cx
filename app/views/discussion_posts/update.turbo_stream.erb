@@ -1,0 +1,4 @@
+<%# Turbo Stream response for updating a discussion post %>
+<%= turbo_stream.replace dom_id(@post) do %>
+  <%= render "discussion_posts/post", post: @post, depth: 0 %>
+<% end %>

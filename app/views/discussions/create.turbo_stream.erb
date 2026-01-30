@@ -1,0 +1,4 @@
+<%# Turbo Stream response for creating a discussion %>
+<%= turbo_stream.prepend "discussions_list" do %>
+  <%= render "discussions/discussion", discussion: @discussion %>
+<% end %>

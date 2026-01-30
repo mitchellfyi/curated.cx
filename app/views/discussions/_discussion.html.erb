@@ -1,0 +1,62 @@
+<%# Discussion partial %>
+<%# locals: (discussion:) %>
+<%= turbo_frame_tag dom_id(discussion) do %>
+  <div class="p-4 hover:bg-gray-50 transition-colors">
+    <%= link_to discussion_path(discussion), class: "block" do %>
+      <div class="flex items-start justify-between">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <% if discussion.pinned? %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+                <%= t("discussions.pinned") %>
+              </span>
+            <% end %>
+            <% if discussion.locked? %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                </svg>
+                <%= t("discussions.locked_badge") %>
+              </span>
+            <% end %>
+            <% if discussion.visibility_subscribers_only? %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                <%= t("discussions.subscribers_only") %>
+              </span>
+            <% end %>
+          </div>
+          <h3 class="mt-1 text-base font-medium text-gray-900 truncate"><%= discussion.title %></h3>
+          <% if discussion.body.present? %>
+            <p class="mt-1 text-sm text-gray-500 line-clamp-2"><%= truncate(discussion.body, length: 150) %></p>
+          <% end %>
+        </div>
+        <div class="ml-4 flex-shrink-0 text-right">
+          <span class="text-sm text-gray-500"><%= discussion.posts_count %> <%= t("discussions.posts_count_label") %></span>
+        </div>
+      </div>
+
+      <div class="mt-2 flex items-center justify-between text-sm text-gray-500">
+        <div class="flex items-center gap-2">
+          <% if discussion.user.avatar_url.present? %>
+            <%= image_tag discussion.user.avatar_url, alt: discussion.user.profile_name, class: "w-5 h-5 rounded-full object-cover" %>
+          <% else %>
+            <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-medium">
+              <%= discussion.user.initials %>
+            </div>
+          <% end %>
+          <span><%= discussion.user.profile_name %></span>
+        </div>
+        <time datetime="<%= (discussion.last_post_at || discussion.created_at).iso8601 %>">
+          <% if discussion.last_post_at.present? %>
+            <%= t("discussions.last_activity", time: time_ago_in_words(discussion.last_post_at)) %>
+          <% else %>
+            <%= t("time.ago", time: time_ago_in_words(discussion.created_at)) %>
+          <% end %>
+        </time>
+      </div>
+    <% end %>
+  </div>
+<% end %>

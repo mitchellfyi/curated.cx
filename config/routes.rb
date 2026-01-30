@@ -100,6 +100,16 @@ Rails.application.routes.draw do
 
     # Boost payouts management
     resources :boost_payouts, only: [ :index, :show, :update ]
+
+    # Community discussions moderation
+    resources :discussions, only: %i[index show destroy] do
+      member do
+        post :lock
+        post :unlock
+        post :pin
+        post :unpin
+      end
+    end
   end
   devise_for :users
 
@@ -170,6 +180,11 @@ Rails.application.routes.draw do
 
   # User-facing flag creation (for content items and comments)
   resources :flags, only: [ :create ]
+
+  # Community discussions
+  resources :discussions, only: %i[index show new create update destroy] do
+    resources :posts, controller: "discussion_posts", only: %i[create update destroy]
+  end
 
   # Public routes for browsing content
   resources :categories, only: [ :index, :show ] do

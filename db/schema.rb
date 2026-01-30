@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_192701) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_202103) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -230,6 +230,46 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_192701) do
     t.index ["unsubscribe_token"], name: "index_digest_subscriptions_on_unsubscribe_token", unique: true
     t.index ["user_id", "site_id"], name: "index_digest_subscriptions_on_user_id_and_site_id", unique: true
     t.index ["user_id"], name: "index_digest_subscriptions_on_user_id"
+  end
+
+  create_table "discussion_posts", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.bigint "discussion_id", null: false
+    t.datetime "edited_at"
+    t.datetime "hidden_at"
+    t.bigint "parent_id"
+    t.bigint "site_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["discussion_id", "created_at"], name: "index_discussion_posts_on_discussion_id_and_created_at"
+    t.index ["discussion_id"], name: "index_discussion_posts_on_discussion_id"
+    t.index ["parent_id"], name: "index_discussion_posts_on_parent_id"
+    t.index ["site_id", "user_id"], name: "index_discussion_posts_on_site_id_and_user_id"
+    t.index ["site_id"], name: "index_discussion_posts_on_site_id"
+    t.index ["user_id"], name: "index_discussion_posts_on_user_id"
+  end
+
+  create_table "discussions", force: :cascade do |t|
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.datetime "last_post_at"
+    t.datetime "locked_at"
+    t.bigint "locked_by_id"
+    t.boolean "pinned", default: false, null: false
+    t.datetime "pinned_at"
+    t.integer "posts_count", default: 0, null: false
+    t.bigint "site_id", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.integer "visibility", default: 0, null: false
+    t.index ["locked_by_id"], name: "index_discussions_on_locked_by_id"
+    t.index ["site_id", "last_post_at"], name: "index_discussions_on_site_id_and_last_post_at"
+    t.index ["site_id", "pinned", "last_post_at"], name: "index_discussions_on_site_id_and_pinned_and_last_post_at"
+    t.index ["site_id", "visibility"], name: "index_discussions_on_site_id_and_visibility"
+    t.index ["site_id"], name: "index_discussions_on_site_id"
+    t.index ["user_id"], name: "index_discussions_on_user_id"
   end
 
   create_table "domains", force: :cascade do |t|
@@ -701,6 +741,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_192701) do
   add_foreign_key "content_views", "users"
   add_foreign_key "digest_subscriptions", "sites"
   add_foreign_key "digest_subscriptions", "users"
+  add_foreign_key "discussion_posts", "discussion_posts", column: "parent_id"
+  add_foreign_key "discussion_posts", "discussions"
+  add_foreign_key "discussion_posts", "sites"
+  add_foreign_key "discussion_posts", "users"
+  add_foreign_key "discussions", "sites"
+  add_foreign_key "discussions", "users"
+  add_foreign_key "discussions", "users", column: "locked_by_id"
   add_foreign_key "domains", "sites"
   add_foreign_key "editorialisations", "content_items"
   add_foreign_key "editorialisations", "sites"

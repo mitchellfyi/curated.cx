@@ -1,0 +1,109 @@
+<%# Discussion post partial %>
+<%# locals: (post:, depth: 0) %>
+<%= turbo_frame_tag dom_id(post) do %>
+  <div class="<%= depth > 0 ? 'ml-6 pl-4 border-l-2 border-gray-200' : '' %>">
+    <article class="px-6 py-4" id="<%= dom_id(post, :article) %>">
+      <div class="flex items-start gap-3">
+        <%# User avatar %>
+        <%= link_to profile_path(post.user), class: "flex-shrink-0" do %>
+          <% if post.user.avatar_url.present? %>
+            <%= image_tag post.user.avatar_url, alt: post.user.profile_name, class: "w-8 h-8 rounded-full object-cover" %>
+          <% else %>
+            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
+              <%= post.user.initials %>
+            </div>
+          <% end %>
+        <% end %>
+
+        <div class="flex-1 min-w-0">
+          <%# Post header %>
+          <div class="flex items-center gap-2 text-sm">
+            <%= link_to post.user.profile_name, profile_path(post.user), class: "font-medium text-gray-900 hover:text-blue-600" %>
+            <time class="text-gray-500" datetime="<%= post.created_at.iso8601 %>">
+              <%= t("time.ago", time: time_ago_in_words(post.created_at)) %>
+            </time>
+            <% if post.edited? %>
+              <span class="text-gray-400"><%= t("comments.edited") %></span>
+            <% end %>
+            <% if post.hidden? %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                <%= t("discussion_posts.hidden") %>
+              </span>
+            <% end %>
+          </div>
+
+          <%# Post body %>
+          <div class="mt-1 text-gray-700 prose prose-sm max-w-none">
+            <%= simple_format(post.body, {}, sanitize: true) %>
+          </div>
+
+          <%# Actions %>
+          <div class="mt-2 flex items-center gap-4 text-sm">
+            <%# Reply button %>
+            <% if !post.discussion.locked? && policy(DiscussionPost).create? && depth < 3 %>
+              <button type="button"
+                      class="text-gray-500 hover:text-blue-600 transition-colors"
+                      data-controller="post-reply"
+                      data-action="click->post-reply#toggle"
+                      data-post-reply-post-id-value="<%= post.id %>">
+                <%= t("discussion_posts.reply") %>
+              </button>
+            <% end %>
+
+            <%# Edit button - author only %>
+            <% if policy(post).update? %>
+              <button type="button"
+                      class="text-gray-500 hover:text-blue-600 transition-colors"
+                      data-controller="post-edit"
+                      data-action="click->post-edit#toggle"
+                      data-post-edit-post-id-value="<%= post.id %>">
+                <%= t("comments.form.edit") %>
+              </button>
+            <% end %>
+
+            <%# Delete button %>
+            <% if policy(post).destroy? %>
+              <%= button_to discussion_post_path(post.discussion, post),
+                            method: :delete,
+                            class: "text-gray-500 hover:text-red-600 transition-colors",
+                            data: { turbo_stream: true, turbo_confirm: t("discussion_posts.confirm_delete") } do %>
+                <%= t("comments.form.delete") %>
+              <% end %>
+            <% end %>
+
+            <%# Flag button - for other users' posts %>
+            <% if user_signed_in? && post.user_id != current_user.id %>
+              <% flagged = Flag.exists?(user: current_user, flaggable: post, site: Current.site) %>
+              <%= render "flags/flag_button", flaggable: post, flagged: flagged %>
+            <% end %>
+          </div>
+
+          <%# Edit form placeholder %>
+          <div id="<%= dom_id(post, :edit_form) %>" class="hidden mt-3">
+            <%= render "discussion_posts/form",
+                       post: post,
+                       discussion: post.discussion,
+                       editing: true %>
+          </div>
+
+          <%# Reply form placeholder %>
+          <div id="<%= dom_id(post, :reply_form) %>" class="hidden mt-3">
+            <%= render "discussion_posts/form",
+                       post: DiscussionPost.new(parent_id: post.id),
+                       discussion: post.discussion,
+                       replying_to: post %>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <%# Nested replies %>
+    <% if post.replies.loaded? ? post.replies.any? : post.replies.exists? %>
+      <div class="space-y-0 divide-y divide-gray-100">
+        <% post.replies.each do |reply| %>
+          <%= render "discussion_posts/post", post: reply, depth: depth + 1 %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
