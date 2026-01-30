@@ -66,11 +66,12 @@ class FeedController < ApplicationController
   def set_feed_meta_tags
     tenant = Current.tenant&.decorate
 
-    set_page_meta_tags(
+    set_social_meta_tags(
       title: t("feed.index.title", site: tenant&.title),
       description: t("feed.index.description", site: tenant&.title),
-      canonical: feed_index_url,
-      alternate: { "application/rss+xml" => feed_rss_url }
+      url: feed_index_url,
+      type: "website"
     )
+    set_meta_tags(alternate: { "application/rss+xml" => feed_rss_url })
   end
 end

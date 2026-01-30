@@ -10,6 +10,7 @@ class ApplicationController < ActionController::Base
 
   # Include meta-tags helper for SEO
   include MetaTags::ControllerHelper
+  include SocialMetaTags
 
   # Set default meta tags for all requests
   before_action :set_default_meta_tags

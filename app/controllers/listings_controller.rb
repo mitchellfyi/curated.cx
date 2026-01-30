@@ -42,17 +42,7 @@ class ListingsController < ApplicationController
   def show
     authorize @listing
 
-    set_page_meta_tags(
-      title: @listing.title,
-      description: @listing.description,
-      canonical: @listing.url_canonical,
-      og: {
-        title: @listing.title,
-        description: @listing.description,
-        image: @listing.image_url,
-        url: listing_url(@listing)
-      }
-    )
+    set_listing_meta_tags(@listing)
   end
 
   private

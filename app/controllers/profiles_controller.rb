@@ -46,10 +46,14 @@ class ProfilesController < ApplicationController
   end
 
   def set_profile_meta_tags
-    set_page_meta_tags(
+    set_social_meta_tags(
       title: t("profiles.title", name: @user.profile_name),
       description: @user.bio.presence || t("profiles.default_description", name: @user.profile_name),
-      robots: "noindex, follow"
+      image: @user.avatar_url.presence,
+      url: profile_url(@user),
+      type: "profile"
     )
+    # Don't index user profiles
+    set_meta_tags(robots: "noindex, follow")
   end
 end

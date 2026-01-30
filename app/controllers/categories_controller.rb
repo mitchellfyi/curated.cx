@@ -20,12 +20,7 @@ class CategoriesController < ApplicationController
                        .published_recent
                        .limit(20)
 
-    set_page_meta_tags(
-      title: @category.name,
-      description: t("categories.show.description",
-                    category: @category.name,
-                    tenant: Current.tenant&.title)
-    )
+    set_category_meta_tags(@category)
   end
 
   private
