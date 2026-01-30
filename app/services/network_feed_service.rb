@@ -49,8 +49,8 @@ class NetworkFeedService
       Rails.cache.fetch(cache_key("trending_sites", limit), expires_in: 15.minutes) do
         root_tenant = Tenant.find_by(slug: "root")
 
-        # Sites with most new subscriptions in last 30 days
-        Site.unscoped
+        # Get site IDs ranked by recent subscriptions using subquery
+        site_ids = Site.unscoped
             .joins(:tenant)
             .where(tenants: { status: :enabled })
             .where(status: :enabled)
@@ -58,9 +58,16 @@ class NetworkFeedService
             .joins("LEFT JOIN digest_subscriptions ON digest_subscriptions.site_id = sites.id AND digest_subscriptions.created_at > '#{30.days.ago.to_fs(:db)}'")
             .group("sites.id")
             .order("COUNT(digest_subscriptions.id) DESC")
-            .includes(:primary_domain, :tenant)
             .limit(limit)
-            .to_a
+            .pluck(:id)
+
+        # Load sites with associations using the ordered IDs
+        Site.unscoped
+            .where(id: site_ids)
+            .includes(:primary_domain, :tenant)
+            .index_by(&:id)
+            .values_at(*site_ids)
+            .compact
       end
     end
 
