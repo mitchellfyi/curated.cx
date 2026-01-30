@@ -1,0 +1,33 @@
+<%= t("referral_mailer.reward_unlocked.heading") %>
+
+<%= t("referral_mailer.reward_unlocked.congrats", reward: @reward_name) %>
+
+<%= @tier.name %>
+<% if @tier.description.present? %>
+<%= @tier.description %>
+<% end %>
+
+<% case @tier.reward_type %>
+<% when "digital_download" %>
+<% if @tier.download_url.present? %>
+<%= t("referral_mailer.reward_unlocked.download_link") %>
+<%= @tier.download_url %>
+<% end %>
+<% when "featured_mention" %>
+<% if @tier.mention_details.present? %>
+<%= @tier.mention_details %>
+<% end %>
+<% when "custom" %>
+<% if @tier.instructions.present? %>
+<%= @tier.instructions %>
+<% end %>
+<% end %>
+
+<%= t("referral_mailer.reward_unlocked.total_referrals", count: @total_referrals) %>
+
+<%= t("referral_mailer.reward_unlocked.keep_sharing") %>
+
+<%= t("referral_mailer.reward_unlocked.your_link") %>
+<%= @referral_link %>
+
+<%= t("referral_mailer.reward_unlocked.thanks", site: @site.name) %>

@@ -1,0 +1,14 @@
+<h1><%= t("referral_mailer.referral_confirmed.heading") %></h1>
+
+<p><%= t("referral_mailer.referral_confirmed.intro", referee: @referee_name, site: @site.name) %></p>
+
+<p><%= t("referral_mailer.referral_confirmed.total_referrals", count: @total_referrals) %></p>
+
+<p><%= t("referral_mailer.referral_confirmed.keep_sharing") %></p>
+
+<p>
+  <strong><%= t("referral_mailer.referral_confirmed.your_link") %></strong><br>
+  <%= link_to @referral_link, @referral_link %>
+</p>
+
+<p><%= t("referral_mailer.referral_confirmed.thanks", site: @site.name) %></p>
