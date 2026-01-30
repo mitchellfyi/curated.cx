@@ -21,519 +21,103 @@ en:
     view_all: View all
     view_arrow: View →
   admin:
-    affiliate_clicks:
-      chart_title: Clicks Over Time
-      clicks: clicks
-      description: Track affiliate link performance and optimize revenue
+    boost_earnings:
+      daily_clicks: Daily Clicks
+      description: Track your earnings from promoting other sites
       export_csv: Export CSV
-      filters:
-        all_categories: All Categories
-        apply: Apply Filters
-        category: Category
-        period: Time Period
-      no_clicks: No affiliate clicks recorded for this period
-      periods:
-        30d: Last 30 days
-        365d: Last year
-        7d: Last 7 days
-        90d: Last 90 days
       stats:
-        clicks_this_week: This Week
-        clicks_today: Today
-        total_clicks: Total Clicks
-        unique_listings: Unique Listings
-      title: Affiliate Analytics
-      top_listings: Top Performing Listings
-    categories:
+        click_rate: Click Rate
+        clicks: Clicks
+        confirmed: Confirmed
+        conversions: Conversions
+        impressions: Impressions
+        pending: Pending
+        total: Total Earnings
+      table:
+        clicks: Clicks
+        earnings: Earnings
+        target_site: Target Site
+      title: Boost Earnings
+      top_boosts: Top Performing Boosts
+    boost_payouts:
+      actions: Actions
+      back: Back to Payouts
+      cancel: Cancel
+      cancelled: Payout has been cancelled.
+      cannot_update: Cannot update this payout.
+      confirm_cancel: Are you sure you want to cancel this payout?
       created: Created
-      deleted: Deleted
-      description: Description
-      title: Title
-      updated: Updated
-    common:
-      confirm_delete: Are you sure you want to delete this?
-      delete: Delete
-      disable: Disable
-      disabled: Disabled
-      edit: Edit
-      enable: Enable
-      enabled: Enabled
+      mark_paid: Mark as Paid
+      marked_paid: Payout has been marked as paid.
+      no_payouts: No payouts yet.
+      payment_reference: Payment Reference
+      payment_reference_placeholder: e.g., PayPal transaction ID
+      payout_history: Payout History
+      show_title: 'Payout: %{period}'
+      stats:
+        paid_amount: Paid Amount
+        pending: Pending
+        pending_amount: Pending Amount
+        total: Total Payouts
+      table:
+        actions: Actions
+        amount: Amount
+        paid_at: Paid At
+        period: Period
+        status: Status
+      title: Boost Payouts
       view: View
     dashboard:
-      description: Description
-      title: Title
+      description: Manage %{tenant}
+      title: Dashboard
       uncategorized: Uncategorized
       view_all_listings: View all listings
-    domains:
-      created: Domain added successfully
-      deleted: Domain deleted successfully
-      just_now: Just now
-      new:
-        cancel: Cancel
-        domain_label: Domain
-        set_as_primary: Set as primary domain
-        sites_breadcrumb: Sites
-        submit: Add Domain
-      show:
-        back_to_site: Back to Site
-        sites_breadcrumb: Sites
-      updated: Domain updated successfully
-    editorialisations:
-      actions: Actions
-      ai_model: AI Model
-      ai_output: AI Output
-      ai_summary: Summary
-      all: All
-      back_to_list: Back to List
-      cannot_retry: Can only retry failed or skipped editorialisations
-      content_item: Content Item
-      created: Created
-      description: View AI editorialisation audit logs and results
-      details: Details
-      duration: Duration
-      empty: No editorialisations
-      empty_description: Editorialisations will appear here after content is processed.
-      error: Error
-      for_content_item: For content item
-      prompt_text: Prompt Text
-      prompt_version: Prompt Version
-      raw_response: Raw Response
-      retry: Retry
-      retrying: Editorialisation has been queued for retry
-      show_title: Editorialisation Details
-      status:
-        completed: Completed
-        failed: Failed
-        pending: Pending
-        processing: Processing
-        skipped: Skipped
-      status_header: Status
-      suggested_tags: Suggested Tags
-      title: Editorialisations
-      tokens: Tokens
-      view: View
-      why_it_matters: Why It Matters
-    email_sequences:
-      back_to_list: Back to Email Sequences
-      create_first: Create your first email sequence
-      created: Email sequence created successfully.
-      deleted: Email sequence deleted successfully.
-      description: Automated email sequences for subscriber lifecycle
-      disabled: Email sequence has been disabled.
-      edit: Edit Email Sequence
-      enabled: Email sequence has been enabled.
-      form:
-        cancel: Cancel
-        enabled: Enabled
-        errors: Please fix the following errors
-        name: Name
-        trigger_config: Trigger Configuration (JSON)
-        trigger_config_help: 'JSON object with trigger settings. Example: {"milestone":
-          3}'
-        trigger_type: Trigger
-      new: New Email Sequence
-      no_sequences: No email sequences configured yet.
-      show:
-        add_step: Add Step
-        no_steps: No steps defined yet.
-        steps_section: Email Steps
-      table:
-        actions: Actions
-        enrollments: Enrollments
-        name: Name
-        status: Status
-        steps: Steps
-        trigger: Trigger
-      title: Email Sequences
-      trigger_types:
-        referral_milestone: Referral Milestone
-        subscriber_joined: New Subscriber
-      updated: Email sequence updated successfully.
-    email_steps:
-      back_to_sequence: Back to Sequence
-      created: Email step created successfully.
-      deleted: Email step deleted successfully.
-      edit: Edit Email Step
-      form:
-        body_html: HTML Body
-        body_text: Plain Text Body
-        cancel: Cancel
-        delay_help: Time to wait before sending (0 = immediately)
-        delay_seconds: Delay (seconds)
-        errors: Please fix the following errors
-        position: Position
-        position_help: Order in sequence (0 = first)
-        subject: Subject
-      new: New Email Step
-      updated: Email step updated successfully.
-    flags:
-      back_to_queue: Back to Moderation Queue
-      content: Content
-      content_deleted: "[Content Deleted]"
-      created_at: Flagged
-      details: Details
-      dismiss: Dismiss
-      dismissed: Flag dismissed
-      flagged_by: Flagged By
-      hide_content: Hide Content
-      index:
-        pending_count:
-          one: "%{count} pending flag"
-          other: "%{count} pending flags"
-        pending_section: Pending Flags
-        resolved_section: Recently Resolved
-        title: Content Moderation Queue
-      no_pending_flags: No pending flags. All content is clear!
-      no_resolved_flags: No recently resolved flags.
-      reason: Reason
-      resolve: Take Action
-      resolved: Flag marked as resolved
-      reviewed_at: Reviewed
-      reviewed_by: Reviewed By
-      show:
-        actions: Actions
-        comment_by: Comment by
-        content_hidden: This content is currently hidden
-        flagged_content: Flagged Content
-        review_info: Review Information
-        title: Flag Details
-        url: URL
-      status: Status
-      type:
-        comment: Comment
-        content_item: Content Item
-    listings:
-      created: Created
-      deleted: Deleted
-      expiry_extended: Listing expiry has been extended
-      featured: Listing has been featured
-      form:
-        affiliate_settings: Affiliate Settings
-        affiliate_url_template: Affiliate URL Template
-        affiliate_url_template_hint: Use {url}, {title}, {id} as placeholders
-        apply_url: Apply URL
-        body_html: Body HTML
-        body_text: Body Text
-        body_text_placeholder: Plain text content...
-        category: Category
-        company: Company
-        company_name_placeholder: Company name
-        create: Create Listing
-        description: Description
-        description_placeholder: Brief description of this listing
-        expires_at: Expires At
-        featured_from: Featured From
-        featured_settings: Featured Settings
-        featured_until: Featured Until
-        image_url: Image URL
-        job_settings: Job Settings
-        listing_type: Listing Type
-        location: Location
-        paid: Paid
-        payment_reference: Payment Reference
-        payment_reference_placeholder: Payment ID or reference
-        payment_settings: Payment Settings
-        published: Published
-        salary_range: Salary Range
-        select_category: Select a category
-        title: Title
-        title_placeholder: Enter listing title
-      listing_types:
-        job: Job
-        service: Service
-        tool: Tool
-      show:
-        no_expiry: No expiry
-        not_published: Not published
-      unfeatured: Listing is no longer featured
-      updated: Updated
-    moderation:
-      comments_locked: Comments have been locked on this content
-      comments_unlocked: Comments have been unlocked on this content
-      hidden: Content has been hidden
-      unhidden: Content has been made visible again
-    referral_reward_tiers:
-      active: Active
-      back_to_list: Back to Reward Tiers
-      confirm_delete: Are you sure you want to delete this reward tier?
-      create_first: Create your first reward tier
-      created: Reward tier created successfully.
+    network_boosts:
+      back: Back to Boosts
+      cancel: Cancel
+      confirm_delete: Are you sure you want to delete this boost?
+      created: Boost created successfully.
+      created_at: Created
       delete: Delete
-      deleted: Reward tier deleted successfully.
-      edit: Edit Reward Tier
-      form:
-        active: Active
-        cancel: Cancel
-        description: Description
-        errors: Please fix the following errors
-        milestone: Milestone
-        milestone_help: Number of referrals required to unlock this reward
-        name: Name
-        reward_data: Reward Data (JSON)
-        reward_data_help: 'JSON object with reward details. Examples: {"download_url":
-          "https://..."} or {"instructions": "Contact us..."}'
-        reward_type: Reward Type
-      inactive: Inactive
-      new: New Reward Tier
-      no_tiers: No reward tiers configured yet.
-      table:
-        actions: Actions
-        milestone: Milestone
-        name: Name
-        status: Status
-        type: Reward Type
-      title: Referral Reward Tiers
-      updated: Reward tier updated successfully.
-    referrals:
-      back_to_list: Back to Referrals
-      cannot_update: Cannot update this referral.
-      marked_rewarded: Referral has been marked as rewarded.
-      no_referrals: No referrals yet.
-      recent_referrals: Recent Referrals
-      show:
-        actions: Actions
-        confirmed_at: Confirmed At
-        created: Created
-        ip_hash: IP Hash
-        mark_rewarded: Mark as Rewarded
-        referee: Referee
-        referrer: Referrer
-        rewarded_at: Rewarded At
-        status: Status
-        title: Referral Details
-      stats:
-        confirmed: Confirmed
-        conversion_rate: Conversion Rate
-        pending: Pending
-        rewarded: Rewarded
-        total: Total
-      table:
-        actions: Actions
-        created: Created
-        email: Email
-        referee: Referee
-        referral_count: Referrals
-        referrer: Referrer
-        status: Status
-        user: User
-      title: Referral Management
-      top_referrers: Top Referrers
-      view: View
-    site_bans:
-      banned_by: Banned By
-      confirm_destroy: Are you sure you want to remove this ban?
-      created: User has been banned from this site
-      created_at: Created At
-      destroyed: User ban has been removed
-      expires_at: Expires At
-      expires_at_help: Leave blank for permanent ban
-      index:
-        title: Site Bans
-      new:
-        title: New Site Ban
-      no_bans: No users have been banned from this site
-      permanent: Permanent
-      reason: Reason
-      show:
-        title: Site Ban Details
-      user: User
-    sites:
-      created: Site created successfully
-      deleted: Site deleted successfully
-      edit:
-        cancel: Cancel
-        submit: Update Site
-        topic_tags: Topic Tags
-      index:
-        no_description: No description
-      new:
-        cancel: Cancel
-        description_placeholder: A brief description of your site
-        submit: Create Site
-        topic_tags: Topic Tags
-      show:
-        back_to_sites: Back to Sites
-        edit: Edit
-        no_description: No description
-      updated: Site updated successfully
-    sources:
-      back_to_sources: Back to Sources
-      configuration: Configuration
-      created: Source created successfully
-      deleted: Source deleted successfully
+      destroyed: Boost deleted successfully.
+      details: Boost Details
       disabled: Disabled
-      duration: Duration
-      edit_button: Edit
-      edit_page:
-        danger_zone: Danger Zone
-        delete: Delete Source
-        delete_warning: Once you delete a source, all import runs and content items
-          from this source will be deleted. This action cannot be undone.
-        title: Edit Source
+      edit: Edit Boost
       enabled: Enabled
       form:
-        api_key: API Key
-        api_key_hint: Get your API key from serpapi.com
-        api_key_placeholder: Your SerpAPI key
-        cancel: Cancel
-        create: Create Source
+        cpc_rate: Cost Per Click
+        cpc_rate_hint: Amount you'll pay per click to the target site
         enabled: Enabled
-        interval_hint: Minimum 15 minutes
-        interval_minutes: Run interval (minutes)
-        kind: Source Type
-        language: Language
-        location: Location
-        max_results: Max results per run
-        name: Name
-        name_placeholder: e.g., AI News Feed
-        query: Search Query
-        query_placeholder: e.g., artificial intelligence news
-        rate_limit_per_hour: Rate limit per hour
-        schedule: Schedule
+        enabled_hint: When enabled, this boost will be shown to visitors
+        monthly_budget: Monthly Budget
+        monthly_budget_hint: Leave blank for unlimited
         select_site: Select a site
-        serp_api_config: SerpAPI Configuration
-        site: Site
-        update: Update Source
-      import_history: Import History
-      index:
-        description: Manage your content ingestion sources
-        get_started: Get started by creating a new source.
-        new_source: New Source
-        no_sources: No sources
-        title: Sources
-      items_created: Created
-      items_failed: Failed
-      items_updated: Updated
-      last_run: Last run
-      last_status: Last Status
-      never_run: Never run
-      new:
-        description: Set up a new content ingestion source
-        title: Create New Source
-      no_import_runs: No import runs yet
-      per_hour: per hour
-      rate_limit: Rate Limit
-      run_now: Run Now
-      run_queued: Source run has been queued
-      schedule_interval: Schedule Interval
-      source_disabled: Source must be enabled to run manually
-      started_at: Started At
-      status: Status
-      updated: Source updated successfully
-    submissions:
-      actions:
-        approve: Approve
-        reject: Reject
-      approved: "'%{title}' has been approved and published"
-      description: Review and moderate user-submitted content
-      empty:
-        description: There are no submissions to review at this time.
-        title: No submissions
-      filters:
-        all: All
-        approved: Approved
-        pending: Pending
-        rejected: Rejected
-        tabs: Submission status filter
-      rejected: "'%{title}' has been rejected"
-      show:
-        description: Review submission details
-        title: 'Review: %{title}'
+        source_site: Source Site
+        source_site_hint: The site that will be promoted (shown to your visitors)
+      new: New Boost
+      no_boosts: No boosts configured yet.
+      show_title: Boost to %{name}
       stats:
-        approved: Approved
-        pending: Pending
-        rejected: Rejected
-      title: Moderation Queue
-    tagging_rules:
-      add: Add Rule
-      confirm_delete: Are you sure you want to delete this tagging rule?
-      created: Tagging rule created successfully
-      deleted: Tagging rule deleted successfully
-      description: Define rules for automatic content categorisation
-      disabled: Disabled
-      edit: Edit Tagging Rule
-      empty: No tagging rules
-      empty_description: Get started by creating a new tagging rule.
-      enabled: Enabled
-      for_taxonomy: For taxonomy
-      form:
+        click_rate: Click Rate
+        clicks: Clicks
+        conversion_rate: Conv. Rate
+        conversions: Conversions
         enabled: Enabled
-        pattern: Pattern
-        pattern_hint: The pattern to match against. Depends on rule type.
-        priority: Priority
-        priority_hint: Lower numbers run first. Rules are evaluated in priority order.
-        rule_type: Rule Type
-        rule_type_hint: Select how this rule matches content.
-        select_rule_type: Select a rule type
-        select_taxonomy: Select a taxonomy
-        status: Status
-        taxonomy: Taxonomy
-      help:
-        domain: Matches the domain of the content URL. Use * as wildcard.
-        keyword: Comma-separated keywords to find in title or text.
-        source: Enter the source ID to match content from.
-        url_pattern: Regular expression to match against the content URL.
-      new: New Tagging Rule
-      new_description: Create a rule to automatically tag content.
-      priority: Priority
-      rule: Rule
-      rule_details: Rule Details
-      rule_type_help: How This Rule Works
+        impressions: Impressions
+        spend: Spend
+        total: Total Boosts
+        with_budget: With Budget
       table:
-        pattern: Pattern
-        priority: Priority
+        actions: Actions
+        budget: Budget
+        cpc_rate: CPC Rate
+        source_site: Source Site
         status: Status
-        taxonomy: Taxonomy
-        type: Type
-      test:
-        confidence: Confidence
-        content: Content
-        match: Match
-        matched: Matched
-        no_content: No content items to test against.
-        no_match: No Match
-        reason: Reason
-        untitled: Untitled
-      test_description: See how this rule matches against recent content.
-      test_results: Test Results
-      test_rule: Test Rule
-      title: Tagging Rules
-      updated: Tagging rule updated successfully
-    taxonomies:
-      add_child: Add Child
-      children: Children
-      children_count:
-        one: "%{count} child"
-        other: "%{count} children"
-      confirm_delete: Are you sure you want to delete this taxonomy? All child taxonomies
-        and tagging rules will also be deleted.
-      created: Taxonomy created successfully
-      deleted: Taxonomy deleted successfully
-      description: Manage topic tags for content categorisation
-      description_label: Description
-      edit: Edit Taxonomy
-      empty: No taxonomies
-      empty_description: Get started by creating a new taxonomy.
-      form:
-        description: Description
-        name: Name
-        no_parent: "(Root level)"
-        parent: Parent Taxonomy
-        position: Position
-        position_hint: Order within siblings. Lower numbers appear first.
-        slug: Slug
-        slug_hint: Leave blank to auto-generate from name.
-      new: New Taxonomy
-      new_description: Create a new taxonomy for tagging content.
-      no_children: No child taxonomies.
-      no_rules: No tagging rules defined for this taxonomy.
-      rules_count:
-        one: "%{count} rule"
-        other: "%{count} rules"
-      slug: Slug
-      tagging_rules: Tagging Rules
-      title: Taxonomies
-      updated: Taxonomy updated successfully
+      title: Network Boosts
+      unlimited: Unlimited
+      updated: Boost updated successfully.
+      view: View
+      your_boosts: Your Boosts
   affiliate:
     listing_not_found: The requested listing could not be found.
   analytics:
@@ -604,6 +188,9 @@ en:
     types:
       content: Content
       listing: Listing
+  boosts:
+    sponsored: Sponsored
+    visit_site: Visit Site
   categories:
     index:
       browse_content: Browse content
@@ -899,6 +486,8 @@ en:
     hero:
       tagline: Discover curated content across specialized communities
       title: Curated Network
+    new_sites:
+      title: New Sites
     sites:
       empty: No sites are currently available.
       title: Network Sites
@@ -907,6 +496,8 @@ en:
       articles: Articles
       listings: Listings
       sites: Sites
+    trending:
+      title: Trending Sites
   payment_receipt:
     date: Date
     duration: Duration
