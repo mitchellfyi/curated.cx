@@ -7,7 +7,9 @@ import { application } from './application';
 import DropdownController from './dropdown_controller';
 import HelloController from './hello_controller';
 import MobileMenuController from './mobile_menu_controller';
+import TrackViewController from './track_view_controller';
 
 application.register('dropdown', DropdownController);
 application.register('hello', HelloController);
 application.register('mobile-menu', MobileMenuController);
+application.register('track-view', TrackViewController);

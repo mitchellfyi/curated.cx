@@ -682,6 +682,7 @@ en:
       unsubscribe: Unsubscribe
     sections:
       new_listings: New Listings
+      recommended_for_you: Recommended for You
       todays_highlights: Today's Highlights
       top_content: Top Content
     view_more: View More
@@ -788,6 +789,7 @@ en:
     submit: Submit Report
   homepage:
     browse_by_category: Browse by Category
+    for_you: For You
   landing_pages:
     sections:
       listings:

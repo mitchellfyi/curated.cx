@@ -76,6 +76,7 @@ class ContentItem < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_many :flags, as: :flaggable, dependent: :destroy
   has_many :bookmarks, as: :bookmarkable, dependent: :destroy
+  has_many :content_views, dependent: :destroy
   belongs_to :hidden_by, class_name: "User", optional: true
   belongs_to :comments_locked_by, class_name: "User", optional: true
 

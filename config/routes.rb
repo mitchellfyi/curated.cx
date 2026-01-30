@@ -146,6 +146,8 @@ Rails.application.routes.draw do
     post :vote, to: "votes#toggle", on: :member
     # Comments
     resources :comments, only: %i[index show create update destroy]
+    # View tracking (for recommendations)
+    resources :views, only: [ :create ], controller: "content_views"
   end
 
   # User-facing flag creation (for content items and comments)

@@ -21,6 +21,17 @@ class TenantHomepageService
     }
   end
 
+  # Generate personalized content recommendations for a user.
+  # Returns nil if user is nil, empty array if an error occurs.
+  def personalized_content(user)
+    return nil unless user
+
+    ContentRecommendationService.for_user(user, site: @site, limit: 6)
+  rescue StandardError => e
+    Rails.logger.error("Failed to generate personalized content: #{e.message}")
+    []
+  end
+
   private
 
   def content_items_feed

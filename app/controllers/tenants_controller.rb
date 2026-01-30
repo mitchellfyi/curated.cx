@@ -44,5 +44,6 @@ class TenantsController < ApplicationController
     data = service.tenant_data
     @content_items = data[:content_items]
     @categories_with_listings = data[:categories_with_listings]
+    @personalized_content = service.personalized_content(current_user) if user_signed_in?
   end
 end

@@ -45,6 +45,21 @@
         <% end %>
       <% end %>
 
+      <% if @personalized_content&.any? %>
+        <h2><%= t('digest_mailer.sections.recommended_for_you') %></h2>
+        <% @personalized_content.each do |item| %>
+          <div class="item">
+            <a href="<%= item.url_canonical %>" class="item-title"><%= item.title.presence || t('feed.content.untitled') %></a>
+            <div class="item-meta">
+              <%= item.source&.name %> &middot; <%= time_ago_in_words(item.published_at) %> ago
+            </div>
+            <% if item.ai_summary.present? %>
+              <div class="item-description"><%= truncate(item.ai_summary, length: 150) %></div>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+
       <% if @listings.any? %>
         <h2><%= t('digest_mailer.sections.new_listings') %></h2>
         <% @listings.each do |listing| %>

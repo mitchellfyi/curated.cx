@@ -9,6 +9,7 @@ class DigestMailer < ApplicationMailer
 
     @content_items = fetch_top_content(since: 1.week.ago, limit: 10)
     @listings = fetch_new_listings(since: 1.week.ago, limit: 5)
+    @personalized_content = fetch_personalized_content(limit: 5)
 
     return if @content_items.empty? && @listings.empty?
 
@@ -27,6 +28,7 @@ class DigestMailer < ApplicationMailer
 
     @content_items = fetch_top_content(since: 1.day.ago, limit: 5)
     @listings = fetch_new_listings(since: 1.day.ago, limit: 3)
+    @personalized_content = fetch_personalized_content(limit: 3)
 
     return if @content_items.empty? && @listings.empty?
 
@@ -56,6 +58,15 @@ class DigestMailer < ApplicationMailer
       .where("published_at >= ?", since)
       .order(published_at: :desc)
       .limit(limit)
+  end
+
+  def fetch_personalized_content(limit:)
+    return [] unless @user
+
+    ContentRecommendationService.for_digest(@subscription, limit: limit)
+  rescue StandardError => e
+    Rails.logger.error("Failed to fetch personalized content for digest: #{e.message}")
+    []
   end
 
   def digest_from_address

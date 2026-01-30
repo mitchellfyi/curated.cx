@@ -14,6 +14,23 @@
       <% end %>
     </div>
 
+    <%# Personalized recommendations section for logged-in users %>
+    <% if user_signed_in? && @personalized_content&.any? %>
+      <section class="mb-12">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-semibold text-gray-900">
+            <%= t('homepage.for_you') %>
+          </h2>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <% @personalized_content.each do |item| %>
+            <%= render 'feed/content_card', content_item: item %>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
     <%# Content Items Feed %>
     <% if @content_items&.any? %>
       <section class="mb-12">

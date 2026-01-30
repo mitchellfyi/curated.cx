@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_161103) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_173100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -150,6 +150,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_161103) do
     t.index ["source_id", "created_at"], name: "index_content_items_on_source_id_and_created_at"
     t.index ["source_id"], name: "index_content_items_on_source_id"
     t.index ["topic_tags"], name: "index_content_items_on_topic_tags_gin", using: :gin
+  end
+
+  create_table "content_views", force: :cascade do |t|
+    t.bigint "content_item_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "site_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.datetime "viewed_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["content_item_id"], name: "index_content_views_on_content_item_id"
+    t.index ["site_id", "user_id", "content_item_id"], name: "index_content_views_uniqueness", unique: true
+    t.index ["site_id"], name: "index_content_views_on_site_id"
+    t.index ["user_id", "site_id", "viewed_at"], name: "index_content_views_on_user_site_viewed_at", order: { viewed_at: :desc }
+    t.index ["user_id"], name: "index_content_views_on_user_id"
   end
 
   create_table "digest_subscriptions", force: :cascade do |t|
@@ -613,6 +627,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_161103) do
   add_foreign_key "content_items", "sources"
   add_foreign_key "content_items", "users", column: "comments_locked_by_id"
   add_foreign_key "content_items", "users", column: "hidden_by_id"
+  add_foreign_key "content_views", "content_items"
+  add_foreign_key "content_views", "sites"
+  add_foreign_key "content_views", "users"
   add_foreign_key "digest_subscriptions", "sites"
   add_foreign_key "digest_subscriptions", "users"
   add_foreign_key "domains", "sites"

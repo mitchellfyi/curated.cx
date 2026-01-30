@@ -35,7 +35,12 @@
                   content_item.url_canonical,
                   target: "_blank",
                   rel: "noopener noreferrer",
-                  class: "hover:text-blue-600 transition-colors" %>
+                  class: "hover:text-blue-600 transition-colors",
+                  data: {
+                    controller: "track-view",
+                    action: "click->track-view#track",
+                    track_view_content_id_value: content_item.id
+                  } %>
     </h3>
 
     <%# AI Summary or Description fallback %>
