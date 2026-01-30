@@ -1,0 +1,74 @@
+<% content_for :title, t("admin.referrals.show.title") %>
+
+<div class="max-w-3xl mx-auto py-8 px-4">
+  <div class="mb-6">
+    <%= link_to "← #{t('admin.referrals.back_to_list')}", admin_referrals_path, class: "text-blue-600 hover:underline" %>
+  </div>
+
+  <h1 class="text-3xl font-bold mb-6"><%= t("admin.referrals.show.title") %></h1>
+
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <h3 class="text-sm font-medium text-gray-500"><%= t("admin.referrals.show.referrer") %></h3>
+        <p class="mt-1"><%= @referral.referrer_user.email %></p>
+        <p class="text-sm text-gray-600"><%= @referral.referrer_user.display_name %></p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-medium text-gray-500"><%= t("admin.referrals.show.referee") %></h3>
+        <p class="mt-1"><%= @referral.referee_user.email %></p>
+        <p class="text-sm text-gray-600"><%= @referral.referee_user.display_name %></p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-medium text-gray-500"><%= t("admin.referrals.show.status") %></h3>
+        <p class="mt-1">
+          <span class="px-2 py-1 text-sm rounded-full
+                       <%= @referral.confirmed? || @referral.rewarded? ? 'bg-green-100 text-green-800' :
+                           @referral.pending? ? 'bg-yellow-100 text-yellow-800' :
+                           'bg-gray-100 text-gray-800' %>">
+            <%= @referral.status.humanize %>
+          </span>
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-medium text-gray-500"><%= t("admin.referrals.show.created") %></h3>
+        <p class="mt-1"><%= @referral.created_at.strftime("%Y-%m-%d %H:%M") %></p>
+      </div>
+
+      <% if @referral.confirmed_at %>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500"><%= t("admin.referrals.show.confirmed_at") %></h3>
+          <p class="mt-1"><%= @referral.confirmed_at.strftime("%Y-%m-%d %H:%M") %></p>
+        </div>
+      <% end %>
+
+      <% if @referral.rewarded_at %>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500"><%= t("admin.referrals.show.rewarded_at") %></h3>
+          <p class="mt-1"><%= @referral.rewarded_at.strftime("%Y-%m-%d %H:%M") %></p>
+        </div>
+      <% end %>
+
+      <% if @referral.referee_ip_hash.present? %>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500"><%= t("admin.referrals.show.ip_hash") %></h3>
+          <p class="mt-1 font-mono text-xs"><%= @referral.referee_ip_hash.truncate(20) %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <% if @referral.confirmed? %>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold mb-4"><%= t("admin.referrals.show.actions") %></h2>
+      <%= form_with url: admin_referral_path(@referral), method: :patch, local: true do %>
+        <input type="hidden" name="mark_rewarded" value="true">
+        <%= submit_tag t("admin.referrals.show.mark_rewarded"), class: "px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition cursor-pointer" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

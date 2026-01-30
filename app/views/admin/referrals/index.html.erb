@@ -1,0 +1,104 @@
+<% content_for :title, t("admin.referrals.title") %>
+
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold mb-6"><%= t("admin.referrals.title") %></h1>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold"><%= @stats[:total] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.referrals.stats.total") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-yellow-600"><%= @stats[:pending] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.referrals.stats.pending") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-green-600"><%= @stats[:confirmed] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.referrals.stats.confirmed") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-purple-600"><%= @stats[:rewarded] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.referrals.stats.rewarded") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-blue-600"><%= @stats[:conversion_rate] %>%</div>
+      <div class="text-gray-600 text-sm"><%= t("admin.referrals.stats.conversion_rate") %></div>
+    </div>
+  </div>
+
+  <!-- Top Referrers -->
+  <% if @stats[:top_referrers].any? %>
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4"><%= t("admin.referrals.top_referrers") %></h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left py-2"><%= t("admin.referrals.table.user") %></th>
+              <th class="text-left py-2"><%= t("admin.referrals.table.email") %></th>
+              <th class="text-center py-2"><%= t("admin.referrals.table.referral_count") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @stats[:top_referrers].each do |subscription| %>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-2"><%= subscription.user.display_name || "—" %></td>
+                <td class="py-2"><%= subscription.user.email %></td>
+                <td class="py-2 text-center font-semibold"><%= subscription.referral_count %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Referrals Table -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-semibold mb-4"><%= t("admin.referrals.recent_referrals") %></h2>
+    <% if @referrals.any? %>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left py-2"><%= t("admin.referrals.table.referrer") %></th>
+              <th class="text-left py-2"><%= t("admin.referrals.table.referee") %></th>
+              <th class="text-center py-2"><%= t("admin.referrals.table.status") %></th>
+              <th class="text-left py-2"><%= t("admin.referrals.table.created") %></th>
+              <th class="text-left py-2"><%= t("admin.referrals.table.actions") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @referrals.each do |referral| %>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-2">
+                  <%= referral.referrer_user.email %>
+                </td>
+                <td class="py-2">
+                  <%= referral.referee_user.email %>
+                </td>
+                <td class="py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full
+                               <%= referral.confirmed? || referral.rewarded? ? 'bg-green-100 text-green-800' :
+                                   referral.pending? ? 'bg-yellow-100 text-yellow-800' :
+                                   'bg-gray-100 text-gray-800' %>">
+                    <%= referral.status.humanize %>
+                  </span>
+                </td>
+                <td class="py-2 text-sm text-gray-600">
+                  <%= time_ago_in_words(referral.created_at) %> ago
+                </td>
+                <td class="py-2">
+                  <%= link_to t("admin.referrals.view"), admin_referral_path(referral), class: "text-blue-600 hover:underline" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-600"><%= t("admin.referrals.no_referrals") %></p>
+    <% end %>
+  </div>
+</div>

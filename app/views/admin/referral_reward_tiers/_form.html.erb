@@ -1,0 +1,57 @@
+<%= form_with model: [:admin, @tier], local: true, class: "space-y-6" do |f| %>
+  <% if @tier.errors.any? %>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <h3 class="text-red-800 font-semibold mb-2"><%= t("admin.referral_reward_tiers.form.errors") %></h3>
+      <ul class="list-disc list-inside text-red-700">
+        <% @tier.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :milestone, t("admin.referral_reward_tiers.form.milestone"), class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.number_field :milestone, min: 1, class: "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" %>
+    <p class="text-sm text-gray-500 mt-1"><%= t("admin.referral_reward_tiers.form.milestone_help") %></p>
+  </div>
+
+  <div>
+    <%= f.label :name, t("admin.referral_reward_tiers.form.name"), class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :name, class: "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" %>
+  </div>
+
+  <div>
+    <%= f.label :description, t("admin.referral_reward_tiers.form.description"), class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_area :description, rows: 3, class: "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" %>
+  </div>
+
+  <div>
+    <%= f.label :reward_type, t("admin.referral_reward_tiers.form.reward_type"), class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.select :reward_type,
+                 ReferralRewardTier.reward_types.keys.map { |k| [k.humanize, k] },
+                 {},
+                 class: "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" %>
+  </div>
+
+  <div>
+    <%= f.label :reward_data, t("admin.referral_reward_tiers.form.reward_data"), class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_area :reward_data,
+                    value: @tier.reward_data.to_json,
+                    rows: 4,
+                    class: "w-full px-4 py-2 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500" %>
+    <p class="text-sm text-gray-500 mt-1"><%= t("admin.referral_reward_tiers.form.reward_data_help") %></p>
+  </div>
+
+  <div class="flex items-center">
+    <%= f.check_box :active, class: "h-4 w-4 text-blue-600 rounded border-gray-300" %>
+    <%= f.label :active, t("admin.referral_reward_tiers.form.active"), class: "ml-2 text-sm text-gray-700" %>
+  </div>
+
+  <div class="flex gap-4">
+    <%= f.submit class: "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer" %>
+    <%= link_to t("admin.referral_reward_tiers.form.cancel"),
+                admin_referral_reward_tiers_path,
+                class: "px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" %>
+  </div>
+<% end %>

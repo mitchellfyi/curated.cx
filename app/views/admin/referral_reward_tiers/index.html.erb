@@ -1,0 +1,57 @@
+<% content_for :title, t("admin.referral_reward_tiers.title") %>
+
+<div class="max-w-4xl mx-auto py-8 px-4">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold"><%= t("admin.referral_reward_tiers.title") %></h1>
+    <%= link_to t("admin.referral_reward_tiers.new"),
+                new_admin_referral_reward_tier_path,
+                class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" %>
+  </div>
+
+  <% if @tiers.any? %>
+    <div class="bg-white rounded-lg shadow">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b bg-gray-50">
+            <th class="text-left py-3 px-4"><%= t("admin.referral_reward_tiers.table.milestone") %></th>
+            <th class="text-left py-3 px-4"><%= t("admin.referral_reward_tiers.table.name") %></th>
+            <th class="text-left py-3 px-4"><%= t("admin.referral_reward_tiers.table.type") %></th>
+            <th class="text-center py-3 px-4"><%= t("admin.referral_reward_tiers.table.status") %></th>
+            <th class="text-left py-3 px-4"><%= t("admin.referral_reward_tiers.table.actions") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @tiers.each do |tier| %>
+            <tr class="border-b hover:bg-gray-50">
+              <td class="py-3 px-4 font-semibold"><%= tier.milestone %> referrals</td>
+              <td class="py-3 px-4"><%= tier.name %></td>
+              <td class="py-3 px-4 text-sm"><%= tier.reward_type.humanize %></td>
+              <td class="py-3 px-4 text-center">
+                <span class="px-2 py-1 text-xs rounded-full <%= tier.active? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                  <%= tier.active? ? t("admin.referral_reward_tiers.active") : t("admin.referral_reward_tiers.inactive") %>
+                </span>
+              </td>
+              <td class="py-3 px-4">
+                <%= link_to t("admin.referral_reward_tiers.edit"),
+                            edit_admin_referral_reward_tier_path(tier),
+                            class: "text-blue-600 hover:underline mr-3" %>
+                <%= button_to t("admin.referral_reward_tiers.delete"),
+                              admin_referral_reward_tier_path(tier),
+                              method: :delete,
+                              data: { turbo_confirm: t("admin.referral_reward_tiers.confirm_delete") },
+                              class: "text-red-600 hover:underline" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <p class="text-gray-600 mb-4"><%= t("admin.referral_reward_tiers.no_tiers") %></p>
+      <%= link_to t("admin.referral_reward_tiers.create_first"),
+                  new_admin_referral_reward_tier_path,
+                  class: "text-blue-600 hover:underline" %>
+    </div>
+  <% end %>
+</div>

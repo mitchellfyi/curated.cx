@@ -1,0 +1,49 @@
+<% content_for :title, @tier.name %>
+
+<div class="max-w-2xl mx-auto py-8 px-4">
+  <div class="mb-6">
+    <%= link_to "← #{t('admin.referral_reward_tiers.back_to_list')}", admin_referral_reward_tiers_path, class: "text-blue-600 hover:underline" %>
+  </div>
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold"><%= @tier.name %></h1>
+    <%= link_to t("admin.referral_reward_tiers.edit"),
+                edit_admin_referral_reward_tier_path(@tier),
+                class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <dl class="space-y-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.referral_reward_tiers.table.milestone") %></dt>
+        <dd class="mt-1 text-lg"><%= @tier.milestone %> referrals</dd>
+      </div>
+
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.referral_reward_tiers.table.type") %></dt>
+        <dd class="mt-1"><%= @tier.reward_type.humanize %></dd>
+      </div>
+
+      <% if @tier.description.present? %>
+        <div>
+          <dt class="text-sm font-medium text-gray-500"><%= t("admin.referral_reward_tiers.form.description") %></dt>
+          <dd class="mt-1"><%= @tier.description %></dd>
+        </div>
+      <% end %>
+
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.referral_reward_tiers.form.reward_data") %></dt>
+        <dd class="mt-1 font-mono text-sm bg-gray-50 p-2 rounded"><%= JSON.pretty_generate(@tier.reward_data) %></dd>
+      </div>
+
+      <div>
+        <dt class="text-sm font-medium text-gray-500"><%= t("admin.referral_reward_tiers.table.status") %></dt>
+        <dd class="mt-1">
+          <span class="px-2 py-1 text-sm rounded-full <%= @tier.active? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+            <%= @tier.active? ? t("admin.referral_reward_tiers.active") : t("admin.referral_reward_tiers.inactive") %>
+          </span>
+        </dd>
+      </div>
+    </dl>
+  </div>
+</div>
