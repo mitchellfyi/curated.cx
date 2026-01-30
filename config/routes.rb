@@ -141,7 +141,16 @@ Rails.application.routes.draw do
   end
 
   # Direct listing routes (for canonical URLs, bookmarks, etc.)
-  resources :listings, only: [ :index, :show ]
+  resources :listings, only: [ :index, :show ] do
+    # Checkout flow for paid listings
+    resource :checkout, only: [ :new, :create ] do
+      get :success
+      get :cancel
+    end
+  end
+
+  # Stripe webhooks
+  post "webhooks/stripe", to: "stripe_webhooks#create"
 
   # Public static pages (tenant-aware)
   get "about", to: "tenants#about"

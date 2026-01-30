@@ -147,3 +147,6 @@ gem "csv"
 
 # AI/LLM integration
 gem "ruby-openai", "~> 8.3"
+
+# Payment processing
+gem "stripe", "~> 13.0"

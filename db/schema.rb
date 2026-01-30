@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_041851) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_090241) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -300,11 +300,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_041851) do
     t.jsonb "metadata", default: {}, null: false
     t.boolean "paid", default: false, null: false
     t.string "payment_reference"
+    t.integer "payment_status", default: 0, null: false
     t.datetime "published_at"
     t.string "salary_range"
     t.bigint "site_id", null: false
     t.string "site_name"
     t.bigint "source_id"
+    t.string "stripe_checkout_session_id"
+    t.string "stripe_payment_intent_id"
     t.bigint "tenant_id", null: false
     t.string "title"
     t.datetime "updated_at", null: false
@@ -314,6 +317,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_041851) do
     t.index ["category_id"], name: "index_listings_on_category_id"
     t.index ["domain"], name: "index_listings_on_domain"
     t.index ["featured_by_id"], name: "index_listings_on_featured_by_id"
+    t.index ["payment_status"], name: "index_listings_on_payment_status"
     t.index ["published_at"], name: "index_listings_on_published_at"
     t.index ["site_id", "expires_at"], name: "index_listings_on_site_expires_at"
     t.index ["site_id", "featured_from", "featured_until"], name: "index_listings_on_site_featured_dates"
@@ -322,6 +326,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_041851) do
     t.index ["site_id", "url_canonical"], name: "index_listings_on_site_id_and_url_canonical", unique: true
     t.index ["site_id"], name: "index_listings_on_site_id"
     t.index ["source_id"], name: "index_listings_on_source_id"
+    t.index ["stripe_checkout_session_id"], name: "index_listings_on_stripe_checkout_session_id", unique: true, where: "(stripe_checkout_session_id IS NOT NULL)"
+    t.index ["stripe_payment_intent_id"], name: "index_listings_on_stripe_payment_intent_id", unique: true, where: "(stripe_payment_intent_id IS NOT NULL)"
     t.index ["tenant_id", "category_id"], name: "index_listings_on_tenant_id_and_category_id"
     t.index ["tenant_id", "domain", "published_at"], name: "index_listings_on_tenant_domain_published"
     t.index ["tenant_id", "published_at", "created_at"], name: "index_listings_on_tenant_published_created"

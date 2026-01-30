@@ -21,10 +21,10 @@
 #
 # Indexes
 #
-#  index_landing_pages_on_site_id               (site_id)
-#  index_landing_pages_on_site_id_and_published (site_id,published)
-#  index_landing_pages_on_site_id_and_slug      (site_id,slug) UNIQUE
-#  index_landing_pages_on_tenant_id             (tenant_id)
+#  index_landing_pages_on_site_id                (site_id)
+#  index_landing_pages_on_site_id_and_published  (site_id,published)
+#  index_landing_pages_on_site_id_and_slug       (site_id,slug) UNIQUE
+#  index_landing_pages_on_tenant_id              (tenant_id)
 #
 # Foreign Keys
 #

@@ -1,5 +1,36 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: landing_pages
+#
+#  id             :bigint           not null, primary key
+#  content        :jsonb            not null
+#  cta_text       :string
+#  cta_url        :string
+#  headline       :string
+#  hero_image_url :string
+#  published      :boolean          default(FALSE), not null
+#  slug           :string           not null
+#  subheadline    :text
+#  title          :string           not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  site_id        :bigint           not null
+#  tenant_id      :bigint           not null
+#
+# Indexes
+#
+#  index_landing_pages_on_site_id                (site_id)
+#  index_landing_pages_on_site_id_and_published  (site_id,published)
+#  index_landing_pages_on_site_id_and_slug       (site_id,slug) UNIQUE
+#  index_landing_pages_on_tenant_id              (tenant_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (tenant_id => tenants.id)
+#
 FactoryBot.define do
   factory :landing_page do
     association :tenant, factory: [ :tenant, :enabled ]

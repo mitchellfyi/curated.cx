@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+    .receipt-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .amount { font-size: 32px; font-weight: bold; color: #059669; }
+    .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 8px 0; }
+    .label { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><%= t("payment_receipt.header") %></h1>
+  </div>
+
+  <div class="content">
+    <p><%= t("payment_receipt.greeting") %></p>
+
+    <div class="receipt-details">
+      <p class="amount"><%= number_to_currency(@amount, unit: "$") %> <%= @currency %></p>
+
+      <table>
+        <tr>
+          <td class="label"><%= t("payment_receipt.listing") %></td>
+          <td><strong><%= @listing.title %></strong></td>
+        </tr>
+        <tr>
+          <td class="label"><%= t("payment_receipt.purchase_type") %></td>
+          <td><%= t("payment_receipt.types.#{@checkout_type}", default: @checkout_type.to_s.humanize) %></td>
+        </tr>
+        <tr>
+          <td class="label"><%= t("payment_receipt.duration") %></td>
+          <td><%= pluralize(@duration_days, "day") %></td>
+        </tr>
+        <tr>
+          <td class="label"><%= t("payment_receipt.payment_id") %></td>
+          <td><code><%= @session.payment_intent %></code></td>
+        </tr>
+        <tr>
+          <td class="label"><%= t("payment_receipt.date") %></td>
+          <td><%= l(Time.current, format: :long) %></td>
+        </tr>
+      </table>
+    </div>
+
+    <p><%= t("payment_receipt.next_steps") %></p>
+
+    <ul>
+      <% if @checkout_type.to_s.start_with?("job_post") %>
+        <li><%= t("payment_receipt.job_post_active") %></li>
+      <% else %>
+        <li><%= t("payment_receipt.featured_active") %></li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <p><%= t("payment_receipt.questions") %></p>
+    <p><%= t("payment_receipt.thank_you") %></p>
+  </div>
+</body>
+</html>

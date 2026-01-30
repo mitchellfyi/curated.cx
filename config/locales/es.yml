@@ -1,5 +1,51 @@
 ---
 es:
+  checkouts:
+    cancel_message: Tu pago fue cancelado. No se realizaron cargos.
+    cancel_title: Pago Cancelado
+    cancelled: El pago fue cancelado.
+    description: Elige una opción de pago para tu listado
+    featured_options: Colocación Destacada
+    invalid_type: Opción de pago inválida seleccionada.
+    job_posting_options: Duración del Anuncio de Trabajo
+    paid: Pagado
+    payment_error: Hubo un error procesando tu pago. Por favor intenta de nuevo.
+    receipt_sent: Un recibo ha sido enviado a tu correo electrónico.
+    secure_payment: Pago Seguro
+    secure_payment_description: Tu pago es procesado de forma segura por Stripe. Nunca
+      almacenamos los datos de tu tarjeta.
+    stripe_not_configured: El procesamiento de pagos no está configurado. Por favor
+      contacta soporte.
+    subtitle: Selecciona una opción de pago abajo
+    success: '¡Pago exitoso! Gracias por tu compra.'
+    success_message: Tu pago fue procesado exitosamente. Tu listado ahora está activo.
+    success_title: Pago Exitoso
+    title: Pago
+    try_again: Intentar de Nuevo
+    view_listing: Ver Listado
+  payment_receipt:
+    date: Fecha
+    duration: Duración
+    featured_active: Tu listado ahora está destacado y aparecerá prominentemente en
+      los resultados de búsqueda.
+    greeting: '¡Gracias por tu pago!'
+    header: Recibo de Pago
+    job_post_active: Tu anuncio de trabajo ahora está activo y será visible para los
+      buscadores de empleo.
+    listing: Listado
+    next_steps: 'Qué sucede después:'
+    payment_id: ID de Pago
+    purchase_type: Tipo de Compra
+    questions: '¿Preguntas? Responde a este correo y estaremos felices de ayudarte.'
+    subject: 'Recibo de Pago: %{listing_title}'
+    thank_you: '¡Gracias por tu negocio!'
+    types:
+      featured_14: Colocación Destacada - 14 Días
+      featured_30: Colocación Destacada - 30 Días
+      featured_7: Colocación Destacada - 7 Días
+      job_post_30: Anuncio de Trabajo - 30 Días
+      job_post_60: Anuncio de Trabajo - 60 Días
+      job_post_90: Anuncio de Trabajo - 90 Días
   analytics:
     consent:
       accept: Aceptar

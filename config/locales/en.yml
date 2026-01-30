@@ -482,6 +482,29 @@ en:
       title: Title
     show:
       description: Description
+  checkouts:
+    cancel_message: Your payment was cancelled. No charges were made.
+    cancel_title: Payment Cancelled
+    cancelled: Payment was cancelled.
+    description: Choose a payment option for your listing
+    featured_options: Featured Placement
+    invalid_type: Invalid checkout option selected.
+    job_posting_options: Job Posting Duration
+    paid: Paid
+    payment_error: There was an error processing your payment. Please try again.
+    receipt_sent: A receipt has been sent to your email.
+    secure_payment: Secure Payment
+    secure_payment_description: Your payment is processed securely by Stripe. We never
+      store your card details.
+    stripe_not_configured: Payment processing is not configured. Please contact support.
+    subtitle: Select a payment option below
+    success: Payment successful! Thank you for your purchase.
+    success_message: Your payment was processed successfully. Your listing is now
+      active.
+    success_title: Payment Successful
+    title: Checkout
+    try_again: Try Again
+    view_listing: View Listing
   comments:
     back_to_comments: Back to comments
     back_to_feed: Back to feed
@@ -753,6 +776,28 @@ en:
       articles: Articles
       listings: Listings
       sites: Sites
+  payment_receipt:
+    date: Date
+    duration: Duration
+    featured_active: Your listing is now featured and will appear prominently in search
+      results.
+    greeting: Thank you for your payment!
+    header: Payment Receipt
+    job_post_active: Your job posting is now live and will be visible to job seekers.
+    listing: Listing
+    next_steps: 'What happens next:'
+    payment_id: Payment ID
+    purchase_type: Purchase Type
+    questions: Questions? Reply to this email and we'll be happy to help.
+    subject: 'Payment Receipt: %{listing_title}'
+    thank_you: Thank you for your business!
+    types:
+      featured_14: Featured Placement - 14 Days
+      featured_30: Featured Placement - 30 Days
+      featured_7: Featured Placement - 7 Days
+      job_post_30: Job Posting - 30 Days
+      job_post_60: Job Posting - 60 Days
+      job_post_90: Job Posting - 90 Days
   profiles:
     commented_on: Commented on
     default_description: View %{name}'s profile and activity

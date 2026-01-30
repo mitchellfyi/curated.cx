@@ -2,61 +2,67 @@
 #
 # Table name: listings
 #
-#  id                     :bigint           not null, primary key
-#  affiliate_attribution  :jsonb            not null
-#  affiliate_url_template :text
-#  ai_summaries           :jsonb            not null
-#  ai_tags                :jsonb            not null
-#  apply_url              :text
-#  body_html              :text
-#  body_text              :text
-#  company                :string
-#  description            :text
-#  domain                 :string
-#  expires_at             :datetime
-#  featured_from          :datetime
-#  featured_until         :datetime
-#  image_url              :text
-#  listing_type           :integer          default("tool"), not null
-#  location               :string
-#  metadata               :jsonb            not null
-#  paid                   :boolean          default(FALSE), not null
-#  payment_reference      :string
-#  published_at           :datetime
-#  salary_range           :string
-#  site_name              :string
-#  title                  :string
-#  url_canonical          :text             not null
-#  url_raw                :text             not null
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
-#  category_id            :bigint           not null
-#  featured_by_id         :bigint
-#  site_id                :bigint           not null
-#  source_id              :bigint
-#  tenant_id              :bigint           not null
+#  id                         :bigint           not null, primary key
+#  affiliate_attribution      :jsonb            not null
+#  affiliate_url_template     :text
+#  ai_summaries               :jsonb            not null
+#  ai_tags                    :jsonb            not null
+#  apply_url                  :text
+#  body_html                  :text
+#  body_text                  :text
+#  company                    :string
+#  description                :text
+#  domain                     :string
+#  expires_at                 :datetime
+#  featured_from              :datetime
+#  featured_until             :datetime
+#  image_url                  :text
+#  listing_type               :integer          default("tool"), not null
+#  location                   :string
+#  metadata                   :jsonb            not null
+#  paid                       :boolean          default(FALSE), not null
+#  payment_reference          :string
+#  payment_status             :integer          default(0), not null
+#  published_at               :datetime
+#  salary_range               :string
+#  site_name                  :string
+#  title                      :string
+#  url_canonical              :text             not null
+#  url_raw                    :text             not null
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  category_id                :bigint           not null
+#  featured_by_id             :bigint
+#  site_id                    :bigint           not null
+#  source_id                  :bigint
+#  stripe_checkout_session_id :string
+#  stripe_payment_intent_id   :string
+#  tenant_id                  :bigint           not null
 #
 # Indexes
 #
-#  index_listings_on_category_id                (category_id)
-#  index_listings_on_category_published         (category_id,published_at)
-#  index_listings_on_domain                     (domain)
-#  index_listings_on_featured_by_id             (featured_by_id)
-#  index_listings_on_published_at               (published_at)
-#  index_listings_on_site_expires_at            (site_id,expires_at)
-#  index_listings_on_site_featured_dates        (site_id,featured_from,featured_until)
-#  index_listings_on_site_id                    (site_id)
-#  index_listings_on_site_id_and_url_canonical  (site_id,url_canonical) UNIQUE
-#  index_listings_on_site_listing_type          (site_id,listing_type)
-#  index_listings_on_site_type_expires          (site_id,listing_type,expires_at)
-#  index_listings_on_source_id                  (source_id)
-#  index_listings_on_tenant_and_url_canonical   (tenant_id,url_canonical) UNIQUE
-#  index_listings_on_tenant_domain_published    (tenant_id,domain,published_at)
-#  index_listings_on_tenant_id                  (tenant_id)
-#  index_listings_on_tenant_id_and_category_id  (tenant_id,category_id)
-#  index_listings_on_tenant_id_and_source_id    (tenant_id,source_id)
-#  index_listings_on_tenant_published_created   (tenant_id,published_at,created_at)
-#  index_listings_on_tenant_title               (tenant_id,title)
+#  index_listings_on_category_id                 (category_id)
+#  index_listings_on_category_published          (category_id,published_at)
+#  index_listings_on_domain                      (domain)
+#  index_listings_on_featured_by_id              (featured_by_id)
+#  index_listings_on_payment_status              (payment_status)
+#  index_listings_on_published_at                (published_at)
+#  index_listings_on_site_expires_at             (site_id,expires_at)
+#  index_listings_on_site_featured_dates         (site_id,featured_from,featured_until)
+#  index_listings_on_site_id                     (site_id)
+#  index_listings_on_site_id_and_url_canonical   (site_id,url_canonical) UNIQUE
+#  index_listings_on_site_listing_type           (site_id,listing_type)
+#  index_listings_on_site_type_expires           (site_id,listing_type,expires_at)
+#  index_listings_on_source_id                   (source_id)
+#  index_listings_on_stripe_checkout_session_id  (stripe_checkout_session_id) UNIQUE WHERE (stripe_checkout_session_id IS NOT NULL)
+#  index_listings_on_stripe_payment_intent_id    (stripe_payment_intent_id) UNIQUE WHERE (stripe_payment_intent_id IS NOT NULL)
+#  index_listings_on_tenant_and_url_canonical    (tenant_id,url_canonical) UNIQUE
+#  index_listings_on_tenant_domain_published     (tenant_id,domain,published_at)
+#  index_listings_on_tenant_id                   (tenant_id)
+#  index_listings_on_tenant_id_and_category_id   (tenant_id,category_id)
+#  index_listings_on_tenant_id_and_source_id     (tenant_id,source_id)
+#  index_listings_on_tenant_published_created    (tenant_id,published_at,created_at)
+#  index_listings_on_tenant_title                (tenant_id,title)
 #
 # Foreign Keys
 #
