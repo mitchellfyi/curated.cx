@@ -146,6 +146,9 @@ Rails.application.routes.draw do
   # Public static pages (tenant-aware)
   get "about", to: "tenants#about"
 
+  # Landing pages for marketing campaigns
+  get "p/:slug", to: "landing_pages#show", as: :landing_page
+
   # Marketing pages (root domain only)
   get "pricing", to: "marketing#pricing"
   get "features", to: "marketing#features"

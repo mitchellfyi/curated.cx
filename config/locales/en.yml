@@ -628,6 +628,11 @@ en:
     submit: Submit Report
   homepage:
     browse_by_category: Browse by Category
+  landing_pages:
+    sections:
+      listings:
+        learn_more: Learn more →
+        no_listings: No listings to display.
   listings:
     index:
       across_categories: across all categories

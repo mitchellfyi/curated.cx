@@ -135,6 +135,11 @@ es:
       tagging_rules: Reglas de Etiquetado
       title: Taxonomías
       updated: Taxonomía actualizada exitosamente
+  landing_pages:
+    sections:
+      listings:
+        learn_more: Saber más →
+        no_listings: No hay listados para mostrar.
   share:
     copy_link: Copiar enlace
     facebook: Compartir en Facebook

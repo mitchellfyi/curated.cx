@@ -1,0 +1,7 @@
+<%# Custom HTML content section partial %>
+<%# locals: (section:, index:) %>
+<section class="py-16 <%= index.even? ? 'bg-white' : 'bg-gray-50' %>">
+  <div class="max-w-4xl mx-auto px-4 prose prose-lg">
+    <%= sanitize(section["content"], tags: %w[h1 h2 h3 h4 h5 h6 p br strong em ul ol li a blockquote img div span], attributes: %w[href src alt class id style]) %>
+  </div>
+</section>

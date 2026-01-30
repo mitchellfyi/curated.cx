@@ -1,0 +1,33 @@
+<%# Features section partial %>
+<%# locals: (section:, index:) %>
+<section class="py-16 <%= index.even? ? 'bg-white' : 'bg-gray-50' %>">
+  <div class="max-w-6xl mx-auto px-4">
+    <% if section["title"].present? %>
+      <h2 class="text-3xl font-bold text-gray-900 text-center mb-4">
+        <%= section["title"] %>
+      </h2>
+    <% end %>
+
+    <% if section["subtitle"].present? %>
+      <p class="text-xl text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+        <%= section["subtitle"] %>
+      </p>
+    <% end %>
+
+    <% if section["items"].present? %>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <% section["items"].each do |item| %>
+          <div class="text-center p-6">
+            <% if item["icon"].present? %>
+              <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <span class="text-2xl"><%= item["icon"] %></span>
+              </div>
+            <% end %>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2"><%= item["title"] %></h3>
+            <p class="text-gray-600"><%= item["description"] %></p>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</section>

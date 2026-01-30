@@ -1,0 +1,67 @@
+<% if @landing_page.custom_css.present? %>
+  <style><%= @landing_page.custom_css.html_safe %></style>
+<% end %>
+
+<div class="landing-page landing-page--<%= @landing_page.theme %>" data-landing-page-slug="<%= @landing_page.slug %>">
+  <%# Hero Section %>
+  <section class="hero relative overflow-hidden">
+    <% if @landing_page.hero_image_url.present? %>
+      <div class="absolute inset-0 z-0">
+        <img src="<%= @landing_page.hero_image_url %>" alt="" class="w-full h-full object-cover opacity-20" aria-hidden="true">
+      </div>
+    <% end %>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-4 py-24 sm:py-32 text-center">
+      <% if @landing_page.headline.present? %>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+          <%= @landing_page.headline %>
+        </h1>
+      <% end %>
+
+      <% if @landing_page.subheadline.present? %>
+        <p class="text-xl sm:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <%= @landing_page.subheadline %>
+        </p>
+      <% end %>
+
+      <% if @landing_page.cta_text.present? && @landing_page.cta_url.present? %>
+        <%= link_to @landing_page.cta_url,
+            class: "inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all" do %>
+          <%= @landing_page.cta_text %>
+          <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+          </svg>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <%# Dynamic Sections %>
+  <% @landing_page.sections.each_with_index do |section, index| %>
+    <% case section["type"] %>
+    <% when "features" %>
+      <%= render "landing_pages/sections/features", section: section, index: index %>
+    <% when "testimonials" %>
+      <%= render "landing_pages/sections/testimonials", section: section, index: index %>
+    <% when "faq" %>
+      <%= render "landing_pages/sections/faq", section: section, index: index %>
+    <% when "listings" %>
+      <%= render "landing_pages/sections/listings", section: section, index: index, featured_listings: @featured_listings %>
+    <% when "html" %>
+      <%= render "landing_pages/sections/html", section: section, index: index %>
+    <% end %>
+  <% end %>
+
+  <%# Final CTA Section %>
+  <% if @landing_page.cta_text.present? && @landing_page.cta_url.present? %>
+    <section class="py-16 bg-blue-600">
+      <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold text-white mb-4">Ready to get started?</h2>
+        <%= link_to @landing_page.cta_url,
+            class: "inline-flex items-center px-8 py-4 border-2 border-white text-lg font-medium rounded-lg text-white hover:bg-white hover:text-blue-600 transition-colors" do %>
+          <%= @landing_page.cta_text %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</div>

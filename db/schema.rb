@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_29_215435) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_041851) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -255,6 +255,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_215435) do
     t.index ["source_id", "started_at"], name: "index_import_runs_on_source_id_and_started_at"
     t.index ["source_id"], name: "index_import_runs_on_source_id"
     t.index ["status"], name: "index_import_runs_on_status"
+  end
+
+  create_table "landing_pages", force: :cascade do |t|
+    t.jsonb "content", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.string "cta_text"
+    t.string "cta_url"
+    t.string "headline"
+    t.string "hero_image_url"
+    t.boolean "published", default: false, null: false
+    t.bigint "site_id", null: false
+    t.string "slug", null: false
+    t.text "subheadline"
+    t.bigint "tenant_id", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "published"], name: "index_landing_pages_on_site_id_and_published"
+    t.index ["site_id", "slug"], name: "index_landing_pages_on_site_id_and_slug", unique: true
+    t.index ["site_id"], name: "index_landing_pages_on_site_id"
+    t.index ["tenant_id"], name: "index_landing_pages_on_tenant_id"
   end
 
   create_table "listings", force: :cascade do |t|
@@ -509,6 +529,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_215435) do
   add_foreign_key "flags", "users", column: "reviewed_by_id"
   add_foreign_key "import_runs", "sites"
   add_foreign_key "import_runs", "sources"
+  add_foreign_key "landing_pages", "sites"
+  add_foreign_key "landing_pages", "tenants"
   add_foreign_key "listings", "categories"
   add_foreign_key "listings", "sites"
   add_foreign_key "listings", "sources"
