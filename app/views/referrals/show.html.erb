@@ -1,0 +1,147 @@
+<% content_for :title, t("referrals.title") %>
+
+<div class="max-w-3xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold mb-6"><%= t("referrals.title") %></h1>
+
+  <!-- Referral Link Section -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4"><%= t("referrals.your_link") %></h2>
+
+    <div class="flex gap-2 mb-4">
+      <input type="text"
+             id="referral-link"
+             value="<%= @subscription.referral_link %>"
+             readonly
+             autocomplete="off"
+             class="flex-1 px-4 py-2 border rounded-lg bg-gray-50 font-mono text-sm">
+      <button type="button"
+              onclick="copyReferralLink()"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        <%= t("referrals.copy_link") %>
+      </button>
+    </div>
+
+    <!-- Social Share Buttons -->
+    <div class="flex gap-3 flex-wrap">
+      <a href="<%= twitter_share_url(@subscription.referral_link, Current.site.name) %>"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition">
+        <%= t("referrals.share_twitter") %>
+      </a>
+      <a href="<%= linkedin_share_url(@subscription.referral_link) %>"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="inline-flex items-center px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition">
+        <%= t("referrals.share_linkedin") %>
+      </a>
+      <a href="<%= email_share_url(@subscription.referral_link, Current.site.name) %>"
+         class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+        <%= t("referrals.share_email") %>
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Section -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="text-4xl font-bold text-blue-600"><%= @subscription.referrals_as_referrer.count %></div>
+      <div class="text-gray-600"><%= t("referrals.total_referrals") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="text-4xl font-bold text-green-600"><%= @progress[:confirmed_count] %></div>
+      <div class="text-gray-600"><%= t("referrals.confirmed_referrals") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="text-4xl font-bold text-purple-600"><%= @earned_rewards.count %></div>
+      <div class="text-gray-600"><%= t("referrals.rewards_earned") %></div>
+    </div>
+  </div>
+
+  <!-- Progress to Next Reward -->
+  <% if @progress[:next_milestone] %>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4"><%= t("referrals.next_reward") %></h2>
+      <p class="mb-4">
+        <%= t("referrals.progress_message",
+              current: @progress[:confirmed_count],
+              target: @progress[:next_milestone],
+              reward: @progress[:next_reward_name]) %>
+      </p>
+      <div class="w-full bg-gray-200 rounded-full h-4">
+        <% progress_percent = (@progress[:confirmed_count].to_f / @progress[:next_milestone] * 100).clamp(0, 100) %>
+        <div class="bg-blue-600 h-4 rounded-full transition-all" style="width: <%= progress_percent %>%"></div>
+      </div>
+      <p class="text-sm text-gray-600 mt-2">
+        <%= t("referrals.referrals_needed", count: @progress[:referrals_needed]) %>
+      </p>
+    </div>
+  <% end %>
+
+  <!-- Earned Rewards -->
+  <% if @earned_rewards.any? %>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4"><%= t("referrals.earned_rewards_title") %></h2>
+      <div class="space-y-4">
+        <% @earned_rewards.each do |tier| %>
+          <div class="border rounded-lg p-4">
+            <h3 class="font-semibold"><%= tier.name %></h3>
+            <% if tier.description.present? %>
+              <p class="text-gray-600 text-sm mt-1"><%= tier.description %></p>
+            <% end %>
+            <% case tier.reward_type %>
+            <% when "digital_download" %>
+              <% if tier.download_url.present? %>
+                <a href="<%= tier.download_url %>"
+                   target="_blank"
+                   class="inline-block mt-2 text-blue-600 hover:underline">
+                  <%= t("referrals.download_reward") %>
+                </a>
+              <% end %>
+            <% when "featured_mention" %>
+              <% if tier.mention_details.present? %>
+                <p class="text-sm text-gray-600 mt-2"><%= tier.mention_details %></p>
+              <% end %>
+            <% when "custom" %>
+              <% if tier.instructions.present? %>
+                <p class="text-sm text-gray-600 mt-2"><%= tier.instructions %></p>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Recent Referrals -->
+  <% if @referrals.any? %>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4"><%= t("referrals.recent_referrals") %></h2>
+      <div class="space-y-3">
+        <% @referrals.each do |referral| %>
+          <div class="flex justify-between items-center py-2 border-b last:border-0">
+            <div>
+              <span class="font-medium"><%= referral.referee_user.display_name || t("referrals.anonymous_user") %></span>
+              <span class="text-gray-500 text-sm ml-2"><%= time_ago_in_words(referral.created_at) %> ago</span>
+            </div>
+            <span class="px-2 py-1 text-xs rounded-full
+                         <%= referral.confirmed? || referral.rewarded? ? 'bg-green-100 text-green-800' :
+                             referral.pending? ? 'bg-yellow-100 text-yellow-800' :
+                             'bg-gray-100 text-gray-800' %>">
+              <%= referral.status.humanize %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<script>
+function copyReferralLink() {
+  const linkInput = document.getElementById('referral-link');
+  linkInput.select();
+  navigator.clipboard.writeText(linkInput.value);
+  // Could add a toast notification here
+}
+</script>
