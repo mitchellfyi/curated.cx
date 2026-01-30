@@ -295,6 +295,7 @@ See `docs/deploy-dokku.md` for complete deployment guide.
 - ✅ Hostname-based resolution with multiple fallback strategies
 - ✅ Modern job system (Solid Queue) with recurring tasks
 - ✅ Content ingestion pipeline (Source → ImportRun → ContentItem)
+- ✅ Content scheduling (scheduled_for field with background publishing job)
 - ✅ AI editorialisation for content enhancement
 - ✅ Personalized content recommendations (topic-based with cold start fallback)
 - ✅ Community features (voting, comments, flagging, moderation)
@@ -309,4 +310,4 @@ See `docs/deploy-dokku.md` for complete deployment guide.
 
 ---
 
-*Last Updated: 2025-01-25*
+*Last Updated: 2026-01-30*

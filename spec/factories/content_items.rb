@@ -16,6 +16,7 @@
 #  hidden_at             :datetime
 #  published_at          :datetime
 #  raw_payload           :jsonb            not null
+#  scheduled_for         :datetime
 #  summary               :text
 #  tagging_confidence    :decimal(3, 2)
 #  tagging_explanation   :jsonb            not null
@@ -39,6 +40,7 @@
 #  index_content_items_on_hidden_at                     (hidden_at)
 #  index_content_items_on_hidden_by_id                  (hidden_by_id)
 #  index_content_items_on_published_at                  (published_at)
+#  index_content_items_on_scheduled_for                 (scheduled_for) WHERE (scheduled_for IS NOT NULL)
 #  index_content_items_on_site_id                       (site_id)
 #  index_content_items_on_site_id_and_content_type      (site_id,content_type)
 #  index_content_items_on_site_id_and_editorialised_at  (site_id,editorialised_at)
@@ -165,6 +167,16 @@ FactoryBot.define do
         admin = evaluator.locked_by_user || create(:user, :admin)
         item.update_columns(comments_locked_at: Time.current, comments_locked_by_id: admin.id)
       end
+    end
+
+    trait :scheduled do
+      published_at { nil }
+      scheduled_for { 1.day.from_now }
+    end
+
+    trait :due_for_publishing do
+      published_at { nil }
+      scheduled_for { 1.hour.ago }
     end
   end
 end

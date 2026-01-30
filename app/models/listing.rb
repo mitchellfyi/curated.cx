@@ -27,6 +27,7 @@
 #  payment_status             :integer          default("unpaid"), not null
 #  published_at               :datetime
 #  salary_range               :string
+#  scheduled_for              :datetime
 #  site_name                  :string
 #  title                      :string
 #  url_canonical              :text             not null
@@ -49,6 +50,7 @@
 #  index_listings_on_featured_by_id              (featured_by_id)
 #  index_listings_on_payment_status              (payment_status)
 #  index_listings_on_published_at                (published_at)
+#  index_listings_on_scheduled_for               (scheduled_for) WHERE (scheduled_for IS NOT NULL)
 #  index_listings_on_site_expires_at             (site_id,expires_at)
 #  index_listings_on_site_featured_dates         (site_id,featured_from,featured_until)
 #  index_listings_on_site_id                     (site_id)
@@ -154,6 +156,11 @@ class Listing < ApplicationRecord
   scope :with_affiliate, -> { where.not(affiliate_url_template: [ nil, "" ]) }
   scope :paid_listings, -> { where(paid: true) }
 
+  # Scheduling scopes
+  scope :scheduled, -> { where("scheduled_for > ?", Time.current) }
+  scope :not_scheduled, -> { where(scheduled_for: nil) }
+  scope :due_for_publishing, -> { where("scheduled_for IS NOT NULL AND scheduled_for <= ?", Time.current) }
+
   # Class methods for common queries
   def self.recent_published_for_site(site_id, limit: 20)
     Rails.cache.fetch("listings:recent:#{site_id}:#{limit}", expires_in: 5.minutes) do
@@ -191,6 +198,10 @@ class Listing < ApplicationRecord
   # Published status
   def published?
     published_at.present?
+  end
+
+  def scheduled?
+    scheduled_for.present? && scheduled_for > Time.current
   end
 
   def ai_summaries

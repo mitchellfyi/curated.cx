@@ -25,6 +25,7 @@
 #  payment_status             :integer          default("unpaid"), not null
 #  published_at               :datetime
 #  salary_range               :string
+#  scheduled_for              :datetime
 #  site_name                  :string
 #  title                      :string
 #  url_canonical              :text             not null
@@ -47,6 +48,7 @@
 #  index_listings_on_featured_by_id              (featured_by_id)
 #  index_listings_on_payment_status              (payment_status)
 #  index_listings_on_published_at                (published_at)
+#  index_listings_on_scheduled_for               (scheduled_for) WHERE (scheduled_for IS NOT NULL)
 #  index_listings_on_site_expires_at             (site_id,expires_at)
 #  index_listings_on_site_featured_dates         (site_id,featured_from,featured_until)
 #  index_listings_on_site_id                     (site_id)
@@ -229,6 +231,16 @@ FactoryBot.define do
     trait :paid do
       paid { true }
       payment_reference { "pay_#{SecureRandom.hex(8)}" }
+    end
+
+    trait :scheduled do
+      published_at { nil }
+      scheduled_for { 1.day.from_now }
+    end
+
+    trait :due_for_publishing do
+      published_at { nil }
+      scheduled_for { 1.hour.ago }
     end
   end
 end

@@ -11,6 +11,8 @@ Rails.application.routes.draw do
         post :feature
         post :unfeature
         post :extend_expiry
+        post :unschedule
+        post :publish_now
       end
     end
     resources :taxonomies

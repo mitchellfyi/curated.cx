@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_180003) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_192701) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -170,6 +170,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_180003) do
     t.bigint "hidden_by_id"
     t.datetime "published_at"
     t.jsonb "raw_payload", default: {}, null: false
+    t.datetime "scheduled_for"
     t.bigint "site_id", null: false
     t.bigint "source_id", null: false
     t.text "summary"
@@ -187,6 +188,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_180003) do
     t.index ["hidden_at"], name: "index_content_items_on_hidden_at"
     t.index ["hidden_by_id"], name: "index_content_items_on_hidden_by_id"
     t.index ["published_at"], name: "index_content_items_on_published_at"
+    t.index ["scheduled_for"], name: "index_content_items_on_scheduled_for", where: "(scheduled_for IS NOT NULL)"
     t.index ["site_id", "content_type"], name: "index_content_items_on_site_id_and_content_type"
     t.index ["site_id", "editorialised_at"], name: "index_content_items_on_site_id_and_editorialised_at"
     t.index ["site_id", "published_at"], name: "index_content_items_on_site_id_published_at_desc", order: { published_at: :desc }
@@ -389,6 +391,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_180003) do
     t.integer "payment_status", default: 0, null: false
     t.datetime "published_at"
     t.string "salary_range"
+    t.datetime "scheduled_for"
     t.bigint "site_id", null: false
     t.string "site_name"
     t.bigint "source_id"
@@ -405,6 +408,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_180003) do
     t.index ["featured_by_id"], name: "index_listings_on_featured_by_id"
     t.index ["payment_status"], name: "index_listings_on_payment_status"
     t.index ["published_at"], name: "index_listings_on_published_at"
+    t.index ["scheduled_for"], name: "index_listings_on_scheduled_for", where: "(scheduled_for IS NOT NULL)"
     t.index ["site_id", "expires_at"], name: "index_listings_on_site_expires_at"
     t.index ["site_id", "featured_from", "featured_until"], name: "index_listings_on_site_featured_dates"
     t.index ["site_id", "listing_type", "expires_at"], name: "index_listings_on_site_type_expires"

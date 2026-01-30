@@ -3,7 +3,7 @@
 class Admin::ListingsController < ApplicationController
   include AdminAccess
 
-  before_action :set_listing, only: %i[show edit update destroy feature unfeature extend_expiry]
+  before_action :set_listing, only: %i[show edit update destroy feature unfeature extend_expiry unschedule publish_now]
   before_action :set_categories
 
   def index
@@ -21,7 +21,7 @@ class Admin::ListingsController < ApplicationController
   end
 
   def create
-    @listing = listings_service.create_listing(listing_params)
+    @listing = listings_service.create_listing(processed_listing_params)
     @listing.site = Current.site
     @listing.tenant = Current.tenant # Set tenant for backward compatibility
 
@@ -36,7 +36,7 @@ class Admin::ListingsController < ApplicationController
   end
 
   def update
-    if listings_service.update_listing(@listing, listing_params)
+    if listings_service.update_listing(@listing, processed_listing_params)
       redirect_to admin_listing_path(@listing), notice: t("admin.listings.updated")
     else
       render :edit, status: :unprocessable_entity
@@ -74,6 +74,18 @@ class Admin::ListingsController < ApplicationController
     redirect_to admin_listing_path(@listing), notice: t("admin.listings.expiry_extended")
   end
 
+  # Scheduling actions
+
+  def unschedule
+    @listing.update!(scheduled_for: nil)
+    redirect_to admin_listing_path(@listing), notice: t("admin.listings.unscheduled")
+  end
+
+  def publish_now
+    @listing.update!(published_at: Time.current, scheduled_for: nil)
+    redirect_to admin_listing_path(@listing), notice: t("admin.listings.published_now")
+  end
+
   private
 
   def set_listing
@@ -95,14 +107,35 @@ class Admin::ListingsController < ApplicationController
   def listing_params
     params.require(:listing).permit(
       :category_id, :url_raw, :title, :description,
-      :image_url, :site_name, :published_at,
+      :image_url, :site_name, :published_at, :scheduled_for,
       :body_html, :body_text,
       # Monetisation fields
       :listing_type, :affiliate_url_template,
       :featured_from, :featured_until, :expires_at,
       :company, :location, :salary_range, :apply_url,
       :paid, :payment_reference,
+      # Scheduling
+      :publish_action,
       ai_summaries: {}, ai_tags: {}, metadata: {}, affiliate_attribution: {}
     )
+  end
+
+  def processed_listing_params
+    attrs = listing_params.except(:publish_action)
+    publish_action = params.dig(:listing, :publish_action)
+
+    case publish_action
+    when "publish"
+      attrs[:published_at] = Time.current
+      attrs[:scheduled_for] = nil
+    when "schedule"
+      attrs[:published_at] = nil
+      # scheduled_for is already in attrs from the form
+    when "draft"
+      attrs[:published_at] = nil
+      attrs[:scheduled_for] = nil
+    end
+
+    attrs
   end
 end

@@ -25,6 +25,7 @@
 #  payment_status             :integer          default("unpaid"), not null
 #  published_at               :datetime
 #  salary_range               :string
+#  scheduled_for              :datetime
 #  site_name                  :string
 #  title                      :string
 #  url_canonical              :text             not null
@@ -47,6 +48,7 @@
 #  index_listings_on_featured_by_id              (featured_by_id)
 #  index_listings_on_payment_status              (payment_status)
 #  index_listings_on_published_at                (published_at)
+#  index_listings_on_scheduled_for               (scheduled_for) WHERE (scheduled_for IS NOT NULL)
 #  index_listings_on_site_expires_at             (site_id,expires_at)
 #  index_listings_on_site_featured_dates         (site_id,featured_from,featured_until)
 #  index_listings_on_site_id                     (site_id)
@@ -688,6 +690,65 @@ RSpec.describe Listing, type: :model do
         ActsAsTenant.with_tenant(tenant) do
           expect(Listing.with_content).to include(content_listing)
           expect(Listing.with_content).not_to include(no_content_listing)
+        end
+      end
+    end
+  end
+
+  describe 'scheduling' do
+    describe '#scheduled?' do
+      it 'returns true when scheduled_for is in the future' do
+        listing = build(:listing, tenant: tenant, category: category, scheduled_for: 1.day.from_now)
+        expect(listing.scheduled?).to be true
+      end
+
+      it 'returns false when scheduled_for is in the past' do
+        listing = build(:listing, tenant: tenant, category: category, scheduled_for: 1.hour.ago)
+        expect(listing.scheduled?).to be false
+      end
+
+      it 'returns false when scheduled_for is nil' do
+        listing = build(:listing, tenant: tenant, category: category, scheduled_for: nil)
+        expect(listing.scheduled?).to be false
+      end
+    end
+
+    describe '.scheduled scope' do
+      let!(:scheduled) { create(:listing, :scheduled, tenant: tenant, category: category) }
+      let!(:published) { create(:listing, :published, tenant: tenant, category: category) }
+      let!(:due) { create(:listing, :due_for_publishing, tenant: tenant, category: category) }
+
+      it 'returns listings with future scheduled_for' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.scheduled).to include(scheduled)
+          expect(Listing.scheduled).not_to include(published)
+          expect(Listing.scheduled).not_to include(due)
+        end
+      end
+    end
+
+    describe '.not_scheduled scope' do
+      let!(:scheduled) { create(:listing, :scheduled, tenant: tenant, category: category) }
+      let!(:published) { create(:listing, :published, tenant: tenant, category: category) }
+
+      it 'returns listings without scheduled_for' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.not_scheduled).to include(published)
+          expect(Listing.not_scheduled).not_to include(scheduled)
+        end
+      end
+    end
+
+    describe '.due_for_publishing scope' do
+      let!(:scheduled) { create(:listing, :scheduled, tenant: tenant, category: category) }
+      let!(:due) { create(:listing, :due_for_publishing, tenant: tenant, category: category) }
+      let!(:published) { create(:listing, :published, tenant: tenant, category: category) }
+
+      it 'returns listings with past scheduled_for' do
+        ActsAsTenant.with_tenant(tenant) do
+          expect(Listing.due_for_publishing).to include(due)
+          expect(Listing.due_for_publishing).not_to include(scheduled)
+          expect(Listing.due_for_publishing).not_to include(published)
         end
       end
     end

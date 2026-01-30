@@ -44,6 +44,52 @@ en:
         unique_listings: Unique Listings
       title: Affiliate Analytics
       top_listings: Top Performing Listings
+    boost_earnings:
+      daily_clicks: Daily Clicks
+      description: Track your earnings from promoting other sites
+      export_csv: Export CSV
+      stats:
+        click_rate: Click Rate
+        clicks: Clicks
+        confirmed: Confirmed
+        conversions: Conversions
+        impressions: Impressions
+        pending: Pending
+        total: Total Earnings
+      table:
+        clicks: Clicks
+        earnings: Earnings
+        target_site: Target Site
+      title: Boost Earnings
+      top_boosts: Top Performing Boosts
+    boost_payouts:
+      actions: Actions
+      back: Back to Payouts
+      cancel: Cancel
+      cancelled: Payout has been cancelled.
+      cannot_update: Cannot update this payout.
+      confirm_cancel: Are you sure you want to cancel this payout?
+      created: Created
+      mark_paid: Mark as Paid
+      marked_paid: Payout has been marked as paid.
+      no_payouts: No payouts yet.
+      payment_reference: Payment Reference
+      payment_reference_placeholder: e.g., PayPal transaction ID
+      payout_history: Payout History
+      show_title: 'Payout: %{period}'
+      stats:
+        paid_amount: Paid Amount
+        pending: Pending
+        pending_amount: Pending Amount
+        total: Total Payouts
+      table:
+        actions: Actions
+        amount: Amount
+        paid_at: Paid At
+        period: Period
+        status: Status
+      title: Boost Payouts
+      view: View
     categories:
       created: Created
       deleted: Deleted
@@ -233,7 +279,6 @@ en:
         payment_reference: Payment Reference
         payment_reference_placeholder: Payment ID or reference
         payment_settings: Payment Settings
-        published: Published
         salary_range: Salary Range
         select_category: Select a category
         title: Title
@@ -242,16 +287,66 @@ en:
         job: Job
         service: Service
         tool: Tool
+      published_now: Listing published
+      scheduling:
+        currently_scheduled: This listing is scheduled to publish at %{time}
+        not_scheduled_hint: Use the edit form to schedule this listing for later
+        publish_immediately: Publish immediately
+        publish_now: Publish now
+        publishing: Publishing
+        save_as_draft: Save as draft
+        schedule_for_later: Schedule for later
+        scheduled: Scheduled
+        scheduled_for: Scheduled for
+        timezone_hint: Times are displayed in %{timezone}
+        unschedule: Unschedule
       show:
         no_expiry: No expiry
         not_published: Not published
       unfeatured: Listing is no longer featured
+      unscheduled: Listing schedule cancelled
       updated: Updated
     moderation:
       comments_locked: Comments have been locked on this content
       comments_unlocked: Comments have been unlocked on this content
       hidden: Content has been hidden
       unhidden: Content has been made visible again
+    network_boosts:
+      back: Back to Boosts
+      cancel: Cancel
+      confirm_delete: Are you sure you want to delete this boost?
+      created: Boost created successfully.
+      created_at: Created
+      delete: Delete
+      destroyed: Boost deleted successfully.
+      details: Boost Details
+      disabled: Disabled
+      edit: Edit Boost
+      enabled: Enabled
+      form:
+        cpc_rate: Cost Per Click
+        cpc_rate_hint: Amount you'll pay per click to the target site
+        enabled: Enabled
+        enabled_hint: When enabled, this boost will be shown to visitors
+        monthly_budget: Monthly Budget
+        monthly_budget_hint: Leave blank for unlimited
+        select_site: Select a site
+        source_site: Source Site
+        source_site_hint: The site that will be promoted (shown to your visitors)
+      new: New Boost
+      no_boosts: No boosts configured yet.
+      show_title: Boost to %{name}
+      stats:
+        clicks: Clicks
+        conversions: Conversions
+        impressions: Impressions
+      table:
+        actions: Actions
+        cpc_rate: CPC Rate
+        source_site: Source Site
+        status: Status
+      title: Network Boosts
+      updated: Boost updated successfully.
     referral_reward_tiers:
       active: Active
       back_to_list: Back to Reward Tiers
@@ -342,6 +437,8 @@ en:
       deleted: Site deleted successfully
       edit:
         cancel: Cancel
+        scheduling_timezone: Scheduling Timezone
+        scheduling_timezone_hint: Times in the admin will be displayed in this timezone
         submit: Update Site
         topic_tags: Topic Tags
       index:
@@ -899,6 +996,8 @@ en:
     hero:
       tagline: Discover curated content across specialized communities
       title: Curated Network
+    new_sites:
+      title: New Sites
     sites:
       empty: No sites are currently available.
       title: Network Sites
@@ -907,6 +1006,8 @@ en:
       articles: Articles
       listings: Listings
       sites: Sites
+    trending:
+      title: Trending Sites
   payment_receipt:
     date: Date
     duration: Duration

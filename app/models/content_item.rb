@@ -16,6 +16,7 @@
 #  hidden_at             :datetime
 #  published_at          :datetime
 #  raw_payload           :jsonb            not null
+#  scheduled_for         :datetime
 #  summary               :text
 #  tagging_confidence    :decimal(3, 2)
 #  tagging_explanation   :jsonb            not null
@@ -39,6 +40,7 @@
 #  index_content_items_on_hidden_at                     (hidden_at)
 #  index_content_items_on_hidden_by_id                  (hidden_by_id)
 #  index_content_items_on_published_at                  (published_at)
+#  index_content_items_on_scheduled_for                 (scheduled_for) WHERE (scheduled_for IS NOT NULL)
 #  index_content_items_on_site_id                       (site_id)
 #  index_content_items_on_site_id_and_content_type      (site_id,content_type)
 #  index_content_items_on_site_id_and_editorialised_at  (site_id,editorialised_at)
@@ -100,9 +102,14 @@ class ContentItem < ApplicationRecord
   scope :by_content_type, ->(type) { where(content_type: type) }
   scope :tagged_with, ->(taxonomy_slug) { where("topic_tags @> ?", [ taxonomy_slug ].to_json) }
 
+  # Scheduling scopes
+  scope :scheduled, -> { where("scheduled_for > ?", Time.current) }
+  scope :not_scheduled, -> { where(scheduled_for: nil) }
+  scope :due_for_publishing, -> { where("scheduled_for IS NOT NULL AND scheduled_for <= ?", Time.current) }
+
   # Feed scopes
   scope :not_hidden, -> { where(hidden_at: nil) }
-  scope :for_feed, -> { published.not_hidden.order(published_at: :desc) }
+  scope :for_feed, -> { published.not_hidden.not_scheduled.order(published_at: :desc) }
   scope :published_since, ->(time) { published.where("published_at >= ?", time) }
   scope :top_this_week, -> { published_since(1.week.ago).order(Arel.sql("(upvotes_count + comments_count) DESC, published_at DESC")) }
   scope :by_engagement, -> { order(Arel.sql("(upvotes_count + comments_count) DESC")) }
@@ -127,6 +134,10 @@ class ContentItem < ApplicationRecord
 
   def published?
     published_at.present?
+  end
+
+  def scheduled?
+    scheduled_for.present? && scheduled_for > Time.current
   end
 
   def topic_tags

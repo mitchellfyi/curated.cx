@@ -408,4 +408,197 @@ RSpec.describe "Admin::Listings", type: :request do
       end
     end
   end
+
+  describe 'scheduling actions' do
+    let!(:category) { create(:category, :news, tenant: tenant1, site: site1) }
+
+    before do
+      sign_in admin_user
+      host! tenant1.hostname
+      setup_tenant_context(tenant1)
+    end
+
+    describe 'POST /admin/listings with scheduling' do
+      it 'creates a published listing when publish_action is publish' do
+        freeze_time do
+          post admin_listings_path, params: {
+            listing: {
+              category_id: category.id,
+              url_raw: "https://example.com/published",
+              title: "Published Listing",
+              description: "Test description",
+              publish_action: "publish"
+            }
+          }
+
+          new_listing = tenant1.listings.last
+          expect(new_listing.published_at).to be_within(1.second).of(Time.current)
+          expect(new_listing.scheduled_for).to be_nil
+        end
+      end
+
+      it 'creates a scheduled listing when publish_action is schedule' do
+        future_time = 1.day.from_now
+
+        post admin_listings_path, params: {
+          listing: {
+            category_id: category.id,
+            url_raw: "https://example.com/scheduled",
+            title: "Scheduled Listing",
+            description: "Test description",
+            publish_action: "schedule",
+            scheduled_for: future_time
+          }
+        }
+
+        new_listing = tenant1.listings.last
+        expect(new_listing.published_at).to be_nil
+        expect(new_listing.scheduled_for).to be_within(1.second).of(future_time)
+        expect(new_listing).to be_scheduled
+      end
+
+      it 'creates a draft listing when publish_action is draft' do
+        post admin_listings_path, params: {
+          listing: {
+            category_id: category.id,
+            url_raw: "https://example.com/draft",
+            title: "Draft Listing",
+            description: "Test description",
+            publish_action: "draft"
+          }
+        }
+
+        new_listing = tenant1.listings.last
+        expect(new_listing.published_at).to be_nil
+        expect(new_listing.scheduled_for).to be_nil
+      end
+    end
+
+    describe 'PATCH /admin/listings/:id with scheduling' do
+      let!(:listing) { create(:listing, tenant: tenant1, site: site1, category: category) }
+
+      it 'schedules a published listing' do
+        future_time = 2.days.from_now
+
+        patch admin_listing_path(listing), params: {
+          listing: {
+            publish_action: "schedule",
+            scheduled_for: future_time
+          }
+        }
+
+        listing.reload
+        expect(listing.published_at).to be_nil
+        expect(listing.scheduled_for).to be_within(1.second).of(future_time)
+      end
+
+      it 'publishes a scheduled listing' do
+        scheduled_listing = create(:listing, :scheduled, tenant: tenant1, site: site1, category: category)
+
+        freeze_time do
+          patch admin_listing_path(scheduled_listing), params: {
+            listing: { publish_action: "publish" }
+          }
+
+          scheduled_listing.reload
+          expect(scheduled_listing.published_at).to be_within(1.second).of(Time.current)
+          expect(scheduled_listing.scheduled_for).to be_nil
+        end
+      end
+
+      it 'unschedules to draft' do
+        scheduled_listing = create(:listing, :scheduled, tenant: tenant1, site: site1, category: category)
+
+        patch admin_listing_path(scheduled_listing), params: {
+          listing: { publish_action: "draft" }
+        }
+
+        scheduled_listing.reload
+        expect(scheduled_listing.published_at).to be_nil
+        expect(scheduled_listing.scheduled_for).to be_nil
+      end
+    end
+
+    describe 'POST /admin/listings/:id/unschedule' do
+      let!(:scheduled_listing) do
+        create(:listing, :scheduled, tenant: tenant1, site: site1, category: category)
+      end
+
+      it 'clears scheduled_for' do
+        expect(scheduled_listing).to be_scheduled
+
+        post unschedule_admin_listing_path(scheduled_listing)
+
+        scheduled_listing.reload
+        expect(scheduled_listing.scheduled_for).to be_nil
+      end
+
+      it 'does not publish the listing' do
+        post unschedule_admin_listing_path(scheduled_listing)
+
+        scheduled_listing.reload
+        expect(scheduled_listing.published_at).to be_nil
+      end
+
+      it 'redirects with success notice' do
+        post unschedule_admin_listing_path(scheduled_listing)
+
+        expect(response).to redirect_to(admin_listing_path(scheduled_listing))
+        expect(flash[:notice]).to eq(I18n.t('admin.listings.unscheduled'))
+      end
+    end
+
+    describe 'POST /admin/listings/:id/publish_now' do
+      let!(:scheduled_listing) do
+        create(:listing, :scheduled, tenant: tenant1, site: site1, category: category)
+      end
+
+      it 'publishes the listing immediately' do
+        freeze_time do
+          post publish_now_admin_listing_path(scheduled_listing)
+
+          scheduled_listing.reload
+          expect(scheduled_listing.published_at).to be_within(1.second).of(Time.current)
+        end
+      end
+
+      it 'clears scheduled_for' do
+        post publish_now_admin_listing_path(scheduled_listing)
+
+        scheduled_listing.reload
+        expect(scheduled_listing.scheduled_for).to be_nil
+      end
+
+      it 'redirects with success notice' do
+        post publish_now_admin_listing_path(scheduled_listing)
+
+        expect(response).to redirect_to(admin_listing_path(scheduled_listing))
+        expect(flash[:notice]).to eq(I18n.t('admin.listings.published_now'))
+      end
+    end
+
+    describe 'tenant isolation for scheduling actions' do
+      let!(:other_category) do
+        ActsAsTenant.without_tenant do
+          create(:category, :news, tenant: tenant2, site: site2)
+        end
+      end
+
+      let!(:other_scheduled_listing) do
+        ActsAsTenant.without_tenant do
+          create(:listing, :scheduled, tenant: tenant2, site: site2, category: other_category)
+        end
+      end
+
+      it 'cannot unschedule listing from different tenant' do
+        post unschedule_admin_listing_path(other_scheduled_listing)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'cannot publish_now listing from different tenant' do
+        post publish_now_admin_listing_path(other_scheduled_listing)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
 end

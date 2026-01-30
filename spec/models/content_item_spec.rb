@@ -16,6 +16,7 @@
 #  hidden_at             :datetime
 #  published_at          :datetime
 #  raw_payload           :jsonb            not null
+#  scheduled_for         :datetime
 #  summary               :text
 #  tagging_confidence    :decimal(3, 2)
 #  tagging_explanation   :jsonb            not null
@@ -39,6 +40,7 @@
 #  index_content_items_on_hidden_at                     (hidden_at)
 #  index_content_items_on_hidden_by_id                  (hidden_by_id)
 #  index_content_items_on_published_at                  (published_at)
+#  index_content_items_on_scheduled_for                 (scheduled_for) WHERE (scheduled_for IS NOT NULL)
 #  index_content_items_on_site_id                       (site_id)
 #  index_content_items_on_site_id_and_content_type      (site_id,content_type)
 #  index_content_items_on_site_id_and_editorialised_at  (site_id,editorialised_at)
@@ -376,6 +378,76 @@ RSpec.describe ContentItem, type: :model do
             build(:content_item, site: site, source: nil)
           }.not_to raise_error
         end
+      end
+    end
+  end
+
+  describe "scheduling" do
+    let(:site) { create(:site) }
+    let(:source) { create(:source, site: site) }
+
+    describe "#scheduled?" do
+      it "returns true when scheduled_for is in the future" do
+        content_item = build(:content_item, site: site, source: source, scheduled_for: 1.day.from_now)
+        expect(content_item.scheduled?).to be true
+      end
+
+      it "returns false when scheduled_for is in the past" do
+        content_item = build(:content_item, site: site, source: source, scheduled_for: 1.hour.ago)
+        expect(content_item.scheduled?).to be false
+      end
+
+      it "returns false when scheduled_for is nil" do
+        content_item = build(:content_item, site: site, source: source, scheduled_for: nil)
+        expect(content_item.scheduled?).to be false
+      end
+    end
+
+    describe ".scheduled scope" do
+      it "returns content items with future scheduled_for" do
+        scheduled = create(:content_item, :scheduled, site: site, source: source)
+        published = create(:content_item, :published, site: site, source: source)
+        due = create(:content_item, :due_for_publishing, site: site, source: source)
+
+        expect(ContentItem.scheduled).to include(scheduled)
+        expect(ContentItem.scheduled).not_to include(published)
+        expect(ContentItem.scheduled).not_to include(due)
+      end
+    end
+
+    describe ".not_scheduled scope" do
+      it "returns content items without scheduled_for" do
+        scheduled = create(:content_item, :scheduled, site: site, source: source)
+        published = create(:content_item, :published, site: site, source: source)
+
+        expect(ContentItem.not_scheduled).to include(published)
+        expect(ContentItem.not_scheduled).not_to include(scheduled)
+      end
+    end
+
+    describe ".due_for_publishing scope" do
+      it "returns content items with past scheduled_for" do
+        scheduled = create(:content_item, :scheduled, site: site, source: source)
+        due = create(:content_item, :due_for_publishing, site: site, source: source)
+        published = create(:content_item, :published, site: site, source: source)
+
+        expect(ContentItem.due_for_publishing).to include(due)
+        expect(ContentItem.due_for_publishing).not_to include(scheduled)
+        expect(ContentItem.due_for_publishing).not_to include(published)
+      end
+    end
+
+    describe ".for_feed scope" do
+      it "excludes scheduled items" do
+        scheduled = create(:content_item, :scheduled, site: site, source: source)
+        published = create(:content_item, :published, site: site, source: source)
+        hidden = create(:content_item, :hidden, site: site, source: source)
+        unpublished = create(:content_item, :unpublished, site: site, source: source)
+
+        expect(ContentItem.for_feed).to include(published)
+        expect(ContentItem.for_feed).not_to include(scheduled)
+        expect(ContentItem.for_feed).not_to include(hidden)
+        expect(ContentItem.for_feed).not_to include(unpublished)
       end
     end
   end

@@ -19,9 +19,9 @@ class Admin::SitesController < ApplicationController
   end
 
   def create
-    @site = Site.new(site_params.except(:topics))
+    @site = Site.new(site_params.except(:topics, :scheduling_timezone))
     @site.tenant = Current.tenant
-    apply_topics_to_config(@site)
+    apply_config_settings(@site)
 
     if @site.save
       redirect_to admin_site_path(@site), notice: t("admin.sites.created")
@@ -34,8 +34,8 @@ class Admin::SitesController < ApplicationController
   end
 
   def update
-    update_params = site_params.except(:topics)
-    apply_topics_to_config(@site)
+    update_params = site_params.except(:topics, :scheduling_timezone)
+    apply_config_settings(@site)
     update_params[:config] = @site.config if @site.config_changed?
 
     if @site.update(update_params)
@@ -57,15 +57,24 @@ class Admin::SitesController < ApplicationController
   end
 
   def site_params
-    params.require(:site).permit(:name, :slug, :description)
+    params.require(:site).permit(:name, :slug, :description, :topics, :scheduling_timezone)
   end
 
-  def apply_topics_to_config(site)
-    topics_string = params[:site][:topics]
-    return unless topics_string.present?
-
-    topics_array = topics_string.split(",").map(&:strip).reject(&:blank?)
+  def apply_config_settings(site)
     site.config ||= {}
-    site.config["topics"] = topics_array
+
+    # Topics
+    topics_string = params[:site][:topics]
+    if topics_string.present?
+      topics_array = topics_string.split(",").map(&:strip).reject(&:blank?)
+      site.config["topics"] = topics_array
+    end
+
+    # Scheduling timezone
+    scheduling_timezone = params[:site][:scheduling_timezone]
+    if scheduling_timezone.present?
+      site.config["scheduling"] ||= {}
+      site.config["scheduling"]["timezone"] = scheduling_timezone
+    end
   end
 end

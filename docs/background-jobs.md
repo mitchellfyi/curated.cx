@@ -168,6 +168,17 @@ schedule: "*/15 * * * *"  # Every 15 minutes
   - Schedules the next step in the sequence
   - On error: logs failure, marks email as failed, continues to next
 
+**Publish Scheduled Content** (Every minute):
+- **Class**: `PublishScheduledContentJob`
+- **Queue**: `default`
+- **Purpose**: Publish ContentItems and Listings that are scheduled for publication
+- **Batch Size**: 100
+- **Behavior**:
+  - Finds `ContentItem` and `Listing` records where `scheduled_for <= Time.current`
+  - Sets `published_at = Time.current` and clears `scheduled_for`
+  - Uses `ActsAsTenant.with_tenant` for multi-tenant context
+  - On error: logs failure, continues to next item
+
 ---
 
 ## Heartbeat Job
@@ -458,4 +469,4 @@ cron: rails runner "HeartbeatJob.perform_now"
 
 ---
 
-*Last Updated: 2026-01-23*
+*Last Updated: 2026-01-30*

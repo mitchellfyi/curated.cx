@@ -131,6 +131,11 @@ class Site < ApplicationRecord
     ga_measurement_id.present?
   end
 
+  # Scheduling settings
+  def scheduling_timezone
+    setting("scheduling.timezone", "UTC")
+  end
+
   # Status helpers
   def publicly_accessible?
     enabled?
