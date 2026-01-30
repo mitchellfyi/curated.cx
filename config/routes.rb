@@ -72,6 +72,10 @@ Rails.application.routes.draw do
         post :reject
       end
     end
+
+    # Referral program management
+    resources :referrals, only: [ :index, :show, :update ]
+    resources :referral_reward_tiers
   end
   devise_for :users
 
@@ -103,6 +107,9 @@ Rails.application.routes.draw do
   # Digest subscriptions
   resource :digest_subscription, only: [ :show, :create, :update, :destroy ]
   get "unsubscribe/:token", to: "digest_subscriptions#unsubscribe", as: :unsubscribe_digest
+
+  # Referral program
+  resource :referrals, only: [ :show ]
 
   # Bookmarks (My Saves)
   resources :bookmarks, only: [ :index, :create, :destroy ]

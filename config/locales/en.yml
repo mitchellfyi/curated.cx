@@ -935,3 +935,115 @@ en:
   votes:
     rate_limited: You're voting too quickly. Please wait before voting again.
     sign_in_to_vote: Sign in to vote
+  referrals:
+    title: Referral Program
+    your_link: Your Referral Link
+    copy_link: Copy Link
+    share_twitter: Share on X
+    share_linkedin: Share on LinkedIn
+    share_email: Share via Email
+    total_referrals: Total Referrals
+    confirmed_referrals: Confirmed
+    rewards_earned: Rewards Earned
+    next_reward: Next Reward
+    progress_message: You have %{current} of %{target} referrals needed for "%{reward}"
+    referrals_needed:
+      one: "%{count} more referral needed"
+      other: "%{count} more referrals needed"
+    earned_rewards_title: Your Rewards
+    download_reward: Download
+    recent_referrals: Recent Referrals
+    anonymous_user: Anonymous
+    subscribe_first: Please subscribe to the newsletter first to access your referral dashboard.
+    share_text:
+      twitter: Check out %{site} - I think you'll love it!
+      email_subject: Check out %{site}
+      email_body: "Hey!\n\nI've been enjoying %{site} and thought you might too.\n\nSign up using my referral link: %{link}\n\nCheers!"
+  referral_mailer:
+    referral_confirmed:
+      subject: "Your referral was confirmed - %{site}"
+      heading: Congratulations!
+      intro: "%{referee} has joined %{site} using your referral link!"
+      total_referrals:
+        one: You now have %{count} confirmed referral.
+        other: You now have %{count} confirmed referrals.
+      keep_sharing: Keep sharing to unlock more rewards.
+      your_link: Your referral link
+      thanks: Thanks for spreading the word about %{site}!
+    reward_unlocked:
+      subject: "You've unlocked a reward! - %{reward} - %{site}"
+      heading: You've Unlocked a Reward!
+      congrats: Congratulations! You've earned "%{reward}" for your referrals.
+      download_link: Download your reward
+      total_referrals:
+        one: You now have %{count} confirmed referral.
+        other: You now have %{count} confirmed referrals.
+      keep_sharing: Keep sharing to unlock more rewards.
+      your_link: Your referral link
+      thanks: Thanks for spreading the word about %{site}!
+  admin:
+    referrals:
+      title: Referral Management
+      stats:
+        total: Total
+        pending: Pending
+        confirmed: Confirmed
+        rewarded: Rewarded
+        conversion_rate: Conversion Rate
+      top_referrers: Top Referrers
+      recent_referrals: Recent Referrals
+      table:
+        user: User
+        email: Email
+        referral_count: Referrals
+        referrer: Referrer
+        referee: Referee
+        status: Status
+        created: Created
+        actions: Actions
+      view: View
+      no_referrals: No referrals yet.
+      back_to_list: Back to Referrals
+      marked_rewarded: Referral has been marked as rewarded.
+      cannot_update: Cannot update this referral.
+      show:
+        title: Referral Details
+        referrer: Referrer
+        referee: Referee
+        status: Status
+        created: Created
+        confirmed_at: Confirmed At
+        rewarded_at: Rewarded At
+        ip_hash: IP Hash
+        actions: Actions
+        mark_rewarded: Mark as Rewarded
+    referral_reward_tiers:
+      title: Referral Reward Tiers
+      new: New Reward Tier
+      edit: Edit Reward Tier
+      back_to_list: Back to Reward Tiers
+      created: Reward tier created successfully.
+      updated: Reward tier updated successfully.
+      deleted: Reward tier deleted successfully.
+      no_tiers: No reward tiers configured yet.
+      create_first: Create your first reward tier
+      active: Active
+      inactive: Inactive
+      confirm_delete: Are you sure you want to delete this reward tier?
+      table:
+        milestone: Milestone
+        name: Name
+        type: Reward Type
+        status: Status
+        actions: Actions
+      form:
+        errors: Please fix the following errors
+        milestone: Milestone
+        milestone_help: Number of referrals required to unlock this reward
+        name: Name
+        description: Description
+        reward_type: Reward Type
+        reward_data: Reward Data (JSON)
+        reward_data_help: 'JSON object with reward details. Examples: {"download_url": "https://..."} or {"instructions": "Contact us..."}'
+        active: Active
+        cancel: Cancel
