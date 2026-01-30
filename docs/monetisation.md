@@ -142,13 +142,51 @@ Listing.expired      # => only expired listings
 | `Listing.active_jobs` | Published jobs that haven't expired |
 | `Listing.not_expired` | Listings without expiry or not yet expired |
 
-### Payment Integration (Stub)
+### Payment Integration (Stripe)
 
-Payment integration is stubbed for future implementation:
+Stripe Checkout is fully integrated for self-service payments:
 
-- `paid` field tracks payment status
-- `payment_reference` stores external payment ID (e.g., Stripe)
-- Currently admin-managed; no public submission form
+**Database Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `paid` | boolean | Payment status |
+| `payment_status` | enum | `unpaid`, `pending_payment`, `paid`, `refunded` |
+| `stripe_checkout_session_id` | string | Stripe session ID |
+| `stripe_payment_intent_id` | string | Stripe payment intent ID |
+
+**Checkout Types:**
+
+| Type | Duration | Price |
+|------|----------|-------|
+| `job_post_30` | 30 days | $99 |
+| `job_post_60` | 60 days | $149 |
+| `job_post_90` | 90 days | $199 |
+| `featured_7` | 7 days | $49 |
+| `featured_14` | 14 days | $89 |
+| `featured_30` | 30 days | $149 |
+
+**Services:**
+
+- `StripeCheckoutService` - Creates checkout sessions
+- `StripeWebhookHandler` - Processes webhook events
+- `PaymentReceiptMailer` - Sends receipts
+
+**Routes:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/listings/:id/checkout` | Show checkout options |
+| POST | `/listings/:id/checkout` | Create Stripe session |
+| GET | `/listings/:id/checkout/success` | Success callback |
+| GET | `/listings/:id/checkout/cancel` | Cancel callback |
+| POST | `/stripe/webhooks` | Webhook endpoint |
+
+**Webhook Events:**
+
+- `checkout.session.completed` - Mark as paid, set expiry
+- `checkout.session.expired` - Reset to unpaid
+- `charge.refunded` - Mark as refunded, remove benefits
 
 ### Admin Management
 
@@ -257,11 +295,10 @@ site.monetisation_enabled?  # => true/false
 
 ## Future Enhancements
 
-- **Payment integration**: Stripe/Lemon Squeezy for job payments
-- **Revenue dashboard**: Admin analytics for affiliate clicks and revenue
-- **Premium listings**: Tiered placement options
-- **Public job submission**: Self-service job posting with payment flow
+- **Revenue dashboard**: Admin analytics for affiliate clicks, payments, and revenue
+- **Premium listings**: Tiered placement options with different visibility levels
+- **Subscription plans**: Recurring payment options for ongoing featured placement
 
 ---
 
-*Last Updated: 2026-01-23*
+*Last Updated: 2026-01-30*
