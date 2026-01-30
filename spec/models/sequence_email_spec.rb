@@ -1,5 +1,29 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: sequence_emails
+#
+#  id                     :bigint           not null, primary key
+#  scheduled_for          :datetime         not null
+#  sent_at                :datetime
+#  status                 :integer          default("pending"), not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  email_step_id          :bigint           not null
+#  sequence_enrollment_id :bigint           not null
+#
+# Indexes
+#
+#  index_sequence_emails_on_email_step_id             (email_step_id)
+#  index_sequence_emails_on_sequence_enrollment_id    (sequence_enrollment_id)
+#  index_sequence_emails_on_status_and_scheduled_for  (status,scheduled_for)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (email_step_id => email_steps.id)
+#  fk_rails_...  (sequence_enrollment_id => sequence_enrollments.id)
+#
 require "rails_helper"
 
 RSpec.describe SequenceEmail, type: :model do

@@ -15,6 +15,19 @@
 #  digest_subscription_id :bigint
 #  network_boost_id       :bigint           not null
 #
+# Indexes
+#
+#  index_boost_clicks_on_digest_subscription_id           (digest_subscription_id)
+#  index_boost_clicks_on_ip_hash_and_clicked_at           (ip_hash,clicked_at)
+#  index_boost_clicks_on_network_boost_id                 (network_boost_id)
+#  index_boost_clicks_on_network_boost_id_and_clicked_at  (network_boost_id,clicked_at)
+#  index_boost_clicks_on_status                           (status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (digest_subscription_id => digest_subscriptions.id)
+#  fk_rails_...  (network_boost_id => network_boosts.id)
+#
 FactoryBot.define do
   factory :boost_click do
     association :network_boost

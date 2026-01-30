@@ -1,5 +1,29 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: boost_impressions
+#
+#  id               :bigint           not null, primary key
+#  ip_hash          :string
+#  shown_at         :datetime         not null
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  network_boost_id :bigint           not null
+#  site_id          :bigint           not null
+#
+# Indexes
+#
+#  index_boost_impressions_on_network_boost_id               (network_boost_id)
+#  index_boost_impressions_on_network_boost_id_and_shown_at  (network_boost_id,shown_at)
+#  index_boost_impressions_on_site_id                        (site_id)
+#  index_boost_impressions_on_site_id_and_shown_at           (site_id,shown_at)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (network_boost_id => network_boosts.id)
+#  fk_rails_...  (site_id => sites.id)
+#
 require "rails_helper"
 
 RSpec.describe BoostImpression, type: :model do

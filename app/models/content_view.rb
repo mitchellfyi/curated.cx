@@ -14,11 +14,11 @@
 #
 # Indexes
 #
-#  index_content_views_on_content_item_id       (content_item_id)
-#  index_content_views_on_site_id               (site_id)
-#  index_content_views_on_user_id               (user_id)
-#  index_content_views_on_user_site_viewed_at   (user_id,site_id,viewed_at DESC)
-#  index_content_views_uniqueness               (site_id,user_id,content_item_id) UNIQUE
+#  index_content_views_on_content_item_id      (content_item_id)
+#  index_content_views_on_site_id              (site_id)
+#  index_content_views_on_user_id              (user_id)
+#  index_content_views_on_user_site_viewed_at  (user_id,site_id,viewed_at DESC)
+#  index_content_views_uniqueness              (site_id,user_id,content_item_id) UNIQUE
 #
 # Foreign Keys
 #

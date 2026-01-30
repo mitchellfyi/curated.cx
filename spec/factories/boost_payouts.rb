@@ -15,6 +15,16 @@
 #  updated_at        :datetime         not null
 #  site_id           :bigint           not null
 #
+# Indexes
+#
+#  index_boost_payouts_on_site_id                   (site_id)
+#  index_boost_payouts_on_site_id_and_period_start  (site_id,period_start)
+#  index_boost_payouts_on_status                    (status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#
 FactoryBot.define do
   factory :boost_payout do
     association :site

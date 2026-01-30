@@ -1,5 +1,30 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: boost_payouts
+#
+#  id                :bigint           not null, primary key
+#  amount            :decimal(10, 2)   not null
+#  paid_at           :datetime
+#  payment_reference :string
+#  period_end        :date             not null
+#  period_start      :date             not null
+#  status            :integer          default("pending"), not null
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  site_id           :bigint           not null
+#
+# Indexes
+#
+#  index_boost_payouts_on_site_id                   (site_id)
+#  index_boost_payouts_on_site_id_and_period_start  (site_id,period_start)
+#  index_boost_payouts_on_status                    (status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#
 require "rails_helper"
 
 RSpec.describe BoostPayout, type: :model do

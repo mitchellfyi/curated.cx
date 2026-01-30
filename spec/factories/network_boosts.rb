@@ -14,6 +14,18 @@
 #  source_site_id   :bigint           not null
 #  target_site_id   :bigint           not null
 #
+# Indexes
+#
+#  index_network_boosts_on_source_site_id                     (source_site_id)
+#  index_network_boosts_on_source_site_id_and_target_site_id  (source_site_id,target_site_id) UNIQUE
+#  index_network_boosts_on_target_site_id                     (target_site_id)
+#  index_network_boosts_on_target_site_id_and_enabled         (target_site_id,enabled)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (source_site_id => sites.id)
+#  fk_rails_...  (target_site_id => sites.id)
+#
 FactoryBot.define do
   factory :network_boost do
     association :source_site, factory: :site

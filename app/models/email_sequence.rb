@@ -1,5 +1,27 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: email_sequences
+#
+#  id             :bigint           not null, primary key
+#  enabled        :boolean          default(FALSE), not null
+#  name           :string           not null
+#  trigger_config :jsonb
+#  trigger_type   :integer          default("subscriber_joined"), not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  site_id        :bigint           not null
+#
+# Indexes
+#
+#  index_email_sequences_on_site_id                               (site_id)
+#  index_email_sequences_on_site_id_and_trigger_type_and_enabled  (site_id,trigger_type,enabled)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#
 class EmailSequence < ApplicationRecord
   include SiteScoped
 

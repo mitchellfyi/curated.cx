@@ -1,5 +1,31 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: network_boosts
+#
+#  id               :bigint           not null, primary key
+#  cpc_rate         :decimal(8, 2)    not null
+#  enabled          :boolean          default(TRUE), not null
+#  monthly_budget   :decimal(10, 2)
+#  spent_this_month :decimal(10, 2)   default(0.0)
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  source_site_id   :bigint           not null
+#  target_site_id   :bigint           not null
+#
+# Indexes
+#
+#  index_network_boosts_on_source_site_id                     (source_site_id)
+#  index_network_boosts_on_source_site_id_and_target_site_id  (source_site_id,target_site_id) UNIQUE
+#  index_network_boosts_on_target_site_id                     (target_site_id)
+#  index_network_boosts_on_target_site_id_and_enabled         (target_site_id,enabled)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (source_site_id => sites.id)
+#  fk_rails_...  (target_site_id => sites.id)
+#
 require "rails_helper"
 
 RSpec.describe NetworkBoost, type: :model do
