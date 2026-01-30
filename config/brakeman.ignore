@@ -7,8 +7,12 @@
     {
       "fingerprint": "c16535a52ee84621250746f4861edbef630a3bbeb24a3694c1ab586f83e9e25c",
       "note": "False positive: ranking_score_sql uses only constants and column names, no user input"
+    },
+    {
+      "fingerprint": "460ed9e97a39096e2a6f2e26b4a4755f4ae06191cdf21404866d8f94c84c07ce",
+      "note": "Intentional: Admin-only email HTML preview. AdminAccess authorization protects this view."
     }
   ],
   "updated": "2026-01-30",
-  "brakeman_version": "7.0.1"
+  "brakeman_version": "7.1.2"
 }
