@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_173100) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_180003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -74,6 +74,51 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_173100) do
     t.index ["bookmarkable_type", "bookmarkable_id"], name: "index_bookmarks_on_bookmarkable"
     t.index ["user_id", "bookmarkable_type", "bookmarkable_id"], name: "index_bookmarks_uniqueness", unique: true
     t.index ["user_id"], name: "index_bookmarks_on_user_id"
+  end
+
+  create_table "boost_clicks", force: :cascade do |t|
+    t.datetime "clicked_at", null: false
+    t.datetime "converted_at"
+    t.datetime "created_at", null: false
+    t.bigint "digest_subscription_id"
+    t.decimal "earned_amount", precision: 8, scale: 2
+    t.string "ip_hash"
+    t.bigint "network_boost_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["digest_subscription_id"], name: "index_boost_clicks_on_digest_subscription_id"
+    t.index ["ip_hash", "clicked_at"], name: "index_boost_clicks_on_ip_hash_and_clicked_at"
+    t.index ["network_boost_id", "clicked_at"], name: "index_boost_clicks_on_network_boost_id_and_clicked_at"
+    t.index ["network_boost_id"], name: "index_boost_clicks_on_network_boost_id"
+    t.index ["status"], name: "index_boost_clicks_on_status"
+  end
+
+  create_table "boost_impressions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "ip_hash"
+    t.bigint "network_boost_id", null: false
+    t.datetime "shown_at", null: false
+    t.bigint "site_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["network_boost_id", "shown_at"], name: "index_boost_impressions_on_network_boost_id_and_shown_at"
+    t.index ["network_boost_id"], name: "index_boost_impressions_on_network_boost_id"
+    t.index ["site_id", "shown_at"], name: "index_boost_impressions_on_site_id_and_shown_at"
+    t.index ["site_id"], name: "index_boost_impressions_on_site_id"
+  end
+
+  create_table "boost_payouts", force: :cascade do |t|
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "paid_at"
+    t.string "payment_reference"
+    t.date "period_end", null: false
+    t.date "period_start", null: false
+    t.bigint "site_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "period_start"], name: "index_boost_payouts_on_site_id_and_period_start"
+    t.index ["site_id"], name: "index_boost_payouts_on_site_id"
+    t.index ["status"], name: "index_boost_payouts_on_status"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -378,6 +423,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_173100) do
     t.index ["tenant_id"], name: "index_listings_on_tenant_id"
   end
 
+  create_table "network_boosts", force: :cascade do |t|
+    t.decimal "cpc_rate", precision: 8, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.decimal "monthly_budget", precision: 10, scale: 2
+    t.bigint "source_site_id", null: false
+    t.decimal "spent_this_month", precision: 10, scale: 2, default: "0.0"
+    t.bigint "target_site_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_site_id", "target_site_id"], name: "index_network_boosts_on_source_site_id_and_target_site_id", unique: true
+    t.index ["source_site_id"], name: "index_network_boosts_on_source_site_id"
+    t.index ["target_site_id", "enabled"], name: "index_network_boosts_on_target_site_id_and_enabled"
+    t.index ["target_site_id"], name: "index_network_boosts_on_target_site_id"
+  end
+
   create_table "referral_reward_tiers", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -617,6 +677,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_173100) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "affiliate_clicks", "listings"
   add_foreign_key "bookmarks", "users"
+  add_foreign_key "boost_clicks", "digest_subscriptions"
+  add_foreign_key "boost_clicks", "network_boosts"
+  add_foreign_key "boost_impressions", "network_boosts"
+  add_foreign_key "boost_impressions", "sites"
+  add_foreign_key "boost_payouts", "sites"
   add_foreign_key "categories", "sites"
   add_foreign_key "categories", "tenants"
   add_foreign_key "comments", "comments", column: "parent_id"
@@ -649,6 +714,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_173100) do
   add_foreign_key "listings", "sources"
   add_foreign_key "listings", "tenants"
   add_foreign_key "listings", "users", column: "featured_by_id"
+  add_foreign_key "network_boosts", "sites", column: "source_site_id"
+  add_foreign_key "network_boosts", "sites", column: "target_site_id"
   add_foreign_key "referral_reward_tiers", "sites"
   add_foreign_key "referrals", "digest_subscriptions", column: "referee_subscription_id"
   add_foreign_key "referrals", "digest_subscriptions", column: "referrer_subscription_id"

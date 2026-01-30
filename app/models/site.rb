@@ -44,6 +44,9 @@ class Site < ApplicationRecord
   has_many :tagging_rules, dependent: :destroy
   has_many :taxonomies, dependent: :destroy
   has_many :digest_subscriptions, dependent: :destroy
+  has_many :boosts_as_source, class_name: "NetworkBoost", foreign_key: :source_site_id, dependent: :destroy, inverse_of: :source_site
+  has_many :boosts_as_target, class_name: "NetworkBoost", foreign_key: :target_site_id, dependent: :destroy, inverse_of: :target_site
+  has_many :boost_payouts, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
@@ -91,6 +94,23 @@ class Site < ApplicationRecord
 
   def monetisation_enabled?
     setting("monetisation.enabled", false)
+  end
+
+  # Boost settings
+  def boosts_enabled?
+    setting("boosts.enabled", true)
+  end
+
+  def boost_cpc_rate
+    setting("boosts.cpc_rate", 0.50)
+  end
+
+  def boost_monthly_budget
+    setting("boosts.monthly_budget")
+  end
+
+  def boosts_display_enabled?
+    setting("boosts.display_enabled", true)
   end
 
   # Moderation settings
@@ -177,6 +197,13 @@ class Site < ApplicationRecord
     if config["moderation"].present?
       unless config["moderation"].is_a?(Hash)
         errors.add(:config, "moderation must be a valid object")
+      end
+    end
+
+    # Validate boosts settings if present
+    if config["boosts"].present?
+      unless config["boosts"].is_a?(Hash)
+        errors.add(:config, "boosts must be a valid object")
       end
     end
   end

@@ -26,7 +26,7 @@ Technical documentation for the Curated.cx multi-tenant content platform.
 | [Background Jobs](background-jobs.md) | Solid Queue configuration and recurring tasks |
 | [Editorialisation](editorialisation.md) | AI content enrichment (summaries, tags) |
 | [Ranking](ranking.md) | Feed ranking algorithm |
-| [Monetisation](monetisation.md) | Affiliate, jobs, and featured listings |
+| [Monetisation](monetisation.md) | Affiliate, jobs, featured listings, network boosts |
 | [Moderation](moderation.md) | Community controls and content flagging |
 | [Onboarding](onboarding.md) | Site and domain setup flow |
 | [Tagging](tagging.md) | Tag management and organization |

@@ -1,0 +1,87 @@
+<% content_for :title, t("admin.network_boosts.title") %>
+
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold"><%= t("admin.network_boosts.title") %></h1>
+    <%= link_to t("admin.network_boosts.new"), new_admin_network_boost_path, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold"><%= @stats[:total] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.network_boosts.stats.total") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-green-600"><%= @stats[:enabled] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.network_boosts.stats.enabled") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-blue-600"><%= @stats[:with_budget] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.network_boosts.stats.with_budget") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold"><%= number_with_delimiter(@stats[:total_impressions]) %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.network_boosts.stats.impressions") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold"><%= number_with_delimiter(@stats[:total_clicks]) %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.network_boosts.stats.clicks") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-purple-600">$<%= number_with_precision(@stats[:total_spend] || 0, precision: 2) %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.network_boosts.stats.spend") %></div>
+    </div>
+  </div>
+
+  <!-- Boosts Table -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-semibold mb-4"><%= t("admin.network_boosts.your_boosts") %></h2>
+    <% if @boosts.any? %>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left py-2"><%= t("admin.network_boosts.table.source_site") %></th>
+              <th class="text-center py-2"><%= t("admin.network_boosts.table.cpc_rate") %></th>
+              <th class="text-center py-2"><%= t("admin.network_boosts.table.budget") %></th>
+              <th class="text-center py-2"><%= t("admin.network_boosts.table.status") %></th>
+              <th class="text-left py-2"><%= t("admin.network_boosts.table.actions") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @boosts.each do |boost| %>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-2">
+                  <div class="font-medium"><%= boost.source_site.name %></div>
+                  <div class="text-sm text-gray-500"><%= boost.source_site.primary_hostname %></div>
+                </td>
+                <td class="py-2 text-center">
+                  $<%= number_with_precision(boost.cpc_rate, precision: 2) %>
+                </td>
+                <td class="py-2 text-center">
+                  <% if boost.monthly_budget %>
+                    $<%= number_with_precision(boost.spent_this_month, precision: 2) %> / $<%= number_with_precision(boost.monthly_budget, precision: 2) %>
+                  <% else %>
+                    <%= t("admin.network_boosts.unlimited") %>
+                  <% end %>
+                </td>
+                <td class="py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full <%= boost.enabled? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                    <%= boost.enabled? ? t("admin.network_boosts.enabled") : t("admin.network_boosts.disabled") %>
+                  </span>
+                </td>
+                <td class="py-2">
+                  <%= link_to t("admin.network_boosts.view"), admin_network_boost_path(boost), class: "text-blue-600 hover:underline mr-2" %>
+                  <%= link_to t("admin.network_boosts.edit"), edit_admin_network_boost_path(boost), class: "text-gray-600 hover:underline" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-600"><%= t("admin.network_boosts.no_boosts") %></p>
+    <% end %>
+  </div>
+</div>

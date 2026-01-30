@@ -1,0 +1,65 @@
+<% content_for :title, t("admin.boost_payouts.show_title", period: @payout.period_description) %>
+
+<div class="max-w-4xl mx-auto py-8 px-4">
+  <%= link_to "&larr; #{t('admin.boost_payouts.back')}".html_safe, admin_boost_payouts_path, class: "text-gray-600 hover:underline" %>
+  <h1 class="text-3xl font-bold mt-2 mb-6"><%= t("admin.boost_payouts.show_title", period: @payout.period_description) %></h1>
+
+  <!-- Payout Details -->
+  <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <dl class="grid grid-cols-2 gap-6">
+      <div>
+        <dt class="text-sm text-gray-500"><%= t("admin.boost_payouts.table.period") %></dt>
+        <dd class="mt-1 font-medium"><%= @payout.period_start.strftime("%b %d, %Y") %> - <%= @payout.period_end.strftime("%b %d, %Y") %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500"><%= t("admin.boost_payouts.table.amount") %></dt>
+        <dd class="mt-1 text-2xl font-bold">$<%= number_with_precision(@payout.amount, precision: 2) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500"><%= t("admin.boost_payouts.table.status") %></dt>
+        <dd class="mt-1">
+          <span class="px-2 py-1 text-sm rounded-full
+                       <%= @payout.paid? ? 'bg-green-100 text-green-800' :
+                           @payout.pending? ? 'bg-yellow-100 text-yellow-800' :
+                           'bg-gray-100 text-gray-800' %>">
+            <%= @payout.status.humanize %>
+          </span>
+        </dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500"><%= t("admin.boost_payouts.created") %></dt>
+        <dd class="mt-1"><%= l(@payout.created_at, format: :long) %></dd>
+      </div>
+      <% if @payout.paid? %>
+        <div>
+          <dt class="text-sm text-gray-500"><%= t("admin.boost_payouts.table.paid_at") %></dt>
+          <dd class="mt-1"><%= l(@payout.paid_at, format: :long) %></dd>
+        </div>
+        <% if @payout.payment_reference.present? %>
+          <div>
+            <dt class="text-sm text-gray-500"><%= t("admin.boost_payouts.payment_reference") %></dt>
+            <dd class="mt-1 font-mono text-sm"><%= @payout.payment_reference %></dd>
+          </div>
+        <% end %>
+      <% end %>
+    </dl>
+  </div>
+
+  <!-- Actions -->
+  <% if @payout.pending? %>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4"><%= t("admin.boost_payouts.actions") %></h2>
+
+      <%= form_with url: admin_boost_payout_path(@payout), method: :patch, class: "space-y-4" do |f| %>
+        <div>
+          <%= f.label :payment_reference, t("admin.boost_payouts.payment_reference"), class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.text_field :payment_reference, placeholder: t("admin.boost_payouts.payment_reference_placeholder"), class: "w-full border-gray-300 rounded-md shadow-sm" %>
+        </div>
+        <div class="flex gap-4">
+          <%= f.submit t("admin.boost_payouts.mark_paid"), name: "mark_paid", value: "1", class: "bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer" %>
+          <%= f.submit t("admin.boost_payouts.cancel"), name: "cancel", value: "1", data: { turbo_confirm: t("admin.boost_payouts.confirm_cancel") }, class: "bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

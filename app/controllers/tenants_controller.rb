@@ -36,6 +36,8 @@ class TenantsController < ApplicationController
   def load_root_homepage(service)
     data = service.root_tenant_data
     @sites = data[:sites]
+    @trending_sites = data[:trending_sites]
+    @new_sites = data[:new_sites]
     @network_feed = data[:network_feed]
     @network_stats = data[:network_stats]
   end

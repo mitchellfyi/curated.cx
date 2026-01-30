@@ -20,6 +20,7 @@ class DigestSubscriptionsController < ApplicationController
 
     if @subscription.save
       process_referral_attribution
+      process_boost_attribution
       redirect_to digest_subscription_path, notice: t("digest_subscriptions.created")
     else
       render :show, status: :unprocessable_entity
@@ -77,5 +78,15 @@ class DigestSubscriptionsController < ApplicationController
   rescue StandardError => e
     # Log but don't fail subscription creation for referral errors
     Rails.logger.error("Referral attribution failed: #{e.message}")
+  end
+
+  def process_boost_attribution
+    BoostAttributionService.attribute_conversion(
+      subscription: @subscription,
+      ip: request.remote_ip
+    )
+  rescue StandardError => e
+    # Log but don't fail subscription creation for boost attribution errors
+    Rails.logger.error("Boost attribution failed: #{e.message}")
   end
 end

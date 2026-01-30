@@ -6,11 +6,12 @@ This document describes the monetisation features in Curated.cx, including affil
 
 ## Overview
 
-Curated.cx supports three revenue streams, all designed to be transparent and user-friendly:
+Curated.cx supports four revenue streams, all designed to be transparent and user-friendly:
 
 1. **Affiliate Support** - Tool/product listings with affiliate tracking
 2. **Job Board** - Paid job posts with expiry management
 3. **Featured Placements** - Promoted listings with time-based visibility
+4. **Network Boosts** - Cross-network site promotion with CPC pricing
 
 All monetised content is clearly labeled in the UI ("Featured", "Sponsored") to maintain user trust.
 
@@ -251,6 +252,191 @@ Featured listings should display:
 
 ---
 
+## Network Boosts
+
+Network Boosts enable cross-network site promotion where publishers can recommend other network sites to their subscribers and earn CPC (cost-per-click) revenue for conversions.
+
+### How It Works
+
+1. **Source site** promotes a **target site** to its subscribers
+2. Impressions are shown in recommendation widgets
+3. Clicks are tracked with 24h deduplication
+4. Conversions are attributed within a 30-day window
+5. Source site earns CPC rate for confirmed clicks
+
+### Database Models
+
+#### NetworkBoost (Campaign)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `source_site_id` | bigint | Site showing the boost |
+| `target_site_id` | bigint | Site being promoted |
+| `cpc_rate` | decimal | Cost per click (paid to source site) |
+| `monthly_budget` | decimal | Monthly spend cap (nil = unlimited) |
+| `spent_this_month` | decimal | Current month's spend |
+| `enabled` | boolean | Whether boost is active |
+
+**Scopes:**
+- `enabled` - Active boosts only
+- `with_budget` - Boosts with remaining budget
+- `for_source_site(site)` - Boosts from a site
+- `for_target_site(site)` - Boosts to a site
+
+#### BoostImpression (Views)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `network_boost_id` | bigint | The boost campaign |
+| `site_id` | bigint | Where the boost was shown |
+| `ip_hash` | string | Hashed viewer IP (privacy) |
+| `shown_at` | datetime | When shown |
+
+**Scopes:**
+- `today`, `this_week`, `this_month` - Temporal filters
+- `for_boost(boost)` - Impressions for a specific boost
+
+#### BoostClick (Clicks)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `network_boost_id` | bigint | The boost campaign |
+| `ip_hash` | string | Hashed clicker IP |
+| `clicked_at` | datetime | When clicked |
+| `converted_at` | datetime | When subscription was created |
+| `digest_subscription_id` | bigint | Resulting subscription |
+| `earned_amount` | decimal | CPC rate at time of click |
+| `status` | enum | `pending`, `confirmed`, `paid`, `cancelled` |
+
+**Lifecycle:**
+1. `pending` - Click recorded, awaiting 24h verification
+2. `confirmed` - Verified after 24h
+3. `paid` - Included in a payout
+4. `cancelled` - Fraud detected or manually cancelled
+
+**Scopes:**
+- `recent`, `today`, `this_week`, `this_month` - Temporal filters
+- `converted`, `unconverted` - Conversion status
+- `within_attribution_window(ip_hash)` - 30-day lookback
+
+#### BoostPayout (Payments)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `site_id` | bigint | Site receiving payout |
+| `amount` | decimal | Payout amount |
+| `period_start` | date | Period start |
+| `period_end` | date | Period end |
+| `status` | enum | `pending`, `paid`, `cancelled` |
+| `paid_at` | datetime | When paid |
+| `payment_reference` | string | External payment ID |
+
+### Services
+
+#### BoostAttributionService
+
+Handles click tracking and conversion attribution:
+
+```ruby
+# Record a click (returns nil if deduplicated)
+BoostAttributionService.record_click(boost: boost, ip: request.remote_ip)
+
+# Attribute a conversion to a previous click
+BoostAttributionService.attribute_conversion(
+  subscription: subscription,
+  ip: request.remote_ip
+)
+
+# Calculate earnings for a site
+BoostAttributionService.calculate_earnings(
+  site: site,
+  start_date: 1.month.ago,
+  end_date: Time.current
+)
+
+# Get stats for a boost
+BoostAttributionService.boost_stats(boost, since: 30.days.ago)
+# => { impressions: 1000, clicks: 50, conversions: 5, click_rate: 5.0, conversion_rate: 10.0, earnings: 25.0 }
+```
+
+#### NetworkBoostService
+
+Selects appropriate boosts to display:
+
+```ruby
+# Get boosts for a site (excludes user's subscribed sites)
+NetworkBoostService.for_site(site, user: current_user, limit: 3)
+```
+
+### Attribution Rules
+
+| Rule | Value |
+|------|-------|
+| Attribution window | 30 days |
+| Click deduplication | 24 hours per IP per boost |
+| Confirmation delay | 24 hours |
+| IP privacy | SHA256 hashed with app secret |
+
+### Admin Routes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/admin/network_boosts` | List boost campaigns |
+| POST | `/admin/network_boosts` | Create boost campaign |
+| PATCH | `/admin/network_boosts/:id` | Update boost |
+| DELETE | `/admin/network_boosts/:id` | Delete boost |
+| GET | `/admin/boost_earnings` | View earnings dashboard |
+| GET | `/admin/boost_payouts` | View payouts |
+| PATCH | `/admin/boost_payouts/:id` | Mark payout as paid |
+
+### Click Tracking Route
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/boosts/:id/click` | Track click and redirect to target |
+
+### Site Configuration
+
+Sites can configure boost settings via the `config` JSONB field:
+
+```ruby
+site.boosts_enabled?       # => true/false
+site.boost_cpc_rate        # => 0.50 (default)
+site.boost_monthly_budget  # => nil (unlimited) or amount
+
+# In site config
+{
+  "boosts": {
+    "enabled": true,
+    "cpc_rate": "0.50",
+    "monthly_budget": "100.00"
+  }
+}
+```
+
+### Conversion Flow
+
+1. User visits source site
+2. Boost recommendation widget shows target site
+3. `BoostImpression` recorded
+4. User clicks boost link → `/boosts/:id/click`
+5. `BoostClick` created (if not deduplicated)
+6. `ConfirmBoostClickJob` scheduled for 24h
+7. User redirected to target site
+8. User subscribes to target site
+9. `BoostAttributionService.attribute_conversion` called
+10. Click marked as converted
+
+### Fraud Prevention
+
+- **IP deduplication**: Same IP can only trigger one click per boost per 24h
+- **24h confirmation**: Clicks require 24h delay before confirmation
+- **30-day window**: Conversions only attributed within 30 days of click
+- **IP hashing**: IPs stored as SHA256 hash for privacy
+- **Manual review**: Admin can cancel suspicious clicks
+
+---
+
 ## Database Indexes
 
 Optimized indexes for monetisation queries:
@@ -262,6 +448,11 @@ Optimized indexes for monetisation queries:
 | `index_listings_on_site_listing_type` | `site_id, listing_type` | Type filtering |
 | `index_listings_on_site_type_expires` | `site_id, listing_type, expires_at` | Active jobs |
 | `index_listings_on_featured_by_id` | `featured_by_id` | Admin audit |
+| `index_network_boosts_on_source_site_id_and_target_site_id` | `source_site_id, target_site_id` | Boost uniqueness |
+| `index_network_boosts_on_target_site_id_and_enabled` | `target_site_id, enabled` | Boost selection |
+| `index_boost_clicks_on_ip_hash_and_clicked_at` | `ip_hash, clicked_at` | Click deduplication |
+| `index_boost_clicks_on_network_boost_id_and_clicked_at` | `network_boost_id, clicked_at` | Click analytics |
+| `index_boost_payouts_on_site_id_and_period_start` | `site_id, period_start` | Payout queries |
 
 ---
 
@@ -273,6 +464,7 @@ Optimized indexes for monetisation queries:
 | POST | `/admin/listings/:id/feature` | Set featured status |
 | POST | `/admin/listings/:id/unfeature` | Clear featured status |
 | POST | `/admin/listings/:id/extend_expiry` | Extend job expiry |
+| GET | `/boosts/:id/click` | Boost click tracking with redirect |
 
 ---
 
@@ -282,11 +474,17 @@ Monetisation can be enabled/disabled per site via the `config` JSONB field:
 
 ```ruby
 site.monetisation_enabled?  # => true/false
+site.boosts_enabled?        # => true/false
 
 # In site config
 {
   "monetisation": {
     "enabled": true
+  },
+  "boosts": {
+    "enabled": true,
+    "cpc_rate": "0.50",
+    "monthly_budget": "100.00"
   }
 }
 ```
@@ -295,9 +493,11 @@ site.monetisation_enabled?  # => true/false
 
 ## Future Enhancements
 
-- **Revenue dashboard**: Admin analytics for affiliate clicks, payments, and revenue
 - **Premium listings**: Tiered placement options with different visibility levels
 - **Subscription plans**: Recurring payment options for ongoing featured placement
+- **Stripe Connect payouts**: Automatic payout processing for Network Boosts
+- **Boost auction system**: Real-time bidding for boost placements
+- **Quality scoring**: Eligibility requirements for boost participation
 
 ---
 

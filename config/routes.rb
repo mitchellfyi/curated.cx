@@ -85,6 +85,19 @@ Rails.application.routes.draw do
       end
       resources :email_steps, except: [ :index ]
     end
+
+    # Network boosts management
+    resources :network_boosts
+
+    # Boost earnings dashboard
+    resources :boost_earnings, only: [ :index ] do
+      collection do
+        get :export
+      end
+    end
+
+    # Boost payouts management
+    resources :boost_payouts, only: [ :index, :show, :update ]
   end
   devise_for :users
 
@@ -109,6 +122,9 @@ Rails.application.routes.draw do
 
   # Affiliate tracking redirect
   get "/go/:id", to: "affiliate_redirects#show", as: :affiliate_redirect
+
+  # Boost click tracking
+  get "/boosts/:id/click", to: "boosts#click", as: :boost_click
 
   # Search
   get "search", to: "search#index", as: :search

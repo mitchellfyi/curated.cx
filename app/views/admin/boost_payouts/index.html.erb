@@ -1,0 +1,74 @@
+<% content_for :title, t("admin.boost_payouts.title") %>
+
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold mb-6"><%= t("admin.boost_payouts.title") %></h1>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold"><%= @stats[:total_payouts] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.boost_payouts.stats.total") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-yellow-600"><%= @stats[:pending_count] %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.boost_payouts.stats.pending") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-yellow-600">$<%= number_with_precision(@stats[:pending_amount], precision: 2) %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.boost_payouts.stats.pending_amount") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-green-600">$<%= number_with_precision(@stats[:paid_amount], precision: 2) %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.boost_payouts.stats.paid_amount") %></div>
+    </div>
+  </div>
+
+  <!-- Payouts Table -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-semibold mb-4"><%= t("admin.boost_payouts.payout_history") %></h2>
+    <% if @payouts.any? %>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left py-2"><%= t("admin.boost_payouts.table.period") %></th>
+              <th class="text-center py-2"><%= t("admin.boost_payouts.table.amount") %></th>
+              <th class="text-center py-2"><%= t("admin.boost_payouts.table.status") %></th>
+              <th class="text-left py-2"><%= t("admin.boost_payouts.table.paid_at") %></th>
+              <th class="text-left py-2"><%= t("admin.boost_payouts.table.actions") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @payouts.each do |payout| %>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-2">
+                  <div class="font-medium"><%= payout.period_description %></div>
+                  <div class="text-sm text-gray-500"><%= payout.period_start.strftime("%b %d") %> - <%= payout.period_end.strftime("%b %d, %Y") %></div>
+                </td>
+                <td class="py-2 text-center font-medium">
+                  $<%= number_with_precision(payout.amount, precision: 2) %>
+                </td>
+                <td class="py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full
+                               <%= payout.paid? ? 'bg-green-100 text-green-800' :
+                                   payout.pending? ? 'bg-yellow-100 text-yellow-800' :
+                                   'bg-gray-100 text-gray-800' %>">
+                    <%= payout.status.humanize %>
+                  </span>
+                </td>
+                <td class="py-2 text-sm text-gray-600">
+                  <%= payout.paid_at ? l(payout.paid_at, format: :short) : "—" %>
+                </td>
+                <td class="py-2">
+                  <%= link_to t("admin.boost_payouts.view"), admin_boost_payout_path(payout), class: "text-blue-600 hover:underline" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-600"><%= t("admin.boost_payouts.no_payouts") %></p>
+    <% end %>
+  </div>
+</div>

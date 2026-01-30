@@ -1,0 +1,94 @@
+<% content_for :title, t("admin.boost_earnings.title") %>
+
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold"><%= t("admin.boost_earnings.title") %></h1>
+    <%= link_to t("admin.boost_earnings.export_csv"), export_admin_boost_earnings_path(period: @period, format: :csv), class: "bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300" %>
+  </div>
+
+  <!-- Period Filter -->
+  <div class="mb-6">
+    <div class="inline-flex rounded-md shadow-sm" role="group">
+      <%= link_to "7 days", admin_boost_earnings_path(period: "7d"), class: "px-4 py-2 text-sm font-medium border #{@period == '7d' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'} rounded-l-lg" %>
+      <%= link_to "30 days", admin_boost_earnings_path(period: "30d"), class: "px-4 py-2 text-sm font-medium border-t border-b #{@period == '30d' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}" %>
+      <%= link_to "90 days", admin_boost_earnings_path(period: "90d"), class: "px-4 py-2 text-sm font-medium border-t border-b #{@period == '90d' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}" %>
+      <%= link_to "1 year", admin_boost_earnings_path(period: "365d"), class: "px-4 py-2 text-sm font-medium border #{@period == '365d' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'} rounded-r-lg" %>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold"><%= number_with_delimiter(@stats[:total_impressions]) %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.boost_earnings.stats.impressions") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold"><%= number_with_delimiter(@stats[:total_clicks]) %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.boost_earnings.stats.clicks") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-green-600"><%= number_with_delimiter(@stats[:conversions]) %></div>
+      <div class="text-gray-600 text-sm"><%= t("admin.boost_earnings.stats.conversions") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-3xl font-bold text-blue-600"><%= @stats[:click_rate] %>%</div>
+      <div class="text-gray-600 text-sm"><%= t("admin.boost_earnings.stats.click_rate") %></div>
+    </div>
+  </div>
+
+  <!-- Earnings Cards -->
+  <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="text-4xl font-bold text-yellow-600">$<%= number_with_precision(@stats[:pending_earnings], precision: 2) %></div>
+      <div class="text-gray-600"><%= t("admin.boost_earnings.stats.pending") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="text-4xl font-bold text-green-600">$<%= number_with_precision(@stats[:confirmed_earnings], precision: 2) %></div>
+      <div class="text-gray-600"><%= t("admin.boost_earnings.stats.confirmed") %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <div class="text-4xl font-bold text-purple-600">$<%= number_with_precision(@stats[:total_earnings], precision: 2) %></div>
+      <div class="text-gray-600"><%= t("admin.boost_earnings.stats.total") %></div>
+    </div>
+  </div>
+
+  <!-- Daily Clicks Chart -->
+  <% if @daily_clicks.any? %>
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4"><%= t("admin.boost_earnings.daily_clicks") %></h2>
+      <div class="h-64">
+        <%= line_chart @daily_clicks, library: { scales: { y: { beginAtZero: true } } } %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Top Performing Boosts -->
+  <% if @top_boosts.any? %>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4"><%= t("admin.boost_earnings.top_boosts") %></h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left py-2"><%= t("admin.boost_earnings.table.target_site") %></th>
+              <th class="text-center py-2"><%= t("admin.boost_earnings.table.clicks") %></th>
+              <th class="text-center py-2"><%= t("admin.boost_earnings.table.earnings") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @top_boosts.each do |stat| %>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-2">
+                  <div class="font-medium"><%= stat[:boost].target_site.name %></div>
+                  <div class="text-sm text-gray-500"><%= stat[:boost].target_site.primary_hostname %></div>
+                </td>
+                <td class="py-2 text-center"><%= number_with_delimiter(stat[:click_count]) %></td>
+                <td class="py-2 text-center font-medium">$<%= number_with_precision(stat[:earnings], precision: 2) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+</div>

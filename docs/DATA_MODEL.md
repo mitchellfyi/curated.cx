@@ -597,6 +597,164 @@ ReferralRewardTier.create!(
 
 ---
 
+### NetworkBoost (Cross-Network Promotion)
+
+**Purpose**: Represents a boost campaign where one site promotes another for CPC revenue.
+
+**Key Attributes**:
+- `source_site_id` - Site displaying the boost (earns revenue)
+- `target_site_id` - Site being promoted (pays for clicks)
+- `cpc_rate` - Cost per click in dollars
+- `monthly_budget` - Monthly spend cap (nil = unlimited)
+- `spent_this_month` - Current month's spend
+- `enabled` - Whether boost is active
+
+**Associations**:
+- `belongs_to :source_site` (Site) - The referring site
+- `belongs_to :target_site` (Site) - The promoted site
+- `has_many :boost_impressions` - View tracking
+- `has_many :boost_clicks` - Click tracking
+
+**Scopes**:
+- `enabled` - Active boosts only
+- `with_budget` - Boosts with remaining budget
+- `for_source_site(site)` - Boosts from a specific site
+- `for_target_site(site)` - Boosts to a specific site
+
+**Example**:
+```ruby
+# Create a boost campaign
+boost = NetworkBoost.create!(
+  source_site: referrer_site,
+  target_site: promoted_site,
+  cpc_rate: 0.50,
+  monthly_budget: 100.00,
+  enabled: true
+)
+
+# Check budget
+boost.has_budget?      # => true
+boost.remaining_budget # => 100.00
+
+# Record a click (increments spent_this_month)
+boost.record_click!
+```
+
+---
+
+### BoostImpression (View Tracking)
+
+**Purpose**: Tracks when boost recommendations are shown to users.
+
+**Key Attributes**:
+- `network_boost_id` - The boost campaign
+- `site_id` - Where the boost was shown
+- `ip_hash` - Hashed viewer IP (privacy)
+- `shown_at` - When shown
+
+**Associations**:
+- `belongs_to :network_boost` - Parent campaign
+- `belongs_to :site` - Where displayed
+
+**Scopes**:
+- `today`, `this_week`, `this_month` - Temporal filters
+- `for_boost(boost)` - Impressions for a specific boost
+
+**Example**:
+```ruby
+# Record an impression
+BoostImpression.create!(
+  network_boost: boost,
+  site: current_site,
+  ip_hash: Digest::SHA256.hexdigest(ip),
+  shown_at: Time.current
+)
+```
+
+---
+
+### BoostClick (Click & Conversion Tracking)
+
+**Purpose**: Tracks clicks on boost recommendations with conversion attribution.
+
+**Key Attributes**:
+- `network_boost_id` - The boost campaign
+- `ip_hash` - Hashed clicker IP
+- `clicked_at` - When clicked
+- `converted_at` - When subscription was created (nil if not converted)
+- `digest_subscription_id` - Resulting subscription (nil if not converted)
+- `earned_amount` - CPC rate at time of click
+- `status` - Enum: `pending`, `confirmed`, `paid`, `cancelled`
+
+**Associations**:
+- `belongs_to :network_boost` - Parent campaign
+- `belongs_to :digest_subscription` (optional) - Resulting subscription
+
+**Lifecycle**:
+1. `pending` - Click recorded, awaiting 24h verification
+2. `confirmed` - Verified after 24h delay
+3. `paid` - Included in a payout
+4. `cancelled` - Fraud detected or manually cancelled
+
+**Scopes**:
+- `recent`, `today`, `this_week`, `this_month` - Temporal filters
+- `converted`, `unconverted` - Conversion status
+- `within_attribution_window(ip_hash)` - 30-day lookback for attribution
+
+**Example**:
+```ruby
+# Record a click via service
+click = BoostAttributionService.record_click(
+  boost: boost,
+  ip: request.remote_ip
+)
+
+# After 24h verification (via ConfirmBoostClickJob)
+click.confirm!
+
+# When subscription is created
+click.mark_converted!(subscription)
+```
+
+---
+
+### BoostPayout (Payment Records)
+
+**Purpose**: Tracks payout records for boost earnings.
+
+**Key Attributes**:
+- `site_id` - Site receiving payout
+- `amount` - Payout amount in dollars
+- `period_start` - Period start date
+- `period_end` - Period end date
+- `status` - Enum: `pending`, `paid`, `cancelled`
+- `paid_at` - When paid
+- `payment_reference` - External payment ID
+
+**Associations**:
+- `belongs_to :site` - Site receiving payment
+
+**Scopes**:
+- `pending`, `paid`, `cancelled` - By status
+- `for_period(start, end)` - By date range
+
+**Example**:
+```ruby
+# Create monthly payout
+payout = BoostPayout.create!(
+  site: site,
+  amount: 150.00,
+  period_start: 1.month.ago.beginning_of_month,
+  period_end: 1.month.ago.end_of_month,
+  status: :pending
+)
+
+# Mark as paid
+payout.update!(status: :paid, paid_at: Time.current, payment_reference: "stripe_123")
+```
+
+---
+
 ### EmailSequence (Automation Sequence)
 
 **Purpose**: Defines an automated email sequence triggered by subscriber lifecycle events.

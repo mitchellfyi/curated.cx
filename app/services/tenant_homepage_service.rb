@@ -9,6 +9,8 @@ class TenantHomepageService
   def root_tenant_data
     {
       sites: NetworkFeedService.sites_directory(tenant: @tenant),
+      trending_sites: NetworkFeedService.trending_sites(tenant: @tenant, limit: 6),
+      new_sites: NetworkFeedService.new_sites(tenant: @tenant, limit: 6),
       network_feed: NetworkFeedService.recent_content(tenant: @tenant, limit: 12),
       network_stats: NetworkFeedService.network_stats(tenant: @tenant)
     }
