@@ -19,6 +19,21 @@
 #  site_id      :bigint           not null
 #  user_id      :bigint           not null
 #
+# Indexes
+#
+#  index_discussions_on_locked_by_id                         (locked_by_id)
+#  index_discussions_on_site_id                              (site_id)
+#  index_discussions_on_site_id_and_last_post_at             (site_id,last_post_at)
+#  index_discussions_on_site_id_and_pinned_and_last_post_at  (site_id,pinned,last_post_at)
+#  index_discussions_on_site_id_and_visibility               (site_id,visibility)
+#  index_discussions_on_user_id                              (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (locked_by_id => users.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (user_id => users.id)
+#
 FactoryBot.define do
   factory :discussion do
     association :user
