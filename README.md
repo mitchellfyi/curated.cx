@@ -118,6 +118,8 @@ Tenant (curated.cx)
 | `TenantResolver` | Domain-to-tenant resolution |
 | `ReferralAttributionService` | Referral tracking with fraud prevention |
 | `ReferralRewardService` | Milestone detection and reward tracking |
+| `MuxLiveStreamService` | Live video streaming via Mux |
+| `MuxWebhookHandler` | Mux webhook event processing |
 
 ---
 
@@ -224,6 +226,25 @@ bundle exec annotaterb models         # Update model annotations
 - Keyboard navigation
 - Skip links and focus management
 - Reduced motion support
+
+---
+
+## Environment Variables
+
+### Required
+
+| Variable | Description |
+|----------|-------------|
+| `RAILS_MASTER_KEY` | Rails credentials decryption key |
+| `DATABASE_URL` | PostgreSQL connection URL |
+
+### Optional (Feature-Specific)
+
+| Variable | Description |
+|----------|-------------|
+| `MUX_TOKEN_ID` | Mux API token ID (for live streaming) |
+| `MUX_TOKEN_SECRET` | Mux API token secret (for live streaming) |
+| `MUX_WEBHOOK_SECRET` | Mux webhook signature verification secret |
 
 ---
 

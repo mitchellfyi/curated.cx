@@ -1038,4 +1038,118 @@ end
 
 ---
 
+### LiveStream (Video Stream)
+
+**Purpose**: Represents a live video stream with Mux integration for real-time broadcasting.
+
+**Key Attributes**:
+- `site_id` - Site this stream belongs to
+- `user_id` - Publisher who created the stream
+- `title` - Stream title (max 200 chars)
+- `description` - Optional description (max 5,000 chars)
+- `scheduled_at` - When the stream is scheduled to start
+- `started_at` - When the stream actually started
+- `ended_at` - When the stream ended
+- `status` - Enum: `scheduled`, `live`, `ended`, `archived`
+- `visibility` - Enum: `public_access`, `subscribers_only`
+- `mux_stream_id` - Mux live stream identifier
+- `mux_playback_id` - Mux playback ID for HLS streaming
+- `stream_key` - RTMP stream key (sensitive - for OBS/streaming software)
+- `mux_asset_id` - Mux asset ID for replay
+- `replay_playback_id` - Playback ID for recorded replay
+- `viewer_count` - Current active viewers
+- `peak_viewers` - Maximum concurrent viewers during stream
+- `discussion_id` - Associated discussion for live chat
+
+**Associations**:
+- `belongs_to :site` (via SiteScoped)
+- `belongs_to :user` - Publisher
+- `belongs_to :discussion` (optional) - Live chat thread
+- `has_many :viewers` (LiveStreamViewer) - Viewer analytics
+
+**Scopes**:
+- `upcoming` - Scheduled streams in the future
+- `live_now` - Currently broadcasting streams
+- `past` - Ended or archived streams
+- `publicly_visible` - Public streams only
+
+**Methods**:
+- `live?` - Is stream currently live?
+- `can_start?` / `can_end?` - Status checks
+- `start!` / `end!` / `archive!` - Status transitions
+- `replay_available?` - Has replay been processed?
+- `playback_url` - HLS URL for live viewing
+- `replay_url` - HLS URL for replay viewing
+- `update_peak_viewers!` - Update peak viewer count
+- `refresh_viewer_count!` - Update current viewer count
+
+**Example**:
+```ruby
+# Create a scheduled stream
+stream = LiveStream.create!(
+  site: Current.site,
+  user: current_user,
+  title: "Weekly Community Hangout",
+  description: "Join us for live Q&A!",
+  scheduled_at: 1.day.from_now,
+  visibility: :public_access
+)
+
+# Stream goes live (via webhook or manual)
+stream.start!
+stream.live?  # => true
+
+# End the stream
+stream.end!
+stream.replay_available?  # => true (after Mux processing)
+```
+
+---
+
+### LiveStreamViewer (Viewer Analytics)
+
+**Purpose**: Tracks individual viewer sessions for stream analytics.
+
+**Key Attributes**:
+- `site_id` - Site context
+- `live_stream_id` - The stream being watched
+- `user_id` - Logged-in viewer (optional)
+- `session_id` - Anonymous session identifier
+- `joined_at` - When viewer joined
+- `left_at` - When viewer left (nil if still watching)
+- `duration_seconds` - Total watch time
+
+**Associations**:
+- `belongs_to :site` (via SiteScoped)
+- `belongs_to :live_stream`
+- `belongs_to :user` (optional)
+
+**Scopes**:
+- `active` - Currently watching (left_at is nil)
+- `completed` - Has left the stream
+
+**Methods**:
+- `calculate_duration!` - Set duration_seconds from timestamps
+
+**Example**:
+```ruby
+# Track viewer joining
+viewer = LiveStreamViewer.create!(
+  site: Current.site,
+  live_stream: stream,
+  user: current_user,
+  joined_at: Time.current
+)
+
+# When viewer leaves
+viewer.update!(left_at: Time.current)
+viewer.calculate_duration!
+
+# Analytics
+stream.viewers.active.count  # => Current viewers
+stream.peak_viewers          # => Maximum concurrent
+```
+
+---
+
 *Last Updated: 2026-01-30*
