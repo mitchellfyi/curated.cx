@@ -251,12 +251,7 @@ See `docs/deploy-dokku.md` for complete deployment guide.
 
 ### Potential Improvements
 
-1. **Personalized Feeds**:
-   - User reading history tracking
-   - Topic preference learning
-   - Source preference management
-
-2. **Advanced Analytics**:
+1. **Advanced Analytics**:
    - Detailed engagement metrics dashboard
    - A/B testing framework
    - Click-through rate optimization
@@ -301,6 +296,7 @@ See `docs/deploy-dokku.md` for complete deployment guide.
 - ✅ Modern job system (Solid Queue) with recurring tasks
 - ✅ Content ingestion pipeline (Source → ImportRun → ContentItem)
 - ✅ AI editorialisation for content enhancement
+- ✅ Personalized content recommendations (topic-based with cold start fallback)
 - ✅ Community features (voting, comments, flagging, moderation)
 - ✅ Monetisation support (affiliate tracking, featured placements)
 - ✅ Production deployment on Dokku with SSL

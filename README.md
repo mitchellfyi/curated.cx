@@ -114,6 +114,7 @@ Tenant (curated.cx)
 | `NetworkFeedService` | Cross-network content aggregation |
 | `TenantHomepageService` | Homepage data orchestration |
 | `FeedRankingService` | Content ranking algorithm |
+| `ContentRecommendationService` | Personalized content recommendations |
 | `TenantResolver` | Domain-to-tenant resolution |
 | `ReferralAttributionService` | Referral tracking with fraud prevention |
 | `ReferralRewardService` | Milestone detection and reward tracking |
