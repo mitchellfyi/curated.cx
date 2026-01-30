@@ -24,7 +24,7 @@
 #  metadata                   :jsonb            not null
 #  paid                       :boolean          default(FALSE), not null
 #  payment_reference          :string
-#  payment_status             :integer          default(0), not null
+#  payment_status             :integer          default("unpaid"), not null
 #  published_at               :datetime
 #  salary_range               :string
 #  site_name                  :string

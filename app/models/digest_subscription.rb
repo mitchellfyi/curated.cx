@@ -9,6 +9,7 @@
 #  frequency         :integer          default("weekly"), not null
 #  last_sent_at      :datetime
 #  preferences       :jsonb            not null
+#  referral_code     :string           not null
 #  unsubscribe_token :string           not null
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
@@ -17,6 +18,7 @@
 #
 # Indexes
 #
+#  index_digest_subscriptions_on_referral_code                     (referral_code) UNIQUE
 #  index_digest_subscriptions_on_site_id                           (site_id)
 #  index_digest_subscriptions_on_site_id_and_frequency_and_active  (site_id,frequency,active)
 #  index_digest_subscriptions_on_unsubscribe_token                 (unsubscribe_token) UNIQUE
@@ -38,13 +40,19 @@ class DigestSubscription < ApplicationRecord
   belongs_to :user
   belongs_to :site
 
+  # Associations for referrals
+  has_many :referrals_as_referrer, class_name: "Referral", foreign_key: :referrer_subscription_id, dependent: :nullify, inverse_of: :referrer_subscription
+  has_one :referral_as_referee, class_name: "Referral", foreign_key: :referee_subscription_id, dependent: :nullify, inverse_of: :referee_subscription
+
   # Validations
   validates :user_id, uniqueness: { scope: :site_id, message: "already subscribed to this site" }
   validates :unsubscribe_token, presence: true, uniqueness: true
+  validates :referral_code, presence: true, uniqueness: true
   validates :frequency, presence: true
 
   # Callbacks
   before_validation :generate_unsubscribe_token, on: :create
+  before_validation :generate_referral_code, on: :create
 
   # Scopes
   scope :active, -> { where(active: true) }
@@ -71,9 +79,24 @@ class DigestSubscription < ApplicationRecord
     update!(active: true)
   end
 
+  # Generate referral link URL for sharing
+  def referral_link
+    host = site.primary_hostname || "curated.cx"
+    "https://#{host}/subscribe?ref=#{referral_code}"
+  end
+
+  # Count of confirmed referrals for this subscription
+  def confirmed_referrals_count
+    referrals_as_referrer.confirmed.count + referrals_as_referrer.rewarded.count
+  end
+
   private
 
   def generate_unsubscribe_token
     self.unsubscribe_token ||= SecureRandom.urlsafe_base64(32)
+  end
+
+  def generate_referral_code
+    self.referral_code ||= SecureRandom.urlsafe_base64(8)
   end
 end

@@ -9,6 +9,7 @@
 #  frequency         :integer          default("weekly"), not null
 #  last_sent_at      :datetime
 #  preferences       :jsonb            not null
+#  referral_code     :string           not null
 #  unsubscribe_token :string           not null
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
@@ -17,6 +18,7 @@
 #
 # Indexes
 #
+#  index_digest_subscriptions_on_referral_code                     (referral_code) UNIQUE
 #  index_digest_subscriptions_on_site_id                           (site_id)
 #  index_digest_subscriptions_on_site_id_and_frequency_and_active  (site_id,frequency,active)
 #  index_digest_subscriptions_on_unsubscribe_token                 (unsubscribe_token) UNIQUE

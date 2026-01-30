@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_090241) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_150200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -158,10 +158,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_090241) do
     t.integer "frequency", default: 0, null: false
     t.datetime "last_sent_at"
     t.jsonb "preferences", default: {}, null: false
+    t.string "referral_code", null: false
     t.bigint "site_id", null: false
     t.string "unsubscribe_token", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["referral_code"], name: "index_digest_subscriptions_on_referral_code", unique: true
     t.index ["site_id", "frequency", "active"], name: "index_digest_subscriptions_on_site_id_and_frequency_and_active"
     t.index ["site_id"], name: "index_digest_subscriptions_on_site_id"
     t.index ["unsubscribe_token"], name: "index_digest_subscriptions_on_unsubscribe_token", unique: true
@@ -335,6 +337,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_090241) do
     t.index ["tenant_id", "title"], name: "index_listings_on_tenant_title"
     t.index ["tenant_id", "url_canonical"], name: "index_listings_on_tenant_and_url_canonical", unique: true
     t.index ["tenant_id"], name: "index_listings_on_tenant_id"
+  end
+
+  create_table "referral_reward_tiers", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "milestone", null: false
+    t.string "name", null: false
+    t.jsonb "reward_data", default: {}, null: false
+    t.integer "reward_type", default: 0, null: false
+    t.bigint "site_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "active"], name: "index_referral_reward_tiers_on_site_id_and_active"
+    t.index ["site_id", "milestone"], name: "index_referral_reward_tiers_on_site_id_and_milestone", unique: true
+    t.index ["site_id"], name: "index_referral_reward_tiers_on_site_id"
+  end
+
+  create_table "referrals", force: :cascade do |t|
+    t.datetime "confirmed_at"
+    t.datetime "created_at", null: false
+    t.string "referee_ip_hash"
+    t.bigint "referee_subscription_id", null: false
+    t.bigint "referrer_subscription_id", null: false
+    t.datetime "rewarded_at"
+    t.bigint "site_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["referee_subscription_id"], name: "index_referrals_on_referee_subscription_id", unique: true
+    t.index ["referrer_subscription_id", "status"], name: "index_referrals_on_referrer_subscription_id_and_status"
+    t.index ["referrer_subscription_id"], name: "index_referrals_on_referrer_subscription_id"
+    t.index ["site_id", "created_at"], name: "index_referrals_on_site_id_and_created_at"
+    t.index ["site_id"], name: "index_referrals_on_site_id"
+    t.index ["status"], name: "index_referrals_on_status"
   end
 
   create_table "roles", force: :cascade do |t|
@@ -542,6 +577,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_090241) do
   add_foreign_key "listings", "sources"
   add_foreign_key "listings", "tenants"
   add_foreign_key "listings", "users", column: "featured_by_id"
+  add_foreign_key "referral_reward_tiers", "sites"
+  add_foreign_key "referrals", "digest_subscriptions", column: "referee_subscription_id"
+  add_foreign_key "referrals", "digest_subscriptions", column: "referrer_subscription_id"
+  add_foreign_key "referrals", "sites"
   add_foreign_key "site_bans", "sites"
   add_foreign_key "site_bans", "users"
   add_foreign_key "site_bans", "users", column: "banned_by_id"
