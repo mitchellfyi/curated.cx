@@ -17,6 +17,22 @@
 #  stripe_payment_intent_id   :string
 #  user_id                    :bigint
 #
+# Indexes
+#
+#  index_purchases_on_digital_product_id                        (digital_product_id)
+#  index_purchases_on_site_id                                   (site_id)
+#  index_purchases_on_site_id_and_digital_product_id_and_email  (site_id,digital_product_id,email)
+#  index_purchases_on_site_id_and_purchased_at                  (site_id,purchased_at)
+#  index_purchases_on_stripe_checkout_session_id                (stripe_checkout_session_id) UNIQUE WHERE (stripe_checkout_session_id IS NOT NULL)
+#  index_purchases_on_stripe_payment_intent_id                  (stripe_payment_intent_id) UNIQUE WHERE (stripe_payment_intent_id IS NOT NULL)
+#  index_purchases_on_user_id                                   (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (digital_product_id => digital_products.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (user_id => users.id)
+#
 require "rails_helper"
 
 RSpec.describe Purchase, type: :model do

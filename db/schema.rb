@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_223946) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_30_233355) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -729,6 +729,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_223946) do
     t.index ["user_id"], name: "index_submissions_on_user_id"
   end
 
+  create_table "subscriber_segments", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.boolean "enabled", default: true, null: false
+    t.string "name", null: false
+    t.jsonb "rules", default: {}, null: false
+    t.bigint "site_id", null: false
+    t.boolean "system_segment", default: false, null: false
+    t.bigint "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "enabled"], name: "index_subscriber_segments_on_site_id_and_enabled"
+    t.index ["site_id", "system_segment"], name: "index_subscriber_segments_on_site_id_and_system_segment"
+    t.index ["site_id"], name: "index_subscriber_segments_on_site_id"
+    t.index ["tenant_id"], name: "index_subscriber_segments_on_tenant_id"
+  end
+
+  create_table "subscriber_taggings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "digest_subscription_id", null: false
+    t.bigint "subscriber_tag_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["digest_subscription_id", "subscriber_tag_id"], name: "index_subscriber_taggings_uniqueness", unique: true
+    t.index ["digest_subscription_id"], name: "index_subscriber_taggings_on_digest_subscription_id"
+    t.index ["subscriber_tag_id"], name: "index_subscriber_taggings_on_subscriber_tag_id"
+  end
+
+  create_table "subscriber_tags", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "site_id", null: false
+    t.string "slug", null: false
+    t.bigint "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id", "slug"], name: "index_subscriber_tags_on_site_id_and_slug", unique: true
+    t.index ["site_id"], name: "index_subscriber_tags_on_site_id"
+    t.index ["tenant_id"], name: "index_subscriber_tags_on_tenant_id"
+  end
+
   create_table "tagging_rules", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "enabled", default: true, null: false
@@ -896,6 +934,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_223946) do
   add_foreign_key "submissions", "sites"
   add_foreign_key "submissions", "users"
   add_foreign_key "submissions", "users", column: "reviewed_by_id"
+  add_foreign_key "subscriber_segments", "sites"
+  add_foreign_key "subscriber_segments", "tenants"
+  add_foreign_key "subscriber_taggings", "digest_subscriptions"
+  add_foreign_key "subscriber_taggings", "subscriber_tags"
+  add_foreign_key "subscriber_tags", "sites"
+  add_foreign_key "subscriber_tags", "tenants"
   add_foreign_key "tagging_rules", "sites"
   add_foreign_key "tagging_rules", "taxonomies"
   add_foreign_key "tagging_rules", "tenants"

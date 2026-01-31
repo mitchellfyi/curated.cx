@@ -1,0 +1,84 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t('admin.subscriber_segments.title') %></h1>
+        <p class="mt-2 text-gray-600"><%= t('admin.subscriber_segments.description') %></p>
+      </div>
+      <%= link_to new_admin_subscriber_segment_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+        <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <%= t('admin.subscriber_segments.index.new_segment') %>
+      <% end %>
+    </div>
+
+    <% if @subscriber_segments.any? %>
+      <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t('admin.subscriber_segments.table.name') %></th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t('admin.subscriber_segments.table.type') %></th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t('admin.subscriber_segments.table.subscribers') %></th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= t('admin.subscriber_segments.table.enabled') %></th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only"><%= t('actions.actions') %></span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @subscriber_segments.each do |segment| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <%= link_to segment.name, admin_subscriber_segment_path(segment), class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% if segment.system_segment? %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <%= t('admin.subscriber_segments.types.system') %>
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <%= t('admin.subscriber_segments.types.custom') %>
+                    </span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= segment.subscribers_count %></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% if segment.enabled? %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"><%= t('admin.common.enabled') %></span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"><%= t('admin.common.disabled') %></span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  <%= link_to t('actions.view'), admin_subscriber_segment_path(segment), class: "text-gray-600 hover:text-gray-500" %>
+                  <% unless segment.system_segment? %>
+                    <%= link_to t('actions.edit'), edit_admin_subscriber_segment_path(segment), class: "text-blue-600 hover:text-blue-500" %>
+                    <%= button_to t('actions.delete'), admin_subscriber_segment_path(segment), method: :delete, data: { turbo_confirm: t('admin.subscriber_segments.confirm_delete') }, class: "text-red-600 hover:text-red-500" %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <h3 class="mt-4 text-sm font-medium text-gray-900"><%= t('admin.subscriber_segments.empty') %></h3>
+        <div class="mt-6">
+          <%= link_to new_admin_subscriber_segment_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+            <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <%= t('admin.subscriber_segments.index.new_segment') %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

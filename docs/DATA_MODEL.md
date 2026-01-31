@@ -599,6 +599,8 @@ post.replies  # => [reply]
 - `belongs_to :user` - Subscriber
 - `has_many :referrals_as_referrer` (Referral) - Referrals made by this subscriber
 - `has_one :referral_as_referee` (Referral) - Referral that created this subscription
+- `has_many :subscriber_taggings` - Tag assignments
+- `has_many :subscriber_tags, through: :subscriber_taggings` - Tags for segmentation
 
 **Scopes**:
 - `active` - Active subscriptions
@@ -619,6 +621,146 @@ subscription.referral_link  # => "https://ainews.cx/subscribe?ref=abc123xyz"
 
 # Check referral stats
 subscription.confirmed_referrals_count  # => 5
+
+# Tag for segmentation
+subscription.subscriber_tags << SubscriberTag.find_by(slug: "vip")
+```
+
+---
+
+### SubscriberSegment (Segment Definition)
+
+**Purpose**: Defines a segment of subscribers using rule-based criteria for targeted digest sends.
+
+**Key Attributes**:
+- `site_id` - Site this segment belongs to
+- `tenant_id` - Tenant context
+- `name` - Display name (e.g., "Power Users")
+- `description` - Optional description
+- `rules` (JSONB) - Rule criteria for filtering subscribers
+- `system_segment` - Boolean flag for system-created segments (non-editable)
+- `enabled` - Boolean to enable/disable segment
+
+**Rules Format** (JSONB):
+```json
+{
+  "subscription_age": { "min_days": 7, "max_days": null },
+  "engagement_level": { "min_actions": 5, "within_days": 30 },
+  "referral_count": { "min": 3 },
+  "tags": { "any": ["vip", "beta"], "all": [] },
+  "frequency": "weekly",
+  "active": true
+}
+```
+
+**Associations**:
+- `belongs_to :site` (via SiteScoped)
+- `belongs_to :tenant`
+
+**Scopes**:
+- `enabled` - Active segments
+- `system` - System-created segments
+- `custom` - User-created segments (non-system)
+
+**Methods**:
+- `editable?` - Returns false for system segments
+- `rules` - Returns JSONB rules or empty hash
+- `subscribers_count` - Returns count of matching subscribers via SegmentationService
+
+**System Segments** (auto-created on site creation):
+1. "All Subscribers" - rules: `{}`
+2. "Active (30 days)" - rules: `{ "engagement_level": { "min_actions": 1, "within_days": 30 } }`
+3. "New (7 days)" - rules: `{ "subscription_age": { "max_days": 7 } }`
+4. "Power Users" - rules: `{ "referral_count": { "min": 3 } }`
+
+**Example**:
+```ruby
+# Create a custom segment
+segment = SubscriberSegment.create!(
+  site: site,
+  name: "VIP Weekly Subscribers",
+  rules: {
+    tags: { any: ["vip"] },
+    frequency: "weekly",
+    active: true
+  }
+)
+
+# Get matching subscribers
+SegmentationService.subscribers_for(segment)  # => ActiveRecord::Relation
+
+# Check subscriber count
+segment.subscribers_count  # => 42
+```
+
+---
+
+### SubscriberTag (Manual Tag)
+
+**Purpose**: Represents a tag that can be assigned to subscribers for custom segmentation.
+
+**Key Attributes**:
+- `site_id` - Site this tag belongs to
+- `tenant_id` - Tenant context
+- `name` - Display name (e.g., "VIP")
+- `slug` - URL-friendly identifier (auto-generated)
+
+**Associations**:
+- `belongs_to :site` (via SiteScoped)
+- `belongs_to :tenant`
+- `has_many :subscriber_taggings, dependent: :destroy`
+- `has_many :digest_subscriptions, through: :subscriber_taggings`
+
+**Callbacks**:
+- `before_validation :generate_slug` - Auto-generates slug from name
+
+**Scopes**:
+- `alphabetical` - Ordered by name
+
+**Example**:
+```ruby
+# Create a tag
+tag = SubscriberTag.create!(site: site, name: "Beta Tester")
+tag.slug  # => "beta-tester"
+
+# Assign to subscriber
+subscription.subscriber_tags << tag
+
+# Use in segment rules
+segment = SubscriberSegment.create!(
+  site: site,
+  name: "Beta Users",
+  rules: { tags: { any: ["beta-tester"] } }
+)
+```
+
+---
+
+### SubscriberTagging (Tag Assignment)
+
+**Purpose**: Join model linking subscribers to tags.
+
+**Key Attributes**:
+- `digest_subscription_id` - The subscriber
+- `subscriber_tag_id` - The tag
+
+**Associations**:
+- `belongs_to :digest_subscription`
+- `belongs_to :subscriber_tag`
+
+**Constraints**:
+- Unique index on `(digest_subscription_id, subscriber_tag_id)`
+
+**Example**:
+```ruby
+# Assign tag to subscriber
+SubscriberTagging.create!(
+  digest_subscription: subscription,
+  subscriber_tag: vip_tag
+)
+
+# Or via association
+subscription.subscriber_tags << vip_tag
 ```
 
 ---
@@ -1152,4 +1294,4 @@ stream.peak_viewers          # => Maximum concurrent
 
 ---
 
-*Last Updated: 2026-01-30*
+*Last Updated: 2026-01-30* (Added SubscriberSegment, SubscriberTag, SubscriberTagging)

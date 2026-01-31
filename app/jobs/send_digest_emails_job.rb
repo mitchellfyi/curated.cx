@@ -5,7 +5,9 @@ class SendDigestEmailsJob < ApplicationJob
 
   BATCH_SIZE = 100
 
-  def perform(frequency: "weekly")
+  def perform(frequency: "weekly", segment_id: nil)
+    @segment = segment_id.present? ? SubscriberSegment.find_by(id: segment_id) : nil
+
     case frequency.to_s
     when "weekly"
       send_weekly_digests
@@ -19,14 +21,31 @@ class SendDigestEmailsJob < ApplicationJob
   private
 
   def send_weekly_digests
-    DigestSubscription.due_for_weekly.find_each(batch_size: BATCH_SIZE) do |subscription|
+    subscriptions_scope(:weekly).find_each(batch_size: BATCH_SIZE) do |subscription|
       send_digest(subscription, :weekly)
     end
   end
 
   def send_daily_digests
-    DigestSubscription.due_for_daily.find_each(batch_size: BATCH_SIZE) do |subscription|
+    subscriptions_scope(:daily).find_each(batch_size: BATCH_SIZE) do |subscription|
       send_digest(subscription, :daily)
+    end
+  end
+
+  def subscriptions_scope(frequency)
+    base_scope = frequency == :weekly ? DigestSubscription.due_for_weekly : DigestSubscription.due_for_daily
+
+    if @segment
+      segment_subscriber_ids = SegmentationService.subscribers_for(@segment).pluck(:id)
+
+      if segment_subscriber_ids.empty?
+        Rails.logger.warn("Segment '#{@segment.name}' (id: #{@segment.id}) has no matching subscribers")
+        return DigestSubscription.none
+      end
+
+      base_scope.where(id: segment_subscriber_ids)
+    else
+      base_scope
     end
   end
 

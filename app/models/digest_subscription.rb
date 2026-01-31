@@ -47,6 +47,10 @@ class DigestSubscription < ApplicationRecord
   # Associations for email sequences
   has_many :sequence_enrollments, dependent: :destroy
 
+  # Associations for subscriber tagging
+  has_many :subscriber_taggings, dependent: :destroy
+  has_many :subscriber_tags, through: :subscriber_taggings
+
   # Validations
   validates :user_id, uniqueness: { scope: :site_id, message: "already subscribed to this site" }
   validates :unsubscribe_token, presence: true, uniqueness: true

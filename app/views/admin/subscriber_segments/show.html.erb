@@ -1,0 +1,76 @@
+<div class="py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <%= link_to admin_subscriber_segments_path, class: "text-sm text-gray-500 hover:text-gray-700" do %>
+        &larr; <%= t('admin.subscriber_segments.back_to_list') %>
+      <% end %>
+      <div class="mt-2 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <h1 class="text-3xl font-bold text-gray-900"><%= @subscriber_segment.name %></h1>
+          <% if @subscriber_segment.system_segment? %>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+              <%= t('admin.subscriber_segments.show.system_badge') %>
+            </span>
+          <% end %>
+        </div>
+        <% unless @subscriber_segment.system_segment? %>
+          <%= link_to t('actions.edit'), edit_admin_subscriber_segment_path(@subscriber_segment), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+        <% end %>
+      </div>
+      <% if @subscriber_segment.description.present? %>
+        <p class="mt-2 text-gray-600"><%= @subscriber_segment.description %></p>
+      <% end %>
+    </div>
+
+    <div class="bg-white shadow sm:rounded-lg mb-6">
+      <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4"><%= t('admin.subscriber_segments.show.matching_subscribers') %></h3>
+        <p class="text-2xl font-bold text-blue-600"><%= t('admin.subscriber_segments.show.subscriber_count', count: @subscribers_count) %></p>
+      </div>
+    </div>
+
+    <% if @subscriber_segment.rules.any? %>
+      <div class="bg-white shadow sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4"><%= t('admin.subscriber_segments.show.rules') %></h3>
+          <dl class="space-y-4">
+            <% @subscriber_segment.rules.each do |rule_name, rule_value| %>
+              <div class="flex justify-between border-b border-gray-100 pb-2">
+                <dt class="text-sm font-medium text-gray-500 capitalize"><%= rule_name.humanize %></dt>
+                <dd class="text-sm text-gray-900">
+                  <% if rule_value.is_a?(Hash) %>
+                    <code class="text-xs bg-gray-100 px-2 py-1 rounded"><%= rule_value.to_json %></code>
+                  <% else %>
+                    <%= rule_value %>
+                  <% end %>
+                </dd>
+              </div>
+            <% end %>
+          </dl>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @sample_subscribers.any? %>
+      <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4"><%= t('admin.subscriber_segments.show.sample_subscribers') %></h3>
+          <ul class="divide-y divide-gray-200">
+            <% @sample_subscribers.each do |subscription| %>
+              <li class="py-3 flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-900"><%= subscription.user.email %></p>
+                  <p class="text-xs text-gray-500">
+                    <%= subscription.frequency.humanize %> &middot;
+                    Subscribed <%= time_ago_in_words(subscription.created_at) %> ago
+                  </p>
+                </div>
+                <%= link_to t('actions.view'), admin_digest_subscription_path(subscription), class: "text-sm text-blue-600 hover:text-blue-500" %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

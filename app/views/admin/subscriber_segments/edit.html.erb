@@ -1,0 +1,16 @@
+<div class="py-8">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <%= link_to admin_subscriber_segments_path, class: "text-sm text-gray-500 hover:text-gray-700" do %>
+        &larr; <%= t('admin.subscriber_segments.back_to_list') %>
+      <% end %>
+      <h1 class="mt-2 text-3xl font-bold text-gray-900"><%= t('admin.subscriber_segments.edit') %></h1>
+    </div>
+
+    <div class="bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <%= render 'form', subscriber_segment: @subscriber_segment, subscriber_tags: @subscriber_tags %>
+      </div>
+    </div>
+  </div>
+</div>

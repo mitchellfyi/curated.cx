@@ -1,5 +1,45 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: live_streams
+#
+#  id                 :bigint           not null, primary key
+#  description        :text
+#  ended_at           :datetime
+#  peak_viewers       :integer          default(0), not null
+#  scheduled_at       :datetime         not null
+#  started_at         :datetime
+#  status             :integer          default("scheduled"), not null
+#  stream_key         :string
+#  title              :string           not null
+#  viewer_count       :integer          default(0), not null
+#  visibility         :integer          default("public_access"), not null
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  discussion_id      :bigint
+#  mux_asset_id       :string
+#  mux_playback_id    :string
+#  mux_stream_id      :string
+#  replay_playback_id :string
+#  site_id            :bigint           not null
+#  user_id            :bigint           not null
+#
+# Indexes
+#
+#  index_live_streams_on_discussion_id             (discussion_id)
+#  index_live_streams_on_mux_stream_id             (mux_stream_id) UNIQUE
+#  index_live_streams_on_site_id                   (site_id)
+#  index_live_streams_on_site_id_and_scheduled_at  (site_id,scheduled_at)
+#  index_live_streams_on_site_id_and_status        (site_id,status)
+#  index_live_streams_on_user_id                   (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (discussion_id => discussions.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (user_id => users.id)
+#
 class LiveStream < ApplicationRecord
   include SiteScoped
 

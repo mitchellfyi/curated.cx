@@ -53,6 +53,8 @@ class Site < ApplicationRecord
   has_many :live_stream_viewers, dependent: :destroy
   has_many :digital_products, dependent: :destroy
   has_many :purchases, dependent: :destroy
+  has_many :subscriber_segments, dependent: :destroy
+  has_many :subscriber_tags, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
@@ -69,6 +71,7 @@ class Site < ApplicationRecord
   validate :ensure_primary_domain_exists, on: :update
 
   # Callbacks
+  after_create :create_default_subscriber_segments
   after_save :clear_site_cache
   after_destroy :clear_site_cache
 
@@ -271,6 +274,39 @@ class Site < ApplicationRecord
       errors.add(:base, "at least one domain must be marked as primary")
     elsif primary_count > 1
       errors.add(:base, "only one domain can be marked as primary")
+    end
+  end
+
+  def create_default_subscriber_segments
+    default_segments = [
+      {
+        name: "All Subscribers",
+        description: "All subscribers regardless of activity or status",
+        rules: {},
+        system_segment: true
+      },
+      {
+        name: "Active (30 days)",
+        description: "Subscribers with engagement activity in the last 30 days",
+        rules: { "engagement_level" => { "min_actions" => 1, "within_days" => 30 } },
+        system_segment: true
+      },
+      {
+        name: "New (7 days)",
+        description: "Subscribers who joined in the last 7 days",
+        rules: { "subscription_age" => { "max_days" => 7 } },
+        system_segment: true
+      },
+      {
+        name: "Power Users",
+        description: "Subscribers with 3 or more confirmed referrals",
+        rules: { "referral_count" => { "min" => 3 } },
+        system_segment: true
+      }
+    ]
+
+    default_segments.each do |segment_attrs|
+      subscriber_segments.create!(segment_attrs)
     end
   end
 end

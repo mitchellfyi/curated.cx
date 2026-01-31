@@ -1,0 +1,66 @@
+<div class="py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <%= link_to admin_digest_subscriptions_path, class: "text-sm text-gray-500 hover:text-gray-700" do %>
+        &larr; <%= t('admin.digest_subscriptions.back_to_list') %>
+      <% end %>
+      <h1 class="mt-2 text-3xl font-bold text-gray-900"><%= @digest_subscription.user.email %></h1>
+    </div>
+
+    <div class="bg-white shadow sm:rounded-lg mb-6">
+      <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4"><%= t('admin.digest_subscriptions.show.details') %></h3>
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.table.frequency') %></dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @digest_subscription.frequency.humanize %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.status') %></dt>
+            <dd class="mt-1">
+              <% if @digest_subscription.active? %>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
+              <% else %>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
+              <% end %>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.subscription_date') %></dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @digest_subscription.created_at.strftime("%B %d, %Y at %I:%M %p") %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.referrals') %></dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @digest_subscription.confirmed_referrals_count %> confirmed</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4"><%= t('admin.digest_subscriptions.show.tags_section') %></h3>
+
+        <%= form_with url: update_tags_admin_digest_subscription_path(@digest_subscription), method: :patch, class: "space-y-4" do |form| %>
+          <% if @subscriber_tags.any? %>
+            <div class="space-y-2">
+              <% @subscriber_tags.each do |tag| %>
+                <label class="flex items-center">
+                  <%= check_box_tag "tag_ids[]", tag.id, @digest_subscription.subscriber_tags.include?(tag), class: "h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" %>
+                  <span class="ml-2 text-sm text-gray-700"><%= tag.name %></span>
+                </label>
+              <% end %>
+            </div>
+
+            <div class="pt-4">
+              <%= form.submit t('admin.digest_subscriptions.show.save_tags'), class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer" %>
+            </div>
+          <% else %>
+            <p class="text-sm text-gray-500"><%= t('admin.digest_subscriptions.show.no_tags') %></p>
+            <%= link_to t('admin.subscriber_tags.index.new_tag'), new_admin_subscriber_tag_path, class: "text-sm text-blue-600 hover:text-blue-500" %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

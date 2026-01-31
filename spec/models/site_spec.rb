@@ -268,6 +268,62 @@ RSpec.describe Site, type: :model do
   end
 
   describe 'callbacks' do
+    describe 'after_create :create_default_subscriber_segments' do
+      let(:tenant) { create(:tenant) }
+
+      it 'creates default system segments on site creation' do
+        site = create(:site, tenant: tenant)
+
+        expect(site.subscriber_segments.count).to eq(4)
+        expect(site.subscriber_segments.pluck(:name)).to contain_exactly(
+          "All Subscribers",
+          "Active (30 days)",
+          "New (7 days)",
+          "Power Users"
+        )
+      end
+
+      it 'marks all default segments as system segments' do
+        site = create(:site, tenant: tenant)
+
+        expect(site.subscriber_segments.all?(&:system_segment?)).to be true
+      end
+
+      it 'creates All Subscribers segment with empty rules' do
+        site = create(:site, tenant: tenant)
+        segment = site.subscriber_segments.find_by(name: "All Subscribers")
+
+        expect(segment.rules).to eq({})
+      end
+
+      it 'creates Active segment with engagement rules' do
+        site = create(:site, tenant: tenant)
+        segment = site.subscriber_segments.find_by(name: "Active (30 days)")
+
+        expect(segment.rules).to eq({
+          "engagement_level" => { "min_actions" => 1, "within_days" => 30 }
+        })
+      end
+
+      it 'creates New segment with subscription age rules' do
+        site = create(:site, tenant: tenant)
+        segment = site.subscriber_segments.find_by(name: "New (7 days)")
+
+        expect(segment.rules).to eq({
+          "subscription_age" => { "max_days" => 7 }
+        })
+      end
+
+      it 'creates Power Users segment with referral count rules' do
+        site = create(:site, tenant: tenant)
+        segment = site.subscriber_segments.find_by(name: "Power Users")
+
+        expect(segment.rules).to eq({
+          "referral_count" => { "min" => 3 }
+        })
+      end
+    end
+
     describe 'after_save :clear_site_cache' do
       let(:site) { create(:site) }
       let(:domain) { create(:domain, site: site, hostname: 'example.com') }

@@ -14,6 +14,16 @@
 #  updated_at         :datetime         not null
 #  purchase_id        :bigint           not null
 #
+# Indexes
+#
+#  index_download_tokens_on_expires_at   (expires_at)
+#  index_download_tokens_on_purchase_id  (purchase_id)
+#  index_download_tokens_on_token        (token) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (purchase_id => purchases.id)
+#
 FactoryBot.define do
   factory :download_token do
     association :purchase

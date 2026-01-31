@@ -121,6 +121,19 @@ Rails.application.routes.draw do
 
     # Digital products management
     resources :digital_products
+
+    # Subscriber segmentation
+    resources :subscriber_tags
+    resources :subscriber_segments do
+      member do
+        post :preview
+      end
+    end
+    resources :digest_subscriptions, only: %i[index show] do
+      member do
+        patch :update_tags
+      end
+    end
   end
   devise_for :users
 

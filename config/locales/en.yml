@@ -110,6 +110,27 @@ en:
       title: Title
       uncategorized: Uncategorized
       view_all_listings: View all listings
+    digest_subscriptions:
+      back_to_list: Back to Subscribers
+      description: View and manage your newsletter subscribers
+      empty: No subscribers yet.
+      show:
+        details: Subscriber Details
+        no_tags: No tags assigned
+        referrals: Referrals
+        save_tags: Save Tags
+        status: Status
+        subscription_date: Subscribed
+        tags_section: Tags
+      table:
+        email: Email
+        frequency: Frequency
+        referrals: Referrals
+        status: Status
+        subscribed: Subscribed
+        tags: Tags
+      tags_updated: Tags updated successfully.
+      title: Subscribers
     digital_products:
       back_to_list: Back to Digital Products
       back_to_product: Back to Product
@@ -704,6 +725,87 @@ en:
         pending: Pending
         rejected: Rejected
       title: Moderation Queue
+    subscriber_segments:
+      back_to_list: Back to Segments
+      confirm_delete: Are you sure you want to delete this segment?
+      created: Segment created successfully.
+      deleted: Segment deleted successfully.
+      description: Define subscriber segments for targeted email sends
+      edit: Edit Segment
+      empty: No segments defined yet.
+      form:
+        active: Active subscribers only
+        active_only: Active only
+        cancel: Cancel
+        create: Create Segment
+        description: Description
+        description_placeholder: Describe this segment...
+        enabled: Enabled
+        engagement_level: Engagement level
+        engagement_min_actions: Minimum actions
+        engagement_within_days: Within days
+        frequency: Frequency
+        frequency_daily: Daily
+        frequency_weekly: Weekly
+        inactive_only: Inactive only
+        name: Name
+        name_placeholder: Enter segment name
+        referral_count: Referral count
+        referral_min: Minimum referrals
+        rules_section: Segment Rules
+        subscription_age: Subscription age
+        subscription_max_days: Max days since signup
+        subscription_min_days: Min days since signup
+        tags: Tags
+        tags_all: Must have all of
+        tags_any: Must have any of
+        update: Update Segment
+      index:
+        new_segment: New Segment
+      new: New Segment
+      show:
+        matching_subscribers: Matching Subscribers
+        rules: Segment Rules
+        sample_subscribers: Sample Subscribers
+        subscriber_count: "%{count} subscribers match this segment"
+        system_badge: System
+      system_protected: System segments cannot be modified.
+      table:
+        enabled: Enabled
+        name: Name
+        subscribers: Subscribers
+        type: Type
+      title: Subscriber Segments
+      types:
+        custom: Custom
+        system: System
+      updated: Segment updated successfully.
+    subscriber_tags:
+      back_to_list: Back to Tags
+      confirm_delete: Are you sure you want to delete this tag?
+      created: Tag created successfully.
+      deleted: Tag deleted successfully.
+      description: Create tags to manually segment your subscribers
+      edit: Edit Tag
+      empty: No tags defined yet.
+      form:
+        cancel: Cancel
+        create: Create Tag
+        name: Name
+        name_placeholder: Enter tag name
+        update: Update Tag
+      index:
+        new_tag: New Tag
+      new: New Tag
+      show:
+        slug: Slug
+        subscribers: Tagged Subscribers
+      table:
+        name: Name
+        slug: Slug
+        subscribers: Subscribers
+      title: Subscriber Tags
+      updated: Tag updated successfully.
     tagging_rules:
       add: Add Rule
       confirm_delete: Are you sure you want to delete this tagging rule?

@@ -16,6 +16,16 @@
 #  updated_at     :datetime         not null
 #  site_id        :bigint           not null
 #
+# Indexes
+#
+#  index_digital_products_on_site_id             (site_id)
+#  index_digital_products_on_site_id_and_slug    (site_id,slug) UNIQUE
+#  index_digital_products_on_site_id_and_status  (site_id,status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#
 require "rails_helper"
 
 RSpec.describe DigitalProduct, type: :model do
