@@ -412,12 +412,12 @@ AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
 
 ### Flag (Content Reporting)
 
-**Purpose**: Represents a user's report of problematic content, comments, or discussion posts.
+**Purpose**: Represents a user's report of problematic content, comments, notes, or discussion posts.
 
 **Key Attributes**:
 - `site_id` - Site this flag belongs to
 - `user_id` - User who created the flag
-- `flaggable_type` / `flaggable_id` - Polymorphic reference (ContentItem, Comment, DiscussionPost)
+- `flaggable_type` / `flaggable_id` - Polymorphic reference (ContentItem, Comment, Note, DiscussionPost)
 - `reason` - Enum: `spam`, `harassment`, `misinformation`, `inappropriate`, `other`
 - `status` - Enum: `pending`, `reviewed`, `dismissed`, `action_taken`
 - `details` - Optional explanation (max 1000 chars)
@@ -427,7 +427,7 @@ AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
 **Associations**:
 - `belongs_to :site` - Site context
 - `belongs_to :user` - Reporter
-- `belongs_to :flaggable` - Polymorphic (ContentItem, Comment)
+- `belongs_to :flaggable` - Polymorphic (ContentItem, Comment, Note, DiscussionPost)
 - `belongs_to :reviewed_by` (User) - Admin reference
 
 **Scopes**:
@@ -435,6 +435,7 @@ AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
 - `resolved` - Already reviewed (any status except pending)
 - `for_content_items` - Flags on ContentItem
 - `for_comments` - Flags on Comment
+- `for_notes` - Flags on Note
 - `recent` - Ordered by newest first
 
 **Example**:
@@ -1294,4 +1295,127 @@ stream.peak_viewers          # => Maximum concurrent
 
 ---
 
-*Last Updated: 2026-01-30* (Added SubscriberSegment, SubscriberTag, SubscriberTagging)
+### Note (Short-Form Content)
+
+**Purpose**: Represents a short-form post for social-style content, similar to Substack Notes.
+
+**Key Attributes**:
+- `site_id` - Site this note belongs to
+- `user_id` - Author of the note
+- `body` - Note content (max 500 chars)
+- `link_preview` (JSONB) - OG metadata for first URL (title, description, image, url)
+- `published_at` - When published (nil = draft)
+- `hidden_at` - When hidden (for moderation)
+- `hidden_by_id` - Admin who hid the note
+- `repost_of_id` - Original note if this is a repost
+- `upvotes_count` - Counter cache for votes
+- `comments_count` - Counter cache for comments
+- `reposts_count` - Counter cache for reposts
+
+**Associations**:
+- `belongs_to :site` (via SiteScoped)
+- `belongs_to :user` - Author
+- `belongs_to :hidden_by` (User, optional) - Admin who hid the note
+- `belongs_to :repost_of` (Note, optional) - Original note for reposts
+- `has_many :reposts` (Note) - Notes that reposted this one
+- `has_many :votes` (as: :votable) - Polymorphic votes
+- `has_many :comments` (as: :commentable) - Polymorphic comments
+- `has_many :bookmarks` (as: :bookmarkable) - Polymorphic bookmarks
+- `has_many :flags` (as: :flaggable) - Polymorphic flags
+- `has_one_attached :image` - Optional image attachment
+
+**Scopes**:
+- `published` - Notes with published_at
+- `drafts` - Notes without published_at
+- `not_hidden` - Notes without hidden_at
+- `for_feed` - Published and not hidden
+- `original` - Not reposts
+- `reposts_only` - Only reposts
+- `top_this_week` - By engagement in last week
+- `by_engagement` - Ordered by upvotes + comments
+
+**Methods**:
+- `published?` / `draft?` - Publication status
+- `hidden?` - Moderation status
+- `repost?` - Is this a repost?
+- `original_note` - Returns self or repost_of
+- `has_link_preview?` - Has extracted OG metadata?
+- `publish!` / `unpublish!` - Toggle publication
+- `hide!(user)` / `unhide!` - Moderation actions
+
+**Example**:
+```ruby
+# Create and publish a note
+note = Note.create!(
+  site: Current.site,
+  user: current_user,
+  body: "Excited about this new feature! Check it out: https://example.com/feature"
+)
+note.publish!
+
+# Link preview is extracted automatically via ExtractNoteLinkPreviewJob
+note.link_preview  # => { "title" => "...", "description" => "...", "image" => "...", "url" => "..." }
+
+# Repost another note
+repost = Note.create!(
+  site: Current.site,
+  user: current_user,
+  body: "Great insight!",
+  repost_of: original_note
+)
+
+# Engagement
+note.votes.create!(site: Current.site, user: voter)
+note.comments.create!(site: Current.site, user: commenter, body: "Great post!")
+
+# Moderation
+note.hide!(admin_user)
+note.hidden?  # => true
+```
+
+---
+
+## Site Configuration
+
+The Site model uses a JSONB `config` field for flexible per-site settings. Access settings via the `setting(path, default)` method.
+
+### Notes Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `notes.enabled` | boolean | `true` | Enable/disable Notes feature for the site |
+| `digest.include_notes` | boolean | `true` | Include top notes in digest emails |
+
+**Example**:
+```ruby
+site = Site.find_by_hostname!("example.cx")
+
+# Check if notes are enabled
+site.notes_enabled?        # => true
+site.notes_in_digest?      # => true
+
+# Update settings
+site.update_setting("notes.enabled", false)
+site.update_setting("digest.include_notes", false)
+```
+
+### Other Settings Reference
+
+| Setting Path | Type | Default | Description |
+|--------------|------|---------|-------------|
+| `topics` | array | `[]` | Topic strings for the site |
+| `ingestion.enabled` | boolean | `false` | Enable content ingestion |
+| `ingestion.sources.*` | boolean | varies | Per-source ingestion toggles |
+| `monetisation.enabled` | boolean | `false` | Enable monetisation features |
+| `boosts.enabled` | boolean | `false` | Enable network boosts (income) |
+| `boosts.display_enabled` | boolean | `false` | Display boost recommendations |
+| `flags.notify_on_new` | boolean | `true` | Email admins on new flags |
+| `analytics.enabled` | boolean | `true` | Enable analytics tracking |
+| `discussions.enabled` | boolean | `true` | Enable community discussions |
+| `streaming.enabled` | boolean | `false` | Enable live streaming |
+| `streaming.notify_on_live` | boolean | `false` | Email subscribers when stream goes live |
+| `digital_products.enabled` | boolean | `false` | Enable digital products |
+
+---
+
+*Last Updated: 2026-02-01* (Added Note model, Site Configuration section)
