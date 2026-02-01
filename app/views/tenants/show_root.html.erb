@@ -83,6 +83,23 @@
     <% end %>
   </section>
 
+  <%# Network Notes Feed %>
+  <% if @network_notes&.any? %>
+    <section class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900">
+          <%= t('network.notes.title') %>
+        </h2>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <% @network_notes.each do |note| %>
+          <%= render 'network/note_card', note: note %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
   <%# Cross-Network Content Feed %>
   <% if @network_feed.any? %>
     <section class="mb-12">

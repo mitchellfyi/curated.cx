@@ -42,6 +42,10 @@
         <%# Stats %>
         <div class="flex items-center gap-6 mt-4 text-sm">
           <div class="flex items-center gap-1">
+            <span class="font-semibold text-gray-900"><%= @notes.size %></span>
+            <span class="text-gray-500"><%= t('profiles.stats.notes') %></span>
+          </div>
+          <div class="flex items-center gap-1">
             <span class="font-semibold text-gray-900"><%= @comments.size %></span>
             <span class="text-gray-500"><%= t('profiles.stats.comments') %></span>
           </div>
@@ -58,7 +62,10 @@
   <div class="bg-white rounded-lg shadow-sm border border-gray-200">
     <div class="border-b border-gray-200">
       <nav class="flex -mb-px" aria-label="<%= t('profiles.tabs.navigation') %>">
-        <button class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600" data-tab="comments">
+        <button class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600" data-tab="notes">
+          <%= t('profiles.tabs.notes') %> (<%= @notes.size %>)
+        </button>
+        <button class="px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent" data-tab="comments">
           <%= t('profiles.tabs.comments') %> (<%= @comments.size %>)
         </button>
         <button class="px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent" data-tab="votes">
@@ -67,19 +74,46 @@
       </nav>
     </div>
 
-    <%# Comments Tab %>
-    <div id="tab-comments" class="p-6">
+    <%# Notes Tab %>
+    <div id="tab-notes" class="p-6">
+      <% if @notes.any? %>
+        <div class="space-y-4">
+          <% @notes.each do |note| %>
+            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+              <p class="text-gray-700"><%= truncate(note.body, length: 200) %></p>
+              <div class="mt-2 text-sm text-gray-500">
+                <%= link_to note_path(note), class: "text-blue-600 hover:underline" do %>
+                  <%= t('profiles.view_note') %>
+                <% end %>
+                <span class="mx-2">&middot;</span>
+                <%= time_ago_in_words(note.published_at) %> ago
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-center py-8"><%= t('profiles.no_notes') %></p>
+      <% end %>
+    </div>
+
+    <%# Comments Tab (hidden by default) %>
+    <div id="tab-comments" class="p-6 hidden">
       <% if @comments.any? %>
         <div class="space-y-4">
           <% @comments.each do |comment| %>
             <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
               <p class="text-gray-700"><%= truncate(comment.body, length: 200) %></p>
               <div class="mt-2 text-sm text-gray-500">
-                <% if comment.content_item %>
+                <% if comment.commentable.is_a?(ContentItem) %>
                   <%= t('profiles.commented_on') %>
-                  <a href="<%= comment.content_item.url_canonical %>" class="text-blue-600 hover:underline" target="_blank" rel="noopener">
-                    <%= comment.content_item.title.presence || t('feed.content.untitled') %>
+                  <a href="<%= comment.commentable.url_canonical %>" class="text-blue-600 hover:underline" target="_blank" rel="noopener">
+                    <%= comment.commentable.title.presence || t('feed.content.untitled') %>
                   </a>
+                <% elsif comment.commentable.is_a?(Note) %>
+                  <%= t('profiles.commented_on_note') %>
+                  <%= link_to note_path(comment.commentable), class: "text-blue-600 hover:underline" do %>
+                    <%= truncate(comment.commentable.body, length: 50) %>
+                  <% end %>
                 <% end %>
                 <span class="mx-2">&middot;</span>
                 <%= time_ago_in_words(comment.created_at) %> ago
@@ -97,12 +131,23 @@
       <% if @votes.any? %>
         <div class="space-y-4">
           <% @votes.each do |vote| %>
-            <% if vote.content_item %>
+            <% if vote.votable.is_a?(ContentItem) %>
               <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                <a href="<%= vote.content_item.url_canonical %>" class="font-medium text-gray-900 hover:text-blue-600" target="_blank" rel="noopener">
-                  <%= vote.content_item.title.presence || t('feed.content.untitled') %>
+                <a href="<%= vote.votable.url_canonical %>" class="font-medium text-gray-900 hover:text-blue-600" target="_blank" rel="noopener">
+                  <%= vote.votable.title.presence || t('feed.content.untitled') %>
                 </a>
                 <div class="mt-1 text-sm text-gray-500">
+                  <%= time_ago_in_words(vote.created_at) %> ago
+                </div>
+              </div>
+            <% elsif vote.votable.is_a?(Note) %>
+              <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                <%= link_to note_path(vote.votable), class: "font-medium text-gray-900 hover:text-blue-600" do %>
+                  <%= truncate(vote.votable.body, length: 100) %>
+                <% end %>
+                <div class="mt-1 text-sm text-gray-500">
+                  <%= t('profiles.voted_on_note') %>
+                  <span class="mx-2">&middot;</span>
                   <%= time_ago_in_words(vote.created_at) %> ago
                 </div>
               </div>
@@ -119,6 +164,8 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const tabs = document.querySelectorAll('[data-tab]');
+    const tabPanels = ['tab-notes', 'tab-comments', 'tab-votes'];
+
     tabs.forEach(tab => {
       tab.addEventListener('click', function() {
         // Update tab styles
@@ -130,8 +177,7 @@
         this.classList.add('text-blue-600', 'border-blue-600');
 
         // Show/hide content
-        document.getElementById('tab-comments').classList.add('hidden');
-        document.getElementById('tab-votes').classList.add('hidden');
+        tabPanels.forEach(id => document.getElementById(id).classList.add('hidden'));
         document.getElementById('tab-' + this.dataset.tab).classList.remove('hidden');
       });
     });

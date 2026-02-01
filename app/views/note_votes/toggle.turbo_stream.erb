@@ -1,0 +1,4 @@
+<%# Turbo Stream response for toggling note vote %>
+<%= turbo_stream.replace "note-vote-button-#{@note.id}" do %>
+  <%= render 'note_votes/vote_button', note: @note, voted: @voted %>
+<% end %>

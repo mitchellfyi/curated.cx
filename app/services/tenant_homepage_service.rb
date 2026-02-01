@@ -12,6 +12,7 @@ class TenantHomepageService
       trending_sites: NetworkFeedService.trending_sites(tenant: @tenant, limit: 6),
       new_sites: NetworkFeedService.new_sites(tenant: @tenant, limit: 6),
       network_feed: NetworkFeedService.recent_content(tenant: @tenant, limit: 12),
+      network_notes: NetworkFeedService.recent_notes(tenant: @tenant, limit: 6),
       network_stats: NetworkFeedService.network_stats(tenant: @tenant)
     }
   end

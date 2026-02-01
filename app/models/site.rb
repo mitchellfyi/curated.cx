@@ -55,6 +55,7 @@ class Site < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :subscriber_segments, dependent: :destroy
   has_many :subscriber_tags, dependent: :destroy
+  has_many :notes, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
@@ -166,6 +167,15 @@ class Site < ApplicationRecord
   # Digital products settings
   def digital_products_enabled?
     setting("digital_products.enabled", false)
+  end
+
+  # Notes settings
+  def notes_enabled?
+    setting("notes.enabled", true)
+  end
+
+  def notes_in_digest?
+    setting("digest.include_notes", true)
   end
 
   # Status helpers

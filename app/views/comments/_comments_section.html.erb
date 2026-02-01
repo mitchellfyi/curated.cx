@@ -1,5 +1,5 @@
 <%# Comments section for embedding in content detail pages %>
-<%# locals: (content_item:, comments:) %>
+<%# locals: (commentable:, comments:) %>
 <section class="bg-white rounded-lg shadow-sm border border-gray-200">
   <div class="px-6 py-4 border-b border-gray-200">
     <h2 class="text-lg font-medium text-gray-900" id="comments_count">
@@ -7,8 +7,8 @@
     </h2>
   </div>
 
-  <%# Locked message %>
-  <% if content_item.comments_locked? %>
+  <%# Locked message (only applies to ContentItems) %>
+  <% if commentable.respond_to?(:comments_locked?) && commentable.comments_locked? %>
     <div class="px-6 py-4 bg-amber-50 border-b border-amber-100">
       <p class="text-sm text-amber-800">
         <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,12 +20,13 @@
   <% end %>
 
   <%# Comment form %>
+  <% comments_locked = commentable.respond_to?(:comments_locked?) && commentable.comments_locked? %>
   <% if user_signed_in? %>
-    <% if policy(Comment).create? && !content_item.comments_locked? %>
+    <% if policy(Comment).create? && !comments_locked %>
       <div class="px-6 py-4 border-b border-gray-200">
         <%= render 'comments/form',
                    comment: Comment.new,
-                   content_item: content_item %>
+                   commentable: commentable %>
       </div>
     <% end %>
   <% else %>

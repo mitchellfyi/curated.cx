@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_30_233355) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_01_170200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -140,15 +140,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_233355) do
 
   create_table "comments", force: :cascade do |t|
     t.text "body", null: false
-    t.bigint "content_item_id", null: false
+    t.bigint "commentable_id", null: false
+    t.string "commentable_type", null: false
     t.datetime "created_at", null: false
     t.datetime "edited_at"
     t.bigint "parent_id"
     t.bigint "site_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
-    t.index ["content_item_id", "parent_id"], name: "index_comments_on_content_item_and_parent"
-    t.index ["content_item_id"], name: "index_comments_on_content_item_id"
+    t.index ["commentable_type", "commentable_id", "parent_id"], name: "index_comments_on_commentable_and_parent"
+    t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["site_id", "user_id"], name: "index_comments_on_site_and_user"
     t.index ["site_id"], name: "index_comments_on_site_id"
@@ -557,6 +558,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_233355) do
     t.index ["target_site_id"], name: "index_network_boosts_on_target_site_id"
   end
 
+  create_table "notes", force: :cascade do |t|
+    t.text "body", null: false
+    t.integer "comments_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "hidden_at"
+    t.bigint "hidden_by_id"
+    t.jsonb "link_preview", default: {}
+    t.datetime "published_at"
+    t.bigint "repost_of_id"
+    t.integer "reposts_count", default: 0, null: false
+    t.bigint "site_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "upvotes_count", default: 0, null: false
+    t.bigint "user_id", null: false
+    t.index ["hidden_at"], name: "index_notes_on_hidden_at"
+    t.index ["hidden_by_id"], name: "index_notes_on_hidden_by_id"
+    t.index ["repost_of_id"], name: "index_notes_on_repost_of_id"
+    t.index ["site_id", "published_at"], name: "index_notes_on_site_id_and_published_at", order: { published_at: :desc }
+    t.index ["site_id"], name: "index_notes_on_site_id"
+    t.index ["user_id", "created_at"], name: "index_notes_on_user_id_and_created_at", order: { created_at: :desc }
+    t.index ["user_id"], name: "index_notes_on_user_id"
+  end
+
   create_table "purchases", force: :cascade do |t|
     t.integer "amount_cents", default: 0, null: false
     t.datetime "created_at", null: false
@@ -841,16 +865,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_233355) do
   end
 
   create_table "votes", force: :cascade do |t|
-    t.bigint "content_item_id", null: false
     t.datetime "created_at", null: false
     t.bigint "site_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.integer "value", default: 1, null: false
-    t.index ["content_item_id"], name: "index_votes_on_content_item_id"
-    t.index ["site_id", "user_id", "content_item_id"], name: "index_votes_uniqueness", unique: true
+    t.bigint "votable_id", null: false
+    t.string "votable_type", null: false
+    t.index ["site_id", "user_id", "votable_type", "votable_id"], name: "index_votes_uniqueness", unique: true
     t.index ["site_id"], name: "index_votes_on_site_id"
     t.index ["user_id"], name: "index_votes_on_user_id"
+    t.index ["votable_type", "votable_id"], name: "index_votes_on_votable"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -865,7 +890,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_233355) do
   add_foreign_key "categories", "sites"
   add_foreign_key "categories", "tenants"
   add_foreign_key "comments", "comments", column: "parent_id"
-  add_foreign_key "comments", "content_items"
   add_foreign_key "comments", "sites"
   add_foreign_key "comments", "users"
   add_foreign_key "content_items", "sites"
@@ -911,6 +935,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_233355) do
   add_foreign_key "live_streams", "users"
   add_foreign_key "network_boosts", "sites", column: "source_site_id"
   add_foreign_key "network_boosts", "sites", column: "target_site_id"
+  add_foreign_key "notes", "notes", column: "repost_of_id"
+  add_foreign_key "notes", "sites"
+  add_foreign_key "notes", "users"
+  add_foreign_key "notes", "users", column: "hidden_by_id"
   add_foreign_key "purchases", "digital_products"
   add_foreign_key "purchases", "sites"
   add_foreign_key "purchases", "users"
@@ -946,7 +974,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_30_233355) do
   add_foreign_key "taxonomies", "sites"
   add_foreign_key "taxonomies", "taxonomies", column: "parent_id"
   add_foreign_key "taxonomies", "tenants"
-  add_foreign_key "votes", "content_items"
   add_foreign_key "votes", "sites"
   add_foreign_key "votes", "users"
 end

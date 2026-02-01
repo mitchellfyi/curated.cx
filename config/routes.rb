@@ -202,6 +202,13 @@ Rails.application.routes.draw do
     resources :views, only: [ :create ], controller: "content_views"
   end
 
+  # Notes (short-form social content)
+  resources :notes do
+    post :vote, to: "note_votes#toggle", on: :member
+    post :repost, on: :member
+    resources :comments, controller: "note_comments", only: %i[index create update destroy]
+  end
+
   # User-facing flag creation (for content items and comments)
   resources :flags, only: [ :create ]
 

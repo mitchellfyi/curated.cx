@@ -4,28 +4,28 @@
 #
 # Table name: comments
 #
-#  id              :bigint           not null, primary key
-#  body            :text             not null
-#  edited_at       :datetime
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  content_item_id :bigint           not null
-#  parent_id       :bigint
-#  site_id         :bigint           not null
-#  user_id         :bigint           not null
+#  id               :bigint           not null, primary key
+#  body             :text             not null
+#  commentable_type :string           not null
+#  edited_at        :datetime
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  commentable_id   :bigint           not null
+#  parent_id        :bigint
+#  site_id          :bigint           not null
+#  user_id          :bigint           not null
 #
 # Indexes
 #
-#  index_comments_on_content_item_and_parent  (content_item_id,parent_id)
-#  index_comments_on_content_item_id          (content_item_id)
-#  index_comments_on_parent_id                (parent_id)
-#  index_comments_on_site_and_user            (site_id,user_id)
-#  index_comments_on_site_id                  (site_id)
-#  index_comments_on_user_id                  (user_id)
+#  index_comments_on_commentable             (commentable_type,commentable_id)
+#  index_comments_on_commentable_and_parent  (commentable_type,commentable_id,parent_id)
+#  index_comments_on_parent_id               (parent_id)
+#  index_comments_on_site_and_user           (site_id,user_id)
+#  index_comments_on_site_id                 (site_id)
+#  index_comments_on_user_id                 (user_id)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (content_item_id => content_items.id)
 #  fk_rails_...  (parent_id => comments.id)
 #  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (user_id => users.id)
@@ -38,21 +38,24 @@ class Comment < ApplicationRecord
 
   # Associations
   belongs_to :user
-  belongs_to :content_item, counter_cache: :comments_count
+  belongs_to :commentable, polymorphic: true, counter_cache: :comments_count
   belongs_to :parent, class_name: "Comment", optional: true
   has_many :replies, class_name: "Comment", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
   has_many :flags, as: :flaggable, dependent: :destroy
 
   # Validations
   validates :body, presence: true, length: { maximum: BODY_MAX_LENGTH }
-  validate :parent_belongs_to_same_content_item, if: :parent_id?
+  validate :parent_belongs_to_same_commentable, if: :parent_id?
 
   # Scopes
   scope :root_comments, -> { where(parent_id: nil) }
   scope :replies_to, ->(comment) { where(parent: comment) }
   scope :recent, -> { order(created_at: :desc) }
   scope :oldest_first, -> { order(created_at: :asc) }
-  scope :for_content_item, ->(content_item) { where(content_item: content_item) }
+  scope :for_content_item, ->(item) { where(commentable: item) }
+  scope :for_note, ->(note) { where(commentable: note) }
+  scope :content_items, -> { where(commentable_type: "ContentItem") }
+  scope :notes, -> { where(commentable_type: "Note") }
 
   # Instance methods
   def edited?
@@ -71,13 +74,24 @@ class Comment < ApplicationRecord
     update_column(:edited_at, Time.current)
   end
 
+  # Convenience method for ContentItem comments (backward compatibility)
+  def content_item
+    return nil unless commentable_type == "ContentItem"
+    commentable
+  end
+
+  # Check if comments are locked on the commentable (ContentItem only)
+  def comments_locked?
+    commentable.respond_to?(:comments_locked?) && commentable.comments_locked?
+  end
+
   private
 
-  def parent_belongs_to_same_content_item
+  def parent_belongs_to_same_commentable
     return unless parent.present?
 
-    if parent.content_item_id != content_item_id
-      errors.add(:parent, "must belong to the same content item")
+    if parent.commentable_type != commentable_type || parent.commentable_id != commentable_id
+      errors.add(:parent, "must belong to the same #{commentable_type.underscore.humanize.downcase}")
     end
   end
 end

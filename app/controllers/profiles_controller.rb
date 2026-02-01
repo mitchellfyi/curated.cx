@@ -8,16 +8,26 @@ class ProfilesController < ApplicationController
     @user = User.find(params[:id])
     authorize @user, :show_profile?
 
+    # Comments can be on ContentItems or Notes - filter by site_id directly
     @comments = @user.comments
-                     .includes(:content_item)
-                     .where(content_items: { site_id: Current.site&.id })
+                     .where(site_id: Current.site&.id)
+                     .includes(:commentable)
                      .order(created_at: :desc)
                      .limit(20)
 
+    # Votes can be on ContentItems or Notes - filter by site_id directly
     @votes = @user.votes
-                  .includes(:content_item)
-                  .where(content_items: { site_id: Current.site&.id })
+                  .where(site_id: Current.site&.id)
+                  .includes(:votable)
                   .order(created_at: :desc)
+                  .limit(20)
+
+    # Notes authored by this user on this site
+    @notes = @user.notes
+                  .where(site_id: Current.site&.id)
+                  .published
+                  .not_hidden
+                  .order(published_at: :desc)
                   .limit(20)
 
     set_profile_meta_tags

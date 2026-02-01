@@ -1,0 +1,113 @@
+<%# Single note card %>
+<%# locals: (note:, expanded: false) %>
+<%= turbo_frame_tag dom_id(note) do %>
+  <article class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" id="<%= dom_id(note, :article) %>">
+    <%# Repost attribution %>
+    <% if note.repost? %>
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-3 pb-3 border-b border-gray-100">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <span><%= t('notes.reposted_by', name: note.user.profile_name) %></span>
+      </div>
+    <% end %>
+
+    <%# Author header %>
+    <div class="flex items-start gap-3">
+      <%= link_to profile_path(note.repost? ? note.repost_of.user : note.user), class: "flex-shrink-0" do %>
+        <% author = note.repost? ? note.repost_of.user : note.user %>
+        <% if author.avatar_url.present? %>
+          <%= image_tag author.avatar_url, alt: author.profile_name, class: "w-10 h-10 rounded-full object-cover" %>
+        <% else %>
+          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
+            <%= author.initials %>
+          </div>
+        <% end %>
+      <% end %>
+
+      <div class="flex-1 min-w-0">
+        <%# Author info %>
+        <div class="flex items-center gap-2">
+          <% author = note.repost? ? note.repost_of.user : note.user %>
+          <%= link_to author.profile_name, profile_path(author), class: "font-medium text-gray-900 hover:text-blue-600" %>
+          <time class="text-sm text-gray-500" datetime="<%= note.published_at&.iso8601 %>">
+            <%= note.published_at ? t('time.ago', time: time_ago_in_words(note.published_at)) : t('notes.draft') %>
+          </time>
+        </div>
+
+        <%# Note body %>
+        <div class="mt-2 text-gray-700 whitespace-pre-wrap break-words">
+          <%= simple_format(note.body, {}, sanitize: true) %>
+        </div>
+
+        <%# Link preview %>
+        <% if note.has_link_preview? %>
+          <%= render 'notes/link_preview', preview: note.link_preview %>
+        <% end %>
+
+        <%# Image attachment %>
+        <% if note.image.attached? %>
+          <div class="mt-3">
+            <%= image_tag note.image.variant(resize_to_limit: [600, 400]), class: "rounded-lg max-w-full", alt: "" %>
+          </div>
+        <% end %>
+
+        <%# Actions bar %>
+        <div class="mt-3 flex items-center gap-4 text-sm text-gray-500">
+          <%# Vote button %>
+          <div id="note-vote-button-<%= note.id %>">
+            <%= render 'note_votes/vote_button', note: note, voted: user_signed_in? && note.votes.exists?(user: current_user) %>
+          </div>
+
+          <%# Comments link %>
+          <%= link_to note_path(note, anchor: 'comments'), class: "flex items-center gap-1 hover:text-blue-600 transition-colors" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <span><%= note.comments_count %></span>
+          <% end %>
+
+          <%# Repost button %>
+          <% if policy(Note).repost? && !note.repost? %>
+            <%= button_to repost_note_path(note), method: :post, class: "flex items-center gap-1 hover:text-green-600 transition-colors", data: { turbo_confirm: t('notes.confirm_repost') } do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span><%= note.reposts_count %></span>
+            <% end %>
+          <% elsif note.repost? %>
+            <span class="flex items-center gap-1">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span><%= note.original_note.reposts_count %></span>
+            </span>
+          <% end %>
+
+          <%# Bookmark %>
+          <% if user_signed_in? %>
+            <% bookmarked = Bookmark.bookmarked?(current_user, note) %>
+            <%= render "bookmarks/button", bookmarkable: note, bookmarked: bookmarked %>
+          <% end %>
+
+          <%# Edit/Delete for author %>
+          <% if policy(note).update? %>
+            <%= link_to edit_note_path(note), class: "hover:text-blue-600 transition-colors" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            <% end %>
+          <% end %>
+
+          <% if policy(note).destroy? %>
+            <%= button_to note_path(note), method: :delete, class: "hover:text-red-600 transition-colors", data: { turbo_confirm: t('notes.confirm_delete') } do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </article>
+<% end %>

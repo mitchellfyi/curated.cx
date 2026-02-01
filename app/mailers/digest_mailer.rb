@@ -9,9 +9,10 @@ class DigestMailer < ApplicationMailer
 
     @content_items = fetch_top_content(since: 1.week.ago, limit: 10)
     @listings = fetch_new_listings(since: 1.week.ago, limit: 5)
+    @notes = fetch_top_notes(since: 1.week.ago, limit: 5) if notes_in_digest?
     @personalized_content = fetch_personalized_content(limit: 5)
 
-    return if @content_items.empty? && @listings.empty?
+    return if @content_items.empty? && @listings.empty? && (@notes.blank? || @notes.empty?)
 
     mail(
       to: @user.email,
@@ -28,9 +29,10 @@ class DigestMailer < ApplicationMailer
 
     @content_items = fetch_top_content(since: 1.day.ago, limit: 5)
     @listings = fetch_new_listings(since: 1.day.ago, limit: 3)
+    @notes = fetch_top_notes(since: 1.day.ago, limit: 3) if notes_in_digest?
     @personalized_content = fetch_personalized_content(limit: 3)
 
-    return if @content_items.empty? && @listings.empty?
+    return if @content_items.empty? && @listings.empty? && (@notes.blank? || @notes.empty?)
 
     mail(
       to: @user.email,
@@ -60,6 +62,17 @@ class DigestMailer < ApplicationMailer
       .limit(limit)
   end
 
+  def fetch_top_notes(since:, limit:)
+    Note
+      .where(site: @site)
+      .published
+      .not_hidden
+      .where("published_at >= ?", since)
+      .order(Arel.sql("(upvotes_count + comments_count) DESC, published_at DESC"))
+      .includes(:user)
+      .limit(limit)
+  end
+
   def fetch_personalized_content(limit:)
     return [] unless @user
 
@@ -67,6 +80,10 @@ class DigestMailer < ApplicationMailer
   rescue StandardError => e
     Rails.logger.error("Failed to fetch personalized content for digest: #{e.message}")
     []
+  end
+
+  def notes_in_digest?
+    @site.setting("digest.include_notes", true)
   end
 
   def digest_from_address

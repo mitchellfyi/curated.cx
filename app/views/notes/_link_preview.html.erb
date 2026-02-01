@@ -1,0 +1,20 @@
+<%# Link preview card %>
+<%# locals: (preview:) %>
+<% if preview["url"].present? %>
+  <a href="<%= preview["url"] %>" target="_blank" rel="noopener noreferrer" class="mt-3 block rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
+    <% if preview["image"].present? %>
+      <div class="aspect-video bg-gray-100">
+        <%= image_tag preview["image"], class: "w-full h-full object-cover", alt: preview["title"] || "", loading: "lazy" %>
+      </div>
+    <% end %>
+    <div class="p-3">
+      <% if preview["title"].present? %>
+        <h3 class="font-medium text-gray-900 line-clamp-2"><%= preview["title"] %></h3>
+      <% end %>
+      <% if preview["description"].present? %>
+        <p class="mt-1 text-sm text-gray-500 line-clamp-2"><%= preview["description"] %></p>
+      <% end %>
+      <p class="mt-1 text-xs text-gray-400"><%= preview["site_name"] || URI.parse(preview["url"]).host rescue preview["url"] %></p>
+    </div>
+  </a>
+<% end %>

@@ -1,0 +1,17 @@
+<%# Vote button for notes %>
+<%# locals: (note:, voted:) %>
+<% if user_signed_in? %>
+  <%= button_to vote_note_path(note), method: :post, class: "flex items-center gap-1 transition-colors #{voted ? 'text-red-500' : 'hover:text-red-500'}", data: { turbo_stream: true } do %>
+    <svg class="w-5 h-5 <%= 'fill-current' if voted %>" fill="<%= voted ? 'currentColor' : 'none' %>" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+    </svg>
+    <span><%= note.upvotes_count %></span>
+  <% end %>
+<% else %>
+  <%= link_to new_user_session_path, class: "flex items-center gap-1 hover:text-red-500 transition-colors" do %>
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+    </svg>
+    <span><%= note.upvotes_count %></span>
+  <% end %>
+<% end %>

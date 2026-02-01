@@ -33,6 +33,7 @@ class Bookmark < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
   scope :content_items, -> { where(bookmarkable_type: "ContentItem") }
   scope :listings, -> { where(bookmarkable_type: "Listing") }
+  scope :notes, -> { where(bookmarkable_type: "Note") }
 
   # Class methods
   def self.bookmarked?(user, bookmarkable)

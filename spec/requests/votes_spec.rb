@@ -45,7 +45,7 @@ RSpec.describe "Votes", type: :request do
 
       context "when user has already voted" do
         before do
-          create(:vote, content_item: content_item, user: user, site: site)
+          create(:vote, votable: content_item, user: user, site: site)
         end
 
         it "removes the existing vote (toggle off)" do
@@ -165,7 +165,7 @@ RSpec.describe "Votes", type: :request do
       setup_tenant_context(other_tenant)
 
       # Create a vote in other site
-      create(:vote, content_item: other_content_item, user: user, site: other_site)
+      create(:vote, votable: other_content_item, user: user, site: other_site)
 
       # Switch back to original site
       host! tenant.hostname

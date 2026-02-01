@@ -39,6 +39,7 @@ class TenantsController < ApplicationController
     @trending_sites = data[:trending_sites]
     @new_sites = data[:new_sites]
     @network_feed = data[:network_feed]
+    @network_notes = data[:network_notes]
     @network_stats = data[:network_stats]
   end
 

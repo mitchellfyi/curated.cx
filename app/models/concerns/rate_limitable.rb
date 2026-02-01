@@ -23,7 +23,8 @@ module RateLimitable
     comment: { limit: 10, period: 1.hour },
     flag: { limit: 20, period: 1.hour },
     discussion: { limit: 5, period: 1.hour },
-    discussion_post: { limit: 20, period: 1.hour }
+    discussion_post: { limit: 20, period: 1.hour },
+    note: { limit: 10, period: 1.hour }
   }.freeze
 
   # Track an action for rate limiting purposes

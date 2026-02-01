@@ -1,0 +1,65 @@
+<%# Note create/edit form %>
+<%# locals: (note:) %>
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+  <%= form_with model: note, class: "space-y-4" do |f| %>
+    <% if note.errors.any? %>
+      <div class="rounded-md bg-red-50 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              <%= t('errors.form_errors', count: note.errors.count) %>
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul class="list-disc pl-5 space-y-1">
+                <% note.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div>
+      <%= f.text_area :body,
+                      rows: 4,
+                      class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm resize-none",
+                      placeholder: t('notes.form.placeholder'),
+                      maxlength: Note::BODY_MAX_LENGTH,
+                      data: { controller: "character-counter", character_counter_max_value: Note::BODY_MAX_LENGTH } %>
+      <div class="mt-1 text-xs text-gray-400 text-right" data-character-counter-target="display">
+        <%= Note::BODY_MAX_LENGTH %> <%= t('notes.form.characters_remaining') %>
+      </div>
+    </div>
+
+    <div>
+      <%= f.label :image, t('notes.form.image'), class: "block text-sm font-medium text-gray-700" %>
+      <%= f.file_field :image, accept: "image/*", class: "mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" %>
+      <% if note.image.attached? %>
+        <div class="mt-2">
+          <%= image_tag note.image.variant(resize_to_limit: [200, 200]), class: "rounded-lg", alt: "" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+      <% if note.persisted? %>
+        <%= link_to t('notes.form.cancel'), note, class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
+      <% else %>
+        <%= link_to t('notes.form.cancel'), notes_path, class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
+      <% end %>
+
+      <% unless note.published? %>
+        <%= f.submit t('notes.form.save_draft'), name: "draft", class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer" %>
+      <% end %>
+
+      <%= f.submit note.published? ? t('notes.form.update') : t('notes.form.publish'), name: "publish", class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer" %>
+    </div>
+  <% end %>
+</div>

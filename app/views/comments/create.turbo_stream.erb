@@ -19,7 +19,7 @@
     <div id="<%= dom_id(@comment.parent, :reply_form) %>" class="hidden mt-3">
       <%= render 'comments/form',
                  comment: Comment.new(parent_id: @comment.parent_id),
-                 content_item: @content_item,
+                 commentable: @content_item,
                  replying_to: @comment.parent %>
     </div>
   <% end %>

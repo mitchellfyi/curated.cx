@@ -1,0 +1,7 @@
+<%# Turbo Stream response for deleting a comment on a note %>
+<%= turbo_stream.remove dom_id(@comment) %>
+
+<%# Update comments count %>
+<%= turbo_stream.update "comments_count" do %>
+  <%= t('comments.comment_count', count: @note.comments.count) %>
+<% end %>

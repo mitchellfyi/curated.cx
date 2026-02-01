@@ -103,13 +103,13 @@ class ContentRecommendationService
     cutoff_date = LOOKBACK_DAYS.days.ago
     content_ids = Set.new
 
-    # Gather votes (highest signal)
+    # Gather votes (highest signal) - only for ContentItems
     votes = Vote.without_site_scope
-               .where(site: @site, user: user)
+               .where(site: @site, user: user, votable_type: "ContentItem")
                .where("created_at >= ?", cutoff_date)
                .order(created_at: :desc)
                .limit(MAX_INTERACTIONS)
-               .includes(:content_item)
+               .includes(:votable)
 
     # Gather bookmarks
     bookmarks = Bookmark.where(user: user, bookmarkable_type: "ContentItem")
@@ -129,7 +129,7 @@ class ContentRecommendationService
                       .limit(MAX_INTERACTIONS)
                       .includes(:content_item)
 
-    votes.each { |v| content_ids << v.content_item_id }
+    votes.each { |v| content_ids << v.votable_id }
     bookmarks.each { |b| content_ids << b.bookmarkable_id }
     views.each { |v| content_ids << v.content_item_id }
 
@@ -148,7 +148,7 @@ class ContentRecommendationService
     # Process votes
     interactions[:votes].each do |vote|
       weight = apply_time_decay(vote.created_at, VOTE_WEIGHT)
-      vote.content_item.topic_tags.each do |tag|
+      vote.votable.topic_tags.each do |tag|
         topic_scores[tag] += weight
       end
     end

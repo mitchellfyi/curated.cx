@@ -33,6 +33,7 @@ class User < ApplicationRecord
   # Associations are automatically created by rolify
   has_many :votes, dependent: :destroy
   has_many :comments, dependent: :destroy
+  has_many :notes, dependent: :destroy
   has_many :site_bans, dependent: :destroy
   has_many :flags, dependent: :destroy
   has_many :reviewed_flags, class_name: "Flag", foreign_key: :reviewed_by_id, dependent: :nullify, inverse_of: :reviewed_by

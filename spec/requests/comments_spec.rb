@@ -16,7 +16,7 @@ RSpec.describe "Comments", type: :request do
   end
 
   describe "GET /content_items/:content_item_id/comments" do
-    let!(:comments) { create_list(:comment, 3, content_item: content_item, site: site) }
+    let!(:comments) { create_list(:comment, 3, commentable: content_item, site: site) }
 
     it "returns http success" do
       get content_item_comments_path(content_item)
@@ -40,7 +40,7 @@ RSpec.describe "Comments", type: :request do
   end
 
   describe "GET /content_items/:content_item_id/comments/:id" do
-    let(:comment) { create(:comment, content_item: content_item, site: site, user: user) }
+    let(:comment) { create(:comment, commentable: content_item, site: site, user: user) }
 
     it "returns http success" do
       get content_item_comment_path(content_item, comment)
@@ -88,7 +88,7 @@ RSpec.describe "Comments", type: :request do
       end
 
       context "with parent_id for replies" do
-        let(:parent_comment) { create(:comment, content_item: content_item, site: site, user: create(:user)) }
+        let(:parent_comment) { create(:comment, commentable: content_item, site: site, user: create(:user)) }
 
         it "creates a reply" do
           reply_params = { comment: { body: "This is a reply", parent_id: parent_comment.id } }
@@ -187,7 +187,7 @@ RSpec.describe "Comments", type: :request do
   end
 
   describe "PATCH /content_items/:content_item_id/comments/:id" do
-    let!(:comment) { create(:comment, content_item: content_item, site: site, user: user) }
+    let!(:comment) { create(:comment, commentable: content_item, site: site, user: user) }
     let(:update_params) { { comment: { body: "Updated comment body" } } }
 
     context "when user is authenticated" do
@@ -242,7 +242,7 @@ RSpec.describe "Comments", type: :request do
   end
 
   describe "DELETE /content_items/:content_item_id/comments/:id" do
-    let!(:comment) { create(:comment, content_item: content_item, site: site, user: user) }
+    let!(:comment) { create(:comment, commentable: content_item, site: site, user: user) }
 
     context "when user is global admin" do
       before { sign_in admin }
@@ -312,12 +312,12 @@ RSpec.describe "Comments", type: :request do
     end
 
     it "only shows comments from current site" do
-      create(:comment, content_item: content_item, site: site, user: user)
+      create(:comment, commentable: content_item, site: site, user: user)
 
       # Create comment in other site
       host! other_tenant.hostname
       setup_tenant_context(other_tenant)
-      create(:comment, content_item: other_content_item, site: other_site, user: user)
+      create(:comment, commentable: other_content_item, site: other_site, user: user)
 
       # Switch back
       host! tenant.hostname

@@ -74,8 +74,8 @@ class ContentItem < ApplicationRecord
 
   # Associations
   belongs_to :source
-  has_many :votes, dependent: :destroy
-  has_many :comments, dependent: :destroy
+  has_many :votes, as: :votable, dependent: :destroy
+  has_many :comments, as: :commentable, dependent: :destroy
   has_many :flags, as: :flaggable, dependent: :destroy
   has_many :bookmarks, as: :bookmarkable, dependent: :destroy
   has_many :content_views, dependent: :destroy

@@ -77,6 +77,7 @@ class Flag < ApplicationRecord
   scope :resolved, -> { where.not(status: :pending) }
   scope :for_content_items, -> { where(flaggable_type: "ContentItem") }
   scope :for_comments, -> { where(flaggable_type: "Comment") }
+  scope :for_notes, -> { where(flaggable_type: "Note") }
   scope :recent, -> { order(created_at: :desc) }
   scope :by_user, ->(user) { where(user: user) }
 

@@ -1,0 +1,35 @@
+<%# Notes feed listing %>
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900"><%= t('notes.title') %></h1>
+    <% if policy(Note).create? %>
+      <%= link_to new_note_path, class: "inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <%= t('notes.new') %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= turbo_frame_tag "notes_list" do %>
+    <div class="space-y-4">
+      <% if @notes.any? %>
+        <% @notes.each do |note| %>
+          <%= render 'notes/note', note: note %>
+        <% end %>
+      <% else %>
+        <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <svg class="mx-auto w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+          </svg>
+          <p class="text-gray-500"><%= t('notes.empty') %></p>
+          <% if policy(Note).create? %>
+            <%= link_to t('notes.be_first'), new_note_path, class: "mt-4 inline-block text-blue-600 hover:text-blue-800" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+</div>

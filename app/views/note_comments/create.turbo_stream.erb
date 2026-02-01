@@ -1,0 +1,31 @@
+<%# Turbo Stream response for creating a comment on a note %>
+<% if @comment.root? %>
+  <%# Append root comment to comments list %>
+  <%= turbo_stream.append "comments_list" do %>
+    <div class="px-6">
+      <%= render 'comments/comment', comment: @comment, depth: 0 %>
+    </div>
+  <% end %>
+<% else %>
+  <%# Append reply to parent comment's replies %>
+  <%= turbo_stream.append dom_id(@comment.parent) do %>
+    <div class="space-y-0">
+      <%= render 'comments/comment', comment: @comment, depth: [@comment.parent.replies.count, 3].min %>
+    </div>
+  <% end %>
+
+  <%# Hide the reply form %>
+  <%= turbo_stream.replace dom_id(@comment.parent, :reply_form) do %>
+    <div id="<%= dom_id(@comment.parent, :reply_form) %>" class="hidden mt-3">
+      <%= render 'comments/form',
+                 comment: Comment.new(parent_id: @comment.parent_id),
+                 commentable: @note,
+                 replying_to: @comment.parent %>
+    </div>
+  <% end %>
+<% end %>
+
+<%# Update comments count in header %>
+<%= turbo_stream.update "comments_count" do %>
+  <%= t('comments.comment_count', count: @note.comments.count) %>
+<% end %>

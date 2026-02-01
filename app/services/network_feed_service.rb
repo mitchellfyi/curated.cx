@@ -107,6 +107,29 @@ class NetworkFeedService
       end
     end
 
+    # Returns recent notes from ALL enabled sites across network
+    # Excludes notes from root tenant's site
+    def recent_notes(tenant:, limit: 20, offset: 0)
+      Rails.cache.fetch(cache_key("notes", "network", limit, offset), expires_in: 5.minutes) do
+        root_tenant = Tenant.find_by(slug: "root")
+        network_sites = Site.unscoped
+                            .joins(:tenant)
+                            .where(tenants: { status: :enabled })
+                            .where(status: :enabled)
+                            .where.not(tenant: root_tenant)
+
+        Note.unscoped
+            .where(site: network_sites)
+            .where.not(published_at: nil)
+            .where(hidden_at: nil)
+            .order(published_at: :desc)
+            .offset(offset)
+            .limit(limit)
+            .includes(:user, site: :primary_domain)
+            .to_a
+      end
+    end
+
     # Returns network-wide stats (all tenants except root)
     def network_stats(tenant:)
       Rails.cache.fetch(cache_key("stats", "network"), expires_in: 10.minutes) do
@@ -121,7 +144,8 @@ class NetworkFeedService
         {
           site_count: network_sites.count,
           content_count: ContentItem.unscoped.where(site_id: site_ids).where.not(published_at: nil).count,
-          listing_count: Listing.unscoped.where(site_id: site_ids).where.not(published_at: nil).count
+          listing_count: Listing.unscoped.where(site_id: site_ids).where.not(published_at: nil).count,
+          note_count: Note.unscoped.where(site_id: site_ids).where.not(published_at: nil).count
         }
       end
     end

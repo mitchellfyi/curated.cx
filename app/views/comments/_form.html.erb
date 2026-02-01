@@ -1,6 +1,6 @@
 <%# Comment form partial for creating/editing comments %>
-<%# locals: (comment:, content_item:, editing: false, replying_to: nil) %>
-<%= form_with model: [content_item, comment],
+<%# locals: (comment:, commentable:, editing: false, replying_to: nil) %>
+<%= form_with model: [commentable, comment],
               class: "space-y-3",
               data: { turbo_stream: true } do |f| %>
   <% if comment.errors.any? %>

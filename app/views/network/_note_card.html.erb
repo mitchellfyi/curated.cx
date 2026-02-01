@@ -1,0 +1,65 @@
+<%# Network note card for hub display %>
+<%# locals: (note:) %>
+<article class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+  <div class="flex items-start gap-3">
+    <%# Author avatar %>
+    <div class="flex-shrink-0">
+      <% if note.user.avatar_url.present? %>
+        <%= image_tag note.user.avatar_url, alt: note.user.profile_name, class: "w-10 h-10 rounded-full object-cover" %>
+      <% else %>
+        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
+          <%= note.user.initials %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <%# Author and site info %>
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium text-gray-900"><%= note.user.profile_name %></span>
+        <span class="text-gray-400">·</span>
+        <% if note.site.primary_domain.present? %>
+          <a href="<%= "https://#{note.site.primary_domain.hostname}/notes/#{note.id}" %>"
+             class="text-blue-600 hover:underline"
+             target="_blank"
+             rel="noopener">
+            <%= note.site.name %>
+          </a>
+        <% else %>
+          <span class="text-gray-500"><%= note.site.name %></span>
+        <% end %>
+      </div>
+
+      <%# Note body (truncated) %>
+      <p class="mt-1 text-gray-700 line-clamp-3">
+        <%= truncate(note.body, length: 200) %>
+      </p>
+
+      <%# Link preview thumbnail %>
+      <% if note.has_link_preview? && note.link_preview["image"].present? %>
+        <div class="mt-2 rounded-lg overflow-hidden border border-gray-200 max-w-xs">
+          <%= image_tag note.link_preview["image"], class: "w-full h-24 object-cover", alt: note.link_preview["title"] || "", loading: "lazy" %>
+        </div>
+      <% end %>
+
+      <%# Meta info %>
+      <div class="mt-2 flex items-center gap-4 text-sm text-gray-500">
+        <time datetime="<%= note.published_at&.iso8601 %>">
+          <%= note.published_at ? t('time.ago', time: time_ago_in_words(note.published_at)) : '' %>
+        </time>
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+          <%= note.upvotes_count %>
+        </span>
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+          <%= note.comments_count %>
+        </span>
+      </div>
+    </div>
+  </div>
+</article>

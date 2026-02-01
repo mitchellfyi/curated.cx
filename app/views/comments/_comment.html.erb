@@ -35,7 +35,7 @@
           <%# Actions %>
           <div class="mt-2 flex items-center gap-4 text-sm">
             <%# Reply button %>
-            <% if policy(Comment).create? && !comment.content_item.comments_locked? && depth < 3 %>
+            <% if policy(Comment).create? && !comment.comments_locked? && depth < 3 %>
               <button type="button"
                       class="text-gray-500 hover:text-blue-600 transition-colors"
                       data-controller="comment-reply"
@@ -58,7 +58,7 @@
 
             <%# Delete button - admin only %>
             <% if policy(comment).destroy? %>
-              <%= button_to content_item_comment_path(comment.content_item, comment),
+              <%= button_to polymorphic_path([comment.commentable, comment]),
                             method: :delete,
                             class: "text-gray-500 hover:text-red-600 transition-colors",
                             data: { turbo_stream: true, turbo_confirm: t('comments.form.confirm_delete') } do %>
@@ -77,7 +77,7 @@
           <div id="<%= dom_id(comment, :edit_form) %>" class="hidden mt-3">
             <%= render 'comments/form',
                        comment: comment,
-                       content_item: comment.content_item,
+                       commentable: comment.commentable,
                        editing: true %>
           </div>
 
@@ -85,7 +85,7 @@
           <div id="<%= dom_id(comment, :reply_form) %>" class="hidden mt-3">
             <%= render 'comments/form',
                        comment: Comment.new(parent_id: comment.id),
-                       content_item: comment.content_item,
+                       commentable: comment.commentable,
                        replying_to: comment %>
           </div>
         </div>
