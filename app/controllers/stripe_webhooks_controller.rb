@@ -6,47 +6,32 @@
 # Route: POST /webhooks/stripe
 #
 class StripeWebhooksController < ApplicationController
-  # Skip CSRF and authentication for webhooks
-  skip_before_action :verify_authenticity_token
-  skip_after_action :verify_authorized
-
-  # POST /webhooks/stripe
-  def create
-    payload = request.body.read
-    sig_header = request.env["HTTP_STRIPE_SIGNATURE"]
-    webhook_secret = Rails.application.config.stripe[:webhook_secret]
-
-    begin
-      event = construct_event(payload, sig_header, webhook_secret)
-    rescue JSON::ParserError => e
-      Rails.logger.error("Invalid JSON payload: #{e.message}")
-      render json: { error: "Invalid payload" }, status: :bad_request
-      return
-    rescue Stripe::SignatureVerificationError => e
-      Rails.logger.error("Invalid Stripe signature: #{e.message}")
-      render json: { error: "Invalid signature" }, status: :bad_request
-      return
-    end
-
-    # Process the event
-    handler = StripeWebhookHandler.new(event)
-
-    if handler.process
-      render json: { received: true }, status: :ok
-    else
-      render json: { error: "Processing failed" }, status: :unprocessable_entity
-    end
-  rescue StandardError => e
-    Rails.logger.error("Stripe webhook error: #{e.message}")
-    Rails.logger.error(e.backtrace.first(10).join("\n"))
-    render json: { error: "Internal error" }, status: :internal_server_error
-  end
+  include WebhookController
 
   private
 
-  def construct_event(payload, sig_header, webhook_secret)
-    if webhook_secret.present?
-      Stripe::Webhook.construct_event(payload, sig_header, webhook_secret)
+  def signature_header_value
+    request.env["HTTP_STRIPE_SIGNATURE"]
+  end
+
+  def webhook_secret
+    Rails.application.config.stripe[:webhook_secret]
+  end
+
+  def verify_and_construct_event(payload, sig_header, secret)
+    build_stripe_event(payload, sig_header, secret)
+  rescue Stripe::SignatureVerificationError => e
+    Rails.logger.error("Invalid Stripe signature: #{e.message}")
+    nil
+  end
+
+  def handler_class
+    StripeWebhookHandler
+  end
+
+  def build_stripe_event(payload, sig_header, secret)
+    if secret.present?
+      Stripe::Webhook.construct_event(payload, sig_header, secret)
     else
       # In development without webhook secret, parse directly
       Rails.logger.warn("Stripe webhook secret not configured, skipping signature verification")
