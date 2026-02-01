@@ -5,6 +5,8 @@
 # budget, and user subscriptions.
 class NetworkBoostService
   class << self
+    include IpHashable
+
     # Returns eligible boosts to display on the given site
     # Excludes: current site, sites user is subscribed to, boosts over budget
     def for_site(site, user: nil, limit: 3)
@@ -80,12 +82,6 @@ class NetworkBoostService
                         .where(user: user)
                         .where(active: true)
                         .pluck(:site_id)
-    end
-
-    def hash_ip(ip)
-      return nil if ip.blank?
-
-      Digest::SHA256.hexdigest("#{ip}:#{Rails.application.secret_key_base}")
     end
   end
 end

@@ -7,6 +7,8 @@ class BoostAttributionService
   DEDUP_WINDOW = 24.hours
 
   class << self
+    include IpHashable
+
     # Record a click on a boost
     # Returns the BoostClick if created, nil if deduplicated
     def record_click(boost:, ip:)
@@ -83,12 +85,6 @@ class BoostAttributionService
     end
 
     private
-
-    def hash_ip(ip)
-      return nil if ip.blank?
-
-      Digest::SHA256.hexdigest("#{ip}:#{Rails.application.secret_key_base}")
-    end
 
     def recently_clicked?(boost:, ip_hash:)
       return false if ip_hash.nil?
