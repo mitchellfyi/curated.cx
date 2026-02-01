@@ -6,49 +6,31 @@
 # Route: POST /webhooks/mux
 #
 class MuxWebhooksController < ApplicationController
-  # Skip CSRF and authentication for webhooks
-  skip_before_action :verify_authenticity_token
-  skip_after_action :verify_authorized
-
-  # POST /webhooks/mux
-  def create
-    payload = request.body.read
-    sig_header = request.env["HTTP_MUX_SIGNATURE"]
-    webhook_secret = Rails.application.config.mux[:webhook_secret]
-
-    unless verify_signature(payload, sig_header, webhook_secret)
-      Rails.logger.error("Invalid Mux webhook signature")
-      render json: { error: "Invalid signature" }, status: :bad_request
-      return
-    end
-
-    begin
-      event = JSON.parse(payload)
-    rescue JSON::ParserError => e
-      Rails.logger.error("Invalid JSON payload: #{e.message}")
-      render json: { error: "Invalid payload" }, status: :bad_request
-      return
-    end
-
-    # Process the event
-    handler = MuxWebhookHandler.new(event)
-
-    if handler.process
-      render json: { received: true }, status: :ok
-    else
-      render json: { error: "Processing failed" }, status: :unprocessable_entity
-    end
-  rescue StandardError => e
-    Rails.logger.error("Mux webhook error: #{e.message}")
-    Rails.logger.error(e.backtrace.first(10).join("\n"))
-    render json: { error: "Internal error" }, status: :internal_server_error
-  end
+  include WebhookController
 
   private
 
-  def verify_signature(payload, sig_header, webhook_secret)
+  def signature_header_value
+    request.env["HTTP_MUX_SIGNATURE"]
+  end
+
+  def webhook_secret
+    Rails.application.config.mux[:webhook_secret]
+  end
+
+  def verify_and_construct_event(payload, sig_header, secret)
+    return nil unless verify_signature(payload, sig_header, secret)
+
+    JSON.parse(payload)
+  end
+
+  def handler_class
+    MuxWebhookHandler
+  end
+
+  def verify_signature(payload, sig_header, secret)
     # In development without webhook secret, skip verification
-    if webhook_secret.blank?
+    if secret.blank?
       Rails.logger.warn("Mux webhook secret not configured, skipping signature verification")
       return true
     end
@@ -65,7 +47,7 @@ class MuxWebhooksController < ApplicationController
 
     # Verify signature
     signed_payload = "#{timestamp}.#{payload}"
-    expected_signature = OpenSSL::HMAC.hexdigest("SHA256", webhook_secret, signed_payload)
+    expected_signature = OpenSSL::HMAC.hexdigest("SHA256", secret, signed_payload)
 
     ActiveSupport::SecurityUtils.secure_compare(expected_signature, signature)
   end
