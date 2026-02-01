@@ -5,7 +5,8 @@
 | Field       | Value                             |
 | ----------- | --------------------------------- |
 | ID          | `004-004-extract-webhook-concern` |
-| Status      | `doing`                           |
+| Status      | `done`                            |
+| Completed   | `2026-02-01 21:45`                |
 | Priority    | `003` Medium                      |
 | Created     | `2026-02-01 19:20`                |
 | Started     | `2026-02-01 21:29`                |
@@ -166,6 +167,48 @@ Two webhook controllers (`MuxWebhooksController`, `StripeWebhooksController`) sh
 ---
 
 ## Work Log
+
+### 2026-02-01 21:45 - Review Complete
+
+Findings:
+- Blockers: 0
+- High: 0
+- Medium: 0
+- Low: 0
+
+Review passes:
+- Correctness: pass - All behavior preserved, verified against original implementations
+- Design: pass - Follows existing `Votable` concern pattern, template method pattern appropriate
+- Security: pass - Signature verification using secure_compare, no secrets leaked, generic error messages
+- Performance: pass - No N+1, no expensive loops, no shared state
+- Tests: pass - 9 Mux webhook specs cover all concern behavior (Stripe specs out of scope)
+
+All criteria met: yes
+Follow-up tasks: none
+
+Status: COMPLETE
+
+---
+
+### 2026-02-01 21:39 - Documentation Sync
+
+Docs updated:
+- None required (internal refactoring, no API changes)
+
+Inline comments:
+- `app/controllers/concerns/webhook_controller.rb:1-28` - Already complete: module header with purpose, usage example, and template method documentation
+
+Consistency: verified
+- `docs/monetisation.md` - Still accurate (references StripeWebhookHandler, webhook endpoint)
+- `docs/ARCHITECTURE.md` - Still accurate (high-level webhook mention)
+- `docs/DATA_MODEL.md` - Still accurate (stream webhook reference)
+
+No updates needed because:
+1. Concern has comprehensive inline documentation with usage example
+2. Refactoring preserved all external behavior
+3. No route, API, or handler changes
+
+---
 
 ### 2026-02-01 21:36 - Testing Complete
 
