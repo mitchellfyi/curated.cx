@@ -5,7 +5,8 @@
 | Field       | Value                                   |
 | ----------- | --------------------------------------- |
 | ID          | `004-005-refactor-network-feed-service` |
-| Status      | `doing`                                 |
+| Status      | `done`                                  |
+| Completed   | `2026-02-01 22:20`                      |
 | Priority    | `003` Medium                            |
 | Created     | `2026-02-01 19:20`                      |
 | Started     | `2026-02-01 21:59`                      |
@@ -288,6 +289,67 @@ Found in:
 ---
 
 ## Work Log
+
+### 2026-02-01 22:25 - Verification Complete
+
+Criteria: all met (8/8)
+- [x] Extract `network_sites_scope` private method - lines 113-119
+- [x] Extract `root_tenant` private method - lines 109-111
+- [x] Replace all 7 occurrences with `network_sites_scope` - verified in 7 public methods
+- [x] Extract `recent_publishable_items` private method - lines 121-131
+- [x] Refactor `recent_content` and `recent_notes` - lines 22-27, 80-85
+- [x] All existing tests pass - 17 examples, 0 failures
+- [x] Quality gates pass - RuboCop: 0 offenses
+- [x] No behaviour changes - pure extraction refactoring
+
+Quality gates: all pass
+- Tests: 17 examples, 0 failures
+- Lint: RuboCop 0 offenses
+
+CI: pending push
+
+Task location: 3.doing → 4.done
+Reason: complete - all acceptance criteria verified
+
+---
+
+### 2026-02-01 22:20 - Review Complete
+
+Findings:
+- Blockers: 0 - N/A
+- High: 0 - N/A
+- Medium: 0 - N/A
+- Low: 1 - `network_stats` calls `network_sites_scope` twice (2 `root_tenant` lookups); acceptable, mitigated by 10-minute caching
+
+Review passes:
+- Correctness: pass - semantically identical extraction, all edge cases preserved
+- Design: pass - clean extraction, 16% line reduction, good naming
+- Security: pass - no injection vectors, parameterized queries used correctly
+- Performance: pass - one low-severity micro-optimization opportunity (deferred)
+- Tests: pass - 17 tests pass, adequate coverage for refactoring scope
+
+All criteria met: yes
+Follow-up tasks: none
+
+Status: COMPLETE
+
+---
+
+### 2026-02-01 22:15 - Documentation Sync
+
+Docs updated:
+- None required
+
+Inline comments:
+- Existing method comments in `app/services/network_feed_service.rb` remain accurate
+- New private helper methods (`root_tenant`, `network_sites_scope`, `recent_publishable_items`) are implementation details - no public documentation needed
+
+Consistency: verified
+- README.md services table: "Cross-network content aggregation" - still accurate
+- No external API changes, no user-facing changes
+- Pure internal refactoring per task scope
+
+---
 
 ### 2026-02-01 22:10 - Testing Complete
 
