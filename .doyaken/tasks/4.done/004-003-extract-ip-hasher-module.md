@@ -10,7 +10,7 @@
 | Priority    | `003` Medium                    |
 | Created     | `2026-02-01 19:20`              |
 | Started     | `2026-02-01 21:02`              |
-| Assigned To | `worker-1`                      |
+| Assigned To | |
 | Labels      | `technical-debt`, `refactor`    |
 
 ---
