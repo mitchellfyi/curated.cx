@@ -1,72 +1,13 @@
 # frozen_string_literal: true
 
 class DiscussionPostsController < ApplicationController
-  include RateLimitable
-  include BanCheckable
+  include Commentable
 
   before_action :authenticate_user!
   before_action :set_discussion
   before_action :set_post, only: %i[update destroy]
   before_action :check_ban_status, only: %i[create update]
   before_action :check_discussion_locked, only: :create
-
-  # POST /discussions/:discussion_id/posts
-  def create
-    @post = @discussion.posts.build(post_params)
-    @post.user = current_user
-    @post.site = Current.site
-
-    authorize @post
-
-    if rate_limited?(current_user, :discussion_post, **RateLimitable::LIMITS[:discussion_post])
-      return render_rate_limited(message: I18n.t("discussion_posts.rate_limited"))
-    end
-
-    if @post.save
-      track_action(current_user, :discussion_post)
-      respond_to do |format|
-        format.html { redirect_to @discussion, notice: I18n.t("discussion_posts.created") }
-        format.turbo_stream
-        format.json { render json: @post, status: :created }
-      end
-    else
-      respond_to do |format|
-        format.html { redirect_to @discussion, alert: @post.errors.full_messages.to_sentence }
-        format.json { render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # PATCH/PUT /discussions/:discussion_id/posts/:id
-  def update
-    authorize @post
-
-    if @post.update(post_params)
-      @post.mark_as_edited!
-      respond_to do |format|
-        format.html { redirect_to @discussion, notice: I18n.t("discussion_posts.updated") }
-        format.turbo_stream
-        format.json { render json: @post }
-      end
-    else
-      respond_to do |format|
-        format.html { redirect_to @discussion, alert: @post.errors.full_messages.to_sentence }
-        format.json { render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /discussions/:discussion_id/posts/:id
-  def destroy
-    authorize @post
-    @post.destroy
-
-    respond_to do |format|
-      format.html { redirect_to @discussion, notice: I18n.t("discussion_posts.deleted") }
-      format.turbo_stream
-      format.json { head :no_content }
-    end
-  end
 
   private
 
@@ -90,5 +31,35 @@ class DiscussionPostsController < ApplicationController
       format.json { render json: { error: I18n.t("discussions.locked") }, status: :forbidden }
       format.turbo_stream { head :forbidden }
     end
+  end
+
+  # Commentable hooks
+
+  def commentable_build_record
+    @post = @discussion.posts.build(post_params)
+  end
+
+  def commentable_record
+    @post
+  end
+
+  def commentable_params
+    post_params
+  end
+
+  def rate_limit_action
+    :discussion_post
+  end
+
+  def i18n_namespace
+    "discussion_posts"
+  end
+
+  def commentable_fallback_location
+    @discussion
+  end
+
+  def commentable_redirect_back?
+    false
   end
 end

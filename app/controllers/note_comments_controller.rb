@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class NoteCommentsController < ApplicationController
-  include RateLimitable
-  include BanCheckable
+  include Commentable
 
   before_action :authenticate_user!, except: :index
   before_action :set_note
@@ -20,64 +19,6 @@ class NoteCommentsController < ApplicationController
     authorize Comment
   end
 
-  # POST /notes/:note_id/comments
-  def create
-    @comment = @note.comments.build(comment_params)
-    @comment.user = current_user
-    @comment.site = Current.site
-
-    authorize @comment
-
-    if rate_limited?(current_user, :comment, **RateLimitable::LIMITS[:comment])
-      return render_rate_limited(message: I18n.t("comments.rate_limited"))
-    end
-
-    if @comment.save
-      track_action(current_user, :comment)
-      respond_to do |format|
-        format.html { redirect_back fallback_location: @note, notice: I18n.t("comments.created") }
-        format.turbo_stream
-        format.json { render json: @comment, status: :created }
-      end
-    else
-      respond_to do |format|
-        format.html { redirect_back fallback_location: @note, alert: @comment.errors.full_messages.to_sentence }
-        format.json { render json: { errors: @comment.errors.full_messages }, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # PATCH/PUT /notes/:note_id/comments/:id
-  def update
-    authorize @comment
-
-    if @comment.update(comment_params)
-      @comment.mark_as_edited!
-      respond_to do |format|
-        format.html { redirect_back fallback_location: @note, notice: I18n.t("comments.updated") }
-        format.turbo_stream
-        format.json { render json: @comment }
-      end
-    else
-      respond_to do |format|
-        format.html { redirect_back fallback_location: @note, alert: @comment.errors.full_messages.to_sentence }
-        format.json { render json: { errors: @comment.errors.full_messages }, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /notes/:note_id/comments/:id
-  def destroy
-    authorize @comment
-    @comment.destroy
-
-    respond_to do |format|
-      format.html { redirect_back fallback_location: @note, notice: I18n.t("comments.deleted") }
-      format.turbo_stream
-      format.json { head :no_content }
-    end
-  end
-
   private
 
   def set_note
@@ -90,5 +31,31 @@ class NoteCommentsController < ApplicationController
 
   def comment_params
     params.require(:comment).permit(:body, :parent_id)
+  end
+
+  # Commentable hooks
+
+  def commentable_build_record
+    @comment = @note.comments.build(comment_params)
+  end
+
+  def commentable_record
+    @comment
+  end
+
+  def commentable_params
+    comment_params
+  end
+
+  def rate_limit_action
+    :comment
+  end
+
+  def i18n_namespace
+    "comments"
+  end
+
+  def commentable_fallback_location
+    @note
   end
 end
