@@ -149,7 +149,7 @@ gem "csv"
 gem "ruby-openai", "~> 8.3"
 
 # Payment processing
-gem "stripe", "~> 13.0"
+gem "stripe", "~> 18.0"
 
 # Live video streaming
-gem "mux_ruby", "~> 3.0"
+gem "mux_ruby", "~> 5.0"
