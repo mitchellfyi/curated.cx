@@ -19,6 +19,23 @@
 #  site_id        :bigint           not null
 #  user_id        :bigint           not null
 #
+# Indexes
+#
+#  index_notes_on_hidden_at                 (hidden_at)
+#  index_notes_on_hidden_by_id              (hidden_by_id)
+#  index_notes_on_repost_of_id              (repost_of_id)
+#  index_notes_on_site_id                   (site_id)
+#  index_notes_on_site_id_and_published_at  (site_id,published_at DESC)
+#  index_notes_on_user_id                   (user_id)
+#  index_notes_on_user_id_and_created_at    (user_id,created_at DESC)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (hidden_by_id => users.id)
+#  fk_rails_...  (repost_of_id => notes.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (user_id => users.id)
+#
 require "rails_helper"
 
 RSpec.describe Note, type: :model do
