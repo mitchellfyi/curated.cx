@@ -26,22 +26,16 @@
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= subscription.user.email %></td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    <%= subscription.frequency.humanize %>
-                  </span>
+                  <%= badge(subscription.frequency.humanize, :blue) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <% if subscription.active? %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
-                  <% else %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
-                  <% end %>
+                  <%= status_indicator(subscription.active? ? :active : :inactive) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <% if subscription.subscriber_tags.any? %>
                     <div class="flex flex-wrap gap-1">
                       <% subscription.subscriber_tags.each do |tag| %>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700"><%= tag.name %></span>
+                        <%= badge(tag.name, :gray) %>
                       <% end %>
                     </div>
                   <% else %>
