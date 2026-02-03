@@ -3,7 +3,7 @@
 class Admin::EmailSequencesController < ApplicationController
   include AdminAccess
 
-  before_action :set_sequence, only: [ :show, :edit, :update, :destroy, :enable, :disable ]
+  before_action :set_sequence, only: [ :show, :edit, :update, :destroy, :enable, :disable  ]
 
   def index
     @sequences = EmailSequence

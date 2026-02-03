@@ -3,7 +3,7 @@
 class Admin::EditorialisationsController < ApplicationController
   include AdminAccess
 
-  before_action :set_editorialisation, only: [:show, :retry]
+  before_action :set_editorialisation, only: [ :show, :retry ]
 
   def index
     @editorialisations = base_scope

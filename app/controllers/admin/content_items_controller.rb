@@ -4,7 +4,7 @@ module Admin
   class ContentItemsController < ApplicationController
     include AdminAccess
 
-    before_action :set_content_item, only: [:show, :edit, :update, :destroy, :publish, :unpublish, :editorialise]
+    before_action :set_content_item, only: [ :show, :edit, :update, :destroy, :publish, :unpublish, :editorialise ]
 
     # GET /admin/content_items
     def index
@@ -88,7 +88,7 @@ module Admin
     # POST /admin/content_items/bulk_action
     def bulk_action
       ids = params[:content_item_ids].to_s.split(",").map(&:to_i).reject(&:zero?)
-      
+
       if ids.empty?
         redirect_to admin_content_items_path, alert: "No items selected."
         return

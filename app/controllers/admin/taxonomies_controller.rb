@@ -3,7 +3,7 @@
 class Admin::TaxonomiesController < ApplicationController
   include AdminAccess
 
-  before_action :set_taxonomy, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_taxonomy, only: [ :show, :edit, :update, :destroy  ]
 
   def index
     @taxonomies = taxonomies_service.root_taxonomies

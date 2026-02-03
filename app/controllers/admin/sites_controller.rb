@@ -3,7 +3,7 @@
 class Admin::SitesController < ApplicationController
   include AdminAccess
 
-  before_action :set_site, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_site, only: [ :show, :edit, :update, :destroy  ]
 
   def index
     @sites = policy_scope(Site).includes(:domains, :tenant).order(created_at: :desc)

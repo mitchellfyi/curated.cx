@@ -3,7 +3,7 @@
 class Admin::SourcesController < ApplicationController
   include AdminAccess
 
-  before_action :set_source, only: [ :show, :edit, :update, :destroy, :run_now ]
+  before_action :set_source, only: [ :show, :edit, :update, :destroy, :run_now  ]
 
   def index
     @sources = policy_scope(Source)

@@ -3,7 +3,7 @@
 class Admin::TaggingRulesController < ApplicationController
   include AdminAccess
 
-  before_action :set_tagging_rule, only: [ :show, :edit, :update, :destroy, :test ]
+  before_action :set_tagging_rule, only: [ :show, :edit, :update, :destroy, :test  ]
 
   def index
     @tagging_rules = tagging_rules_service.all_rules

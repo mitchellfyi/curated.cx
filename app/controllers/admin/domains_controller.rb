@@ -6,7 +6,7 @@ class Admin::DomainsController < ApplicationController
   include AdminAccess
 
   before_action :set_site
-  before_action :set_domain, only: [ :show, :edit, :update, :destroy, :check_dns ]
+  before_action :set_domain, only: [ :show, :edit, :update, :destroy, :check_dns  ]
 
   def new
     @domain = @site.domains.build

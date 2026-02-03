@@ -3,7 +3,7 @@
 class Admin::BoostPayoutsController < ApplicationController
   include AdminAccess
 
-  before_action :set_payout, only: [ :show, :update ]
+  before_action :set_payout, only: [ :show, :update  ]
 
   def index
     @payouts = BoostPayout.where(site: Current.site)

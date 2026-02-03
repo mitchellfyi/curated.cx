@@ -3,7 +3,7 @@
 class Admin::ReferralRewardTiersController < ApplicationController
   include AdminAccess
 
-  before_action :set_tier, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_tier, only: [ :show, :edit, :update, :destroy  ]
 
   def index
     @tiers = ReferralRewardTier

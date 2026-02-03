@@ -3,7 +3,7 @@
 class Admin::ReferralsController < ApplicationController
   include AdminAccess
 
-  before_action :set_referral, only: [ :show, :update ]
+  before_action :set_referral, only: [ :show, :update  ]
 
   def index
     @referrals = Referral

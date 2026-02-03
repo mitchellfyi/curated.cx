@@ -4,7 +4,7 @@ module Admin
   class UsersController < ApplicationController
     include AdminAccess
 
-    before_action :set_user, only: [:show, :edit, :update, :destroy, :ban, :unban, :make_admin, :remove_admin]
+    before_action :set_user, only: [ :show, :edit, :update, :destroy, :ban, :unban, :make_admin, :remove_admin ]
 
     # GET /admin/users
     def index

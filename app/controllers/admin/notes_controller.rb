@@ -4,7 +4,7 @@ module Admin
   class NotesController < ApplicationController
     include AdminAccess
 
-    before_action :set_note, only: [:show, :destroy, :hide, :unhide, :feature, :unfeature]
+    before_action :set_note, only: [ :show, :destroy, :hide, :unhide, :feature, :unfeature ]
 
     # GET /admin/notes
     def index

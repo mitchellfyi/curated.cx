@@ -3,7 +3,7 @@
 class Admin::NetworkBoostsController < ApplicationController
   include AdminAccess
 
-  before_action :set_boost, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_boost, only: [ :show, :edit, :update, :destroy  ]
 
   def index
     @boosts = NetworkBoost.where(target_site: Current.site)

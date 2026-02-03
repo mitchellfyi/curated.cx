@@ -5,7 +5,7 @@ module Admin
     include AdminAccess
 
     before_action :require_super_admin
-    before_action :set_tenant, only: [:show, :edit, :update, :destroy, :impersonate]
+    before_action :set_tenant, only: [ :show, :edit, :update, :destroy, :impersonate ]
 
     # GET /admin/tenants
     def index

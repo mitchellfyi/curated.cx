@@ -3,7 +3,7 @@
 class Admin::SubmissionsController < ApplicationController
   include AdminAccess
 
-  before_action :set_submission, only: [ :show, :approve, :reject ]
+  before_action :set_submission, only: [ :show, :approve, :reject  ]
 
   def index
     @status = params[:status] || "pending"

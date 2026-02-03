@@ -3,7 +3,7 @@
 class Admin::CategoriesController < ApplicationController
   include AdminAccess
 
-  before_action :set_category, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_category, only: [ :show, :edit, :update, :destroy  ]
 
   def index
     @categories = categories_service.all_categories

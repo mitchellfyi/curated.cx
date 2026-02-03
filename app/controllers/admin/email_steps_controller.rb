@@ -4,7 +4,7 @@ class Admin::EmailStepsController < ApplicationController
   include AdminAccess
 
   before_action :set_sequence
-  before_action :set_step, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_step, only: [ :show, :edit, :update, :destroy  ]
 
   def show
   end

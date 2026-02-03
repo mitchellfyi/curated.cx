@@ -4,7 +4,7 @@ module Admin
   class CommentsController < ApplicationController
     include AdminAccess
 
-    before_action :set_comment, only: [:show, :destroy, :hide, :unhide]
+    before_action :set_comment, only: [ :show, :destroy, :hide, :unhide ]
 
     # GET /admin/comments
     def index
