@@ -27,9 +27,7 @@
                 <tr>
                   <td class="px-6 py-4">
                     <div class="flex items-center">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= flag.content_item? ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' %>">
-                        <%= flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment") %>
-                      </span>
+                      <%= badge(flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), flag.content_item? ? :blue : :green) %>
                       <span class="ml-2 text-sm text-gray-900 truncate max-w-xs">
                         <% if flag.content_item? %>
                           <%= truncate(flag.flaggable.title, length: 50) %>
@@ -40,9 +38,7 @@
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                      <%= t("flags.reasons.#{flag.reason}") %>
-                    </span>
+                    <%= badge(t("flags.reasons.#{flag.reason}"), :red) %>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= flag.user.email %></td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= time_ago_in_words(flag.created_at) %> ago</td>
@@ -84,9 +80,7 @@
               <tr class="bg-gray-50">
                 <td class="px-6 py-4">
                   <div class="flex items-center">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= flag.content_item? ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' %>">
-                      <%= flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment") %>
-                    </span>
+                    <%= badge(flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), flag.content_item? ? :blue : :green) %>
                     <span class="ml-2 text-sm text-gray-500 truncate max-w-xs">
                       <% if flag.content_item? %>
                         <%= truncate(flag.flaggable&.title || t("admin.flags.content_deleted"), length: 50) %>
@@ -97,14 +91,10 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    <%= t("flags.reasons.#{flag.reason}") %>
-                  </span>
+                  <%= badge(t("flags.reasons.#{flag.reason}"), :gray) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= flag.action_taken? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-                    <%= t("flags.statuses.#{flag.status}") %>
-                  </span>
+                  <%= badge(t("flags.statuses.#{flag.status}"), flag.action_taken? ? :green : :gray) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= flag.reviewed_by&.email %></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= time_ago_in_words(flag.reviewed_at) %> ago</td>
