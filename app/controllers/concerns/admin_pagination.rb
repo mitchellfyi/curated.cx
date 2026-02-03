@@ -16,7 +16,7 @@ module AdminPagination
   def per_page
     requested = params[:per_page].to_i
     return DEFAULT_PER_PAGE if requested <= 0
-    [requested, MAX_PER_PAGE].min
+    [ requested, MAX_PER_PAGE ].min
   end
 
   def paginate(scope, options = {})

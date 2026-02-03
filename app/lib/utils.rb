@@ -82,9 +82,9 @@ module Utils
   def format_bytes(bytes)
     return "0 B" if bytes.nil? || bytes.zero?
 
-    units = ["B", "KB", "MB", "GB", "TB"]
+    units = [ "B", "KB", "MB", "GB", "TB" ]
     exp = (Math.log(bytes) / Math.log(1024)).to_i
-    exp = [exp, units.length - 1].min
+    exp = [ exp, units.length - 1 ].min
 
     "#{(bytes / 1024.0**exp).round(2)} #{units[exp]}"
   end

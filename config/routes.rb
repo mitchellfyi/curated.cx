@@ -21,17 +21,17 @@ Rails.application.routes.draw do
     get "health", to: "health#show"
 
     # Observability dashboard
-    resource :observability, only: [:show], controller: "observability" do
+    resource :observability, only: [ :show ], controller: "observability" do
       get :imports
       get :editorialisations
       get :serp_api
     end
 
     # Import runs management
-    resources :import_runs, only: [:index, :show]
+    resources :import_runs, only: [ :index, :show ]
 
     # Super admin: Tenants management (cross-tenant)
-    resources :tenants, only: [:index, :show, :edit, :update, :destroy] do
+    resources :tenants, only: [ :index, :show, :edit, :update, :destroy ] do
       member do
         post :impersonate
       end
@@ -60,7 +60,7 @@ Rails.application.routes.draw do
     end
 
     # Notes (user-generated short posts)
-    resources :notes, only: [:index, :show, :destroy] do
+    resources :notes, only: [ :index, :show, :destroy ] do
       member do
         post :hide
         post :unhide
@@ -70,7 +70,7 @@ Rails.application.routes.draw do
     end
 
     # Comments moderation
-    resources :comments, only: [:index, :show, :destroy] do
+    resources :comments, only: [ :index, :show, :destroy ] do
       member do
         post :hide
         post :unhide

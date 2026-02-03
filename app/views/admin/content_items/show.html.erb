@@ -7,7 +7,11 @@
         <div>
           <h1 class="text-2xl font-bold text-gray-900"><%= @content_item.title.presence || "(No title)" %></h1>
           <p class="text-gray-500 truncate" style="max-width: 600px;">
-            <%= link_to @content_item.url_canonical, @content_item.url_canonical, target: "_blank", class: "hover:underline" %>
+            <% if @content_item.url_canonical.present? && @content_item.url_canonical.match?(%r{\Ahttps?://}) %>
+              <%= link_to @content_item.url_canonical, @content_item.url_canonical, target: "_blank", rel: "noopener noreferrer", class: "hover:underline" %>
+            <% else %>
+              <%= @content_item.url_canonical %>
+            <% end %>
           </p>
         </div>
         <div class="flex space-x-3">

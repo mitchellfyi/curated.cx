@@ -62,7 +62,7 @@ namespace :admin do
   end
 
   desc "Clean up old import runs (default: older than 30 days)"
-  task :clean_import_runs, [:days] => :environment do |_t, args|
+  task :clean_import_runs, [ :days ] => :environment do |_t, args|
     days = (args[:days] || 30).to_i
     cutoff = days.days.ago
 
@@ -135,7 +135,7 @@ namespace :admin do
   end
 
   desc "Make a user an admin by email"
-  task :make_admin, [:email] => :environment do |_t, args|
+  task :make_admin, [ :email ] => :environment do |_t, args|
     email = args[:email]
 
     if email.blank?
@@ -159,7 +159,7 @@ namespace :admin do
   end
 
   desc "Remove admin role from a user by email"
-  task :remove_admin, [:email] => :environment do |_t, args|
+  task :remove_admin, [ :email ] => :environment do |_t, args|
     email = args[:email]
 
     if email.blank?
