@@ -11,6 +11,9 @@ Rails.application.routes.draw do
     get "dashboard/index"
     root "dashboard#index"
 
+    # Global search
+    get "search", to: "search#index"
+
     # Observability dashboard
     resource :observability, only: [:show], controller: "observability" do
       get :imports

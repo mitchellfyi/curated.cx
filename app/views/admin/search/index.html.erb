@@ -1,0 +1,168 @@
+<div class="py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Search Admin</h1>
+    </div>
+
+    <!-- Search Form -->
+    <div class="bg-white shadow rounded-lg mb-8 p-6">
+      <%= form_with url: admin_search_path, method: :get, class: "flex gap-4" do |f| %>
+        <div class="flex-1">
+          <%= f.text_field :q, value: @query, placeholder: "Search users, content, notes, listings, sources...", 
+              class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg",
+              autofocus: true %>
+        </div>
+        <%= f.submit "Search", class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer" %>
+      <% end %>
+    </div>
+
+    <% if @query.present? %>
+      <div class="mb-4 text-gray-600">
+        Found <strong><%= @total %></strong> results for "<%= @query %>"
+      </div>
+
+      <!-- Users -->
+      <% if @results[:users].any? %>
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-medium text-gray-900">Users (<%= @results[:users].count %>)</h2>
+          </div>
+          <ul class="divide-y divide-gray-200">
+            <% @results[:users].each do |user| %>
+              <li class="px-4 py-3 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-gray-900"><%= user.display_name.presence || user.email %></p>
+                    <p class="text-xs text-gray-500"><%= user.email %></p>
+                  </div>
+                  <%= link_to "View", admin_user_path(user), class: "text-blue-600 hover:underline text-sm" %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+          <% if @results[:users].count >= 10 %>
+            <div class="px-4 py-2 border-t border-gray-200 bg-gray-50">
+              <%= link_to "View all users →", admin_users_path(search: @query), class: "text-sm text-blue-600 hover:underline" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Content Items -->
+      <% if @results[:content_items].any? %>
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-medium text-gray-900">Content Items (<%= @results[:content_items].count %>)</h2>
+          </div>
+          <ul class="divide-y divide-gray-200">
+            <% @results[:content_items].each do |item| %>
+              <li class="px-4 py-3 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate"><%= item.title.presence || "(No title)" %></p>
+                    <p class="text-xs text-gray-500 truncate"><%= item.url_canonical %></p>
+                  </div>
+                  <%= link_to "View", admin_content_item_path(item), class: "text-blue-600 hover:underline text-sm ml-4" %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+          <% if @results[:content_items].count >= 10 %>
+            <div class="px-4 py-2 border-t border-gray-200 bg-gray-50">
+              <%= link_to "View all content items →", admin_content_items_path(search: @query), class: "text-sm text-blue-600 hover:underline" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Notes -->
+      <% if @results[:notes].any? %>
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-medium text-gray-900">Notes (<%= @results[:notes].count %>)</h2>
+          </div>
+          <ul class="divide-y divide-gray-200">
+            <% @results[:notes].each do |note| %>
+              <li class="px-4 py-3 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm text-gray-900 truncate"><%= truncate(note.body, length: 100) %></p>
+                    <p class="text-xs text-gray-500">by <%= note.user&.email || "Unknown" %> • <%= time_ago_in_words(note.created_at) %> ago</p>
+                  </div>
+                  <%= link_to "View", admin_note_path(note), class: "text-blue-600 hover:underline text-sm ml-4" %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+          <% if @results[:notes].count >= 10 %>
+            <div class="px-4 py-2 border-t border-gray-200 bg-gray-50">
+              <%= link_to "View all notes →", admin_notes_path(search: @query), class: "text-sm text-blue-600 hover:underline" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Listings -->
+      <% if @results[:listings].any? %>
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-medium text-gray-900">Listings (<%= @results[:listings].count %>)</h2>
+          </div>
+          <ul class="divide-y divide-gray-200">
+            <% @results[:listings].each do |listing| %>
+              <li class="px-4 py-3 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate"><%= listing.title %></p>
+                    <p class="text-xs text-gray-500"><%= listing.domain %></p>
+                  </div>
+                  <%= link_to "View", admin_listing_path(listing), class: "text-blue-600 hover:underline text-sm ml-4" %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <!-- Sources -->
+      <% if @results[:sources].any? %>
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-medium text-gray-900">Sources (<%= @results[:sources].count %>)</h2>
+          </div>
+          <ul class="divide-y divide-gray-200">
+            <% @results[:sources].each do |source| %>
+              <li class="px-4 py-3 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-gray-900"><%= source.name %></p>
+                    <p class="text-xs text-gray-500"><%= source.kind %> • <%= source.enabled? ? "Enabled" : "Disabled" %></p>
+                  </div>
+                  <%= link_to "View", admin_source_path(source), class: "text-blue-600 hover:underline text-sm" %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if @total == 0 %>
+        <div class="text-center py-12 bg-white rounded-lg shadow">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <h3 class="mt-4 text-sm font-medium text-gray-900">No results found</h3>
+          <p class="mt-1 text-sm text-gray-500">Try a different search term.</p>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="text-center py-12 bg-white rounded-lg shadow">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <h3 class="mt-4 text-sm font-medium text-gray-900">Search the admin</h3>
+        <p class="mt-1 text-sm text-gray-500">Find users, content, notes, listings, and sources.</p>
+      </div>
+    <% end %>
+  </div>
+</div>
