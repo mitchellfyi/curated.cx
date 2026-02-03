@@ -7,9 +7,11 @@ import { application } from './application';
 import DropdownController from './dropdown_controller';
 import LiveStreamController from './live_stream_controller';
 import MobileMenuController from './mobile_menu_controller';
+import SidebarController from './sidebar_controller';
 import TrackViewController from './track_view_controller';
 
 application.register('dropdown', DropdownController);
 application.register('live-stream', LiveStreamController);
 application.register('mobile-menu', MobileMenuController);
+application.register('sidebar', SidebarController);
 application.register('track-view', TrackViewController);

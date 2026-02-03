@@ -1,5 +1,5 @@
-<%# Admin Sidebar Navigation %>
-<nav class="space-y-1">
+<%# Admin Sidebar Navigation - Simplified with collapsible sections %>
+<nav class="space-y-1" data-controller="sidebar">
   <!-- Current Context -->
   <% if Current.tenant %>
     <div class="px-3 py-2 mb-2 bg-blue-50 rounded-md border border-blue-100">
@@ -48,48 +48,216 @@
     <div class="my-3 border-t border-gray-200"></div>
   <% end %>
 
-  <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Site Dashboard</p>
-
+  <!-- Dashboard -->
   <%= link_to admin_root_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path == admin_root_path ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
     <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
     </svg>
-    Overview
+    Dashboard
   <% end %>
 
-  <%= link_to admin_observability_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('observability') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-    </svg>
-    Observability
-  <% end %>
+  <!-- Content Section (Collapsible) -->
+  <% content_active = request.path.include?('content_items') || (request.path.include?('listings') && !request.path.include?('content')) || request.path.include?('submissions') || (request.path.include?('notes') && !request.path.include?('content')) %>
+  <div data-sidebar-target="section" data-section-name="content">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= content_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+        Content
+      </span>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_content_items_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('content_items') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Content Items
+      <% end %>
+      <%= link_to admin_listings_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('listings') && !request.path.include?('content') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Listings
+      <% end %>
+      <%= link_to admin_submissions_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('submissions') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Submissions
+        <% pending = Submission.pending.count rescue 0 %>
+        <% if pending > 0 %>
+          <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= pending %></span>
+        <% end %>
+      <% end %>
+      <%= link_to admin_notes_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('notes') && !request.path.include?('content') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Notes
+      <% end %>
+    </div>
+  </div>
 
-  <%= link_to admin_activity_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('activity') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    Activity
-  <% end %>
-
-  <%= link_to admin_import_runs_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('import_runs') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
+  <!-- Sources (Top-level) -->
+  <%= link_to admin_sources_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('sources') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
     <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
     </svg>
-    Import Runs
+    Sources
   <% end %>
 
-  <%= link_to admin_editorialisations_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('editorialisations') && !request.path.include?('observability') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-    </svg>
-    AI Processing
-  <% end %>
+  <!-- Subscribers Section (Collapsible) -->
+  <% subscribers_active = request.path.include?('digest') || request.path.include?('email_sequences') || (request.path.include?('referrals') && !request.path.include?('tiers')) %>
+  <div data-sidebar-target="section" data-section-name="subscribers">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= subscribers_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+        Subscribers
+      </span>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_digest_subscriptions_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('digest') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Email Subscribers
+      <% end %>
+      <%= link_to admin_email_sequences_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('email_sequences') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Email Sequences
+      <% end %>
+      <%= link_to admin_referrals_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('referrals') && !request.path.include?('tiers') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Referrals
+      <% end %>
+    </div>
+  </div>
 
-  <%= link_to "/admin/jobs", class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900" do %>
+  <!-- Community Section (Collapsible) -->
+  <% community_active = request.path.include?('comments') || request.path.include?('discussions') %>
+  <div data-sidebar-target="section" data-section-name="community">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= community_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
+        </svg>
+        Community
+      </span>
+      <% hidden_comments = Comment.where.not(hidden_at: nil).count rescue 0 %>
+      <% if hidden_comments > 0 %>
+        <span class="mr-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= hidden_comments %></span>
+      <% end %>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_comments_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('comments') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Comments
+        <% if hidden_comments > 0 %>
+          <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= hidden_comments %></span>
+        <% end %>
+      <% end %>
+      <%= link_to admin_discussions_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('discussions') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Discussions
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Moderation Section (Collapsible) -->
+  <% moderation_active = request.path.include?('flags') || request.path.include?('site_bans') %>
+  <% open_flags = Flag.open.count rescue 0 %>
+  <% active_bans = SiteBan.active.count rescue 0 %>
+  <div data-sidebar-target="section" data-section-name="moderation">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= moderation_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        Moderation
+      </span>
+      <% if open_flags > 0 %>
+        <span class="mr-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><%= open_flags %></span>
+      <% end %>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_flags_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('flags') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Flags
+        <% if open_flags > 0 %>
+          <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><%= open_flags %></span>
+        <% end %>
+      <% end %>
+      <%= link_to admin_site_bans_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('site_bans') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Site Bans
+        <% if active_bans > 0 %>
+          <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><%= active_bans %></span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Taxonomy Section (Collapsible) -->
+  <% taxonomy_active = request.path.include?('categories') || request.path.include?('taxonomies') || request.path.include?('tagging_rules') %>
+  <div data-sidebar-target="section" data-section-name="taxonomy">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= taxonomy_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+        </svg>
+        Taxonomy
+      </span>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_categories_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('categories') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Categories
+      <% end %>
+      <%= link_to admin_taxonomies_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('taxonomies') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Taxonomies
+      <% end %>
+      <%= link_to admin_tagging_rules_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('tagging_rules') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Tagging Rules
+      <% end %>
+    </div>
+  </div>
+
+  <!-- System Section (Collapsible) -->
+  <% system_active = request.path.include?('import_runs') || (request.path.include?('editorialisations') && !request.path.include?('observability')) || request.path.include?('jobs') || request.path.include?('observability') || request.path.include?('activity') %>
+  <div data-sidebar-target="section" data-section-name="system">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= system_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        System
+      </span>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_observability_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('observability') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Observability
+      <% end %>
+      <%= link_to admin_activity_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('activity') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Activity
+      <% end %>
+      <%= link_to admin_import_runs_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('import_runs') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Import Runs
+      <% end %>
+      <%= link_to admin_editorialisations_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('editorialisations') && !request.path.include?('observability') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        AI Processing
+      <% end %>
+      <%= link_to "/admin/jobs", class: "group flex items-center px-3 py-1.5 text-sm rounded-md text-gray-500 hover:bg-gray-50 hover:text-gray-900" do %>
+        Background Jobs
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Settings (Top-level) -->
+  <%= link_to admin_sites_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('sites') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
     <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
     </svg>
-    Background Jobs
+    Sites & Domains
   <% end %>
 
   <% unless current_user&.admin? %>
@@ -99,145 +267,5 @@
       </svg>
       Users
     <% end %>
-  <% end %>
-
-  <div class="pt-4">
-    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Content</p>
-  </div>
-
-  <%= link_to admin_content_items_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('content_items') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-    </svg>
-    Content Items
-  <% end %>
-
-  <%= link_to admin_listings_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('listings') && !request.path.include?('content') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-    </svg>
-    Listings
-  <% end %>
-
-  <%= link_to admin_submissions_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('submissions') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-    </svg>
-    Submissions
-    <% pending = Submission.pending.count rescue 0 %>
-    <% if pending > 0 %>
-      <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= pending %></span>
-    <% end %>
-  <% end %>
-
-  <%= link_to admin_notes_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('notes') && !request.path.include?('content') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-    </svg>
-    Notes
-  <% end %>
-
-  <%= link_to admin_comments_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('comments') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-    </svg>
-    Comments
-    <% hidden_comments = Comment.where.not(hidden_at: nil).count rescue 0 %>
-    <% if hidden_comments > 0 %>
-      <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= hidden_comments %></span>
-    <% end %>
-  <% end %>
-
-  <%= link_to admin_discussions_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('discussions') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
-    </svg>
-    Discussions
-  <% end %>
-
-  <%= link_to admin_flags_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('flags') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path>
-    </svg>
-    Flags
-    <% open_flags = Flag.open.count rescue 0 %>
-    <% if open_flags > 0 %>
-      <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><%= open_flags %></span>
-    <% end %>
-  <% end %>
-
-  <%= link_to admin_site_bans_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('site_bans') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
-    </svg>
-    Site Bans
-    <% active_bans = SiteBan.active.count rescue 0 %>
-    <% if active_bans > 0 %>
-      <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><%= active_bans %></span>
-    <% end %>
-  <% end %>
-
-  <div class="pt-4">
-    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Configuration</p>
-  </div>
-
-  <%= link_to admin_sources_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('sources') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-    </svg>
-    Sources
-  <% end %>
-
-  <%= link_to admin_categories_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('categories') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-    </svg>
-    Categories
-  <% end %>
-
-  <%= link_to admin_taxonomies_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('taxonomies') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-    </svg>
-    Taxonomies
-  <% end %>
-
-  <%= link_to admin_tagging_rules_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('tagging_rules') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-    </svg>
-    Tagging Rules
-  <% end %>
-
-  <%= link_to admin_sites_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('sites') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-    </svg>
-    Sites & Domains
-  <% end %>
-
-  <div class="pt-4">
-    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Marketing</p>
-  </div>
-
-  <%= link_to admin_digest_subscriptions_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('digest') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-    </svg>
-    Subscribers
-  <% end %>
-
-  <%= link_to admin_email_sequences_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('email_sequences') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-    </svg>
-    Email Sequences
-  <% end %>
-
-  <%= link_to admin_referrals_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('referrals') && !request.path.include?('tiers') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-    </svg>
-    Referrals
   <% end %>
 </nav>
