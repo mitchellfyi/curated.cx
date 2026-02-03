@@ -67,9 +67,7 @@
                   <% end %>
                 </td>
                 <td class="py-2 text-center">
-                  <span class="px-2 py-1 text-xs rounded-full <%= boost.enabled? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-                    <%= boost.enabled? ? t("admin.network_boosts.enabled") : t("admin.network_boosts.disabled") %>
-                  </span>
+                  <%= status_indicator(boost.enabled? ? :enabled : :disabled) %>
                 </td>
                 <td class="py-2">
                   <%= link_to t("admin.network_boosts.view"), admin_network_boost_path(boost), class: "text-blue-600 hover:underline mr-2" %>
