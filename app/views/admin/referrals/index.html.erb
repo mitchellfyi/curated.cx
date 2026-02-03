@@ -1,7 +1,11 @@
 <% content_for :title, t("admin.referrals.title") %>
 
-<div class="max-w-7xl mx-auto py-8 px-4">
-  <h1 class="text-3xl font-bold mb-6"><%= t("admin.referrals.title") %></h1>
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.referrals.title") %></h1>
+      <p class="mt-2 text-gray-600"><%= t("admin.referrals.description", default: "Track referral activity and rewards") %></p>
+    </div>
 
   <!-- Stats Cards -->
   <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
@@ -98,7 +102,14 @@
         </table>
       </div>
     <% else %>
-      <p class="text-gray-600"><%= t("admin.referrals.no_referrals") %></p>
+      <div class="text-center py-8">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No referrals yet</h3>
+        <p class="mt-1 text-sm text-gray-500"><%= t("admin.referrals.no_referrals") %></p>
+      </div>
     <% end %>
+  </div>
   </div>
 </div>
