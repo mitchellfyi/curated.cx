@@ -206,14 +206,14 @@ class Listing < ApplicationRecord
   # Legacy method for backward compatibility
   def self.recent_published_for_tenant(tenant_id, limit: 20)
     recent_published_for_site(
-      Site.where(tenant_id: tenant_id).pluck(:id).first || tenant_id,
+      Site.where(tenant_id: tenant_id).pick(:id) || tenant_id,
       limit: limit
     )
   end
 
   def self.count_by_category_for_tenant(tenant_id)
     count_by_category_for_site(
-      Site.where(tenant_id: tenant_id).pluck(:id).first || tenant_id
+      Site.where(tenant_id: tenant_id).pick(:id) || tenant_id
     )
   end
 
