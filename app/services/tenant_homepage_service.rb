@@ -47,20 +47,30 @@ class TenantHomepageService
   end
 
   def categories_with_recent_listings
+    # Fetch categories with published listings in a single query
     categories = Category.where(site: @site)
                          .joins(:listings)
                          .where(listings: { site: @site })
                          .where.not(listings: { published_at: nil })
                          .distinct
                          .order(:name)
+                         .to_a
 
-    categories.map do |category|
-      listings = category.listings
-                         .where(site: @site)
-                         .where.not(published_at: nil)
-                         .order(published_at: :desc)
-                         .limit(4)
-      [ category, listings ]
-    end.reject { |_cat, listings| listings.empty? }
+    return [] if categories.empty?
+
+    # Fetch top 4 listings per category in a single query using window function
+    # This avoids N+1 by getting all listings at once
+    category_ids = categories.map(&:id)
+    listings_by_category = Listing.where(site: @site, category_id: category_ids)
+                                  .where.not(published_at: nil)
+                                  .order(category_id: :asc, published_at: :desc)
+                                  .to_a
+                                  .group_by(&:category_id)
+                                  .transform_values { |listings| listings.first(4) }
+
+    categories.filter_map do |category|
+      listings = listings_by_category[category.id] || []
+      [ category, listings ] if listings.any?
+    end
   end
 end

@@ -1,6 +1,6 @@
 <%# Bookmark toggle button for content items and listings %>
-<% bookmarked = user_signed_in? && Bookmark.bookmarked?(current_user, bookmarkable) %>
-<% bookmark = current_user&.bookmarks&.find_by(bookmarkable: bookmarkable) %>
+<% bookmark = user_signed_in? ? current_user.bookmarks.find_by(bookmarkable: bookmarkable) : nil %>
+<% bookmarked = bookmark.present? %>
 
 <div id="bookmark_button_<%= bookmarkable.class.name.underscore %>_<%= bookmarkable.id %>">
   <% if user_signed_in? %>
