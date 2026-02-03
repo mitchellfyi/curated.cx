@@ -36,6 +36,8 @@ class Admin::DashboardController < ApplicationController
       @recent_listings = [ sample_listing ]
     end
     @stats = listing_stats_for_dashboard
+    @system_stats = system_stats
+    @recent_activity = recent_activity
 
     set_page_meta_tags(
       title: t("admin.dashboard.title"),
@@ -58,6 +60,33 @@ class Admin::DashboardController < ApplicationController
       published_listings: result.attributes["published_count"].to_i,
       listings_today: result.attributes["today_count"].to_i
     }
+  end
+
+  def system_stats
+    {
+      users: User.count,
+      users_this_week: User.where("created_at > ?", 1.week.ago).count,
+      content_items: ContentItem.count,
+      notes: Note.count,
+      comments: Comment.count,
+      submissions_pending: Submission.pending.count,
+      flags_open: Flag.open.count,
+      sources_enabled: Source.enabled.count,
+      imports_today: ImportRun.where("started_at > ?", Time.current.beginning_of_day).count,
+      imports_failed_today: ImportRun.failed.where("started_at > ?", Time.current.beginning_of_day).count
+    }
+  rescue
+    {}
+  end
+
+  def recent_activity
+    {
+      submissions: Submission.order(created_at: :desc).limit(5),
+      flags: Flag.open.order(created_at: :desc).limit(5),
+      import_runs: ImportRun.recent.limit(5)
+    }
+  rescue
+    { submissions: [], flags: [], import_runs: [] }
   end
 
   def categories_service
