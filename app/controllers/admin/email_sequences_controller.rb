@@ -6,7 +6,7 @@ class Admin::EmailSequencesController < ApplicationController
   before_action :set_sequence, only: [ :show, :edit, :update, :destroy, :enable, :disable ]
 
   def index
-    @sequences = EmailSequence.where(site: Current.site)
+    @sequences = EmailSequence
                               .order(created_at: :desc)
   end
 

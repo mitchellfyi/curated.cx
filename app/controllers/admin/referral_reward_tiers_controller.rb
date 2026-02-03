@@ -6,7 +6,7 @@ class Admin::ReferralRewardTiersController < ApplicationController
   before_action :set_tier, only: [ :show, :edit, :update, :destroy ]
 
   def index
-    @tiers = ReferralRewardTier.where(site: Current.site)
+    @tiers = ReferralRewardTier
                                .ordered_by_milestone
   end
 

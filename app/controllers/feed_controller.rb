@@ -18,7 +18,7 @@ class FeedController < ApplicationController
       offset: page_offset
     )
 
-    @taxonomies = Taxonomy.where(site: Current.site).roots.by_position
+    @taxonomies = Taxonomy.roots.by_position
     @content_types = content_types_for_site
 
     set_feed_meta_tags
@@ -56,7 +56,7 @@ class FeedController < ApplicationController
   end
 
   def content_types_for_site
-    ContentItem.where(site: Current.site)
+    ContentItem
                .published
                .distinct
                .pluck(:content_type)

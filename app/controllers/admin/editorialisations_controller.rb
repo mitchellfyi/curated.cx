@@ -37,6 +37,6 @@ class Admin::EditorialisationsController < ApplicationController
   end
 
   def base_scope
-    Editorialisation.where(site: Current.site)
+    Editorialisation
   end
 end

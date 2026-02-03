@@ -32,7 +32,7 @@ class FeedsController < ApplicationController
   end
 
   def category
-    @category = Category.where(site: Current.site).find(params[:id])
+    @category = Category.find(params[:id])
     @listings = listings_for_category(@category)
 
     respond_to do |format|
@@ -45,7 +45,7 @@ class FeedsController < ApplicationController
 
   def content_items_for_feed
     ContentItem
-      .where(site: Current.site)
+      
       .published
       .not_hidden
       .order(published_at: :desc)
@@ -54,7 +54,7 @@ class FeedsController < ApplicationController
 
   def listings_for_feed
     Listing
-      .where(site: Current.site)
+      
       .published
       .not_expired
       .order(published_at: :desc)
@@ -64,7 +64,6 @@ class FeedsController < ApplicationController
 
   def listings_for_category(category)
     category.listings
-            .where(site: Current.site)
             .published
             .not_expired
             .order(published_at: :desc)

@@ -6,7 +6,7 @@ class LandingPagesController < ApplicationController
   skip_after_action :verify_policy_scoped
 
   def show
-    @landing_page = LandingPage.where(site: Current.site).by_slug(params[:slug]).first!
+    @landing_page = LandingPage.by_slug(params[:slug]).first!
     authorize @landing_page
 
     # Load featured listings if any listing sections exist
@@ -24,7 +24,6 @@ class LandingPagesController < ApplicationController
     return if listing_ids.empty?
 
     @featured_listings = Listing
-      .where(site: Current.site)
       .where(id: listing_ids)
       .published
       .not_expired

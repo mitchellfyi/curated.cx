@@ -107,11 +107,11 @@ class SitemapsController < ApplicationController
   end
 
   def categories
-    Category.where(site: Current.site).order(:id)
+    Category.order(:id)
   end
 
   def sitemap_listings
-    Listing.where(site: Current.site)
+    Listing
            .published
            .not_expired
            .order(:id)
@@ -119,7 +119,7 @@ class SitemapsController < ApplicationController
   end
 
   def content_items
-    ContentItem.where(site: Current.site)
+    ContentItem
                .published
                .not_hidden
                .order(:id)
@@ -127,10 +127,10 @@ class SitemapsController < ApplicationController
   end
 
   def latest_listing_date
-    Listing.where(site: Current.site).published.maximum(:updated_at) || Time.current
+    Listing.published.maximum(:updated_at) || Time.current
   end
 
   def latest_content_date
-    ContentItem.where(site: Current.site).published.maximum(:updated_at) || Time.current
+    ContentItem.published.maximum(:updated_at) || Time.current
   end
 end

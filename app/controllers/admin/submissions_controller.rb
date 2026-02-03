@@ -7,16 +7,16 @@ class Admin::SubmissionsController < ApplicationController
 
   def index
     @status = params[:status] || "pending"
-    @submissions = Submission.where(site: Current.site)
+    @submissions = Submission
                              .then { |s| @status == "all" ? s : s.where(status: @status) }
                              .includes(:user, :category)
                              .order(created_at: :asc)
                              .limit(100)
 
     @stats = {
-      pending: Submission.where(site: Current.site).pending.count,
-      approved: Submission.where(site: Current.site).approved.count,
-      rejected: Submission.where(site: Current.site).rejected.count
+      pending: Submission.pending.count,
+      approved: Submission.approved.count,
+      rejected: Submission.rejected.count
     }
 
     set_page_meta_tags(

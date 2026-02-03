@@ -48,7 +48,6 @@ class SearchController < ApplicationController
 
   def search_content_items
     ContentItem
-      .where(site: Current.site)
       .published
       .not_hidden
       .search_content(@query)
@@ -57,7 +56,6 @@ class SearchController < ApplicationController
 
   def search_listings
     Listing
-      .where(site: Current.site)
       .published
       .search_content(@query)
       .limit(PER_PAGE)

@@ -13,7 +13,7 @@ class Admin::AffiliateClicksController < ApplicationController
     @stats = calculate_stats
     @daily_clicks = calculate_daily_clicks
     @top_listings = calculate_top_listings(limit: 10)
-    @categories = Category.where(site: Current.site).order(:name)
+    @categories = Category.order(:name)
 
     set_page_meta_tags(
       title: t("admin.affiliate_clicks.title"),

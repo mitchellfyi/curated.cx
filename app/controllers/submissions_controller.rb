@@ -29,7 +29,7 @@ class SubmissionsController < ApplicationController
   def new
     @submission = Submission.new
     authorize @submission
-    @categories = Category.where(site: Current.site).order(:name)
+    @categories = Category.order(:name)
 
     set_page_meta_tags(
       title: t("submissions.new.title"),
@@ -47,7 +47,7 @@ class SubmissionsController < ApplicationController
     if @submission.save
       redirect_to submissions_path, notice: t("submissions.created")
     else
-      @categories = Category.where(site: Current.site).order(:name)
+      @categories = Category.order(:name)
       render :new, status: :unprocessable_entity
     end
   end

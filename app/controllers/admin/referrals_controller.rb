@@ -6,7 +6,7 @@ class Admin::ReferralsController < ApplicationController
   before_action :set_referral, only: [ :show, :update ]
 
   def index
-    @referrals = Referral.where(site: Current.site)
+    @referrals = Referral
                          .includes(referrer_subscription: :user, referee_subscription: :user)
                          .order(created_at: :desc)
                          .limit(100)
@@ -33,7 +33,7 @@ class Admin::ReferralsController < ApplicationController
   end
 
   def calculate_stats
-    referrals = Referral.where(site: Current.site)
+    referrals = Referral
     {
       total: referrals.count,
       pending: referrals.pending.count,
@@ -54,7 +54,7 @@ class Admin::ReferralsController < ApplicationController
   end
 
   def top_referrers
-    DigestSubscription.where(site: Current.site)
+    DigestSubscription
                       .joins(:referrals_as_referrer)
                       .where(referrals: { status: [ :confirmed, :rewarded ] })
                       .group("digest_subscriptions.id")
