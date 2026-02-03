@@ -38,11 +38,7 @@
 
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.referral_reward_tiers.table.status") %></dt>
-        <dd class="mt-1">
-          <span class="px-2 py-1 text-sm rounded-full <%= @tier.active? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-            <%= @tier.active? ? t("admin.referral_reward_tiers.active") : t("admin.referral_reward_tiers.inactive") %>
-          </span>
-        </dd>
+        <dd class="mt-1"><%= status_indicator(@tier.active? ? :active : :inactive) %></dd>
       </div>
     </dl>
   </div>

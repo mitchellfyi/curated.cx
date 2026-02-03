@@ -34,11 +34,7 @@
 
       <div>
         <dt class="text-sm font-medium text-gray-500"><%= t("admin.email_sequences.table.status") %></dt>
-        <dd class="mt-1">
-          <span class="px-2 py-1 text-sm rounded-full <%= @sequence.enabled? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-            <%= @sequence.enabled? ? t("admin.common.enabled") : t("admin.common.disabled") %>
-          </span>
-        </dd>
+        <dd class="mt-1"><%= status_indicator(@sequence.enabled? ? :enabled : :disabled) %></dd>
       </div>
 
       <% if @sequence.trigger_config.present? %>

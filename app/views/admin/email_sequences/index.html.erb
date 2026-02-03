@@ -33,11 +33,7 @@
               <td class="py-3 px-4 text-sm"><%= t("admin.email_sequences.trigger_types.#{sequence.trigger_type}") %></td>
               <td class="py-3 px-4 text-center"><%= sequence.email_steps.count %></td>
               <td class="py-3 px-4 text-center"><%= sequence.sequence_enrollments.count %></td>
-              <td class="py-3 px-4 text-center">
-                <span class="px-2 py-1 text-xs rounded-full <%= sequence.enabled? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-                  <%= sequence.enabled? ? t("admin.common.enabled") : t("admin.common.disabled") %>
-                </span>
-              </td>
+              <td class="py-3 px-4 text-center"><%= status_indicator(sequence.enabled? ? :enabled : :disabled) %></td>
               <td class="py-3 px-4">
                 <%= link_to t("admin.common.edit"),
                             edit_admin_email_sequence_path(sequence),

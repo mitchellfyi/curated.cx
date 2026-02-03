@@ -26,11 +26,7 @@
               <td class="py-3 px-4 font-semibold"><%= tier.milestone %> referrals</td>
               <td class="py-3 px-4"><%= tier.name %></td>
               <td class="py-3 px-4 text-sm"><%= tier.reward_type.humanize %></td>
-              <td class="py-3 px-4 text-center">
-                <span class="px-2 py-1 text-xs rounded-full <%= tier.active? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-                  <%= tier.active? ? t("admin.referral_reward_tiers.active") : t("admin.referral_reward_tiers.inactive") %>
-                </span>
-              </td>
+              <td class="py-3 px-4 text-center"><%= status_indicator(tier.active? ? :active : :inactive) %></td>
               <td class="py-3 px-4">
                 <%= link_to t("admin.referral_reward_tiers.edit"),
                             edit_admin_referral_reward_tier_path(tier),
