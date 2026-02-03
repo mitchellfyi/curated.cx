@@ -156,6 +156,28 @@ class Listing < ApplicationRecord
   scope :with_affiliate, -> { where.not(affiliate_url_template: [ nil, "" ]) }
   scope :paid_listings, -> { where(paid: true) }
 
+  # Freshness scopes
+  scope :from_today, -> { where("published_at >= ?", Time.current.beginning_of_day) }
+  scope :from_this_week, -> { where("published_at >= ?", 1.week.ago.beginning_of_day) }
+  scope :from_this_month, -> { where("published_at >= ?", 1.month.ago.beginning_of_day) }
+
+  # Combined filter scope
+  scope :filtered, ->(params) {
+    scope = all
+    scope = scope.where(listing_type: params[:type]) if params[:type].present?
+    scope = scope.where(category_id: params[:category_id]) if params[:category_id].present?
+    scope = scope.search_content(params[:q]) if params[:q].present?
+    case params[:freshness]
+    when "today"
+      scope = scope.from_today
+    when "week"
+      scope = scope.from_this_week
+    when "month"
+      scope = scope.from_this_month
+    end
+    scope
+  }
+
   # Scheduling scopes
   scope :scheduled, -> { where("scheduled_for > ?", Time.current) }
   scope :not_scheduled, -> { where(scheduled_for: nil) }

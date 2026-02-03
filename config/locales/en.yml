@@ -1302,8 +1302,30 @@ en:
         other: "%{count} items"
       latest_content: Latest content
       no_listings_yet: No listings yet
+      no_results: No listings found
+      try_different_filters: Try adjusting your filters or search terms.
       title: All Listings
       view_details: View Details
+    search:
+      placeholder: Search tools, jobs, services...
+    filters:
+      type: Type
+      category: Category
+      freshness: Time period
+      all_types: All types
+      all_categories: All categories
+      any_time: Any time
+      today: Today
+      this_week: This week
+      this_month: This month
+      apply: Search
+      clear: Clear filters
+      showing: Showing
+      results: results
+    types:
+      tool: Tool
+      job: Job
+      service: Service
   live_stream_mailer:
     footer:
       manage_preferences: Manage Preferences
