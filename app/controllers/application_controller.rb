@@ -46,7 +46,7 @@ class ApplicationController < ActionController::Base
           redirect_to new_user_session_path
         elsif params[:controller].to_s.start_with?("admin/")
           # For admin controllers, redirect with admin-specific message
-          flash[:alert] = "Access denied. Admin privileges required."
+          flash[:alert] = t("auth.admin_required")
           redirect_to root_path
         else
           # If user is signed in but not authorized, redirect to previous page or root

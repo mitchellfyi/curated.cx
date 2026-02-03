@@ -934,6 +934,7 @@ en:
       description: Manage your account settings, update your password, and configure
         your preferences
       title: Account Settings
+    admin_required: Access denied. Admin privileges required.
     confirmations:
       resend_button: Resend confirmation instructions
       resend_instructions: Didn't receive confirmation instructions?
