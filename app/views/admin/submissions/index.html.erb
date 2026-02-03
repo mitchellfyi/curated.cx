@@ -1,3 +1,5 @@
+<% content_for :title, t("admin.submissions.title") %>
+
 <div class="py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="mb-8">
@@ -5,66 +7,19 @@
       <p class="mt-2 text-gray-600"><%= t("admin.submissions.description") %></p>
     </div>
 
-    <%# Stats %>
+    <%# Stats - simplified style matching other admin pages %>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.pending") %></dt>
-                <dd class="text-lg font-medium text-gray-900"><%= @stats[:pending] %></dd>
-              </dl>
-            </div>
-          </div>
-        </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.pending") %></dt>
+        <dd class="mt-1 text-3xl font-semibold text-yellow-600"><%= @stats[:pending] %></dd>
       </div>
-
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.approved") %></dt>
-                <dd class="text-lg font-medium text-gray-900"><%= @stats[:approved] %></dd>
-              </dl>
-            </div>
-          </div>
-        </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.approved") %></dt>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @stats[:approved] %></dd>
       </div>
-
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.rejected") %></dt>
-                <dd class="text-lg font-medium text-gray-900"><%= @stats[:rejected] %></dd>
-              </dl>
-            </div>
-          </div>
-        </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.submissions.stats.rejected") %></dt>
+        <dd class="mt-1 text-3xl font-semibold text-red-600"><%= @stats[:rejected] %></dd>
       </div>
     </div>
 

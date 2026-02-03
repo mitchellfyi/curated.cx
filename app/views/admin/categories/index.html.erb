@@ -1,6 +1,8 @@
+<% content_for :title, t('admin.categories.title') %>
+
 <div class="py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="mb-8 flex items-center justify-between">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
       <div>
         <h1 class="text-3xl font-bold text-gray-900"><%= t('admin.categories.title') %></h1>
         <p class="mt-2 text-gray-600"><%= t('admin.categories.description', tenant: Current.tenant&.title) %></p>
@@ -14,18 +16,18 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Categories</dt>
-        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= @categories.count %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @categories.count %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total Listings</dt>
-        <dd class="mt-1 text-2xl font-semibold text-blue-600"><%= @categories.sum { |c| c.listings.size } %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @categories.sum { |c| c.listings.size } %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Avg per Category</dt>
-        <dd class="mt-1 text-2xl font-semibold text-green-600"><%= @categories.any? ? (@categories.sum { |c| c.listings.size } / @categories.count.to_f).round(1) : 0 %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @categories.any? ? (@categories.sum { |c| c.listings.size } / @categories.count.to_f).round(1) : 0 %></dd>
       </div>
     </div>
 

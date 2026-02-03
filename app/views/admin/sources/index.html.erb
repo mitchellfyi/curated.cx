@@ -1,6 +1,8 @@
+<% content_for :title, t("admin.sources.index.title") %>
+
 <div class="py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="mb-8 flex justify-between items-center">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
       <div>
         <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.sources.index.title") %></h1>
         <p class="mt-2 text-gray-600"><%= t("admin.sources.index.description") %></p>
@@ -14,22 +16,22 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total Sources</dt>
-        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= @sources.count %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @sources.count %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Enabled</dt>
-        <dd class="mt-1 text-2xl font-semibold text-green-600"><%= @sources.count(&:enabled?) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @sources.count(&:enabled?) %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">SerpAPI</dt>
-        <dd class="mt-1 text-2xl font-semibold text-purple-600"><%= @sources.count { |s| s.kind.to_s.start_with?('serp_api') } %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-purple-600"><%= @sources.count { |s| s.kind.to_s.start_with?('serp_api') } %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">RSS</dt>
-        <dd class="mt-1 text-2xl font-semibold text-blue-600"><%= @sources.count(&:rss?) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @sources.count(&:rss?) %></dd>
       </div>
     </div>
 
