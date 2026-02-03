@@ -17,6 +17,9 @@ Rails.application.routes.draw do
     # Activity feed
     get "activity", to: "activity#index"
 
+    # Health/stats endpoint (JSON)
+    get "health", to: "health#show"
+
     # Observability dashboard
     resource :observability, only: [:show], controller: "observability" do
       get :imports
@@ -103,6 +106,9 @@ Rails.application.routes.draw do
       end
     end
     resources :editorialisations, only: [ :index, :show ] do
+      collection do
+        post :retry_failed
+      end
       member do
         post :retry
       end

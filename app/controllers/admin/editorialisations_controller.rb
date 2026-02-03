@@ -30,6 +30,20 @@ class Admin::EditorialisationsController < ApplicationController
     end
   end
 
+  # POST /admin/editorialisations/retry_failed
+  def retry_failed
+    failed = Editorialisation.by_status("failed").limit(50)
+    count = 0
+
+    failed.find_each do |ed|
+      EditorialiseContentItemJob.perform_later(ed.content_item_id)
+      count += 1
+    end
+
+    redirect_to admin_editorialisations_path(status: "failed"),
+                notice: "Queued #{count} failed editorialisations for retry."
+  end
+
   private
 
   def set_editorialisation

@@ -43,16 +43,25 @@
       </div>
     <% end %>
 
-    <div class="mb-6 flex gap-2">
-      <%= link_to admin_editorialisations_path,
-          class: "px-3 py-1 text-sm rounded-full #{params[:status].blank? ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}" do %>
-        <%= t('admin.editorialisations.all') %>
-      <% end %>
+    <div class="mb-6 flex items-center justify-between">
+      <div class="flex gap-2">
+        <%= link_to admin_editorialisations_path,
+            class: "px-3 py-1 text-sm rounded-full #{params[:status].blank? ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}" do %>
+          <%= t('admin.editorialisations.all') %>
+        <% end %>
       <% %w[completed pending processing failed skipped].each do |status| %>
         <%= link_to admin_editorialisations_path(status: status),
             class: "px-3 py-1 text-sm rounded-full #{params[:status] == status ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}" do %>
           <%= t("admin.editorialisations.status.#{status}") %>
         <% end %>
+      <% end %>
+      </div>
+
+      <% if @stats[:failed].to_i > 0 %>
+        <%= button_to "Retry Failed (#{@stats[:failed]})", retry_failed_admin_editorialisations_path, 
+            method: :post, 
+            class: "px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700",
+            data: { confirm: "Retry all #{@stats[:failed]} failed editorialisations?" } %>
       <% end %>
     </div>
 
