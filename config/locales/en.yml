@@ -1461,10 +1461,12 @@ en:
     logout: Logout
     main_navigation: Main navigation
     my_saves: My Saves
+    my_submissions: My Submissions
     powered_by: Powered by %{brand}
     search_placeholder: Search...
     settings: Settings
     sign_up: Sign up
+    submit: Submit
   network:
     cta:
       button: Get in Touch
