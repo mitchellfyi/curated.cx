@@ -397,6 +397,10 @@ en:
         job: Job
         service: Service
         tool: Tool
+      statuses:
+        published: Published
+        draft: Draft
+        scheduled: Scheduled
       published_now: Listing published
       scheduling:
         currently_scheduled: This listing is scheduled to publish at %{time}

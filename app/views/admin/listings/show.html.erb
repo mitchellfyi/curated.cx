@@ -8,9 +8,9 @@
             <% if @listing.scheduled? %>
               <%= badge(t("admin.listings.scheduling.scheduled"), :yellow) %>
             <% elsif @listing.published? %>
-              <%= badge_success("Published") %>
+              <%= badge_success(t("admin.listings.statuses.published")) %>
             <% else %>
-              <%= badge_warning("Draft") %>
+              <%= badge_warning(t("admin.listings.statuses.draft")) %>
             <% end %>
             <%= badge(t("monetisation.badges.featured"), :purple) if @listing.featured? %>
             <%= badge_danger(t("monetisation.job.expired")) if @listing.expired? %>
