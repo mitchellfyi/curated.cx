@@ -29,9 +29,7 @@
         <div class="px-6 py-4 grid grid-cols-3 gap-4">
           <dt class="text-sm font-medium text-gray-500"><%= t('admin.tagging_rules.form.rule_type') %></dt>
           <dd class="text-sm text-gray-900 col-span-2">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              <%= @tagging_rule.rule_type.humanize %>
-            </span>
+            <%= badge(@tagging_rule.rule_type.humanize, :blue) %>
           </dd>
         </div>
         <div class="px-6 py-4 grid grid-cols-3 gap-4">
@@ -43,11 +41,7 @@
         <div class="px-6 py-4 grid grid-cols-3 gap-4">
           <dt class="text-sm font-medium text-gray-500"><%= t('admin.tagging_rules.form.status') %></dt>
           <dd class="text-sm text-gray-900 col-span-2">
-            <% if @tagging_rule.enabled? %>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"><%= t('admin.tagging_rules.enabled') %></span>
-            <% else %>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"><%= t('admin.tagging_rules.disabled') %></span>
-            <% end %>
+            <%= status_indicator(@tagging_rule.enabled? ? :enabled : :disabled) %>
           </dd>
         </div>
         <div class="px-6 py-4 grid grid-cols-3 gap-4">

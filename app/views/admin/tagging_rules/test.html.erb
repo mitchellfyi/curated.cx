@@ -43,15 +43,7 @@
                   <div class="text-sm text-gray-500"><%= truncate(result[:content_item].url_canonical, length: 60) %></div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <% if result[:match_result][:match] %>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      <%= t('admin.tagging_rules.test.matched') %>
-                    </span>
-                  <% else %>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      <%= t('admin.tagging_rules.test.no_match') %>
-                    </span>
-                  <% end %>
+                  <%= result[:match_result][:match] ? badge_success(t('admin.tagging_rules.test.matched')) : badge(t('admin.tagging_rules.test.no_match'), :gray) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <% if result[:match_result][:match] %>
