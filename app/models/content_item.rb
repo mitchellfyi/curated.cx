@@ -64,6 +64,9 @@ class ContentItem < ApplicationRecord
   # Delegate common site attributes for cleaner views
   delegate :name, :primary_domain, :primary_hostname, to: :site, prefix: true, allow_nil: true
 
+  # Delegate common source attributes
+  delegate :name, to: :source, prefix: true, allow_nil: true
+
   # Full-text search
   pg_search_scope :search_content,
     against: {

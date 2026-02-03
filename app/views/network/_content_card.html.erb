@@ -50,9 +50,9 @@
 
     <%# Source and engagement %>
     <div class="flex items-center justify-between text-sm text-gray-500">
-      <% if content_item.source.present? %>
-        <span class="truncate max-w-[50%]" title="<%= content_item.source.name %>">
-          <%= content_item.source.name %>
+      <% if content_item.source_name.present? %>
+        <span class="truncate max-w-[50%]" title="<%= content_item.source_name %>">
+          <%= content_item.source_name %>
         </span>
       <% else %>
         <span></span>
