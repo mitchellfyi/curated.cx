@@ -77,6 +77,11 @@
       </section>
     <% end %>
 
+    <%# Newsletter CTA %>
+    <section class="mb-12">
+      <%= render 'shared/newsletter_cta' %>
+    </section>
+
     <%# Empty state when no content %>
     <% if @content_items&.empty? && @categories_with_listings&.empty? %>
       <div class="text-center py-12">

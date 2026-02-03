@@ -1467,6 +1467,13 @@ en:
     settings: Settings
     sign_up: Sign up
     submit: Submit
+  newsletter:
+    cta:
+      title: Stay updated with %{site}
+      description: Get the latest news, tools, and insights delivered to your inbox.
+      subscribe: Subscribe to Newsletter
+      manage_preferences: Manage Preferences
+      frequency: Daily or weekly digest • Unsubscribe anytime
   network:
     cta:
       button: Get in Touch
