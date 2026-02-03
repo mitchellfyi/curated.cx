@@ -25,11 +25,7 @@
             <% if post.edited? %>
               <span class="text-gray-400"><%= t("comments.edited") %></span>
             <% end %>
-            <% if post.hidden? %>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                <%= t("discussion_posts.hidden") %>
-              </span>
-            <% end %>
+            <%= badge_danger(t("discussion_posts.hidden")) if post.hidden? %>
           </div>
 
           <%# Post body %>
