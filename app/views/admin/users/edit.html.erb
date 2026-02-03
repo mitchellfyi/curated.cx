@@ -1,0 +1,54 @@
+<div class="py-8">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <%= link_to "← Back to User", admin_user_path(@user), class: "text-gray-600 hover:underline text-sm" %>
+      <h1 class="mt-4 text-3xl font-bold text-gray-900">Edit User</h1>
+      <p class="mt-2 text-gray-600"><%= @user.email %></p>
+    </div>
+
+    <%= form_with model: @user, url: admin_user_path(@user), method: :patch, class: "space-y-6" do |f| %>
+      <% if @user.errors.any? %>
+        <div class="rounded-md bg-red-50 p-4">
+          <div class="flex">
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">There were errors:</h3>
+              <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                <% @user.errors.full_messages.each do |msg| %>
+                  <li><%= msg %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="bg-white shadow rounded-lg p-6 space-y-6">
+        <div>
+          <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.email_field :email, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", readonly: true, disabled: true %>
+          <p class="mt-1 text-xs text-gray-500">Email cannot be changed from admin panel</p>
+        </div>
+
+        <div>
+          <%= f.label :display_name, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_field :display_name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+
+        <div>
+          <%= f.label :bio, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.text_area :bio, rows: 4, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+
+        <div>
+          <%= f.label :avatar_url, "Avatar URL", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.url_field :avatar_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://example.com/avatar.jpg" %>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <%= link_to "Cancel", admin_user_path(@user), class: "px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+        <%= f.submit "Save Changes", class: "px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+</div>
