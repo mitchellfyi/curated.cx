@@ -1,10 +1,19 @@
 <% content_for :title, t("admin.boost_earnings.title") %>
 
-<div class="max-w-7xl mx-auto py-8 px-4">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold"><%= t("admin.boost_earnings.title") %></h1>
-    <%= link_to t("admin.boost_earnings.export_csv"), export_admin_boost_earnings_path(period: @period, format: :csv), class: "bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300" %>
-  </div>
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.boost_earnings.title") %></h1>
+        <p class="mt-2 text-gray-600"><%= t("admin.boost_earnings.description", default: "Track earnings from network boosts") %></p>
+      </div>
+      <%= link_to export_admin_boost_earnings_path(period: @period, format: :csv), class: button_classes(variant: :secondary) do %>
+        <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        <%= t("admin.boost_earnings.export_csv") %>
+      <% end %>
+    </div>
 
   <!-- Period Filter -->
   <div class="mb-6">
@@ -91,4 +100,5 @@
       </div>
     </div>
   <% end %>
+  </div>
 </div>

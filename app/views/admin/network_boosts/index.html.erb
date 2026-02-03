@@ -1,10 +1,19 @@
 <% content_for :title, t("admin.network_boosts.title") %>
 
-<div class="max-w-7xl mx-auto py-8 px-4">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold"><%= t("admin.network_boosts.title") %></h1>
-    <%= link_to t("admin.network_boosts.new"), new_admin_network_boost_path, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
-  </div>
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.network_boosts.title") %></h1>
+        <p class="mt-2 text-gray-600"><%= t("admin.network_boosts.description", default: "Manage cross-network content promotion") %></p>
+      </div>
+      <%= link_to new_admin_network_boost_path, class: button_classes(variant: :primary) do %>
+        <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <%= t("admin.network_boosts.new") %>
+      <% end %>
+    </div>
 
   <!-- Stats Cards -->
   <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
@@ -79,7 +88,22 @@
         </table>
       </div>
     <% else %>
-      <p class="text-gray-600"><%= t("admin.network_boosts.no_boosts") %></p>
+      <div class="text-center py-8">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No boosts yet</h3>
+        <p class="mt-1 text-sm text-gray-500"><%= t("admin.network_boosts.no_boosts") %></p>
+        <div class="mt-6">
+          <%= link_to new_admin_network_boost_path, class: button_classes(variant: :primary) do %>
+            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <%= t("admin.network_boosts.new") %>
+          <% end %>
+        </div>
+      </div>
     <% end %>
+  </div>
   </div>
 </div>
