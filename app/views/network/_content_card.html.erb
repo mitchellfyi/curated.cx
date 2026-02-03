@@ -43,9 +43,7 @@
     <% if content_item.topic_tags.any? %>
       <div class="flex flex-wrap gap-1 mb-3">
         <% content_item.topic_tags.first(3).each do |tag| %>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-600 bg-gray-100">
-            <%= tag.titleize %>
-          </span>
+          <%= badge(tag.titleize, :gray) %>
         <% end %>
       </div>
     <% end %>

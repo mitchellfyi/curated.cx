@@ -14,9 +14,7 @@
           </p>
         <% end %>
       </div>
-      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-500 bg-gray-50">
-        <%= t('boosts.sponsored') %>
-      </span>
+      <%= badge(t('boosts.sponsored'), :gray) %>
     </div>
 
     <% if site.description.present? %>
@@ -28,9 +26,7 @@
     <% if site.topics.any? %>
       <div class="flex flex-wrap gap-1 mb-3">
         <% site.topics.first(2).each do |topic| %>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-600 bg-gray-100">
-            <%= topic %>
-          </span>
+          <%= badge(topic, :gray) %>
         <% end %>
       </div>
     <% end %>
