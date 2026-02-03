@@ -14,7 +14,7 @@
             <% end %>
             <%= badge(t("monetisation.badges.featured"), :purple) if @listing.featured? %>
             <%= badge_danger(t("monetisation.job.expired")) if @listing.expired? %>
-            <%= badge_success("Paid") if @listing.paid? %>
+            <%= badge_success(t("admin.listings.statuses.paid")) if @listing.paid? %>
           </div>
           <h1 class="text-3xl font-bold text-gray-900"><%= @listing.title %></h1>
           <p class="mt-2 text-gray-600"><%= @listing.category.name %> &middot; <%= @listing.domain %></p>
@@ -278,7 +278,7 @@
               <div>
                 <dt class="text-sm font-medium text-gray-500">Status</dt>
                 <dd class="mt-1">
-                  <%= @listing.paid? ? badge_success("Paid") : badge("Free", :gray) %>
+                  <%= @listing.paid? ? badge_success(t("admin.listings.statuses.paid")) : badge(t("admin.listings.statuses.free"), :gray) %>
                 </dd>
               </div>
               <% if @listing.payment_reference.present? %>

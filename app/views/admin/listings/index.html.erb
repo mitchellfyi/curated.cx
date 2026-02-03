@@ -51,7 +51,7 @@
                       <% end %>
                       <%= badge(t("monetisation.badges.featured"), :purple) if listing.featured? %>
                       <%= badge_danger(t("monetisation.job.expired")) if listing.expired? %>
-                      <%= badge_success("Paid") if listing.paid? %>
+                      <%= badge_success(t("admin.listings.statuses.paid")) if listing.paid? %>
                       <%= badge("Affiliate", :yellow) if listing.has_affiliate? %>
                     </div>
                     <h3 class="text-lg font-medium text-gray-900">

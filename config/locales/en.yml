@@ -205,6 +205,9 @@ en:
       locked: Discussion has been locked.
       no_discussions: No discussions yet.
       pinned: Discussion has been pinned.
+      statuses:
+        open: Open
+        hidden: Hidden
       show:
         back: Back to Discussions
         moderation: Moderation Actions
@@ -401,6 +404,8 @@ en:
         published: Published
         draft: Draft
         scheduled: Scheduled
+        paid: Paid
+        free: Free
       published_now: Listing published
       scheduling:
         currently_scheduled: This listing is scheduled to publish at %{time}

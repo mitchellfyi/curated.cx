@@ -101,7 +101,7 @@
                   <% if post.edited? %>
                     <span class="text-gray-400">(edited)</span>
                   <% end %>
-                  <%= badge_danger("Hidden") if post.hidden? %>
+                  <%= badge_danger(t("admin.discussions.statuses.hidden")) if post.hidden? %>
                 </div>
                 <div class="mt-1 text-gray-700">
                   <%= simple_format(post.body, {}, sanitize: true) %>
@@ -125,7 +125,7 @@
                             <time class="text-gray-500" datetime="<%= reply.created_at.iso8601 %>">
                               <%= time_ago_in_words(reply.created_at) %> ago
                             </time>
-                            <%= badge_danger("Hidden") if reply.hidden? %>
+                            <%= badge_danger(t("admin.discussions.statuses.hidden")) if reply.hidden? %>
                           </div>
                           <div class="mt-1 text-gray-700 text-sm">
                             <%= simple_format(reply.body, {}, sanitize: true) %>
