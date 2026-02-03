@@ -2,16 +2,16 @@
 
 ## Metadata
 
-| Field       | Value                              |
-| ----------- | ---------------------------------- |
-| ID          | `004-001-extract-votable-concern`  |
-| Status      | `done`                             |
-| Completed   | `2026-02-01 19:37`                 |
-| Priority    | `002` High                         |
-| Created     | `2026-02-01 19:20`                 |
-| Started     | `2026-02-01 19:25`                 |
-| Assigned To | `worker-1`                         |
-| Labels      | `technical-debt`, `refactor`       |
+| Field       | Value                             |
+| ----------- | --------------------------------- |
+| ID          | `004-001-extract-votable-concern` |
+| Status      | `done`                            |
+| Completed   | `2026-02-01 19:37`                |
+| Priority    | `002` High                        |
+| Created     | `2026-02-01 19:20`                |
+| Started     | `2026-02-01 19:25`                |
+| Assigned To | `worker-1`                        |
+| Labels      | `technical-debt`, `refactor`      |
 
 ---
 
@@ -20,12 +20,14 @@
 **Intent**: IMPROVE (refactor)
 
 Code duplication exists between `VotesController` and `NoteVotesController`. Both controllers implement identical toggle logic (lines 12-35) that:
+
 1. Checks rate limiting
 2. Finds or creates/destroys a vote
 3. Tracks the action
 4. Responds in multiple formats (HTML, turbo_stream, JSON)
 
 The only differences are:
+
 - **Votable model**: `@content_item` vs `@note`
 - **Set method**: `set_content_item` vs `set_note`
 - **Turbo stream DOM ID**: `vote-button-#{id}` vs `note-vote-button-#{id}`
@@ -67,15 +69,15 @@ Flay analysis identified this as mass=168 duplication.
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| Create Votable concern | none | Need to create from scratch |
-| Concern includes RateLimitable | none | RateLimitable is a model concern; need to decide inclusion strategy |
-| Concern provides toggle action | none | Extract from existing controllers |
-| VotesController uses concern | none | Controller exists, needs refactoring |
-| NoteVotesController uses concern | none | Controller exists, needs refactoring |
-| All existing tests pass | full | Tests exist and are comprehensive |
-| Quality gates pass | full | rubocop and rspec available |
+| Criterion                        | Status | Gap                                                                 |
+| -------------------------------- | ------ | ------------------------------------------------------------------- |
+| Create Votable concern           | none   | Need to create from scratch                                         |
+| Concern includes RateLimitable   | none   | RateLimitable is a model concern; need to decide inclusion strategy |
+| Concern provides toggle action   | none   | Extract from existing controllers                                   |
+| VotesController uses concern     | none   | Controller exists, needs refactoring                                |
+| NoteVotesController uses concern | none   | Controller exists, needs refactoring                                |
+| All existing tests pass          | full   | Tests exist and are comprehensive                                   |
+| Quality gates pass               | full   | rubocop and rspec available                                         |
 
 ### Risks
 
@@ -151,12 +153,12 @@ Flay analysis identified this as mass=168 duplication.
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 3 | Concern file complete, rubocop passes |
-| Step 4 | VotesController tests pass |
-| Step 5 | NoteVotesController tests pass |
-| Step 7 | Full suite green, rubocop clean |
+| After Step | Verify                                |
+| ---------- | ------------------------------------- |
+| Step 3     | Concern file complete, rubocop passes |
+| Step 4     | VotesController tests pass            |
+| Step 5     | NoteVotesController tests pass        |
+| Step 7     | Full suite green, rubocop clean       |
 
 ### Test Plan
 
@@ -172,20 +174,24 @@ Flay analysis identified this as mass=168 duplication.
 ## Notes
 
 **In Scope:**
+
 - Extract common voting toggle logic to concern
 - Refactor both vote controllers to use concern
 - Maintain all existing behavior and test coverage
 
 **Out of Scope:**
+
 - Refactoring view partials (they remain model-specific)
 - Extracting similar comments controller duplication (future task)
 - Adding new tests (existing tests are comprehensive)
 
 **Assumptions:**
+
 - View partials will continue to accept their respective model types
 - Controllers will maintain their current before_action ordering
 
 **Edge Cases:**
+
 - Rate limiting: Handled by existing `RateLimitable` concern (included in new concern)
 - Ban checking: Handled by existing `BanCheckable` concern (included in new concern)
 - Turbo stream responses: Each controller provides its own DOM ID via hook method
@@ -225,21 +231,25 @@ Flay analysis identified this as mass=168 duplication.
 ### 2026-02-01 19:25 - Triage Complete
 
 Quality gates:
+
 - Lint: `bin/rubocop` (rubocop-rails-omakase)
 - Types: N/A (Ruby, no static typing)
 - Tests: `bundle exec rspec`
 - Build: N/A (Rails, no build step)
 
 Task validation:
+
 - Context: clear (duplication identified between two controllers, lines 12-35)
 - Criteria: specific (6 checkboxes with precise requirements)
 - Dependencies: none (RateLimitable and BanCheckable concerns already exist)
 
 Complexity:
+
 - Files: few (create 1, modify 2)
 - Risk: low (comprehensive existing tests, straightforward extraction pattern)
 
 Verified files exist:
+
 - `app/controllers/votes_controller.rb` ✓
 - `app/controllers/note_votes_controller.rb` ✓
 - `app/controllers/concerns/ban_checkable.rb` ✓ (pattern reference)
@@ -247,6 +257,7 @@ Verified files exist:
 - `spec/requests/note_votes_spec.rb` ✓
 
 Note: Manifest quality commands are empty but standard Rails tooling confirmed:
+
 - rubocop via `bin/rubocop`
 - rspec via `bundle exec rspec`
 
@@ -259,6 +270,7 @@ Ready: yes
 - Test coverage: extensive (existing request specs cover all scenarios)
 
 Key findings from codebase analysis:
+
 - `RateLimitable` is in `app/models/concerns/` but controllers include it (this works)
 - View partials expect different local names (`content_item:` vs `note:`) - handled via `votable_partial_locals` hook
 - `note_votes/toggle.turbo_stream.erb` is redundant once concern renders inline
@@ -267,30 +279,37 @@ Key findings from codebase analysis:
 ### 2026-02-01 19:27 - Implementation Progress
 
 Step 1: Create Votable concern skeleton
+
 - Files modified: `app/controllers/concerns/votable.rb` (created)
 - Verification: rubocop pass
 
 Step 2: Add concern interface - required hooks
+
 - Files modified: `app/controllers/concerns/votable.rb`
 - Verification: rubocop pass
 
 Step 3: Add toggle action to concern
+
 - Files modified: `app/controllers/concerns/votable.rb`
 - Verification: rubocop pass
 
 Step 4: Refactor VotesController to use concern
+
 - Files modified: `app/controllers/votes_controller.rb`
 - Verification: rspec spec/requests/votes_spec.rb (15 examples, 0 failures)
 
 Step 5: Refactor NoteVotesController to use concern
+
 - Files modified: `app/controllers/note_votes_controller.rb`
 - Verification: rspec spec/requests/note_votes_spec.rb (17 examples, 0 failures)
 
 Step 6: Delete redundant turbo_stream template
+
 - Files deleted: `app/views/note_votes/toggle.turbo_stream.erb`
 - Verification: rspec spec/requests/note_votes_spec.rb (17 examples, 0 failures)
 
 Step 7: Run full test suite and quality gates
+
 - Verification: rspec (3902 examples, 0 failures, 1 pending)
 - Verification: rubocop (582 files inspected, no offenses detected)
 - Commit: 6e729fa
@@ -298,13 +317,16 @@ Step 7: Run full test suite and quality gates
 ### 2026-02-01 19:32 - Testing Complete
 
 Tests written:
+
 - No new tests required (existing request specs are comprehensive)
 
 Existing test coverage:
+
 - `spec/requests/votes_spec.rb` - 15 tests (integration)
 - `spec/requests/note_votes_spec.rb` - 17 tests (integration)
 
 Coverage of Votable concern functionality:
+
 - toggle action: vote creation/destruction ✓
 - rate limiting: within limit and exceeded ✓
 - ban checking: forbidden for banned users ✓
@@ -314,6 +336,7 @@ Coverage of Votable concern functionality:
 - site isolation: votes scoped to current site ✓
 
 Quality gates:
+
 - Lint: pass (582 files inspected, no offenses)
 - Types: N/A (Ruby)
 - Tests: pass (3902 total, 0 failures, 1 pending)
@@ -324,12 +347,15 @@ CI ready: yes
 ### 2026-02-01 19:36 - Documentation Sync
 
 Docs updated:
+
 - None required (internal refactor, no user-facing API changes)
 
 Inline comments:
+
 - `app/controllers/concerns/votable.rb:1-31` - Comprehensive module documentation with usage example already in place
 
 Consistency:
+
 - Verified: `docs/moderation.md` references RateLimitable pattern (lines 403-411) - example still conceptually valid; Votable now includes RateLimitable internally
 - Verified: `docs/ARCHITECTURE.md` - high-level architecture, doesn't document controller concerns
 - Verified: New concern has complete inline documentation with example usage
@@ -339,12 +365,14 @@ No changes needed: task was internal refactor with no API surface changes
 ### 2026-02-01 19:37 - Review Complete
 
 Findings:
+
 - Blockers: 0
 - High: 0
 - Medium: 0
 - Low: 0
 
 Review passes:
+
 - Correctness: pass - happy/edge paths traced, no silent failures
 - Design: pass - clean concern pattern, consistent with codebase
 - Security: pass - auth, authz (Pundit), rate limiting, site isolation all present

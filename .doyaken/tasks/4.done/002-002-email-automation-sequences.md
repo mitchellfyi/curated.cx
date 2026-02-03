@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `002-002-email-automation-sequences`                   |
-| Status      | `done`                                                 |
-| Priority    | `002` High                                             |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 16:05`                                     |
-| Completed   | `2026-01-30 16:50`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-30 16:00` |
+| Field       | Value                                |
+| ----------- | ------------------------------------ |
+| ID          | `002-002-email-automation-sequences` |
+| Status      | `done`                               |
+| Priority    | `002` High                           |
+| Created     | `2026-01-30 15:30`                   |
+| Started     | `2026-01-30 16:05`                   |
+| Completed   | `2026-01-30 16:50`                   |
+| Blocked By  |                                      |
+| Blocks      |                                      |
+| Assigned To | `worker-1`                           |
+| Assigned At | `2026-01-30 16:00`                   |
 
 ---
 
@@ -34,6 +34,7 @@ Curated currently provides only periodic digest emails (weekly/daily) via `SendD
 ### User Value
 
 Publishers need automated sequences to:
+
 1. **Welcome new subscribers** - First impression matters, introduce the publication
 2. **Nurture engagement** - Drive subscribers to engage with content
 3. **Re-engage inactive subscribers** - Win back churning subscribers
@@ -41,15 +42,16 @@ Publishers need automated sequences to:
 
 ### Existing Infrastructure (will integrate with)
 
-| Component | Purpose | Key Patterns |
-|-----------|---------|--------------|
-| `DigestSubscription` | Subscriber record | `SiteScoped`, `last_sent_at` tracking, `unsubscribe_token` |
-| `DigestMailer` | Sends digest emails | Cascading from address (site→tenant→default), i18n subjects |
+| Component             | Purpose                  | Key Patterns                                                              |
+| --------------------- | ------------------------ | ------------------------------------------------------------------------- |
+| `DigestSubscription`  | Subscriber record        | `SiteScoped`, `last_sent_at` tracking, `unsubscribe_token`                |
+| `DigestMailer`        | Sends digest emails      | Cascading from address (site→tenant→default), i18n subjects               |
 | `SendDigestEmailsJob` | Background email sending | `find_each(batch_size: 100)`, `ActsAsTenant.with_tenant`, `deliver_later` |
-| `ReferralMailer` | Referral notifications | Event-based emails, same from address pattern |
-| `Referral` model | Referral tracking | Status enum (pending→confirmed→rewarded→cancelled) |
+| `ReferralMailer`      | Referral notifications   | Event-based emails, same from address pattern                             |
+| `Referral` model      | Referral tracking        | Status enum (pending→confirmed→rewarded→cancelled)                        |
 
 ### RICE Score
+
 - **Reach**: 800 subscribers
 - **Impact**: 3 (high)
 - **Confidence**: 100%
@@ -63,6 +65,7 @@ Publishers need automated sequences to:
 All must be checked before moving to done:
 
 ### Models & Data Layer
+
 - [x] `EmailSequence` model: `site_id`, `name`, `trigger_type` (enum), `enabled`, `settings` (jsonb)
 - [x] `EmailStep` model: `email_sequence_id`, `position`, `delay_seconds`, `subject`, `body_html`, `body_text`
 - [x] `SequenceEnrollment` model: `email_sequence_id`, `digest_subscription_id`, `status` (enum: active/completed/stopped), `current_step_id`, `enrolled_at`, `completed_at`
@@ -71,10 +74,12 @@ All must be checked before moving to done:
 - [x] `SiteScoped` concern included on site-owned models
 
 ### Trigger Types (Phase 1)
+
 - [x] `subscriber_joined` - Triggers when DigestSubscription is created
 - [x] `referral_milestone` - Triggers when referral count reaches threshold (integrate with existing `ReferralRewardService`)
 
 ### Email Sending
+
 - [x] `ProcessSequenceEnrollmentsJob` - Processes pending emails for active enrollments
 - [x] `SequenceMailer` - ActionMailer for sending sequence emails
 - [x] Integration with existing from-address pattern (site→tenant→default cascade)
@@ -82,6 +87,7 @@ All must be checked before moving to done:
 - [x] Batch processing with `find_each(batch_size: 100)`
 
 ### Admin Interface
+
 - [x] `Admin::EmailSequencesController` with full CRUD
 - [x] `Admin::EmailStepsController` nested under sequences
 - [x] Index view: list sequences with status, trigger type, enrollment count
@@ -90,6 +96,7 @@ All must be checked before moving to done:
 - [x] Enable/disable toggle for sequences
 
 ### Testing
+
 - [x] Model specs for all new models with validations and associations
 - [x] Job spec for `ProcessSequenceEnrollmentsJob`
 - [x] Mailer spec for `SequenceMailer`
@@ -97,6 +104,7 @@ All must be checked before moving to done:
 - [x] Factory definitions for all new models
 
 ### Quality
+
 - [x] Tests written and passing
 - [x] Quality gates pass
 - [x] i18n keys for all user-facing strings
@@ -108,22 +116,22 @@ All must be checked before moving to done:
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| `EmailSequence` model | none | Create migration, model, factory, spec |
-| `EmailStep` model | none | Create migration, model, factory, spec |
-| `SequenceEnrollment` model | none | Create migration, model, factory, spec |
-| `SequenceEmail` model | none | Create migration, model, factory, spec |
-| Foreign keys & indexes | none | Include in migrations |
-| `SiteScoped` concern | partial | Pattern exists in `Referral`, apply to new models |
-| `subscriber_joined` trigger | none | Add callback in `DigestSubscription` |
-| `referral_milestone` trigger | none | Add call in `ReferralRewardService.check_and_award!` |
-| `ProcessSequenceEnrollmentsJob` | none | Create (mirror `SendDigestEmailsJob` pattern) |
-| `SequenceMailer` | none | Create (mirror `DigestMailer` from-address pattern) |
-| Admin controllers | none | Create (mirror `ReferralRewardTiersController` pattern) |
-| Admin views | none | Create all views |
-| Request specs | none | Create (mirror `referral_reward_tiers_spec.rb` pattern) |
-| i18n keys | none | Add to `en.yml` under `admin.email_sequences` |
+| Criterion                       | Status  | Gap                                                     |
+| ------------------------------- | ------- | ------------------------------------------------------- |
+| `EmailSequence` model           | none    | Create migration, model, factory, spec                  |
+| `EmailStep` model               | none    | Create migration, model, factory, spec                  |
+| `SequenceEnrollment` model      | none    | Create migration, model, factory, spec                  |
+| `SequenceEmail` model           | none    | Create migration, model, factory, spec                  |
+| Foreign keys & indexes          | none    | Include in migrations                                   |
+| `SiteScoped` concern            | partial | Pattern exists in `Referral`, apply to new models       |
+| `subscriber_joined` trigger     | none    | Add callback in `DigestSubscription`                    |
+| `referral_milestone` trigger    | none    | Add call in `ReferralRewardService.check_and_award!`    |
+| `ProcessSequenceEnrollmentsJob` | none    | Create (mirror `SendDigestEmailsJob` pattern)           |
+| `SequenceMailer`                | none    | Create (mirror `DigestMailer` from-address pattern)     |
+| Admin controllers               | none    | Create (mirror `ReferralRewardTiersController` pattern) |
+| Admin views                     | none    | Create all views                                        |
+| Request specs                   | none    | Create (mirror `referral_reward_tiers_spec.rb` pattern) |
+| i18n keys                       | none    | Add to `en.yml` under `admin.email_sequences`           |
 
 ### Risks
 
@@ -138,24 +146,28 @@ All must be checked before moving to done:
 #### Step 1: Database Migrations
 
 **1a. Create `email_sequences` table**
+
 - File: `db/migrate/YYYYMMDDHHMMSS_create_email_sequences.rb`
 - Columns: `site_id:references`, `name:string`, `trigger_type:integer`, `trigger_config:jsonb`, `enabled:boolean(default:false)`, timestamps
 - Indexes: `site_id`, composite `(site_id, trigger_type, enabled)`
 - Verify: Migration runs without errors
 
 **1b. Create `email_steps` table**
+
 - File: `db/migrate/YYYYMMDDHHMMSS_create_email_steps.rb`
 - Columns: `email_sequence_id:references`, `position:integer`, `delay_seconds:integer(default:0)`, `subject:string`, `body_html:text`, `body_text:text`, timestamps
 - Indexes: `email_sequence_id`, unique composite `(email_sequence_id, position)`
 - Verify: Migration runs without errors
 
 **1c. Create `sequence_enrollments` table**
+
 - File: `db/migrate/YYYYMMDDHHMMSS_create_sequence_enrollments.rb`
 - Columns: `email_sequence_id:references`, `digest_subscription_id:references`, `status:integer(default:0)`, `current_step_position:integer`, `enrolled_at:datetime`, `completed_at:datetime`, timestamps
 - Indexes: unique composite `(email_sequence_id, digest_subscription_id)`, `status`
 - Verify: Migration runs without errors
 
 **1d. Create `sequence_emails` table**
+
 - File: `db/migrate/YYYYMMDDHHMMSS_create_sequence_emails.rb`
 - Columns: `sequence_enrollment_id:references`, `email_step_id:references`, `status:integer(default:0)`, `scheduled_for:datetime`, `sent_at:datetime`, timestamps
 - Indexes: `sequence_enrollment_id`, composite `(status, scheduled_for)`
@@ -166,6 +178,7 @@ All must be checked before moving to done:
 #### Step 2: Models
 
 **2a. EmailSequence model**
+
 - File: `app/models/email_sequence.rb`
 - Include `SiteScoped`
 - `belongs_to :site`, `has_many :email_steps, dependent: :destroy`, `has_many :sequence_enrollments, dependent: :destroy`
@@ -175,6 +188,7 @@ All must be checked before moving to done:
 - Verify: `EmailSequence.new` in console
 
 **2b. EmailStep model**
+
 - File: `app/models/email_step.rb`
 - `belongs_to :email_sequence`, `has_many :sequence_emails, dependent: :destroy`
 - Validations: presence of `subject`, `body_html`; `position >= 0`, `delay_seconds >= 0`
@@ -183,6 +197,7 @@ All must be checked before moving to done:
 - Verify: `EmailStep.new` in console
 
 **2c. SequenceEnrollment model**
+
 - File: `app/models/sequence_enrollment.rb`
 - `belongs_to :email_sequence`, `belongs_to :digest_subscription`, `has_many :sequence_emails, dependent: :destroy`
 - Enum: `status` (active: 0, completed: 1, stopped: 2)
@@ -191,6 +206,7 @@ All must be checked before moving to done:
 - Verify: `SequenceEnrollment.new` in console
 
 **2d. SequenceEmail model**
+
 - File: `app/models/sequence_email.rb`
 - `belongs_to :sequence_enrollment`, `belongs_to :email_step`
 - Enum: `status` (pending: 0, sent: 1, failed: 2)
@@ -203,23 +219,27 @@ All must be checked before moving to done:
 #### Step 3: Factories
 
 **3a. email_sequences factory**
+
 - File: `spec/factories/email_sequences.rb`
 - Base: `site`, `name { "Welcome Sequence" }`, `trigger_type { :subscriber_joined }`
 - Traits: `:enabled`, `:with_steps` (3 steps), `:referral_milestone_trigger`
 - Verify: `FactoryBot.build(:email_sequence).valid?`
 
 **3b. email_steps factory**
+
 - File: `spec/factories/email_steps.rb`
 - Base: `email_sequence`, `sequence { |n| n }` for position, `delay_seconds { 0 }`, `subject`, `body_html`, `body_text`
 - Verify: `FactoryBot.build(:email_step).valid?`
 
 **3c. sequence_enrollments factory**
+
 - File: `spec/factories/sequence_enrollments.rb`
 - Base: `email_sequence`, `digest_subscription`, `enrolled_at { Time.current }`
 - Traits: `:active`, `:completed`, `:stopped`
 - Verify: `FactoryBot.build(:sequence_enrollment).valid?`
 
 **3d. sequence_emails factory**
+
 - File: `spec/factories/sequence_emails.rb`
 - Base: `sequence_enrollment`, `email_step`, `scheduled_for { Time.current }`
 - Traits: `:pending`, `:sent`, `:failed`, `:due`, `:future`
@@ -230,22 +250,26 @@ All must be checked before moving to done:
 #### Step 4: Model Specs
 
 **4a. email_sequence_spec.rb**
+
 - File: `spec/models/email_sequence_spec.rb`
 - Test: associations, validations, enums, scopes, SiteScoped inclusion
 - Pattern: Mirror `spec/models/referral_spec.rb` structure
 - Verify: `bundle exec rspec spec/models/email_sequence_spec.rb`
 
 **4b. email_step_spec.rb**
+
 - File: `spec/models/email_step_spec.rb`
 - Test: associations, validations, `ordered` scope, `delay_duration` method
 - Verify: `bundle exec rspec spec/models/email_step_spec.rb`
 
 **4c. sequence_enrollment_spec.rb**
+
 - File: `spec/models/sequence_enrollment_spec.rb`
 - Test: associations, validations, status enum, `stop!`, `complete!`, `schedule_next_email!`
 - Verify: `bundle exec rspec spec/models/sequence_enrollment_spec.rb`
 
 **4d. sequence_email_spec.rb**
+
 - File: `spec/models/sequence_email_spec.rb`
 - Test: associations, validations, scopes (`pending`, `due`), `mark_sent!`, `mark_failed!`
 - Verify: `bundle exec rspec spec/models/sequence_email_spec.rb`
@@ -273,12 +297,14 @@ All must be checked before moving to done:
 #### Step 6: Trigger Integration
 
 **6a. DigestSubscription callback**
+
 - File: `app/models/digest_subscription.rb`
 - Add: `after_create_commit :enroll_in_sequences`
 - Private method: `def enroll_in_sequences; SequenceEnrollmentService.new(self).enroll_on_subscription!; end`
 - Verify: Creating a subscription enrolls it in matching sequences
 
 **6b. ReferralRewardService integration**
+
 - File: `app/services/referral_reward_service.rb`
 - In `check_and_award!`, after `send_reward_email(tier)`:
   - Add: `enroll_in_milestone_sequences(tier.milestone)`
@@ -290,6 +316,7 @@ All must be checked before moving to done:
 #### Step 7: Mailer
 
 **7a. SequenceMailer**
+
 - File: `app/mailers/sequence_mailer.rb`
 - Method: `step_email(sequence_email)`
 - Set `@sequence_email`, `@step`, `@enrollment`, `@subscription`, `@user`, `@site`, `@tenant`
@@ -299,6 +326,7 @@ All must be checked before moving to done:
 - Verify: Mailer can be instantiated
 
 **7b. Mailer views**
+
 - File: `app/views/sequence_mailer/step_email.html.erb`
 - Use `@step.body_html` as main content
 - Include unsubscribe link using `@subscription.unsubscribe_token`
@@ -355,6 +383,7 @@ All must be checked before moving to done:
 
 - File: `config/routes.rb`
 - Add within `namespace :admin` block (after `resources :referral_reward_tiers`):
+
 ```ruby
 resources :email_sequences do
   member do
@@ -364,6 +393,7 @@ resources :email_sequences do
   resources :email_steps, except: [:index]
 end
 ```
+
 - Verify: `rails routes | grep email_sequences` shows expected routes
 
 ---
@@ -371,6 +401,7 @@ end
 #### Step 12: Admin Controllers
 
 **12a. EmailSequencesController**
+
 - File: `app/controllers/admin/email_sequences_controller.rb`
 - Include `AdminAccess`
 - `before_action :set_sequence, only: [:show, :edit, :update, :destroy, :enable, :disable]`
@@ -381,6 +412,7 @@ end
 - Verify: Controller loads without syntax errors
 
 **12b. EmailStepsController**
+
 - File: `app/controllers/admin/email_steps_controller.rb`
 - Include `AdminAccess`
 - `before_action :set_sequence`
@@ -394,6 +426,7 @@ end
 #### Step 13: Admin Views
 
 **13a. Email Sequences views**
+
 - `app/views/admin/email_sequences/index.html.erb` - Table with name, trigger type, enabled badge, step count, enrollment count, actions
 - `app/views/admin/email_sequences/show.html.erb` - Sequence details, enable/disable button, steps timeline, add step button
 - `app/views/admin/email_sequences/new.html.erb` - Render form partial
@@ -402,6 +435,7 @@ end
 - Verify: Index view renders
 
 **13b. Email Steps views**
+
 - `app/views/admin/email_steps/show.html.erb` - Step details, email preview
 - `app/views/admin/email_steps/new.html.erb` - Render form partial
 - `app/views/admin/email_steps/edit.html.erb` - Render form partial
@@ -413,6 +447,7 @@ end
 #### Step 14: Admin Request Specs
 
 **14a. email_sequences_spec.rb**
+
 - File: `spec/requests/admin/email_sequences_spec.rb`
 - Pattern: Mirror `spec/requests/admin/referral_reward_tiers_spec.rb`
 - Test: authentication/authorization (not signed in, regular user, admin, tenant owner)
@@ -425,6 +460,7 @@ end
 - Verify: `bundle exec rspec spec/requests/admin/email_sequences_spec.rb`
 
 **14b. email_steps_spec.rb**
+
 - File: `spec/requests/admin/email_steps_spec.rb`
 - Test: authentication/authorization
 - Test: show displays step
@@ -439,6 +475,7 @@ end
 
 - File: `config/locales/en.yml`
 - Add under `admin`:
+
 ```yaml
 email_sequences:
   title: Email Sequences
@@ -493,6 +530,7 @@ email_steps:
     cancel: Cancel
     errors: Please fix the following errors
 ```
+
 - Verify: i18n keys resolve in console
 
 ---
@@ -512,14 +550,14 @@ email_steps:
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 1 | `rails db:migrate && rails db:rollback STEP=4 && rails db:migrate` |
-| Step 4 | `bundle exec rspec spec/models/email_*_spec.rb spec/models/sequence_*_spec.rb` |
-| Step 6 | Manual: create subscription, verify enrollment created |
-| Step 10 | `bundle exec rspec spec/mailers/sequence_mailer_spec.rb spec/jobs/process_sequence_enrollments_job_spec.rb` |
-| Step 14 | `bundle exec rspec spec/requests/admin/email_*_spec.rb` |
-| Step 16 | Full test suite: `bundle exec rspec --exclude-pattern "spec/{performance,system}/**/*_spec.rb"` |
+| After Step | Verify                                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------------------------- |
+| Step 1     | `rails db:migrate && rails db:rollback STEP=4 && rails db:migrate`                                          |
+| Step 4     | `bundle exec rspec spec/models/email_*_spec.rb spec/models/sequence_*_spec.rb`                              |
+| Step 6     | Manual: create subscription, verify enrollment created                                                      |
+| Step 10    | `bundle exec rspec spec/mailers/sequence_mailer_spec.rb spec/jobs/process_sequence_enrollments_job_spec.rb` |
+| Step 14    | `bundle exec rspec spec/requests/admin/email_*_spec.rb`                                                     |
+| Step 16    | Full test suite: `bundle exec rspec --exclude-pattern "spec/{performance,system}/**/*_spec.rb"`             |
 
 ### Test Plan
 
@@ -542,6 +580,7 @@ email_steps:
 ### 2026-01-30 - Planning Complete
 
 **Gap Analysis:**
+
 - All 4 models, migrations, factories, specs: none exist (create from scratch)
 - SiteScoped pattern: exists in `Referral` model, replicate
 - Trigger integration points: `DigestSubscription` (no existing callbacks except token generation), `ReferralRewardService.check_and_award!`
@@ -549,6 +588,7 @@ email_steps:
 - Request spec pattern: exists in `referral_reward_tiers_spec.rb`, replicate
 
 **Codebase Patterns Verified:**
+
 - Multi-tenant wrapping: `ActsAsTenant.with_tenant(subscription.site.tenant)` per record
 - Batch processing: `find_each(batch_size: 100)`
 - From-address cascade: `site.setting("email.from_address") || tenant.setting("email.from_address") || default`
@@ -557,6 +597,7 @@ email_steps:
 - Test setup: `setup_tenant_context(tenant)`, `host! tenant.hostname`
 
 **Plan Summary:**
+
 - Steps: 16 (broken into sub-steps: ~28 total)
 - Risks: 5 identified with mitigations
 - Checkpoints: 6 verification points
@@ -570,17 +611,20 @@ email_steps:
 ### 2026-01-30 16:05 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop --format progress` + `bundle exec erb_lint app/views/`
 - Types: N/A (Ruby)
 - Tests: `bundle exec rspec --exclude-pattern "spec/{performance,system}/**/*_spec.rb"`
 - Build: `npm run build && npm run build:css && bundle exec rails assets:precompile`
 
 Task validation:
+
 - Context: clear - background, competitive context, user value, RICE score all defined
 - Criteria: specific - 25 testable acceptance criteria with clear file/model definitions
 - Dependencies: satisfied - referral program (002-001) completed, existing infrastructure verified (DigestSubscription, ReferralRewardService)
 
 Complexity:
+
 - Files: many (~30 new files: 4 migrations, 4 models, 4 factories, 4 model specs, 1 service, 1 service spec, 1 mailer, 1 mailer spec, 1 job, 1 job spec, 2 controllers, 2 request specs, ~8 views + modifications to 4 existing files)
 - Risk: medium (integrates with existing DigestSubscription and ReferralRewardService, multi-tenant aware)
 
@@ -613,6 +657,7 @@ Ready: yes
 ### 2026-01-30 16:45 - Implementation Complete
 
 **Files Created:**
+
 - `db/migrate/20260130161100_create_email_sequences.rb`
 - `db/migrate/20260130161101_create_email_steps.rb`
 - `db/migrate/20260130161102_create_sequence_enrollments.rb`
@@ -643,12 +688,14 @@ Ready: yes
 - `spec/factories/sequence_emails.rb`
 
 **Files Modified:**
+
 - `app/models/digest_subscription.rb` - Added `sequence_enrollments` association and `after_create_commit :enroll_in_sequences` callback
 - `app/services/referral_reward_service.rb` - Added `enroll_in_milestone_sequences` integration
 - `config/routes.rb` - Added admin routes for email_sequences and email_steps
 - `config/locales/en.yml` - Added i18n keys for admin.email_sequences, admin.email_steps, and sequence_mailer
 
 **Quality Gates:**
+
 - Rubocop: Pass (426 files inspected, no offenses)
 - ERB Lint: Pass (141 files, no errors)
 - Migrations: Verified with rollback and re-migrate
@@ -660,6 +707,7 @@ Ready: yes
 ### 2026-01-30 16:20 - Testing Complete
 
 Tests written:
+
 - `spec/models/email_sequence_spec.rb` - 16 tests (unit)
 - `spec/models/email_step_spec.rb` - 18 tests (unit)
 - `spec/models/sequence_enrollment_spec.rb` - 26 tests (unit)
@@ -671,6 +719,7 @@ Tests written:
 - `spec/requests/admin/email_steps_spec.rb` - 18 tests (request)
 
 Quality gates:
+
 - Lint: pass (435 files inspected, no offenses)
 - Types: N/A (Ruby)
 - Tests: pass (2658 total, 169 new)
@@ -679,6 +728,7 @@ Quality gates:
 CI ready: yes
 
 Bug fix during testing:
+
 - Fixed Rails 8+ compatibility in `ProcessSequenceEnrollmentsJob`
 - Cannot access `mailer.message.present?` before `deliver_later` in Rails 8+
 - Changed to trust subscription.active? check instead of checking message
@@ -688,10 +738,12 @@ Bug fix during testing:
 ### 2026-01-30 16:36 - Documentation Sync
 
 Docs updated:
+
 - `docs/DATA_MODEL.md` - Added EmailSequence, EmailStep, SequenceEnrollment, SequenceEmail model documentation
 - `docs/background-jobs.md` - Added ProcessSequenceEnrollmentsJob to on-demand jobs section
 
 Inline comments:
+
 - `app/services/sequence_enrollment_service.rb:1-9` - Usage documentation with examples
 - `app/models/sequence_enrollment.rb:19,28,35,40` - Method documentation
 - `app/jobs/process_sequence_enrollments_job.rb:32-33` - Rails 8+ compatibility note
@@ -703,12 +755,14 @@ Consistency: verified - Code and docs tell the same story
 ### 2026-01-30 16:50 - Review Complete
 
 Findings:
+
 - Blockers: 0 - none
 - High: 0 - none
 - Medium: 2 - acceptable (N+1 on admin index, intentional raw HTML for email content)
 - Low: 1 - deferred (Rack deprecation warning)
 
 Review passes:
+
 - Correctness: pass - happy path and edge cases verified
 - Design: pass - follows existing patterns (DigestMailer, SendDigestEmailsJob)
 - Security: pass - AdminAccess authorization, from-address cascade, subscription active check
@@ -725,6 +779,7 @@ Status: COMPLETE
 ## Notes
 
 **In Scope:**
+
 - EmailSequence, EmailStep, SequenceEnrollment, SequenceEmail models
 - Trigger types: `subscriber_joined`, `referral_milestone`
 - Processing job to send due emails
@@ -733,6 +788,7 @@ Status: COMPLETE
 - Integration with ReferralRewardService (milestone trigger)
 
 **Out of Scope (future tasks):**
+
 - Visual drag-and-drop sequence builder (keeping it simple with forms)
 - Open/click tracking (requires email analytics infrastructure)
 - Conditional logic/branching in sequences
@@ -743,6 +799,7 @@ Status: COMPLETE
 - Email content editor with WYSIWYG (using textarea for now)
 
 **Assumptions:**
+
 - One subscriber can be enrolled in multiple sequences (different triggers)
 - A subscriber cannot be enrolled twice in the same sequence
 - Unsubscribing stops all active enrollments
@@ -769,6 +826,7 @@ Status: COMPLETE
 | Timezone issues with delays | Store all times in UTC, delay is relative (seconds) |
 
 **Technical Decisions:**
+
 - Using `delay_seconds` (integer) instead of `delay_days` for flexibility (can support hours, minutes)
 - Using `trigger_config` JSONB for trigger-specific settings (e.g., milestone threshold for referral_milestone)
 - Storing `body_html` and `body_text` separately (not computing text from HTML)

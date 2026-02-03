@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `003-001-community-chat-discussions`                   |
-| Status      | `done`                                                 |
-| Priority    | `003` Medium                                           |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 20:13`                                     |
-| Completed   | `2026-01-30 20:51`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-30 20:08` |
+| Field       | Value                                |
+| ----------- | ------------------------------------ |
+| ID          | `003-001-community-chat-discussions` |
+| Status      | `done`                               |
+| Priority    | `003` Medium                         |
+| Created     | `2026-01-30 15:30`                   |
+| Started     | `2026-01-30 20:13`                   |
+| Completed   | `2026-01-30 20:51`                   |
+| Blocked By  |                                      |
+| Blocks      |                                      |
+| Assigned To | `worker-1`                           |
+| Assigned At | `2026-01-30 20:08`                   |
 
 ---
 
@@ -35,6 +35,7 @@ Curated has comments on content items but no dedicated community space for ongoi
 ### Solution
 
 A discussion feature where:
+
 1. Publishers can create topic-based discussions (channels/threads)
 2. Readers can engage in real-time or async conversations
 3. Discussions exist independently of content items
@@ -44,16 +45,16 @@ A discussion feature where:
 
 The codebase has mature patterns that this feature should follow:
 
-| Pattern | Existing Example | Apply To |
-|---------|------------------|----------|
-| **SiteScoped** | Comment model | Discussion, DiscussionPost |
-| **Threading** | Comment.parent_id | DiscussionPost.parent_id |
-| **Rate Limiting** | RateLimitable concern | DiscussionPosts |
-| **Ban Checking** | BanCheckable concern | Discussion controllers |
-| **Flagging** | Flag model (polymorphic) | DiscussionPost flagging |
-| **Turbo Streams** | Comments CRUD | Real-time discussion updates |
-| **Pundit Policies** | CommentPolicy | DiscussionPolicy, DiscussionPostPolicy |
-| **Counter Caches** | comments_count | posts_count on discussions |
+| Pattern             | Existing Example         | Apply To                               |
+| ------------------- | ------------------------ | -------------------------------------- |
+| **SiteScoped**      | Comment model            | Discussion, DiscussionPost             |
+| **Threading**       | Comment.parent_id        | DiscussionPost.parent_id               |
+| **Rate Limiting**   | RateLimitable concern    | DiscussionPosts                        |
+| **Ban Checking**    | BanCheckable concern     | Discussion controllers                 |
+| **Flagging**        | Flag model (polymorphic) | DiscussionPost flagging                |
+| **Turbo Streams**   | Comments CRUD            | Real-time discussion updates           |
+| **Pundit Policies** | CommentPolicy            | DiscussionPolicy, DiscussionPostPolicy |
+| **Counter Caches**  | comments_count           | posts_count on discussions             |
 
 ### Key Architecture Decisions
 
@@ -70,17 +71,20 @@ The codebase has mature patterns that this feature should follow:
 All must be checked before moving to done:
 
 ### Core Models
+
 - [x] Discussion model: title, body, site_id, user_id, visibility (public/subscribers_only), pinned, locked, posts_count
 - [x] DiscussionPost model: discussion_id, user_id, body, parent_id (for replies), edited_at
 - [x] Both models include SiteScoped concern for multi-tenant isolation
 - [x] Migrations with proper indexes (site_id, user_id, visibility, pinned, locked, created_at)
 
 ### Site Configuration
+
 - [x] Site.discussions_enabled? setting (default: false) - admin can enable per site
 - [x] Site.discussions_default_visibility setting (public/subscribers_only)
 - [x] Config validation in Site model for discussions settings
 
 ### Controllers & Routes
+
 - [x] DiscussionsController with index, show, new, create, update, destroy actions
 - [x] DiscussionPostsController nested under discussions with create, update, destroy
 - [x] Routes: `resources :discussions do; resources :posts, controller: 'discussion_posts'; end`
@@ -88,17 +92,20 @@ All must be checked before moving to done:
 - [x] Ban checking: Apply BanCheckable concern
 
 ### Real-Time Updates
+
 - [x] Turbo Streams for discussion post CRUD (append, replace, remove)
 - [x] New post broadcasts to discussion subscribers
 - [x] Turbo Frames for edit-in-place functionality
 
 ### Authorization & Visibility
+
 - [x] DiscussionPolicy: anyone can view public, subscribers can view subscribers_only
 - [x] DiscussionPostPolicy: create requires auth + not banned; update/destroy by author or admin
 - [x] Visibility check: subscribers_only discussions require active DigestSubscription
 - [x] Admin can create/edit/delete any discussion; users can only edit their own
 
 ### Moderation
+
 - [x] Admin can lock discussions (locked_at, locked_by_id) - no new posts
 - [x] Admin can pin discussions (pinned, pinned_at) - appear first in listing
 - [x] Admin can delete discussions (cascade deletes posts)
@@ -106,6 +113,7 @@ All must be checked before moving to done:
 - [x] Auto-hide posts at flag threshold (reuse Site.flag_threshold setting)
 
 ### UI & Navigation
+
 - [x] "Discussions" or "Community" link in site navigation (when enabled)
 - [x] Discussion index page: pinned first, then by activity (last_post_at)
 - [x] Discussion show page: posts oldest-first, reply form, edit-in-place
@@ -113,6 +121,7 @@ All must be checked before moving to done:
 - [x] Mobile-responsive using existing Tailwind patterns
 
 ### Quality
+
 - [x] Model specs: validations, associations, scopes, callbacks
 - [x] Request specs: CRUD operations, authorization, rate limiting
 - [x] Policy specs: all policy methods
@@ -125,50 +134,50 @@ All must be checked before moving to done:
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| **Core Models** | | |
-| Discussion model with all fields | none | Need to create from scratch |
-| DiscussionPost model with all fields | none | Need to create from scratch |
-| Both models include SiteScoped | none | Apply existing concern |
-| Migrations with proper indexes | none | Need to create |
-| **Site Configuration** | | |
-| Site.discussions_enabled? setting | none | Add helper method to Site model |
-| Site.discussions_default_visibility setting | none | Add helper method to Site model |
-| Config validation for discussions | none | Add validation block |
-| **Controllers & Routes** | | |
-| DiscussionsController (all actions) | none | Create following CommentsController pattern |
-| DiscussionPostsController (nested) | none | Create following CommentsController pattern |
-| Routes (discussions + nested posts) | none | Add to routes.rb |
-| Rate limiting (RateLimitable) | partial | Concern exists, need to apply + add :discussion limit |
-| Ban checking (BanCheckable) | full | Concern exists, just include it |
-| **Real-Time Updates** | | |
-| Turbo Streams for post CRUD | none | Create .turbo_stream.erb templates |
-| Broadcast to discussion subscribers | none | Add Turbo Stream templates |
-| Turbo Frames for edit-in-place | none | Use dom_id pattern from comments |
-| **Authorization & Visibility** | | |
-| DiscussionPolicy | none | Create following CommentPolicy pattern |
-| DiscussionPostPolicy | none | Create following CommentPolicy pattern |
-| Visibility check (DigestSubscription) | none | Add subscriber check logic to policy |
-| Admin can manage any discussion | none | Use admin_or_owner_only? pattern |
-| **Moderation** | | |
-| Lock discussions (locked_at, locked_by_id) | none | Add to Discussion model + admin actions |
-| Pin discussions (pinned, pinned_at) | none | Add to Discussion model + admin actions |
-| Delete discussions (cascade) | none | dependent: :destroy handles this |
-| DiscussionPost flagging via Flag | partial | Flag model exists, just add association |
-| Auto-hide at flag threshold | partial | Flag callback exists, DiscussionPost needs hidden? method |
-| **UI & Navigation** | | |
-| Community link in navigation | none | Add conditional link to _navigation.html.erb |
-| Discussion index (pinned first, activity sort) | none | Create view + scopes |
-| Discussion show (posts, reply form) | none | Create view |
-| Discussion form (visibility selector) | none | Create form partial |
-| Mobile-responsive (Tailwind) | partial | Patterns exist, apply to new views |
-| **Quality** | | |
-| Model specs | none | Create specs |
-| Request specs | none | Create specs |
-| Policy specs | none | Create specs |
-| Factory definitions | none | Create factories |
-| All quality gates pass | TBD | Run after implementation |
+| Criterion                                      | Status  | Gap                                                       |
+| ---------------------------------------------- | ------- | --------------------------------------------------------- |
+| **Core Models**                                |         |                                                           |
+| Discussion model with all fields               | none    | Need to create from scratch                               |
+| DiscussionPost model with all fields           | none    | Need to create from scratch                               |
+| Both models include SiteScoped                 | none    | Apply existing concern                                    |
+| Migrations with proper indexes                 | none    | Need to create                                            |
+| **Site Configuration**                         |         |                                                           |
+| Site.discussions_enabled? setting              | none    | Add helper method to Site model                           |
+| Site.discussions_default_visibility setting    | none    | Add helper method to Site model                           |
+| Config validation for discussions              | none    | Add validation block                                      |
+| **Controllers & Routes**                       |         |                                                           |
+| DiscussionsController (all actions)            | none    | Create following CommentsController pattern               |
+| DiscussionPostsController (nested)             | none    | Create following CommentsController pattern               |
+| Routes (discussions + nested posts)            | none    | Add to routes.rb                                          |
+| Rate limiting (RateLimitable)                  | partial | Concern exists, need to apply + add :discussion limit     |
+| Ban checking (BanCheckable)                    | full    | Concern exists, just include it                           |
+| **Real-Time Updates**                          |         |                                                           |
+| Turbo Streams for post CRUD                    | none    | Create .turbo_stream.erb templates                        |
+| Broadcast to discussion subscribers            | none    | Add Turbo Stream templates                                |
+| Turbo Frames for edit-in-place                 | none    | Use dom_id pattern from comments                          |
+| **Authorization & Visibility**                 |         |                                                           |
+| DiscussionPolicy                               | none    | Create following CommentPolicy pattern                    |
+| DiscussionPostPolicy                           | none    | Create following CommentPolicy pattern                    |
+| Visibility check (DigestSubscription)          | none    | Add subscriber check logic to policy                      |
+| Admin can manage any discussion                | none    | Use admin_or_owner_only? pattern                          |
+| **Moderation**                                 |         |                                                           |
+| Lock discussions (locked_at, locked_by_id)     | none    | Add to Discussion model + admin actions                   |
+| Pin discussions (pinned, pinned_at)            | none    | Add to Discussion model + admin actions                   |
+| Delete discussions (cascade)                   | none    | dependent: :destroy handles this                          |
+| DiscussionPost flagging via Flag               | partial | Flag model exists, just add association                   |
+| Auto-hide at flag threshold                    | partial | Flag callback exists, DiscussionPost needs hidden? method |
+| **UI & Navigation**                            |         |                                                           |
+| Community link in navigation                   | none    | Add conditional link to \_navigation.html.erb             |
+| Discussion index (pinned first, activity sort) | none    | Create view + scopes                                      |
+| Discussion show (posts, reply form)            | none    | Create view                                               |
+| Discussion form (visibility selector)          | none    | Create form partial                                       |
+| Mobile-responsive (Tailwind)                   | partial | Patterns exist, apply to new views                        |
+| **Quality**                                    |         |                                                           |
+| Model specs                                    | none    | Create specs                                              |
+| Request specs                                  | none    | Create specs                                              |
+| Policy specs                                   | none    | Create specs                                              |
+| Factory definitions                            | none    | Create factories                                          |
+| All quality gates pass                         | TBD     | Run after implementation                                  |
 
 ### Risks
 
@@ -364,14 +373,14 @@ All must be checked before moving to done:
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 5 | `bin/rails db:migrate` succeeds, models load, Site.discussions_enabled? works |
-| Step 8 | All policy specs pass |
-| Step 11 | `bin/rails routes \| grep discussion` shows all expected routes |
-| Step 14 | Turbo Stream CRUD works without page refresh (manual browser test) |
-| Step 18 | Admin can lock/pin discussions via UI |
-| Step 23 | `bin/quality` passes with 0 failures |
+| After Step | Verify                                                                        |
+| ---------- | ----------------------------------------------------------------------------- |
+| Step 5     | `bin/rails db:migrate` succeeds, models load, Site.discussions_enabled? works |
+| Step 8     | All policy specs pass                                                         |
+| Step 11    | `bin/rails routes \| grep discussion` shows all expected routes               |
+| Step 14    | Turbo Stream CRUD works without page refresh (manual browser test)            |
+| Step 18    | Admin can lock/pin discussions via UI                                         |
+| Step 23    | `bin/quality` passes with 0 failures                                          |
 
 ### Test Plan
 
@@ -396,12 +405,14 @@ All must be checked before moving to done:
 ### 2026-01-30 20:51 - Review Complete
 
 Findings:
+
 - Blockers: 0 - none found
 - High: 0 - none found
 - Medium: 1 - No pagination on discussion index (consistent with existing patterns, noted for future improvement)
 - Low: 0 - none found
 
 Review passes:
+
 - Correctness: pass - Happy path and edge cases traced, proper error handling
 - Design: pass - Follows existing patterns (SiteScoped, RateLimitable, BanCheckable, Pundit policies)
 - Security: pass - Input validation (title/body max length), auth/authz on all sensitive operations, XSS protection via sanitize:true, no hardcoded secrets, proper site isolation via default_scope
@@ -417,10 +428,12 @@ Status: COMPLETE
 ### 2026-01-30 20:48 - Documentation Sync
 
 Docs updated:
+
 - `docs/DATA_MODEL.md` - Added Discussion and DiscussionPost model documentation with attributes, associations, scopes, methods, and examples
 - `docs/moderation.md` - Added discussion moderation section (locking, pinning, flagging), updated Flag model to include DiscussionPost, updated ban effects, updated rate limits table
 
 Inline comments:
+
 - None needed - models are self-documenting with clear method names
 
 Consistency: verified - docs match implementation
@@ -428,6 +441,7 @@ Consistency: verified - docs match implementation
 ### 2026-01-30 20:45 - Testing Complete
 
 Tests written:
+
 - `spec/factories/discussions.rb` - Factory with 4 traits
 - `spec/factories/discussion_posts.rb` - Factory with 4 traits
 - `spec/models/discussion_spec.rb` - 38 unit tests
@@ -438,6 +452,7 @@ Tests written:
 - `spec/requests/discussion_posts_spec.rb` - 35 request tests
 
 Quality gates:
+
 - Lint: pass
 - Types: N/A (Ruby)
 - Tests: pass (3132 total, 186 new)
@@ -448,6 +463,7 @@ CI ready: yes
 ### 2026-01-30 20:19 - Implementation Complete
 
 **Steps Completed**:
+
 1. Created Discussion migration with all fields and indexes
 2. Created Discussion model with SiteScoped concern, validations, scopes, lock/pin methods
 3. Created DiscussionPost migration with all fields and indexes
@@ -459,8 +475,8 @@ CI ready: yes
 9. Created DiscussionsController with CRUD + rate limiting + ban checking
 10. Created DiscussionPostsController nested under discussions
 11. Added routes (public + admin moderation)
-12. Created discussion views (index, show, new, _form, _discussion)
-13. Created discussion post views (_post, _form)
+12. Created discussion views (index, show, new, \_form, \_discussion)
+13. Created discussion post views (\_post, \_form)
 14. Added Turbo Stream templates for create/update/destroy
 15. Added Community link to navigation (conditional on discussions_enabled?)
 16. Added I18n translations for discussions and discussion_posts
@@ -471,6 +487,7 @@ CI ready: yes
 **Technical Note**: Changed visibility enum from `public/subscribers_only` to `public_access/subscribers_only` with prefix `:visibility` to avoid conflict with ActiveRecord's built-in `public` method. Methods are now `visibility_public_access?` and `visibility_subscribers_only?`.
 
 **Verification**:
+
 - Migrations: ✅ pass
 - Rubocop: ✅ 483 files, no offenses
 - JS build: ✅ pass
@@ -479,6 +496,7 @@ CI ready: yes
 - Models: ✅ load correctly
 
 **Files Created** (22):
+
 - `db/migrate/20260130202026_create_discussions.rb`
 - `db/migrate/20260130202103_create_discussion_posts.rb`
 - `app/models/discussion.rb`
@@ -505,6 +523,7 @@ CI ready: yes
 - `app/views/admin/discussions/show.html.erb`
 
 **Files Modified** (4):
+
 - `app/models/site.rb` (associations + settings + validation)
 - `app/models/concerns/rate_limitable.rb` (new limits)
 - `config/routes.rb` (public + admin routes)
@@ -516,11 +535,13 @@ CI ready: yes
 ### 2026-01-30 20:14 - Planning Complete
 
 **Gap Analysis Summary**:
+
 - 0 criteria fully satisfied (feature doesn't exist)
 - 2 criteria partially satisfied (existing concerns/patterns to reuse)
 - 23 criteria need implementation from scratch
 
 **Key Findings**:
+
 - All required patterns exist: SiteScoped, RateLimitable, BanCheckable, Flag (polymorphic), Pundit policies
 - CommentsController + Comment model are excellent templates to follow
 - DigestSubscription model exists for subscriber verification
@@ -536,6 +557,7 @@ CI ready: yes
 ### 2026-01-30 20:13 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop` + `npm run lint`
 - Types: N/A (Ruby, no strict typing)
 - Tests: `bundle exec rspec`
@@ -543,11 +565,13 @@ Quality gates:
 - Full: `bin/quality` (comprehensive quality enforcement script)
 
 Task validation:
+
 - Context: clear - well-documented problem/solution with competitive analysis
 - Criteria: specific - 25 checkable acceptance criteria across 7 categories
 - Dependencies: none - no blocking tasks, all required patterns exist
 
 Pattern verification:
+
 - ✅ SiteScoped concern: `app/models/concerns/site_scoped.rb`
 - ✅ Comment threading: `app/models/comment.rb` (parent_id pattern)
 - ✅ RateLimitable: `app/models/concerns/rate_limitable.rb`
@@ -558,6 +582,7 @@ Pattern verification:
 - ✅ Turbo Streams: Comments CRUD already implemented
 
 Complexity:
+
 - Files: many (18 steps creating ~20 new files + 3-4 modifications)
 - Risk: medium - new models/controllers but following established patterns
 - Test coverage needed: model, policy, request specs + factories
@@ -592,6 +617,7 @@ Ready: yes - all dependencies satisfied, patterns exist, scope well-defined
 ### 2026-01-30 20:45 - Testing Complete
 
 **Tests written:**
+
 - `spec/factories/discussions.rb` - Discussion factory with traits (:subscribers_only, :pinned, :locked, :with_posts)
 - `spec/factories/discussion_posts.rb` - DiscussionPost factory with traits (:reply, :edited, :hidden, :long)
 - `spec/models/discussion_spec.rb` - 38 tests (associations, validations, scopes, methods, site scoping)
@@ -604,6 +630,7 @@ Ready: yes - all dependencies satisfied, patterns exist, scope well-defined
 **Total: 186 new tests**
 
 **Quality gates:**
+
 - Lint (RuboCop): pass (491 files, no offenses)
 - ERB Lint: pass (159 files, no errors)
 - Security (Brakeman): pass (0 warnings, 3 ignored pre-existing)
@@ -613,6 +640,7 @@ Ready: yes - all dependencies satisfied, patterns exist, scope well-defined
 **CI ready:** yes
 
 **Fixes made during testing:**
+
 - Hardcoded "View Public Discussion" string in admin view now uses i18n
 - Discussion post form uses explicit URL instead of polymorphic path (route naming)
 - bin/quality script now uses correct path to brakeman.ignore file
@@ -622,6 +650,7 @@ Ready: yes - all dependencies satisfied, patterns exist, scope well-defined
 ## Notes
 
 **In Scope:**
+
 - Discussion model and DiscussionPost model
 - CRUD operations for discussions and posts
 - Real-time updates via Turbo Streams
@@ -633,6 +662,7 @@ Ready: yes - all dependencies satisfied, patterns exist, scope well-defined
 - Full test coverage
 
 **Out of Scope (future tasks):**
+
 - User mentions (@username) - defer to follow-up task
 - Email notifications for new posts - defer to follow-up task
 - Reactions/emoji on posts - defer to follow-up task
@@ -643,6 +673,7 @@ Ready: yes - all dependencies satisfied, patterns exist, scope well-defined
 - Discussion search - defer to follow-up task
 
 **Assumptions:**
+
 - Site owners want community engagement but need it opt-in (default disabled)
 - Flat threading (one level of replies) is sufficient for v1
 - Existing rate limits from comments are appropriate
@@ -667,6 +698,7 @@ Ready: yes - all dependencies satisfied, patterns exist, scope well-defined
 | Complex Turbo Stream bugs | Follow exact patterns from comments implementation |
 
 **Technical Notes:**
+
 - Use Hotwire/Turbo for real-time without complex WebSocket setup
 - Reuse RateLimitable with `:discussion` or `:comment` limits
 - Integrate with existing Flag model (polymorphic `flaggable`)

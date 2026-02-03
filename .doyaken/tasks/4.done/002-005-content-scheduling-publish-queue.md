@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `002-005-content-scheduling-publish-queue`             |
-| Status      | `done`                                                 |
-| Priority    | `002` High                                             |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 19:23`                                     |
-| Completed   | `2026-01-30 19:47`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-30 19:19` |
+| Field       | Value                                      |
+| ----------- | ------------------------------------------ |
+| ID          | `002-005-content-scheduling-publish-queue` |
+| Status      | `done`                                     |
+| Priority    | `002` High                                 |
+| Created     | `2026-01-30 15:30`                         |
+| Started     | `2026-01-30 19:23`                         |
+| Completed   | `2026-01-30 19:47`                         |
+| Blocked By  |                                            |
+| Blocks      |                                            |
+| Assigned To | `worker-1`                                 |
+| Assigned At | `2026-01-30 19:19`                         |
 
 ---
 
@@ -26,12 +26,14 @@
 **Solution**: Add `scheduled_for` datetime field to ContentItem and Listing models. Content with a future `scheduled_for` is hidden from public feeds until that time. A background job (`PublishScheduledContentJob`) runs periodically to publish due items by setting their `published_at` timestamp.
 
 **Key Insight from Codebase**: The existing `SequenceEmail` model provides an excellent template for scheduling. It uses:
+
 - `scheduled_for` datetime field
 - `status` enum (pending/sent/failed)
 - `scope :due, -> { where("scheduled_for <= ?", Time.current) }`
 - A batch job (`ProcessSequenceEnrollmentsJob`) that queries pending+due items
 
 **Current Publishing Pattern**:
+
 - ContentItem: `published_at` nullable datetime, `scope :published, -> { where.not(published_at: nil) }`
 - Listing: Same pattern, plus `expires_at` and `featured_from/until` for time-based visibility
 
@@ -69,25 +71,25 @@
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| DB: `scheduled_for` on ContentItem | none | Need migration, no field exists |
-| DB: `scheduled_for` on Listing | none | Need migration, no field exists |
-| DB: `timezone` in Site config | none | Need to add config helper |
-| Model: ContentItem `scheduled` scope | none | Need to add |
+| Criterion                                        | Status  | Gap                                                            |
+| ------------------------------------------------ | ------- | -------------------------------------------------------------- |
+| DB: `scheduled_for` on ContentItem               | none    | Need migration, no field exists                                |
+| DB: `scheduled_for` on Listing                   | none    | Need migration, no field exists                                |
+| DB: `timezone` in Site config                    | none    | Need to add config helper                                      |
+| Model: ContentItem `scheduled` scope             | none    | Need to add                                                    |
 | Model: ContentItem `for_feed` excludes scheduled | partial | `for_feed` exists (`published.not_hidden`), needs modification |
-| Model: Listing `scheduled` scope | none | Need to add |
-| Model: Listing feed exclusion | partial | Has `published` scope, needs to exclude scheduled |
-| Model: `scheduled?` methods | none | Need to add to both models |
-| Job: PublishScheduledContentJob | none | Need to create |
-| Job: Solid Queue recurring schedule | partial | `config/recurring.yml` exists, need to add entry |
-| Admin UI: Listings form scheduling | none | Currently has simple published checkbox (line 61-64) |
-| Admin UI: Listings index scheduled badge | none | Has badges for featured/expired/paid, need scheduling |
-| Admin Controller: reschedule/unschedule | none | Need to add actions |
-| Timezone: Admin displays in site timezone | none | Need to implement |
-| Timezone: Site settings page selector | none | Site form exists, needs timezone field |
-| Tests | none | Need all new tests |
-| i18n | partial | Existing structure, need scheduling keys |
+| Model: Listing `scheduled` scope                 | none    | Need to add                                                    |
+| Model: Listing feed exclusion                    | partial | Has `published` scope, needs to exclude scheduled              |
+| Model: `scheduled?` methods                      | none    | Need to add to both models                                     |
+| Job: PublishScheduledContentJob                  | none    | Need to create                                                 |
+| Job: Solid Queue recurring schedule              | partial | `config/recurring.yml` exists, need to add entry               |
+| Admin UI: Listings form scheduling               | none    | Currently has simple published checkbox (line 61-64)           |
+| Admin UI: Listings index scheduled badge         | none    | Has badges for featured/expired/paid, need scheduling          |
+| Admin Controller: reschedule/unschedule          | none    | Need to add actions                                            |
+| Timezone: Admin displays in site timezone        | none    | Need to implement                                              |
+| Timezone: Site settings page selector            | none    | Site form exists, needs timezone field                         |
+| Tests                                            | none    | Need all new tests                                             |
+| i18n                                             | partial | Existing structure, need scheduling keys                       |
 
 ### Risks
 
@@ -252,14 +254,14 @@
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 4 | Migrations run, scopes work in console |
-| Step 6 | Job publishes test content |
-| Step 11 | Full UI scheduling flow works |
-| Step 14 | Timezone display works |
-| Step 18 | All tests pass |
-| Step 19 | i18n labels display |
+| After Step | Verify                                 |
+| ---------- | -------------------------------------- |
+| Step 4     | Migrations run, scopes work in console |
+| Step 6     | Job publishes test content             |
+| Step 11    | Full UI scheduling flow works          |
+| Step 14    | Timezone display works                 |
+| Step 18    | All tests pass                         |
+| Step 19    | i18n labels display                    |
 
 ### Test Plan
 
@@ -283,6 +285,7 @@
 ## Notes
 
 **In Scope:**
+
 - `scheduled_for` field on ContentItem and Listing
 - Background job for publishing scheduled content
 - Admin UI for scheduling Listings (they have full CRUD)
@@ -290,6 +293,7 @@
 - Basic scheduling workflow (schedule, reschedule, unschedule)
 
 **Out of Scope (future tasks):**
+
 - Admin CRUD for ContentItems (currently managed via ingestion/moderation only)
 - Calendar view of scheduled content (enhancement for later)
 - Notification when scheduled content publishes (enhancement for later)
@@ -297,12 +301,14 @@
 - Bulk scheduling operations
 
 **Assumptions:**
+
 - Site timezone applies to all scheduling for that site
 - Scheduled content is invisible to public until publish time
 - Publishers can edit scheduled content before it publishes
 - Unscheduling returns item to draft state (published_at stays nil)
 
 **Edge Cases:**
+
 - **Scheduled time in past**: If user selects past time, publish immediately (same as "now")
 - **Server clock drift**: Job runs every minute; up to 1 minute delay is acceptable
 - **Multiple items at same time**: Batch processing handles this
@@ -323,6 +329,7 @@
 ### 2026-01-30 - Planning Complete
 
 **Gap Analysis Summary:**
+
 - Database: 2 migrations needed (scheduled_for on ContentItem and Listing)
 - Models: 4 scope additions, 2 method additions, 1 scope modification
 - Job: 1 new job + recurring schedule entry
@@ -332,6 +339,7 @@
 - i18n: ~12 new translation keys
 
 **Files to Modify/Create:**
+
 - 2 new migrations
 - `app/models/content_item.rb` - add scheduling scopes/method
 - `app/models/listing.rb` - add scheduling scopes/method
@@ -351,6 +359,7 @@
 **Test coverage:** Extensive (unit + integration)
 
 **Reference patterns verified:**
+
 - `SequenceEmail` model for scheduling (scheduled_for, status, due scope)
 - `ProcessSequenceEnrollmentsJob` for batch job pattern (find_each, error handling, tenant context)
 - `Listing` model featured/expired patterns for time-based visibility
@@ -359,21 +368,25 @@
 ### 2026-01-30 19:23 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop`
 - Types: N/A (Ruby dynamic typing)
 - Tests: `bundle exec rspec`
 - Build: `bin/rails assets:precompile` (for asset pipeline)
 
 Task validation:
+
 - Context: clear - problem statement, solution approach, and architectural decisions are well-documented
 - Criteria: specific - 21 testable acceptance criteria covering DB, models, jobs, admin UI, timezone support, and tests
 - Dependencies: none - no blockers listed, prerequisite tasks (002-001 through 002-004) are completed
 
 Complexity:
+
 - Files: some (~12-15 files: 2 migrations, 3 models, 1 job, 2 controllers, 3 views, routes, locales)
 - Risk: low - follows established patterns from SequenceEmail and ProcessSequenceEnrollmentsJob
 
 Reference patterns verified:
+
 - `app/models/sequence_email.rb` exists (scheduling pattern)
 - `app/jobs/process_sequence_enrollments_job.rb` exists (batch job pattern)
 - `config/recurring.yml` exists (Solid Queue configuration)
@@ -388,6 +401,7 @@ Ready: yes
 ### 2026-01-30 19:27 - Implementation Complete
 
 **Phase 1: Database & Models (Steps 1-4)**
+
 - Created migration `20260130192700_add_scheduled_for_to_content_items.rb` with partial index
 - Created migration `20260130192701_add_scheduled_for_to_listings.rb` with partial index
 - Added to ContentItem: `scheduled`, `not_scheduled`, `due_for_publishing` scopes; `scheduled?` method; updated `for_feed` to exclude scheduled
@@ -395,6 +409,7 @@ Ready: yes
 - Verification: Migrations ran successfully, RuboCop passes
 
 **Phase 2: Background Job (Steps 5-6)**
+
 - Created `app/jobs/publish_scheduled_content_job.rb` following ProcessSequenceEnrollmentsJob pattern
   - BATCH_SIZE = 100
   - Processes ContentItems and Listings due for publishing
@@ -404,6 +419,7 @@ Ready: yes
 - Verification: RuboCop passes
 
 **Phase 3: Admin UI for Listings (Steps 7-11)**
+
 - Updated `app/views/admin/listings/_form.html.erb`: Replaced simple published checkbox with Publishing fieldset containing radio buttons (Publish now/Schedule for later/Save as draft) and datetime picker
 - Updated `app/controllers/admin/listings_controller.rb`: Added `scheduled_for` to params, created `processed_listing_params` method to handle publish_action, added `unschedule` and `publish_now` actions
 - Added routes in `config/routes.rb`: `post :unschedule`, `post :publish_now` under listings member routes
@@ -412,18 +428,21 @@ Ready: yes
 - Verification: Routes verified with `rails routes`, RuboCop passes
 
 **Phase 4: Timezone Support (Steps 12-14)**
+
 - Added `scheduling_timezone` helper to `app/models/site.rb` (reads from config["scheduling.timezone"], defaults to "UTC")
 - Updated `app/views/admin/sites/edit.html.erb`: Added time_zone_select field
 - Updated `app/controllers/admin/sites_controller.rb`: Added timezone handling in `apply_config_settings` method
 - Verification: RuboCop passes
 
 **Phase 5: Localization (Step 19)**
+
 - Added i18n keys in `config/locales/en.yml`:
   - `admin.listings.scheduling.*` (12 keys)
   - `admin.listings.unscheduled`, `admin.listings.published_now`
   - `admin.sites.edit.scheduling_timezone*` (2 keys)
 
 **Files Created/Modified:**
+
 - `db/migrate/20260130192700_add_scheduled_for_to_content_items.rb` (new)
 - `db/migrate/20260130192701_add_scheduled_for_to_listings.rb` (new)
 - `app/models/content_item.rb` (modified)
@@ -441,6 +460,7 @@ Ready: yes
 - `config/locales/en.yml` (modified)
 
 **Quality Gates:**
+
 - RuboCop: All 6 modified Ruby files pass with no offenses
 - Migrations: Both ran successfully
 
@@ -450,6 +470,7 @@ Tests will be written in the next phase per the workflow instructions.
 ### 2026-01-30 19:35 - Testing Complete
 
 Tests written:
+
 - `spec/models/content_item_spec.rb` - 7 tests (unit)
 - `spec/models/listing_spec.rb` - 6 tests (unit)
 - `spec/jobs/publish_scheduled_content_job_spec.rb` - 16 tests (unit)
@@ -458,12 +479,14 @@ Tests written:
 - `spec/factories/listings.rb` - 2 traits added
 
 Quality gates:
+
 - Lint: pass (474 files, no offenses)
 - Types: N/A (Ruby)
 - Tests: pass (2946 total, 43 new)
 - Build: pass
 
 Bug fixes:
+
 - Fixed `current_site` → `Current.site` in listings form
 - Removed 5 unused i18n keys
 
@@ -500,6 +523,7 @@ CI ready: yes
 ### Tests Written
 
 **Model Tests:**
+
 - `spec/models/content_item_spec.rb` - 7 new tests for scheduling
   - `#scheduled?` method tests (3)
   - `.scheduled` scope test
@@ -513,6 +537,7 @@ CI ready: yes
   - `.due_for_publishing` scope test
 
 **Job Tests:**
+
 - `spec/jobs/publish_scheduled_content_job_spec.rb` - 16 new tests
   - Publishing due ContentItems (2)
   - Publishing due Listings (2)
@@ -526,6 +551,7 @@ CI ready: yes
   - Queue configuration (2)
 
 **Request Tests:**
+
 - `spec/requests/admin/listings_spec.rb` - 14 new tests for scheduling
   - Create with publish_action=publish (1)
   - Create with publish_action=schedule (1)
@@ -538,6 +564,7 @@ CI ready: yes
   - Tenant isolation (2)
 
 **Factory Traits Added:**
+
 - `spec/factories/content_items.rb`: `:scheduled`, `:due_for_publishing`
 - `spec/factories/listings.rb`: `:scheduled`, `:due_for_publishing`
 
@@ -563,10 +590,12 @@ CI ready: yes
 ### 2026-01-30 19:46 - Documentation Sync
 
 Docs updated:
+
 - `docs/background-jobs.md` - Added "Publish Scheduled Content" job documentation
 - `docs/ARCHITECTURE.md` - Added content scheduling to current strengths
 
 Inline comments:
+
 - None needed - code is self-explanatory following existing patterns
 
 Consistency: verified - documentation accurately reflects implementation
@@ -574,12 +603,14 @@ Consistency: verified - documentation accurately reflects implementation
 ### 2026-01-30 19:47 - Review Complete
 
 **Findings:**
+
 - Blockers: 0
 - High: 0
 - Medium: 0
 - Low: 0
 
 **Review Passes:**
+
 - Correctness: pass - All logic is correct, scheduled items are properly excluded from public feeds
 - Design: pass - Follows established patterns from SequenceEmail, consistent with codebase
 - Security: pass - Proper authorization with AdminAccess and policy_scope, timezone input validated
@@ -587,6 +618,7 @@ Consistency: verified - documentation accurately reflects implementation
 - Tests: pass - 43 new tests covering all acceptance criteria
 
 **Common Issues Checklist:**
+
 - [x] Off-by-one errors - None found
 - [x] Null/undefined handling - Proper nil checks in scheduled? method
 - [x] Empty collection handling - find_each handles empty results
@@ -596,6 +628,7 @@ Consistency: verified - documentation accurately reflects implementation
 - [x] Unbounded loops - Batched with BATCH_SIZE = 100
 
 **OWASP Security Review:**
+
 - A01 Broken Access Control: ✅ AdminAccess concern, tenant isolation
 - A02 Cryptographic Failures: N/A
 - A03 Injection: ✅ Parameterized ActiveRecord queries

@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `002-001-newsletter-subscriber-referral-program`       |
-| Status      | `done`                                                 |
-| Priority    | `002` High                                             |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 15:08`                                     |
-| Completed   | `2026-01-30 15:41`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-30 15:04` |
+| Field       | Value                                            |
+| ----------- | ------------------------------------------------ |
+| ID          | `002-001-newsletter-subscriber-referral-program` |
+| Status      | `done`                                           |
+| Priority    | `002` High                                       |
+| Created     | `2026-01-30 15:30`                               |
+| Started     | `2026-01-30 15:08`                               |
+| Completed   | `2026-01-30 15:41`                               |
+| Blocked By  |                                                  |
+| Blocks      |                                                  |
+| Assigned To | `worker-1`                                       |
+| Assigned At | `2026-01-30 15:04`                               |
 
 ---
 
@@ -47,11 +47,13 @@ The implementation builds on existing patterns:
 All must be checked before moving to done:
 
 ### Data Model
+
 - [x] `referral_code` column added to `digest_subscriptions` table (unique, auto-generated on create)
 - [x] `Referral` model created with: `referrer_subscription_id`, `referee_subscription_id`, `site_id`, `status` (enum: pending, confirmed, rewarded, cancelled), `confirmed_at`, `rewarded_at`
 - [x] `ReferralRewardTier` model created with: `site_id`, `milestone` (integer, e.g., 1, 3, 5), `reward_type` (enum: digital_download, featured_mention, custom), `reward_data` (jsonb for URLs, descriptions, etc.), `active` (boolean)
 
 ### Referral Flow
+
 - [x] Referral code generated on DigestSubscription creation using `SecureRandom.urlsafe_base64(8)` (shorter, URL-friendly)
 - [x] Referral link format: `https://{site_domain}/subscribe?ref={referral_code}`
 - [x] When new subscriber signs up with `ref` param, a pending Referral record is created
@@ -59,22 +61,26 @@ All must be checked before moving to done:
 - [x] Fraud prevention: reject referrals where referee email domain matches referrer, or same IP within 24h
 
 ### Subscriber Dashboard
+
 - [x] `/referrals` page showing: referral code, shareable link, total referrals, confirmed referrals, rewards earned
 - [x] Copy-to-clipboard button for referral link
 - [x] Social share buttons (Twitter, LinkedIn, Email)
 - [x] List of earned rewards with claim instructions
 
 ### Admin Dashboard
+
 - [x] `/admin/referrals` page showing: total referrals, conversion rate, top referrers, reward distribution
 - [x] `/admin/referral_reward_tiers` CRUD for configuring reward tiers per site
 - [x] Ability to manually mark referrals as rewarded
 
 ### Email Notifications
+
 - [x] Email to referrer when referral is confirmed
 - [x] Email to referrer when milestone reward is unlocked
 - [x] Emails use existing DigestMailer patterns (ReferralMailer follows same pattern)
 
 ### Testing
+
 - [x] Model specs for Referral, ReferralRewardTier
 - [x] Updated DigestSubscription specs for referral_code
 - [x] Request specs for referral dashboard
@@ -82,6 +88,7 @@ All must be checked before moving to done:
 - [x] Factory definitions for all new models
 
 ### Quality
+
 - [x] All tests pass
 - [x] Quality gates pass (lint, type check if applicable)
 - [x] Changes committed with task reference
@@ -92,25 +99,25 @@ All must be checked before moving to done:
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| `referral_code` column on `digest_subscriptions` | none | Column doesn't exist; need migration + model callback |
-| `Referral` model | none | No existing model; need full implementation |
-| `ReferralRewardTier` model | none | No existing model; need full implementation |
-| Referral code generation | partial | `unsubscribe_token` pattern exists at `digest_subscription.rb:76-78`; need similar for `referral_code` |
-| Referral link format | none | Need to add helper method for URL generation |
-| `ref` param handling in subscription flow | none | Controller doesn't capture ref; need service layer |
-| 24h confirmation job | none | No existing job pattern for delayed confirmation |
-| Fraud prevention (email domain, IP) | none | Need validation logic in service |
-| Subscriber dashboard `/referrals` | none | Controller, views, routes all missing |
-| Copy-to-clipboard + social share | none | Frontend components needed |
-| Admin `/admin/referrals` | none | AdminAccess pattern exists; need new controller |
-| Admin reward tier CRUD | none | Standard admin CRUD pattern exists; need new controller |
-| Email notifications | partial | `DigestMailer` pattern exists; need new `ReferralMailer` |
-| Model specs | none | Need specs for `Referral`, `ReferralRewardTier` |
-| DigestSubscription specs for referral_code | partial | Spec file exists (`spec/models/digest_subscription_spec.rb`); need new tests |
-| Request specs | none | Need specs for new controllers |
-| Factories | partial | Factory patterns exist; need `referrals` and `referral_reward_tiers` |
+| Criterion                                        | Status  | Gap                                                                                                    |
+| ------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------ |
+| `referral_code` column on `digest_subscriptions` | none    | Column doesn't exist; need migration + model callback                                                  |
+| `Referral` model                                 | none    | No existing model; need full implementation                                                            |
+| `ReferralRewardTier` model                       | none    | No existing model; need full implementation                                                            |
+| Referral code generation                         | partial | `unsubscribe_token` pattern exists at `digest_subscription.rb:76-78`; need similar for `referral_code` |
+| Referral link format                             | none    | Need to add helper method for URL generation                                                           |
+| `ref` param handling in subscription flow        | none    | Controller doesn't capture ref; need service layer                                                     |
+| 24h confirmation job                             | none    | No existing job pattern for delayed confirmation                                                       |
+| Fraud prevention (email domain, IP)              | none    | Need validation logic in service                                                                       |
+| Subscriber dashboard `/referrals`                | none    | Controller, views, routes all missing                                                                  |
+| Copy-to-clipboard + social share                 | none    | Frontend components needed                                                                             |
+| Admin `/admin/referrals`                         | none    | AdminAccess pattern exists; need new controller                                                        |
+| Admin reward tier CRUD                           | none    | Standard admin CRUD pattern exists; need new controller                                                |
+| Email notifications                              | partial | `DigestMailer` pattern exists; need new `ReferralMailer`                                               |
+| Model specs                                      | none    | Need specs for `Referral`, `ReferralRewardTier`                                                        |
+| DigestSubscription specs for referral_code       | partial | Spec file exists (`spec/models/digest_subscription_spec.rb`); need new tests                           |
+| Request specs                                    | none    | Need specs for new controllers                                                                         |
+| Factories                                        | partial | Factory patterns exist; need `referrals` and `referral_reward_tiers`                                   |
 
 ### Risks
 
@@ -123,6 +130,7 @@ All must be checked before moving to done:
 ### Steps
 
 **Step 1: Add referral_code to DigestSubscription**
+
 - File: `db/migrate/YYYYMMDDHHMMSS_add_referral_code_to_digest_subscriptions.rb`
   - Add `referral_code` column (string, null initially for backfill)
   - Add unique index on `referral_code`
@@ -140,6 +148,7 @@ All must be checked before moving to done:
 - Verify: `rails db:migrate` succeeds; new spec tests pass
 
 **Step 2: Create Referral model**
+
 - File: `db/migrate/YYYYMMDDHHMMSS_create_referrals.rb`
   - Create table with: `referrer_subscription_id`, `referee_subscription_id`, `site_id`, `status`, `referee_ip_hash`, `confirmed_at`, `rewarded_at`, `timestamps`
   - Add indexes: `site_id`, `referrer_subscription_id`, `referee_subscription_id`, `status`
@@ -159,6 +168,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/models/referral_spec.rb` passes
 
 **Step 3: Create ReferralRewardTier model**
+
 - File: `db/migrate/YYYYMMDDHHMMSS_create_referral_reward_tiers.rb`
   - Create table with: `site_id`, `milestone` (integer), `reward_type` (integer), `reward_data` (jsonb), `name`, `description`, `active`, `timestamps`
   - Add indexes: `site_id`, `[site_id, milestone]` (unique)
@@ -175,6 +185,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/models/referral_reward_tier_spec.rb` passes
 
 **Step 4: Create ReferralAttributionService**
+
 - File: `app/services/referral_attribution_service.rb`
   - Initialize with: `referee_subscription`, `referral_code`, `ip_address`
   - Method: `attribute!` - creates pending Referral if valid
@@ -191,6 +202,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/services/referral_attribution_service_spec.rb` passes
 
 **Step 5: Update DigestSubscriptionsController for ref param**
+
 - File: `app/controllers/digest_subscriptions_controller.rb`
   - In `create` action: capture `params[:ref]` and `request.remote_ip`
   - After successful subscription save, call `ReferralAttributionService`
@@ -202,6 +214,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/requests/digest_subscriptions_spec.rb` passes
 
 **Step 6: Create ConfirmReferralJob**
+
 - File: `app/jobs/confirm_referral_job.rb`
   - Inherit from `ApplicationJob`
   - Arguments: `referral_id`
@@ -218,12 +231,14 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/jobs/confirm_referral_job_spec.rb` passes
 
 **Step 7: Schedule confirmation job from service**
+
 - File: `app/services/referral_attribution_service.rb`
   - After creating Referral, enqueue `ConfirmReferralJob.set(wait: 24.hours).perform_later(referral.id)`
 - File: Update existing service spec for job scheduling
 - Verify: Integration test shows job enqueued
 
 **Step 8: Create ReferralRewardService**
+
 - File: `app/services/referral_reward_service.rb`
   - Initialize with: `referrer_subscription`
   - Method: `check_and_award!` - checks confirmed referral count against tiers
@@ -238,6 +253,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/services/referral_reward_service_spec.rb` passes
 
 **Step 9: Create ReferralMailer**
+
 - File: `app/mailers/referral_mailer.rb`
   - Method: `referral_confirmed(referral)` - notify referrer of confirmed referral
   - Method: `reward_unlocked(subscription, tier)` - notify referrer of milestone reward
@@ -252,6 +268,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/mailers/referral_mailer_spec.rb` passes
 
 **Step 10: Create subscriber ReferralsController**
+
 - File: `app/controllers/referrals_controller.rb`
   - `before_action :authenticate_user!`
   - `show` action: find subscription, load referral stats, earned rewards
@@ -275,6 +292,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/requests/referrals_spec.rb` passes
 
 **Step 11: Create Admin::ReferralsController**
+
 - File: `app/controllers/admin/referrals_controller.rb`
   - Include `AdminAccess`
   - `index`: list all referrals with stats (total, pending, confirmed, rewarded)
@@ -294,6 +312,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/requests/admin/referrals_spec.rb` passes
 
 **Step 12: Create Admin::ReferralRewardTiersController**
+
 - File: `app/controllers/admin/referral_reward_tiers_controller.rb`
   - Include `AdminAccess`
   - Standard CRUD: index, new, create, edit, update, destroy
@@ -312,6 +331,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/requests/admin/referral_reward_tiers_spec.rb` passes
 
 **Step 13: Add i18n translations**
+
 - File: `config/locales/en.yml`
   - Add translations for:
     - `referrals.show.*` (dashboard labels)
@@ -321,6 +341,7 @@ All must be checked before moving to done:
 - Verify: No missing translation warnings
 
 **Step 14: Integration testing**
+
 - File: `spec/requests/referral_flow_spec.rb`
   - Full flow test:
     1. User A subscribes, gets referral code
@@ -334,6 +355,7 @@ All must be checked before moving to done:
 - Verify: `bundle exec rspec spec/requests/referral_flow_spec.rb` passes
 
 **Step 15: Final verification**
+
 - Run: `bundle exec rubocop` - fix any lint errors
 - Run: `bundle exec rspec` - all tests pass
 - Run: `bin/rails db:migrate:status` - all migrations up
@@ -342,15 +364,15 @@ All must be checked before moving to done:
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 1 | `rails db:migrate` succeeds; DigestSubscription specs pass |
-| Step 3 | All model specs pass; 3 new factories defined |
-| Step 7 | Attribution + confirmation job flow works in specs |
-| Step 9 | Mailer specs pass; emails render correctly |
-| Step 12 | Admin CRUD fully functional; request specs pass |
-| Step 14 | Full integration test passes |
-| Step 15 | `bundle exec rubocop && bundle exec rspec` both pass |
+| After Step | Verify                                                     |
+| ---------- | ---------------------------------------------------------- |
+| Step 1     | `rails db:migrate` succeeds; DigestSubscription specs pass |
+| Step 3     | All model specs pass; 3 new factories defined              |
+| Step 7     | Attribution + confirmation job flow works in specs         |
+| Step 9     | Mailer specs pass; emails render correctly                 |
+| Step 12    | Admin CRUD fully functional; request specs pass            |
+| Step 14    | Full integration test passes                               |
+| Step 15    | `bundle exec rubocop && bundle exec rspec` both pass       |
 
 ### Test Plan
 
@@ -380,6 +402,7 @@ All must be checked before moving to done:
 ### 2026-01-30 15:41 - Review Complete
 
 **Findings Ledger:**
+
 - Blockers: 0
 - High: 0
 - Medium: 0
@@ -387,15 +410,16 @@ All must be checked before moving to done:
 
 **Multi-Pass Review:**
 
-| Pass | Result | Notes |
-|------|--------|-------|
-| Correctness | pass | Happy path and edge cases handled correctly. Token generation uses proper entropy. Status transitions (confirm!, mark_rewarded!, cancel!) have guard conditions. |
-| Design | pass | Follows existing patterns (SiteScoped, AdminAccess, token generation). Service layer properly separates attribution and reward logic. |
-| Security | pass | IP hashed with SHA256; email domain fraud prevention exempts common providers; admin routes protected by AdminAccess concern; SiteScoped default_scope prevents cross-tenant access; no injection vectors (uses Rails parameterized queries). |
-| Performance | pass | Proper indexes on referrer_subscription_id, status, site_id. Admin views include eager loading (includes). Pagination not implemented but view limited to 100 records. |
-| Tests | pass | 166 examples, 0 failures. Covers models, services, jobs, mailers, request specs. Tenant isolation tested. |
+| Pass        | Result | Notes                                                                                                                                                                                                                                         |
+| ----------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Correctness | pass   | Happy path and edge cases handled correctly. Token generation uses proper entropy. Status transitions (confirm!, mark_rewarded!, cancel!) have guard conditions.                                                                              |
+| Design      | pass   | Follows existing patterns (SiteScoped, AdminAccess, token generation). Service layer properly separates attribution and reward logic.                                                                                                         |
+| Security    | pass   | IP hashed with SHA256; email domain fraud prevention exempts common providers; admin routes protected by AdminAccess concern; SiteScoped default_scope prevents cross-tenant access; no injection vectors (uses Rails parameterized queries). |
+| Performance | pass   | Proper indexes on referrer_subscription_id, status, site_id. Admin views include eager loading (includes). Pagination not implemented but view limited to 100 records.                                                                        |
+| Tests       | pass   | 166 examples, 0 failures. Covers models, services, jobs, mailers, request specs. Tenant isolation tested.                                                                                                                                     |
 
 **Security Checklist (OWASP):**
+
 - [x] A01: Authorization enforced via AdminAccess concern and ReferralPolicy
 - [x] A02: IP hashed, no secrets in code
 - [x] A03: No SQL injection (uses ActiveRecord), no XSS (Rails auto-escapes)
@@ -416,6 +440,7 @@ All must be checked before moving to done:
 All 15 steps implemented successfully:
 
 **Files Created (26 new files):**
+
 - `db/migrate/20260130150000_add_referral_code_to_digest_subscriptions.rb`
 - `db/migrate/20260130150100_create_referrals.rb`
 - `db/migrate/20260130150200_create_referral_reward_tiers.rb`
@@ -446,18 +471,21 @@ All 15 steps implemented successfully:
 - `app/views/admin/referral_reward_tiers/show.html.erb`
 
 **Files Modified (3 files):**
+
 - `app/models/digest_subscription.rb` - Added referral_code, associations, helpers
 - `app/controllers/digest_subscriptions_controller.rb` - Added ref param handling
 - `config/routes.rb` - Added referral routes
 - `config/locales/en.yml` - Added i18n translations
 
 **Verification:**
+
 - `bundle exec rubocop` - 13 files inspected, no offenses
 - `bundle exec rspec spec/models/` - 708 examples, 0 failures
 - All 3 migrations up
 - Full referral flow tested manually (attribution → confirmation → reward)
 
 **Deferred to next phase:**
+
 - Integration test specs (Step 14) - deferred to testing phase per workflow
 
 ---
@@ -465,22 +493,26 @@ All 15 steps implemented successfully:
 ### 2026-01-30 15:09 - Planning Complete
 
 Gap analysis findings:
+
 - **17 criteria assessed**: 2 partial, 15 none (clean slate for most features)
 - **Existing patterns identified**: Token generation, SiteScoped concern, AdminAccess, DigestMailer, job patterns
 - **Key files verified**: `digest_subscription.rb`, `digest_subscriptions_controller.rb`, schema, factories
 
 Plan structure:
+
 - **15 steps** (atomic, ordered by dependency)
 - **7 checkpoints** for verification
 - **5 risks identified** with mitigations
 - **11 test categories** covering unit + integration
 
 Critical dependencies:
+
 1. Steps 1-3 (models) must complete before Step 4 (service)
 2. Step 6 (job) depends on Step 4 (service)
 3. Steps 10-12 (controllers) can partially parallelize after Step 8 (service)
 
 Technical decisions:
+
 - Use `SecureRandom.urlsafe_base64(8)` for referral codes (~11 chars, URL-safe)
 - Store IP as SHA256 hash for privacy
 - Use `ActsAsTenant.with_tenant` in jobs for mailer context
@@ -491,21 +523,25 @@ Technical decisions:
 ### 2026-01-30 15:08 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop` (v1.80.2)
 - Types: N/A (Ruby/Rails project)
 - Tests: `bundle exec rspec` (2371 examples, 0 failures)
 - Build: `bin/rails db:migrate && npm run build`
 
 Task validation:
+
 - Context: clear
 - Criteria: specific (23 testable acceptance criteria)
 - Dependencies: none
 
 Complexity:
+
 - Files: many (~25 new files, ~5 modified files)
 - Risk: medium (multi-tenant, fraud prevention, async jobs)
 
 Technical verification:
+
 - ✅ DigestSubscription model exists with SiteScoped concern and token generation pattern
 - ✅ No existing Referral models (clean slate)
 - ✅ Database migrations up to date
@@ -540,20 +576,21 @@ Ready: yes
 
 **Tests written: 188 examples, 0 failures**
 
-| Spec File | Examples | Type |
-|-----------|----------|------|
-| `spec/models/referral_spec.rb` | 25 | Unit |
-| `spec/models/referral_reward_tier_spec.rb` | 23 | Unit |
-| `spec/models/digest_subscription_spec.rb` | 22 (12 new) | Unit |
-| `spec/services/referral_attribution_service_spec.rb` | 22 | Unit |
-| `spec/services/referral_reward_service_spec.rb` | 22 | Unit |
-| `spec/jobs/confirm_referral_job_spec.rb` | 13 | Unit |
-| `spec/mailers/referral_mailer_spec.rb` | 15 | Unit |
-| `spec/requests/referrals_spec.rb` | 10 | Integration |
-| `spec/requests/admin/referrals_spec.rb` | 15 | Integration |
-| `spec/requests/admin/referral_reward_tiers_spec.rb` | 21 | Integration |
+| Spec File                                            | Examples    | Type        |
+| ---------------------------------------------------- | ----------- | ----------- |
+| `spec/models/referral_spec.rb`                       | 25          | Unit        |
+| `spec/models/referral_reward_tier_spec.rb`           | 23          | Unit        |
+| `spec/models/digest_subscription_spec.rb`            | 22 (12 new) | Unit        |
+| `spec/services/referral_attribution_service_spec.rb` | 22          | Unit        |
+| `spec/services/referral_reward_service_spec.rb`      | 22          | Unit        |
+| `spec/jobs/confirm_referral_job_spec.rb`             | 13          | Unit        |
+| `spec/mailers/referral_mailer_spec.rb`               | 15          | Unit        |
+| `spec/requests/referrals_spec.rb`                    | 10          | Integration |
+| `spec/requests/admin/referrals_spec.rb`              | 15          | Integration |
+| `spec/requests/admin/referral_reward_tiers_spec.rb`  | 21          | Integration |
 
 **Coverage:**
+
 - Model associations, validations, enums, scopes
 - Status transition methods (confirm!, mark_rewarded!, cancel!)
 - Referral attribution with fraud prevention (IP, email domain)
@@ -565,6 +602,7 @@ Ready: yes
 - Tenant isolation
 
 **Quality gates:**
+
 - Lint: pass (rubocop - 0 offenses)
 - Types: N/A (Ruby project)
 - Tests: pass (1325 total examples in models/services/jobs/mailers)
@@ -577,11 +615,13 @@ Ready: yes
 ### 2026-01-30 15:40 - Documentation Sync
 
 Docs updated:
+
 - `docs/DATA_MODEL.md` - Added DigestSubscription, Referral, ReferralRewardTier model documentation with schemas, associations, scopes, and examples
 - `README.md` - Added ReferralAttributionService and ReferralRewardService to Key Services table
 - `docs/README.md` - Added Growth section linking to referral documentation in DATA_MODEL.md
 
 Inline comments:
+
 - `app/services/referral_attribution_service.rb:1-22` - Comprehensive header doc with usage examples
 - Model schema annotations auto-generated by annotaterb
 
@@ -592,6 +632,7 @@ Consistency: Verified - Code and docs describe same behavior
 ## Notes
 
 **In Scope:**
+
 - Referral tracking and attribution
 - Configurable milestone-based rewards (stored in DB, not code)
 - Subscriber-facing referral dashboard with share widgets
@@ -600,6 +641,7 @@ Consistency: Verified - Code and docs describe same behavior
 - Basic fraud prevention (email domain, IP matching)
 
 **Out of Scope:**
+
 - Physical rewards fulfillment (only digital/manual rewards)
 - Advanced fraud detection (ML-based, device fingerprinting)
 - Referral leaderboards/gamification
@@ -608,6 +650,7 @@ Consistency: Verified - Code and docs describe same behavior
 - A/B testing of referral incentives
 
 **Assumptions:**
+
 - Users must be logged in to have a DigestSubscription (verified from existing code)
 - Referral codes are tied to DigestSubscription, not User (one code per site subscription)
 - 24-hour confirmation delay is acceptable for fraud prevention

@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `003-004-subscriber-segmentation`                      |
-| Status      | `done`                                                 |
-| Priority    | `003` Medium                                           |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 23:27`                                     |
-| Completed   | `2026-01-31 00:15`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | |
-| Assigned At | |
+| Field       | Value                             |
+| ----------- | --------------------------------- |
+| ID          | `003-004-subscriber-segmentation` |
+| Status      | `done`                            |
+| Priority    | `003` Medium                      |
+| Created     | `2026-01-30 15:30`                |
+| Started     | `2026-01-30 23:27`                |
+| Completed   | `2026-01-31 00:15`                |
+| Blocked By  |                                   |
+| Blocks      |                                   |
+| Assigned To |                                   |
+| Assigned At |                                   |
 
 ---
 
@@ -24,18 +24,21 @@
 **Problem**: Publishers cannot segment their subscriber list or send targeted content to specific groups. All subscribers receive identical digest emails regardless of their interests, engagement level, or subscription history.
 
 **Solution**: Implement a rule-based subscriber segmentation system that allows publishers to:
+
 1. Define segments using JSONB rule criteria (engagement, recency, referral status, tags)
 2. Manually tag subscribers for custom segments
 3. Auto-segment subscribers based on behavioral rules
 4. Target digest sends to specific segments
 
 **Why This Matters**:
+
 - **Competitive Parity**: beehiiv and Kit offer segmentation; this is table stakes
 - **Industry Trend**: Hyper-personalization at scale (40% growth expected in 2026)
 - **User Value**: Publishers can send relevant content to engaged subscribers, reducing unsubscribes
 - **RICE Score**: 96 (Reach: 800, Impact: 1.5, Confidence: 80%, Effort: 1 person-week)
 
 **Existing Infrastructure**:
+
 - `DigestSubscription` model with `last_sent_at`, `created_at`, `preferences` (JSONB), `active` status
 - `Vote`, `Bookmark`, `ContentView` models track user engagement (linked via `user_id`)
 - `Referral` model tracks subscriber referrals (`confirmed_referrals_count` method exists)
@@ -51,32 +54,38 @@
 All must be checked before moving to done:
 
 ### Models & Database
+
 - [x] `SubscriberSegment` model exists with: `name`, `site_id`, `tenant_id`, `rules` (JSONB), `system_segment` (boolean), `enabled` (boolean)
 - [x] `SubscriberTag` model exists with: `name`, `slug`, `site_id`, `tenant_id`
 - [x] `SubscriberTagging` join model exists linking `DigestSubscription` to `SubscriberTag`
 - [x] Migrations run cleanly with appropriate indexes
 
 ### Segmentation Rules
+
 - [x] Rules can filter by: `subscription_age` (days since signup), `engagement_level` (based on votes/bookmarks/views), `referral_count` (number of confirmed referrals), `tags` (has specific tags), `frequency` (weekly/daily), `active` (true/false)
 - [x] System segments auto-created on site creation: "All Subscribers", "Active (30 days)", "New (7 days)", "Power Users (3+ referrals)"
 - [x] `SegmentationService.subscribers_for(segment)` returns matching `DigestSubscription` records
 
 ### Manual Tagging
+
 - [x] Admin can create/edit/delete tags via `Admin::SubscriberTagsController`
 - [x] Admin can assign/remove tags from individual subscribers
 - [x] Tags usable as segment rule criteria
 
 ### Digest Integration
+
 - [x] `SendDigestEmailsJob` accepts optional `segment_id` parameter
 - [x] When segment specified, only matching subscribers receive digest
 - [x] Segment filtering works with existing frequency filtering
 
 ### Admin UI
+
 - [x] Admin can view all segments with subscriber counts
 - [x] Admin can create/edit/delete custom segments (not system segments)
 - [x] Admin can preview segment rules (show matching count before save)
 
 ### Tests
+
 - [x] Model specs for `SubscriberSegment`, `SubscriberTag`, `SubscriberTagging`
 - [x] Service spec for `SegmentationService` covering all rule types
 - [x] Request specs for admin segment/tag controllers
@@ -84,6 +93,7 @@ All must be checked before moving to done:
 - [x] All tests passing
 
 ### Quality
+
 - [x] Quality gates pass (`bin/rubocop`, `bin/brakeman`, tests)
 - [x] Changes committed with task reference [003-004-subscriber-segmentation]
 
@@ -93,27 +103,27 @@ All must be checked before moving to done:
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| SubscriberSegment model | None | Build from scratch - new model, migration |
-| SubscriberTag model | None | Build from scratch - new model, migration |
-| SubscriberTagging join | None | Build from scratch - new join model, migration |
-| Rule evaluation service | None | Build SegmentationService (follow TaggingRule pattern) |
-| subscription_age filter | None | Build SQL query using `created_at` |
-| engagement_level filter | None | Build SQL with subquery joining Vote/Bookmark/ContentView |
-| referral_count filter | None | Build SQL with subquery joining Referral |
-| tags filter | None | Build SQL with JOIN on subscriber_taggings |
-| frequency filter | Full | DigestSubscription already has `frequency` enum |
-| active filter | Full | DigestSubscription already has `active` boolean |
-| System segments on site creation | None | Add callback to Site model |
-| Admin tags CRUD | None | Build controller + views (follow TaggingRulesController pattern) |
-| Admin segments CRUD | None | Build controller + views (follow TaggingRulesController pattern) |
-| Tag assignment UI | None | Build inline assignment on subscriber/segment views |
-| SendDigestEmailsJob segment param | Partial | Job exists, add optional segment_id param |
-| Model specs | None | Write specs for 3 new models |
-| Service spec | None | Write spec for SegmentationService |
-| Request specs | None | Write specs for 2 admin controllers |
-| Job spec | Partial | Existing job spec, add segment filtering tests |
+| Criterion                         | Status  | Gap                                                              |
+| --------------------------------- | ------- | ---------------------------------------------------------------- |
+| SubscriberSegment model           | None    | Build from scratch - new model, migration                        |
+| SubscriberTag model               | None    | Build from scratch - new model, migration                        |
+| SubscriberTagging join            | None    | Build from scratch - new join model, migration                   |
+| Rule evaluation service           | None    | Build SegmentationService (follow TaggingRule pattern)           |
+| subscription_age filter           | None    | Build SQL query using `created_at`                               |
+| engagement_level filter           | None    | Build SQL with subquery joining Vote/Bookmark/ContentView        |
+| referral_count filter             | None    | Build SQL with subquery joining Referral                         |
+| tags filter                       | None    | Build SQL with JOIN on subscriber_taggings                       |
+| frequency filter                  | Full    | DigestSubscription already has `frequency` enum                  |
+| active filter                     | Full    | DigestSubscription already has `active` boolean                  |
+| System segments on site creation  | None    | Add callback to Site model                                       |
+| Admin tags CRUD                   | None    | Build controller + views (follow TaggingRulesController pattern) |
+| Admin segments CRUD               | None    | Build controller + views (follow TaggingRulesController pattern) |
+| Tag assignment UI                 | None    | Build inline assignment on subscriber/segment views              |
+| SendDigestEmailsJob segment param | Partial | Job exists, add optional segment_id param                        |
+| Model specs                       | None    | Write specs for 3 new models                                     |
+| Service spec                      | None    | Write spec for SegmentationService                               |
+| Request specs                     | None    | Write specs for 2 admin controllers                              |
+| Job spec                          | Partial | Existing job spec, add segment filtering tests                   |
 
 ### Risks
 
@@ -131,6 +141,7 @@ All must be checked before moving to done:
 #### Phase 1: Database & Models (Steps 1-4)
 
 **Step 1: Create SubscriberTag model and migration**
+
 - File: `db/migrate/TIMESTAMP_create_subscriber_tags.rb`
   - `name` (string, not null)
   - `slug` (string, not null)
@@ -146,6 +157,7 @@ All must be checked before moving to done:
 - Verify: `bin/rails db:migrate` runs; `SubscriberTag.new(name: "Test", site: site).valid?` returns true
 
 **Step 2: Create SubscriberTagging join model**
+
 - File: `db/migrate/TIMESTAMP_create_subscriber_taggings.rb`
   - `digest_subscription_id` (bigint, FK, not null)
   - `subscriber_tag_id` (bigint, FK, not null)
@@ -158,6 +170,7 @@ All must be checked before moving to done:
 - Verify: Can create tagging; duplicate rejected
 
 **Step 3: Create SubscriberSegment model**
+
 - File: `db/migrate/TIMESTAMP_create_subscriber_segments.rb`
   - `name` (string, not null)
   - `description` (text)
@@ -178,6 +191,7 @@ All must be checked before moving to done:
 - Verify: `bin/rails db:migrate` runs; JSONB rules set/read works
 
 **Step 4: Update DigestSubscription associations**
+
 - File: `app/models/digest_subscription.rb`
   - Add: `has_many :subscriber_taggings, dependent: :destroy`
   - Add: `has_many :subscriber_tags, through: :subscriber_taggings`
@@ -186,6 +200,7 @@ All must be checked before moving to done:
 #### Phase 2: Segmentation Service (Steps 5-6)
 
 **Step 5: Create SegmentationService**
+
 - File: `app/services/segmentation_service.rb`
 - Public API: `SegmentationService.subscribers_for(segment)` → ActiveRecord::Relation of DigestSubscription
 - Rules format (JSONB):
@@ -210,6 +225,7 @@ All must be checked before moving to done:
 - Verify: Each rule type returns expected results; combined rules use AND logic
 
 **Step 6: Add system segments on site creation**
+
 - File: `app/models/site.rb`
   - Add: `after_create :create_default_subscriber_segments`
   - Private method creates 4 segments with system_segment: true:
@@ -222,6 +238,7 @@ All must be checked before moving to done:
 #### Phase 3: Admin UI (Steps 7-9)
 
 **Step 7: Create SubscriberTagsController**
+
 - File: `app/controllers/admin/subscriber_tags_controller.rb`
   - Include: `AdminAccess`
   - Actions: index, new, create, edit, update, destroy
@@ -238,6 +255,7 @@ All must be checked before moving to done:
 - Verify: Can list, create, edit, delete tags; authorization works
 
 **Step 8: Create SubscriberSegmentsController**
+
 - File: `app/controllers/admin/subscriber_segments_controller.rb`
   - Include: `AdminAccess`
   - Actions: index, show, new, create, edit, update, destroy, preview
@@ -259,6 +277,7 @@ All must be checked before moving to done:
 - Verify: Can list, view, create, edit, delete custom segments; system segments protected
 
 **Step 9: Add tag assignment to subscribers**
+
 - Option A (inline on segment show): Add tag assignment widget on subscriber segment show page
 - Option B (dedicated subscribers list): Create Admin::DigestSubscriptionsController for subscriber management
 - Chosen: Option B - More flexible, needed for future features
@@ -278,6 +297,7 @@ All must be checked before moving to done:
 #### Phase 4: Digest Integration (Step 10)
 
 **Step 10: Update SendDigestEmailsJob**
+
 - File: `app/jobs/send_digest_emails_job.rb`
   - Update `perform(frequency: "weekly", segment_id: nil)`
   - In `send_weekly_digests` / `send_daily_digests`:
@@ -289,6 +309,7 @@ All must be checked before moving to done:
 #### Phase 5: Testing (Steps 11-14)
 
 **Step 11: Write model specs**
+
 - File: `spec/models/subscriber_tag_spec.rb`
   - Validations: name presence, slug format, slug uniqueness per site
   - Associations: subscriber_taggings
@@ -306,6 +327,7 @@ All must be checked before moving to done:
 - Verify: All model specs pass
 
 **Step 12: Write service spec**
+
 - File: `spec/services/segmentation_service_spec.rb`
   - Test each rule type:
     - subscription_age (min_days, max_days)
@@ -321,6 +343,7 @@ All must be checked before moving to done:
 - Verify: All service specs pass
 
 **Step 13: Write request specs**
+
 - File: `spec/requests/admin/subscriber_tags_spec.rb`
   - Test CRUD operations with authentication
   - Test authorization (non-admin rejected)
@@ -334,6 +357,7 @@ All must be checked before moving to done:
 - Verify: All request specs pass
 
 **Step 14: Update job spec**
+
 - File: `spec/jobs/send_digest_emails_job_spec.rb`
   - Add tests for segment_id parameter
   - Test: With segment, only matching subscribers receive digest
@@ -343,13 +367,13 @@ All must be checked before moving to done:
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 4 | `bin/rails db:migrate` succeeds; all 3 models load; DigestSubscription has tag association |
-| Step 6 | `SegmentationService.subscribers_for(segment)` returns correct results for each rule type |
-| Step 9 | Admin can manage tags and segments; can assign tags to subscribers |
-| Step 10 | `SendDigestEmailsJob.perform_now(segment_id: id)` filters correctly |
-| Step 14 | `bundle exec rspec` passes; `bin/rubocop` passes; `bin/brakeman` passes |
+| After Step | Verify                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------ |
+| Step 4     | `bin/rails db:migrate` succeeds; all 3 models load; DigestSubscription has tag association |
+| Step 6     | `SegmentationService.subscribers_for(segment)` returns correct results for each rule type  |
+| Step 9     | Admin can manage tags and segments; can assign tags to subscribers                         |
+| Step 10    | `SendDigestEmailsJob.perform_now(segment_id: id)` filters correctly                        |
+| Step 14    | `bundle exec rspec` passes; `bin/rubocop` passes; `bin/brakeman` passes                    |
 
 ### Test Plan
 
@@ -377,10 +401,11 @@ All must be checked before moving to done:
 
 Criteria: all met (22/22 acceptance criteria checked)
 Quality gates: all pass
+
 - `bin/rubocop`: 0 offenses (563 files)
 - `bin/brakeman`: No security warnings
 - `bundle exec rspec`: 3659 examples, 0 failures, 1 pending
-CI: pass - https://github.com/mitchellfyi/curated.cx/actions/runs/21535001558
+  CI: pass - https://github.com/mitchellfyi/curated.cx/actions/runs/21535001558
 - Code Style: ✓
 - Security: ✓
 - Tests: ✓ (4m30s)
@@ -395,12 +420,14 @@ Reason: complete - all criteria met, CI green
 ### 2026-01-31 00:15 - Review Complete
 
 Findings:
+
 - Blockers: 0 - none found
 - High: 0 - none found
 - Medium: 0 - none found
 - Low: 0 - code is clean and well-structured
 
 Review passes:
+
 - Correctness: pass - all logic traces correctly, edge cases handled
 - Design: pass - follows existing patterns (SiteScoped, AdminAccess, controller structure)
 - Security: pass - proper authorization, tenant isolation, no injection vectors
@@ -408,6 +435,7 @@ Review passes:
 - Tests: pass - 130 examples covering all functionality, all passing
 
 Key Findings (all positive):
+
 1. **Models**: Clean SiteScoped implementation, proper associations, good validations
 2. **SegmentationService**: Pure SQL approach avoids N+1, parameterized queries prevent injection
 3. **Controllers**: AdminAccess properly applied, system segment protection working
@@ -416,6 +444,7 @@ Key Findings (all positive):
 6. **Security**: No IDOR - all lookups scoped by site, referral enum values hardcoded correctly (1,2)
 
 Quality Gates:
+
 - `bin/rubocop`: 0 offenses (563 files)
 - `bin/brakeman`: No security warnings
 - `bundle exec rspec`: 130 new examples, 0 failures
@@ -430,14 +459,17 @@ Status: COMPLETE
 ### 2026-01-30 23:57 - Documentation Sync
 
 Docs updated:
+
 - `docs/DATA_MODEL.md` - Added SubscriberSegment, SubscriberTag, SubscriberTagging model documentation
 - `docs/DATA_MODEL.md` - Updated DigestSubscription associations to include tag relationships
 
 Inline comments:
+
 - `app/services/segmentation_service.rb:1-15` - Existing header comment documents rules format (sufficient)
 - `app/models/subscriber_segment.rb:1-29` - Schema annotation auto-generated by annotate gem (sufficient)
 
 Consistency: verified
+
 - SegmentationService header comment matches implementation
 - DATA_MODEL.md rules format matches actual JSONB structure
 - Model associations documented match code
@@ -449,6 +481,7 @@ No README changes needed (internal admin feature, not user-facing).
 ### 2026-01-30 23:32 - Implementation Complete
 
 **Phase 1: Database & Models (Steps 1-4)**
+
 - Created `SubscriberTag` model with migration (`db/migrate/20260130233308_create_subscriber_tags.rb`)
 - Created `SubscriberTagging` join model with migration (`db/migrate/20260130233332_create_subscriber_taggings.rb`)
 - Created `SubscriberSegment` model with migration (`db/migrate/20260130233355_create_subscriber_segments.rb`)
@@ -457,6 +490,7 @@ No README changes needed (internal admin feature, not user-facing).
 - Verification: `bin/rails db:migrate` succeeded
 
 **Phase 2: Segmentation Service (Steps 5-6)**
+
 - Created `SegmentationService` with rule evaluation for all 6 rule types:
   - `subscription_age` (min_days, max_days)
   - `engagement_level` (min_actions, within_days)
@@ -469,19 +503,22 @@ No README changes needed (internal admin feature, not user-facing).
 - Verification: Console test confirmed service returns correct count
 
 **Phase 3: Admin UI (Steps 7-9)**
+
 - Created `Admin::SubscriberTagsController` with full CRUD
 - Created `Admin::SubscriberSegmentsController` with CRUD + preview action
 - Created `Admin::DigestSubscriptionsController` with index, show, update_tags
-- Created all views (index, show, new, edit, _form) for all 3 controllers
+- Created all views (index, show, new, edit, \_form) for all 3 controllers
 - Added routes in `config/routes.rb`
 - Added locale translations in `config/locales/en.yml`
 
 **Phase 4: Digest Integration (Step 10)**
+
 - Updated `SendDigestEmailsJob.perform` to accept `segment_id` parameter
 - Added `subscriptions_scope` method to filter by segment when provided
 - Logs warning when segment has no matching subscribers
 
 **Files Created:**
+
 - `app/models/subscriber_tag.rb`
 - `app/models/subscriber_tagging.rb`
 - `app/models/subscriber_segment.rb`
@@ -497,6 +534,7 @@ No README changes needed (internal admin feature, not user-facing).
 - `app/views/admin/digest_subscriptions/` (2 files)
 
 **Files Modified:**
+
 - `app/models/digest_subscription.rb` (added tag associations)
 - `app/models/site.rb` (added associations + system segment callback)
 - `app/jobs/send_digest_emails_job.rb` (added segment filtering)
@@ -504,12 +542,14 @@ No README changes needed (internal admin feature, not user-facing).
 - `config/locales/en.yml` (added translations)
 
 **Verification:**
+
 - `bin/rubocop` passes (0 offenses)
 - `bin/brakeman` passes (no security warnings)
 - `bundle exec rspec spec/models/digest_subscription_spec.rb spec/models/site_spec.rb` passes (64 examples, 0 failures)
 - Console tests confirm models and service work correctly
 
 **Not Done (per phase instructions):**
+
 - Tests for new models/service/controllers (Phase 5: Testing)
 - Documentation updates (Phase 6: Documentation)
 
@@ -518,27 +558,32 @@ No README changes needed (internal admin feature, not user-facing).
 ### 2026-01-30 23:28 - Planning Complete
 
 **Gap Analysis:**
+
 - 19 criteria assessed: 2 full (frequency, active filters), 2 partial (job, job spec), 15 none (new build)
 - Largest gaps: 3 new models, 1 new service, 3 admin controllers, all views
 
 **Risks:**
+
 - Performance on large subscriber lists (mitigated with SQL queries + indexes)
 - Bookmark model lacks site_id (mitigated by joining through user_id)
 - Empty segment edge case (acceptable - log warning)
 
 **Plan Stats:**
+
 - Steps: 14 (4 models, 2 service, 3 admin UI, 1 job, 4 testing)
 - New files: ~25 (3 models, 3 factories, 1 service, 3 controllers, ~10 views, 4 specs)
 - Modified files: 4 (DigestSubscription, Site, SendDigestEmailsJob, routes.rb)
 - Test coverage: extensive (model, service, request, job specs)
 
 **Key Patterns to Follow:**
+
 - TaggingRule model for rule evaluation structure
 - TaggingRulesController for admin controller pattern
 - SiteScoped concern for multi-tenant isolation
 - Existing admin views for UI consistency
 
 **Implementation Order:**
+
 1. Database/models first (clean foundation)
 2. Service second (testable business logic)
 3. Admin UI third (user-facing)
@@ -550,6 +595,7 @@ No README changes needed (internal admin feature, not user-facing).
 ### 2026-01-30 23:27 - Triage Complete
 
 Quality gates:
+
 - Lint: `bin/rubocop`
 - Types: missing (Ruby - not applicable)
 - Tests: `bundle exec rspec`
@@ -557,15 +603,18 @@ Quality gates:
 - Security: `bin/brakeman`
 
 Task validation:
+
 - Context: clear
 - Criteria: specific (22 checkboxes across 6 categories)
 - Dependencies: none/satisfied
 
 Complexity:
+
 - Files: many (~15 new files: 3 models, 1 service, 2 controllers, views, migrations, specs)
 - Risk: medium (new isolated feature, no breaking changes to existing functionality)
 
 Infrastructure verified:
+
 - `DigestSubscription` model exists with `last_sent_at`, `frequency`, `active`, `preferences` ✓
 - `Vote`, `Bookmark`, `ContentView` models exist for engagement tracking ✓
 - `Referral` model exists with `confirmed_referrals_count` method ✓
@@ -595,16 +644,16 @@ Ready: yes
 
 **Gap Analysis:**
 
-| Requirement | Status | Gap |
-|-------------|--------|-----|
-| Segment model | None | Build from scratch |
-| Tag model | None | Build from scratch |
-| Rule evaluation | None | Build service (can follow TaggingRule pattern) |
-| Manual tagging | None | Build CRUD + join table |
-| Digest filtering | Partial | Add segment_id param to existing job |
-| Admin UI | None | Build controllers + views |
-| Engagement data | Full | Vote/Bookmark/ContentView exist |
-| Referral data | Full | Referral model + method exist |
+| Requirement      | Status  | Gap                                            |
+| ---------------- | ------- | ---------------------------------------------- |
+| Segment model    | None    | Build from scratch                             |
+| Tag model        | None    | Build from scratch                             |
+| Rule evaluation  | None    | Build service (can follow TaggingRule pattern) |
+| Manual tagging   | None    | Build CRUD + join table                        |
+| Digest filtering | Partial | Add segment_id param to existing job           |
+| Admin UI         | None    | Build controllers + views                      |
+| Engagement data  | Full    | Vote/Bookmark/ContentView exist                |
+| Referral data    | Full    | Referral model + method exist                  |
 
 ---
 
@@ -613,11 +662,13 @@ Ready: yes
 ### 2026-01-30 - Phase 4 Testing Complete
 
 **Quality Gates:**
+
 - `bin/rubocop`: ✅ Pass (0 offenses)
 - `bin/brakeman`: ✅ Pass (no security warnings)
 - `bundle exec rspec`: ✅ Pass (3659 examples, 0 failures, 1 pending)
 
 **Test Files Created:**
+
 - `spec/factories/subscriber_tags.rb` - Factory with :vip and :beta traits
 - `spec/factories/subscriber_taggings.rb` - Join factory
 - `spec/factories/subscriber_segments.rb` - Factory with system segment traits
@@ -646,6 +697,7 @@ Ready: yes
 | **Total New Tests** | **131** | ✅ |
 
 **Issues Found and Fixed During Testing:**
+
 1. i18n hardcoded strings in `_form.html.erb` - Fixed with translation keys
 2. i18n unused keys (9) - Removed with `i18n-tasks remove-unused`
 3. Pagination in DigestSubscriptionsController used unavailable Kaminari - Changed to `.limit(100)`
@@ -658,6 +710,7 @@ Ready: yes
 ## Notes
 
 **In Scope:**
+
 - SubscriberSegment model with JSONB rules
 - SubscriberTag and SubscriberTagging models for manual tagging
 - SegmentationService for rule evaluation
@@ -667,6 +720,7 @@ Ready: yes
 - Full test coverage
 
 **Out of Scope (future tasks):**
+
 - Email open/click tracking (requires webhook integration with email provider)
 - Location-based segments (would need IP geolocation, GDPR considerations)
 - Dynamic content blocks (different content per segment in same email)
@@ -676,24 +730,28 @@ Ready: yes
 - Bulk subscriber tagging import
 
 **Assumptions:**
+
 - Engagement is measured via existing Vote/Bookmark/ContentView models through user association
 - "Active" means the user has any engagement activity in the time window (not email opens)
 - Tags are site-scoped (not shared across sites in a tenant)
 - Segment rules are evaluated at send time (not cached membership)
 
 **Edge Cases:**
+
 - Subscriber with no engagement data → excluded from engagement-based segments
 - Deleted tags → remove tagings but preserve segment rule (rule becomes no-op)
 - Empty segment → job runs but sends to 0 subscribers (log warning)
 - Overlapping rules → subscriber matches if ALL rule criteria match (AND logic)
 
 **Risks:**
+
 - **Performance**: Evaluating rules for 10k+ subscribers on each send
   - Mitigation: Use efficient SQL queries, not Ruby iteration; add database indexes
 - **Stale data**: Engagement data could be old if user account differs from subscription
   - Mitigation: Join through user_id correctly; document this behavior
 
 **Key Files:**
+
 - `app/models/digest_subscription.rb` - Add tag association
 - `app/models/subscriber_segment.rb` - New model
 - `app/models/subscriber_tag.rb` - New model

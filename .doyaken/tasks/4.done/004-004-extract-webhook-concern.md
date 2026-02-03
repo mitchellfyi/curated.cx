@@ -22,6 +22,7 @@
 Two webhook controllers (`MuxWebhooksController`, `StripeWebhooksController`) share similar patterns:
 
 **Common Patterns:**
+
 - Skip `verify_authenticity_token` and `verify_authorized`
 - Read payload from `request.body.read`
 - Error handling for `JSON::ParserError` with identical response
@@ -30,6 +31,7 @@ Two webhook controllers (`MuxWebhooksController`, `StripeWebhooksController`) sh
 - Identical response structure (`received: true`, error responses)
 
 **Provider-Specific Differences:**
+
 - Signature verification: Mux uses custom HMAC-SHA256; Stripe uses SDK
 - Header names: `HTTP_MUX_SIGNATURE` vs `HTTP_STRIPE_SIGNATURE`
 - Config paths: `config.mux[:webhook_secret]` vs `config.stripe[:webhook_secret]`
@@ -56,18 +58,18 @@ Two webhook controllers (`MuxWebhooksController`, `StripeWebhooksController`) sh
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| Create `WebhookController` concern | none | File does not exist |
-| Extract common `skip_before_action` / `skip_after_action` | none | Not yet extracted |
-| Extract common `create` action structure | none | Not yet extracted |
-| Extract common error handling | none | Not yet extracted |
-| Extract common response helpers | none | Not yet extracted |
-| Refactor `MuxWebhooksController` | none | Uses inline implementation |
-| Refactor `StripeWebhooksController` | none | Uses inline implementation |
-| Controllers implement provider-specific methods | none | Not yet refactored |
-| Existing tests pass unchanged | full | Tests exist at `spec/requests/mux_webhooks_spec.rb` |
-| Quality gates pass | full | Already passing in repo |
+| Criterion                                                 | Status | Gap                                                 |
+| --------------------------------------------------------- | ------ | --------------------------------------------------- |
+| Create `WebhookController` concern                        | none   | File does not exist                                 |
+| Extract common `skip_before_action` / `skip_after_action` | none   | Not yet extracted                                   |
+| Extract common `create` action structure                  | none   | Not yet extracted                                   |
+| Extract common error handling                             | none   | Not yet extracted                                   |
+| Extract common response helpers                           | none   | Not yet extracted                                   |
+| Refactor `MuxWebhooksController`                          | none   | Uses inline implementation                          |
+| Refactor `StripeWebhooksController`                       | none   | Uses inline implementation                          |
+| Controllers implement provider-specific methods           | none   | Not yet refactored                                  |
+| Existing tests pass unchanged                             | full   | Tests exist at `spec/requests/mux_webhooks_spec.rb` |
+| Quality gates pass                                        | full   | Already passing in repo                             |
 
 ### Risks
 
@@ -118,11 +120,11 @@ Two webhook controllers (`MuxWebhooksController`, `StripeWebhooksController`) sh
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 1 | `bundle exec rubocop app/controllers/concerns/webhook_controller.rb` passes |
-| Step 2 | `bundle exec rspec spec/requests/mux_webhooks_spec.rb` passes (9 examples, 0 failures) |
-| Step 3 | `bundle exec rubocop && bundle exec rspec` passes |
+| After Step | Verify                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------- |
+| Step 1     | `bundle exec rubocop app/controllers/concerns/webhook_controller.rb` passes            |
+| Step 2     | `bundle exec rspec spec/requests/mux_webhooks_spec.rb` passes (9 examples, 0 failures) |
+| Step 3     | `bundle exec rubocop && bundle exec rspec` passes                                      |
 
 ### Test Plan
 
@@ -139,21 +141,25 @@ Two webhook controllers (`MuxWebhooksController`, `StripeWebhooksController`) sh
 ## Notes
 
 **In Scope:**
+
 - Create `WebhookController` concern with template method pattern
 - Refactor both webhook controllers to use the concern
 - Maintain all existing behavior exactly
 
 **Out of Scope:**
+
 - Adding new webhook tests (existing coverage is sufficient)
 - Refactoring the `*WebhookHandler` classes
 - Changing response formats or status codes
 - Adding Stripe webhook request specs (separate task if needed)
 
 **Assumptions:**
+
 - The concern name `WebhookController` follows project conventions (see `Votable`)
 - Template method pattern is appropriate here (controllers override specific methods)
 
 **Edge Cases:**
+
 - Stripe `SignatureVerificationError` must be caught in `verify_and_construct_event`, not in the concern's `create` action (concern doesn't know about Stripe-specific exceptions)
 - Development mode without secrets should continue to work
 
@@ -182,12 +188,14 @@ Reason: complete - all criteria verified, CI passed, deployed to production
 ### 2026-02-01 21:45 - Review Complete
 
 Findings:
+
 - Blockers: 0
 - High: 0
 - Medium: 0
 - Low: 0
 
 Review passes:
+
 - Correctness: pass - All behavior preserved, verified against original implementations
 - Design: pass - Follows existing `Votable` concern pattern, template method pattern appropriate
 - Security: pass - Signature verification using secure_compare, no secrets leaked, generic error messages
@@ -204,17 +212,21 @@ Status: COMPLETE
 ### 2026-02-01 21:39 - Documentation Sync
 
 Docs updated:
+
 - None required (internal refactoring, no API changes)
 
 Inline comments:
+
 - `app/controllers/concerns/webhook_controller.rb:1-28` - Already complete: module header with purpose, usage example, and template method documentation
 
 Consistency: verified
+
 - `docs/monetisation.md` - Still accurate (references StripeWebhookHandler, webhook endpoint)
 - `docs/ARCHITECTURE.md` - Still accurate (high-level webhook mention)
 - `docs/DATA_MODEL.md` - Still accurate (stream webhook reference)
 
 No updates needed because:
+
 1. Concern has comprehensive inline documentation with usage example
 2. Refactoring preserved all external behavior
 3. No route, API, or handler changes
@@ -224,9 +236,11 @@ No updates needed because:
 ### 2026-02-01 21:36 - Testing Complete
 
 Tests written:
+
 - No new tests required - existing `spec/requests/mux_webhooks_spec.rb` (9 tests) covers all WebhookController concern behavior
 
 Quality gates:
+
 - Lint: pass (585 files, no offenses)
 - Types: N/A (Ruby)
 - Tests: pass (3911 total, 0 failures, 1 pending unrelated)
@@ -235,6 +249,7 @@ Quality gates:
 CI ready: yes
 
 Test coverage evaluation:
+
 - Existing Mux webhook tests cover: valid signature, invalid signature, missing signature, invalid JSON, dev mode (no secret), event processing, unhandled events
 - Stripe webhook controller has no request specs (out of scope per task notes)
 - WebhookController concern is purely an internal refactoring - all public behavior tested through concrete controller specs
@@ -244,21 +259,25 @@ Test coverage evaluation:
 ### 2026-02-01 21:31 - Implementation Complete
 
 Step 1: Create WebhookController concern
+
 - File created: `app/controllers/concerns/webhook_controller.rb`
 - Verification: `bundle exec rubocop` passes
 - Commit: f98e85a
 
 Step 2: Refactor MuxWebhooksController
+
 - File modified: `app/controllers/mux_webhooks_controller.rb`
 - Verification: `bundle exec rspec spec/requests/mux_webhooks_spec.rb` passes (9 examples, 0 failures)
 - Commit: 0aa82eb
 
 Step 3: Refactor StripeWebhooksController
+
 - File modified: `app/controllers/stripe_webhooks_controller.rb`
 - Verification: `bundle exec rubocop` passes
 - Commit: 5b85eca
 
 Final verification: `bundle exec rubocop && bundle exec rspec`
+
 - Lint: 585 files inspected, no offenses
 - Tests: 3911 examples, 0 failures, 1 pending (unrelated)
 
@@ -279,17 +298,20 @@ Net lines: -33 (124 new concern, 35+34=69 removed from controllers, reduced to 5
 ### 2026-02-01 21:29 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop`
 - Types: N/A (Ruby)
 - Tests: `bundle exec rspec`
 - Build: N/A (Rails)
 
 Task validation:
+
 - Context: clear
 - Criteria: specific
 - Dependencies: none
 
 Complexity:
+
 - Files: few (3 files: 1 new concern, 2 refactored controllers)
 - Risk: low
 

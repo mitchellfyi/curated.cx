@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `003-002-live-video-streaming`                         |
-| Status      | `done`                                                 |
-| Priority    | `003` Medium                                           |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 21:13`                                     |
-| Completed   | `2026-01-30 21:57`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-30 21:09` |
+| Field       | Value                          |
+| ----------- | ------------------------------ |
+| ID          | `003-002-live-video-streaming` |
+| Status      | `done`                         |
+| Priority    | `003` Medium                   |
+| Created     | `2026-01-30 15:30`             |
+| Started     | `2026-01-30 21:13`             |
+| Completed   | `2026-01-30 21:57`             |
+| Blocked By  |                                |
+| Blocks      |                                |
+| Assigned To | `worker-1`                     |
+| Assigned At | `2026-01-30 21:09`             |
 
 ---
 
@@ -22,20 +22,24 @@
 **Intent**: BUILD
 
 ### Business Context
+
 - **Competitive Feature**: Substack calls live video "the highest-leverage growth tool on the platform right now" because it sends notifications to the entire subscriber list with no algorithm.
 - **Platform Evolution**: Substack and beehiiv are evolving into multimedia hubs (podcasts, video).
 - **Engagement**: Live video drives real-time engagement and community connection.
 - **RICE Score**: 90 (Reach: 300, Impact: 3, Confidence: 75%, Effort: 0.75 person-weeks)
 
 ### Problem
+
 Publishers have no way to do live video or webinars within the platform. They must use external tools and manually notify subscribers.
 
 ### Solution
+
 Integration with Mux Live for video streaming with built-in subscriber notifications, replay hosting, and live chat via the existing Discussion feature.
 
 ### Technical Context (Codebase Analysis)
 
 **Existing Infrastructure to Leverage:**
+
 - `SiteScoped` concern for multi-tenant isolation (all models use this)
 - `DigestSubscription` model with `.active` scope for subscriber notifications
 - `DigestMailer` pattern for email notifications with configurable from address
@@ -47,6 +51,7 @@ Integration with Mux Live for video streaming with built-in subscriber notificat
 - Turbo Streams for real-time UI updates
 
 **Key Patterns to Follow:**
+
 - Service objects: `StripeCheckoutService`, `StripeWebhookHandler`
 - Admin controllers: `Admin::DiscussionsController` with moderation actions
 - Background jobs: `SendDigestEmailsJob` with tenant wrapping
@@ -54,6 +59,7 @@ Integration with Mux Live for video streaming with built-in subscriber notificat
 - Models: `Discussion` with SiteScoped, enums, validations
 
 **Provider Decision: Mux**
+
 - Simple RTMP ingestion + HLS playback
 - Comprehensive webhooks for stream state changes
 - Automatic replay generation
@@ -67,12 +73,14 @@ Integration with Mux Live for video streaming with built-in subscriber notificat
 All must be checked before moving to done:
 
 ### Core Model & Database
+
 - [x] `LiveStream` model with: `title`, `description`, `scheduled_at`, `started_at`, `ended_at`, `status` (enum: scheduled/live/ended/archived), `visibility` (enum: public_access/subscribers_only), `mux_stream_id`, `mux_playback_id`, `stream_key`, `replay_url`, `viewer_count`, `peak_viewers`, `site_id`, `user_id`
 - [x] `LiveStreamViewer` model for analytics: `live_stream_id`, `user_id`, `joined_at`, `left_at`, `duration_seconds`
 - [x] Proper indexes on `site_id`, `status`, `scheduled_at`
 - [x] Foreign key constraints with proper cascading
 
 ### Mux Integration
+
 - [x] `MuxLiveStreamService` service object following `StripeCheckoutService` pattern
 - [x] Create Mux live stream on scheduling (returns stream_key, playback_id)
 - [x] Disable/enable stream on demand
@@ -81,6 +89,7 @@ All must be checked before moving to done:
 - [x] Handle webhooks: `video.live_stream.active`, `video.live_stream.idle`, `video.asset.ready`
 
 ### Publisher Experience (Admin)
+
 - [x] `Admin::LiveStreamsController` with CRUD + start/end actions
 - [x] Schedule stream form: title, description, scheduled_at, visibility
 - [x] Stream dashboard showing: stream status, viewer count, stream key for OBS
@@ -88,6 +97,7 @@ All must be checked before moving to done:
 - [x] List view of past/upcoming streams
 
 ### Subscriber Experience (Viewer)
+
 - [x] `LiveStreamsController#show` for stream playback page
 - [x] Mux HLS player embed (using Mux Player or hls.js)
 - [x] "Live Now" indicator on site when stream is active
@@ -95,27 +105,32 @@ All must be checked before moving to done:
 - [x] Replay playback after stream ends
 
 ### Notifications
+
 - [x] `LiveStreamMailer` with `stream_live_notification(subscription, stream)` method
 - [x] `NotifyLiveStreamSubscribersJob` following `SendDigestEmailsJob` pattern
 - [x] Automatic notification when stream goes live (via webhook)
 - [x] Email includes: stream title, direct link, unsubscribe link
 
 ### Site Configuration
+
 - [x] `site.setting("streaming.enabled", false)` - feature toggle
 - [x] `site.setting("streaming.notify_on_live", true)` - send notifications
 - [x] Helper methods: `site.streaming_enabled?`, `site.streaming_notify_on_live?`
 
 ### Analytics
+
 - [x] Track viewer joins/leaves via Turbo or polling
 - [x] Calculate peak concurrent viewers
 - [x] Track total watch time per viewer
 - [x] Display stats on admin stream detail page
 
 ### Authorization
+
 - [x] `LiveStreamPolicy` with: `show?` (respects visibility), `create?/update?/destroy?` (admin only)
 - [x] Rate limiting for stream creation (prevent abuse)
 
 ### Testing
+
 - [x] Model specs for `LiveStream`, `LiveStreamViewer`
 - [x] Service specs for `MuxLiveStreamService` with mocked API calls
 - [x] Request specs for admin and public controllers
@@ -123,6 +138,7 @@ All must be checked before moving to done:
 - [x] Factory for `live_stream` with traits `:scheduled`, `:live`, `:ended`
 
 ### Quality
+
 - [x] All tests pass
 - [x] RuboCop passes
 - [x] Brakeman security scan passes
@@ -135,37 +151,37 @@ All must be checked before moving to done:
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| `LiveStream` model with all fields | none | Needs full creation with migrations, SiteScoped, enums, validations |
-| `LiveStreamViewer` analytics model | none | Needs full creation for viewer tracking |
-| Proper indexes and foreign keys | none | Will add in migrations |
-| `MuxLiveStreamService` service | none | New service following StripeCheckoutService pattern |
-| Mux API integration (create/disable/delete) | none | Needs mux_ruby gem and initializer |
-| `MuxWebhooksController` + handler | none | New controller/service following Stripe pattern |
-| Webhook handling for stream events | none | Handle active/idle/asset.ready events |
-| `Admin::LiveStreamsController` CRUD | none | New admin controller following Discussion pattern |
-| Admin views (index/show/new/edit/form) | none | Full admin UI needed |
-| Stream dashboard with key display | none | Part of admin show view |
-| `LiveStreamsController` public | none | New public controller |
-| Mux HLS player embed | none | Frontend integration needed |
-| Live Now indicator | none | Component for site-wide display |
-| Discussion auto-creation | none | Callback on LiveStream create |
-| Replay playback | none | Use Mux asset URL after stream ends |
-| `LiveStreamMailer` | none | New mailer following DigestMailer pattern |
-| `NotifyLiveStreamSubscribersJob` | none | New job following SendDigestEmailsJob pattern |
-| Automatic notification on live | none | Trigger job from webhook handler |
-| `site.streaming_enabled?` setting | none | Add to Site model (following discussion pattern) |
-| `site.streaming_notify_on_live?` setting | none | Add to Site model |
-| Viewer join/leave tracking | none | Turbo or polling endpoint needed |
-| Peak viewers calculation | none | Model method to calculate |
-| `LiveStreamPolicy` | none | New policy following DiscussionPolicy pattern |
-| Rate limiting for stream creation | partial | RateLimitable concern exists, need to apply |
-| Model specs | none | Full coverage needed |
-| Service specs with mocked API | none | Follow StripeCheckoutService spec pattern |
-| Request specs | none | Admin and public controllers |
-| Policy specs | none | Authorization rules |
-| Factory with traits | none | :scheduled, :live, :ended traits |
+| Criterion                                   | Status  | Gap                                                                 |
+| ------------------------------------------- | ------- | ------------------------------------------------------------------- |
+| `LiveStream` model with all fields          | none    | Needs full creation with migrations, SiteScoped, enums, validations |
+| `LiveStreamViewer` analytics model          | none    | Needs full creation for viewer tracking                             |
+| Proper indexes and foreign keys             | none    | Will add in migrations                                              |
+| `MuxLiveStreamService` service              | none    | New service following StripeCheckoutService pattern                 |
+| Mux API integration (create/disable/delete) | none    | Needs mux_ruby gem and initializer                                  |
+| `MuxWebhooksController` + handler           | none    | New controller/service following Stripe pattern                     |
+| Webhook handling for stream events          | none    | Handle active/idle/asset.ready events                               |
+| `Admin::LiveStreamsController` CRUD         | none    | New admin controller following Discussion pattern                   |
+| Admin views (index/show/new/edit/form)      | none    | Full admin UI needed                                                |
+| Stream dashboard with key display           | none    | Part of admin show view                                             |
+| `LiveStreamsController` public              | none    | New public controller                                               |
+| Mux HLS player embed                        | none    | Frontend integration needed                                         |
+| Live Now indicator                          | none    | Component for site-wide display                                     |
+| Discussion auto-creation                    | none    | Callback on LiveStream create                                       |
+| Replay playback                             | none    | Use Mux asset URL after stream ends                                 |
+| `LiveStreamMailer`                          | none    | New mailer following DigestMailer pattern                           |
+| `NotifyLiveStreamSubscribersJob`            | none    | New job following SendDigestEmailsJob pattern                       |
+| Automatic notification on live              | none    | Trigger job from webhook handler                                    |
+| `site.streaming_enabled?` setting           | none    | Add to Site model (following discussion pattern)                    |
+| `site.streaming_notify_on_live?` setting    | none    | Add to Site model                                                   |
+| Viewer join/leave tracking                  | none    | Turbo or polling endpoint needed                                    |
+| Peak viewers calculation                    | none    | Model method to calculate                                           |
+| `LiveStreamPolicy`                          | none    | New policy following DiscussionPolicy pattern                       |
+| Rate limiting for stream creation           | partial | RateLimitable concern exists, need to apply                         |
+| Model specs                                 | none    | Full coverage needed                                                |
+| Service specs with mocked API               | none    | Follow StripeCheckoutService spec pattern                           |
+| Request specs                               | none    | Admin and public controllers                                        |
+| Policy specs                                | none    | Authorization rules                                                 |
+| Factory with traits                         | none    | :scheduled, :live, :ended traits                                    |
 
 ### Risks
 
@@ -179,6 +195,7 @@ All must be checked before moving to done:
 ### Steps
 
 #### Step 1: Mux Gem & Configuration
+
 1. **Add mux_ruby gem**
    - File: `Gemfile`
    - Change: Add `gem "mux_ruby", "~> 3.0"`
@@ -190,6 +207,7 @@ All must be checked before moving to done:
    - Verify: `rails c` - `MuxRuby.configure` returns config
 
 #### Step 2: Database Migrations
+
 3. **Create live_streams migration**
    - File: `db/migrate/YYYYMMDDHHMMSS_create_live_streams.rb`
    - Change: Create table with columns: `title:string`, `description:text`, `scheduled_at:datetime`, `started_at:datetime`, `ended_at:datetime`, `status:integer(default:0)`, `visibility:integer(default:0)`, `mux_stream_id:string`, `mux_playback_id:string`, `stream_key:string`, `mux_asset_id:string`, `replay_playback_id:string`, `viewer_count:integer(default:0)`, `peak_viewers:integer(default:0)`, `site_id:bigint`, `user_id:bigint`, `discussion_id:bigint`
@@ -205,6 +223,7 @@ All must be checked before moving to done:
    - Verify: `rails db:migrate` succeeds
 
 #### Step 3: Models
+
 5. **Create LiveStream model**
    - File: `app/models/live_stream.rb`
    - Change: Include SiteScoped, define enums (`status: {scheduled:0, live:1, ended:2, archived:3}`, `visibility: {public_access:0, subscribers_only:1}`), associations (`belongs_to :user`, `belongs_to :site`, `belongs_to :discussion, optional: true`, `has_many :viewers, class_name: 'LiveStreamViewer'`), validations (title required, scheduled_at required), scopes (`:upcoming`, `:live_now`, `:ended`), instance methods (`can_start?`, `can_end?`, `live?`, `replay_url`)
@@ -216,18 +235,21 @@ All must be checked before moving to done:
    - Verify: `rails c` - `LiveStreamViewer.new` works
 
 #### Step 4: Site Configuration
+
 7. **Add streaming settings to Site model**
    - File: `app/models/site.rb`
    - Change: Add `streaming_enabled?` method returning `setting("streaming.enabled", false)`, add `streaming_notify_on_live?` returning `setting("streaming.notify_on_live", true)`, add config validation for streaming hash
    - Verify: `rails c` - `site.streaming_enabled?` returns false by default
 
 #### Step 5: Mux Service
+
 8. **Create MuxLiveStreamService**
    - File: `app/services/mux_live_stream_service.rb`
    - Change: Constructor takes `site`; methods: `create_stream(title)` → returns `{stream_key, mux_stream_id, mux_playback_id}`, `get_playback_url(playback_id)` → HLS URL, `disable_stream(mux_stream_id)`, `enable_stream(mux_stream_id)`, `delete_stream(mux_stream_id)`, `get_asset(asset_id)` → returns asset with playback_id for replay; include custom error classes `MuxNotConfiguredError`, `MuxApiError`
    - Verify: Service spec with mocked MuxRuby API
 
 #### Step 6: Webhook Handler
+
 9. **Create MuxWebhookHandler service**
    - File: `app/services/mux_webhook_handler.rb`
    - Change: Constructor takes event hash; `process` method routes to: `handle_live_stream_active` (update status to :live, trigger notification job), `handle_live_stream_idle` (update status to :ended if idle > 5min), `handle_asset_ready` (update replay_playback_id from asset); find LiveStream by `mux_stream_id`; wrap updates in transaction
@@ -244,6 +266,7 @@ All must be checked before moving to done:
     - Verify: `rails routes | grep mux` shows route
 
 #### Step 7: Mailer & Job
+
 12. **Create LiveStreamMailer**
     - File: `app/mailers/live_stream_mailer.rb`
     - Change: `stream_live_notification(subscription, stream)` method following DigestMailer pattern with dynamic from address, set `@stream`, `@subscription`, `@site`, `@user` ivars
@@ -260,12 +283,14 @@ All must be checked before moving to done:
     - Verify: Job spec with mocked mailer
 
 #### Step 8: Policy
+
 15. **Create LiveStreamPolicy**
     - File: `app/policies/live_stream_policy.rb`
     - Change: `index?` true, `show?` checks visibility (public or subscriber), `create?/update?/destroy?` admin only + streaming_enabled?, `start?/end?` admin + correct status, Scope class filters by visibility
     - Verify: Policy spec covers all cases
 
 #### Step 9: Admin Controller
+
 16. **Create Admin::LiveStreamsController**
     - File: `app/controllers/admin/live_streams_controller.rb`
     - Change: Include AdminAccess, `before_action :set_live_stream` for member actions, `before_action :check_streaming_enabled` for create, CRUD actions, `start` action (calls MuxLiveStreamService.enable_stream, updates status), `end` action (updates status to ended), auto-create Discussion on create (using visibility match), strong params for title/description/scheduled_at/visibility
@@ -282,6 +307,7 @@ All must be checked before moving to done:
     - Verify: Views render without errors
 
 #### Step 10: Public Controller
+
 19. **Create LiveStreamsController**
     - File: `app/controllers/live_streams_controller.rb`
     - Change: `index` action (policy_scope, live first, then upcoming), `show` action (authorize, increment viewer count), `join` action (create/update LiveStreamViewer), `leave` action (update left_at, calculate duration)
@@ -298,6 +324,7 @@ All must be checked before moving to done:
     - Verify: Views render, player loads
 
 #### Step 11: Frontend Integration
+
 22. **Add Mux Player JavaScript**
     - File: `package.json` or `app/javascript/`
     - Change: Add `@mux/mux-player` or `hls.js` for HLS playback
@@ -314,6 +341,7 @@ All must be checked before moving to done:
     - Verify: Indicator appears when stream is live
 
 #### Step 12: Testing
+
 25. **Create LiveStream factory**
     - File: `spec/factories/live_streams.rb`
     - Change: Factory with user, site associations, traits `:scheduled` (status scheduled), `:live` (status live, started_at set), `:ended` (status ended, ended_at set), `:with_mux` (has mux_stream_id, mux_playback_id, stream_key)
@@ -346,13 +374,13 @@ All must be checked before moving to done:
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 2 (migration) | `rails db:migrate` succeeds, `rails db:rollback` works |
-| Step 5 (service) | `MuxLiveStreamService.new(site).create_stream("Test")` returns mock data in console |
-| Step 9 (admin) | Admin can create/view/edit streams at `/admin/live_streams` |
-| Step 10 (public) | Streams visible at `/live_streams`, player loads on show page |
-| Step 12 (testing) | `bundle exec rspec --tag live_stream` passes all tests |
+| After Step         | Verify                                                                              |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| Step 2 (migration) | `rails db:migrate` succeeds, `rails db:rollback` works                              |
+| Step 5 (service)   | `MuxLiveStreamService.new(site).create_stream("Test")` returns mock data in console |
+| Step 9 (admin)     | Admin can create/view/edit streams at `/admin/live_streams`                         |
+| Step 10 (public)   | Streams visible at `/live_streams`, player loads on show page                       |
+| Step 12 (testing)  | `bundle exec rspec --tag live_stream` passes all tests                              |
 
 ### Test Plan
 
@@ -381,12 +409,14 @@ All must be checked before moving to done:
 ### 2026-01-30 21:57 - Phase 6 (REVIEW) Complete
 
 **Findings Ledger:**
+
 - Blockers: 0
 - High: 0
 - Medium: 0
 - Low: 1 (deferred) - Query in view pattern for discussion posts could be moved to controller
 
 **Review Passes:**
+
 - Correctness: **PASS** - Happy path and failure paths traced; error handling consistent across all services and controllers
 - Design: **PASS** - Follows existing patterns (SiteScoped, StripeWebhookHandler, AdminAccess, DigestMailer)
 - Security: **PASS** - OWASP checklist clear:
@@ -399,6 +429,7 @@ All must be checked before moving to done:
 - Tests: **PASS** - 201 tests covering models, services, controllers, policies; all pass
 
 **Quality Gates:**
+
 - All tests pass: 3333 examples, 0 failures
 - RuboCop: No offenses
 - Brakeman: No warnings
@@ -415,10 +446,12 @@ All must be checked before moving to done:
 ### 2026-01-30 - Phase 5 (DOCS) Complete
 
 Docs updated:
+
 - `docs/DATA_MODEL.md` - Added LiveStream and LiveStreamViewer model documentation
 - `README.md` - Added Mux environment variables section, added MuxLiveStreamService and MuxWebhookHandler to Key Services table
 
 Inline comments:
+
 - Existing code already well-documented with clear comments explaining:
   - `app/services/mux_webhook_handler.rb` - Supported events listed at top
   - `app/services/mux_live_stream_service.rb` - YARD-style method documentation
@@ -432,20 +465,24 @@ Consistency: Verified - all documentation matches implementation
 ### 2026-01-30 - Phase 4 (TEST) Complete
 
 **Tests Written (201 total):**
+
 - Model specs: `spec/models/live_stream_spec.rb` (59 tests), `spec/models/live_stream_viewer_spec.rb` (22 tests)
 - Service specs: `spec/services/mux_live_stream_service_spec.rb` (17 tests), `spec/services/mux_webhook_handler_spec.rb` (15 tests)
 - Request specs: `spec/requests/admin/live_streams_spec.rb` (29 tests), `spec/requests/live_streams_spec.rb` (14 tests), `spec/requests/mux_webhooks_spec.rb` (9 tests)
 - Policy specs: `spec/policies/live_stream_policy_spec.rb` (36 tests)
 
 **Factories Created:**
+
 - `spec/factories/live_streams.rb` - with traits `:scheduled`, `:live`, `:ended`, `:archived`, `:with_mux`, `:with_replay`, `:subscribers_only`
 - `spec/factories/live_stream_viewers.rb` - with traits `:active`, `:completed`, `:anonymous`
 
 **Bug Fixes Discovered During Testing:**
+
 - Fixed `LiveStreamsController` missing `skip_after_action :verify_authorized, only: [:index]`
 - Removed 6 unused i18n keys from `config/locales/en.yml`
 
 **Quality Gates:**
+
 - Lint: RuboCop passed (514 files, no offenses)
 - Tests: 3333 examples, 0 failures, 1 pending
 - Build: `npm run build` and `npm run build:css` successful
@@ -458,6 +495,7 @@ Consistency: Verified - all documentation matches implementation
 ### 2026-01-30 21:19 - Implementation Complete
 
 **Files Created:**
+
 - `Gemfile` - Added `mux_ruby` gem
 - `config/initializers/mux.rb` - Mux API configuration
 - `db/migrate/20260130212037_create_live_streams.rb` - LiveStream table
@@ -479,6 +517,7 @@ Consistency: Verified - all documentation matches implementation
 - `app/javascript/controllers/live_stream_controller.js` - Stimulus controller
 
 **Files Modified:**
+
 - `app/models/site.rb` - Added streaming settings + associations
 - `config/routes.rb` - Added admin and public routes + webhook
 - `config/locales/en.yml` - Added I18n translations
@@ -486,6 +525,7 @@ Consistency: Verified - all documentation matches implementation
 - `package.json` - Added @mux/mux-player
 
 **Verification:**
+
 - RuboCop: 10 files inspected, no offenses
 - Bundle install: successful
 - Rails db:migrate: successful (rollback tested)
@@ -493,6 +533,7 @@ Consistency: Verified - all documentation matches implementation
 - Routes: All 14 live_stream routes verified
 
 **Acceptance Criteria Progress:**
+
 - [x] LiveStream model with all fields, enums, associations
 - [x] LiveStreamViewer model for analytics
 - [x] Proper indexes and foreign keys
@@ -512,6 +553,7 @@ Consistency: Verified - all documentation matches implementation
 - [x] LiveStreamPolicy with visibility checks
 
 **Remaining (Next Phase - Testing):**
+
 - [ ] Model specs for LiveStream, LiveStreamViewer
 - [ ] Service specs for MuxLiveStreamService, MuxWebhookHandler
 - [ ] Request specs for controllers
@@ -523,6 +565,7 @@ Consistency: Verified - all documentation matches implementation
 ### 2026-01-30 21:14 - Planning Complete
 
 **Codebase Analysis:**
+
 - Explored SiteScoped concern at `app/models/concerns/site_scoped.rb` - auto-scopes by Current.site
 - Reviewed StripeCheckoutService (`app/services/stripe_checkout_service.rb`) - pattern for external API integration with error classes
 - Reviewed StripeWebhookHandler (`app/services/stripe_webhook_handler.rb`) - event routing, transactions, job queuing
@@ -534,10 +577,12 @@ Consistency: Verified - all documentation matches implementation
 - Reviewed Site model - JSONB settings with `setting(key, default)` pattern
 
 **Gap Analysis:**
+
 - All 27 acceptance criteria require new implementation (none exist)
 - Existing patterns are mature and well-tested - follow strictly
 
 **Plan Summary:**
+
 - Steps: 30
 - Risk mitigations: 6
 - Test coverage: extensive (unit, integration, policy, E2E)
@@ -545,6 +590,7 @@ Consistency: Verified - all documentation matches implementation
 - Modified files: 3 (Gemfile, routes.rb, site.rb)
 
 **Critical Patterns Identified:**
+
 1. SiteScoped required on all models for multi-tenant isolation
 2. ActsAsTenant.with_tenant wrapper required in background jobs
 3. Follow StripeWebhookHandler for Mux webhook processing
@@ -556,6 +602,7 @@ Consistency: Verified - all documentation matches implementation
 ### 2026-01-30 21:13 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop` (Ruby), `npm run lint` (JS)
 - Types: N/A (Ruby, no type checking configured)
 - Tests: `bundle exec rspec`
@@ -563,11 +610,13 @@ Quality gates:
 - Security: `bundle exec brakeman`
 
 Task validation:
+
 - Context: clear - business context, technical context, and provider decision well documented
 - Criteria: specific - 27 acceptance criteria with detailed requirements
 - Dependencies: satisfied - `003-001-community-chat-discussions` is complete in `4.done/`, Discussion model exists with SiteScoped and full implementation
 
 Complexity:
+
 - Files: many (15+ new files across models, controllers, services, views, jobs, mailers, policies)
 - Risk: high
   - External API integration (Mux) with webhooks
@@ -576,6 +625,7 @@ Complexity:
   - Multi-tenant isolation critical
 
 Notes:
+
 - manifest.yaml quality commands are empty but Rails standard tools are available (rubocop, rspec, brakeman)
 - mux_ruby gem needs to be added to Gemfile
 - Mux API credentials needed: `MUX_TOKEN_ID`, `MUX_TOKEN_SECRET`
@@ -636,6 +686,7 @@ $ npm run build:css
 ## Notes
 
 ### In Scope
+
 - LiveStream model with full lifecycle (scheduled → live → ended → archived)
 - Mux integration for stream management and playback
 - Webhook handling for stream state changes
@@ -647,6 +698,7 @@ $ npm run build:css
 - Per-site feature toggle
 
 ### Out of Scope (Future Enhancements)
+
 - Automatic clip creation (like Substack highlights)
 - Multi-host streams / guest invites
 - Screen sharing within platform
@@ -659,6 +711,7 @@ $ npm run build:css
 - Transcoding quality options
 
 ### Assumptions
+
 - Publishers will use external software (OBS, Streamyard) to broadcast via RTMP
 - Mux API credentials will be provided as ENV variables (`MUX_TOKEN_ID`, `MUX_TOKEN_SECRET`)
 - Webhook endpoint will be publicly accessible for Mux callbacks
@@ -667,29 +720,30 @@ $ npm run build:css
 
 ### Edge Cases
 
-| Case | Handling |
-|------|----------|
-| Stream scheduled but never goes live | Auto-archive after 24h past scheduled time |
-| Publisher disconnects mid-stream | Mux sends `idle` webhook → mark as paused, auto-end after 5 min |
-| Viewer joins after stream ends | Show replay if available, or "stream ended" message |
-| Large subscriber list (10k+) | Batch notifications via Solid Queue, rate limit to avoid email provider limits |
-| Site streaming disabled mid-stream | Allow current stream to continue, prevent new streams |
-| Mux API failure during stream creation | Return error to admin, log for debugging, don't create partial record |
-| Webhook signature validation fails | Reject request, log warning |
+| Case                                   | Handling                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| Stream scheduled but never goes live   | Auto-archive after 24h past scheduled time                                     |
+| Publisher disconnects mid-stream       | Mux sends `idle` webhook → mark as paused, auto-end after 5 min                |
+| Viewer joins after stream ends         | Show replay if available, or "stream ended" message                            |
+| Large subscriber list (10k+)           | Batch notifications via Solid Queue, rate limit to avoid email provider limits |
+| Site streaming disabled mid-stream     | Allow current stream to continue, prevent new streams                          |
+| Mux API failure during stream creation | Return error to admin, log for debugging, don't create partial record          |
+| Webhook signature validation fails     | Reject request, log warning                                                    |
 
 ### Risks
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Mux API costs higher than expected | Medium | Medium | Implement usage monitoring, set alerts |
-| Webhook delivery delays | Low | Medium | Implement polling fallback for critical state changes |
-| Notification emails marked as spam | Medium | High | Use proper email headers, respect unsubscribe |
-| Video player compatibility issues | Low | Medium | Use Mux's official player component |
-| Multi-tenant data leak | Low | Critical | SiteScoped on all models, test isolation |
+| Risk                               | Likelihood | Impact   | Mitigation                                            |
+| ---------------------------------- | ---------- | -------- | ----------------------------------------------------- |
+| Mux API costs higher than expected | Medium     | Medium   | Implement usage monitoring, set alerts                |
+| Webhook delivery delays            | Low        | Medium   | Implement polling fallback for critical state changes |
+| Notification emails marked as spam | Medium     | High     | Use proper email headers, respect unsubscribe         |
+| Video player compatibility issues  | Low        | Medium   | Use Mux's official player component                   |
+| Multi-tenant data leak             | Low        | Critical | SiteScoped on all models, test isolation              |
 
 ### Technical Decisions
 
 **Why Mux over alternatives:**
+
 - **vs Cloudflare Stream**: Mux has better live streaming focus, more mature webhooks
 - **vs YouTube Live API**: Mux doesn't require YouTube account, better white-label experience
 - **vs Self-hosted (FFmpeg/Nginx-RTMP)**: Mux handles encoding, CDN, player - significantly less infra

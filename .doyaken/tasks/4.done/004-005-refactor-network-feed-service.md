@@ -22,7 +22,9 @@
 NetworkFeedService has significant code duplication that makes maintenance harder and increases risk of inconsistencies.
 
 ### Duplication Pattern 1: Network Sites Query (7 occurrences)
+
 The following 5-line pattern is repeated in every public method:
+
 ```ruby
 root_tenant = Tenant.find_by(slug: "root")
 Site.unscoped
@@ -33,6 +35,7 @@ Site.unscoped
 ```
 
 Found in:
+
 - `sites_directory` (lines 11-17)
 - `recent_content` (lines 28-33)
 - `trending_sites` (lines 50-57)
@@ -42,7 +45,9 @@ Found in:
 - `network_stats` (lines 136-141)
 
 ### Duplication Pattern 2: Recent Items Query (2 occurrences)
+
 `recent_content` (lines 26-45) and `recent_notes` (lines 112-131) have nearly identical structure:
+
 - Build `network_sites` subquery
 - Query model (ContentItem/Note) with identical filtering:
   - `where(site: network_sites)`
@@ -71,16 +76,16 @@ Found in:
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| Extract `network_sites_scope` private method | none | Method doesn't exist; needs to be created |
-| Extract `root_tenant` private method | none | Method doesn't exist; needs to be created |
-| Replace all 7 occurrences with `network_sites_scope` | none | All 7 methods have inline duplication |
-| Extract `recent_publishable_items` private method | none | Method doesn't exist; needs to be created |
-| Refactor `recent_content` and `recent_notes` | none | Both use inline queries |
-| All existing tests pass (16 tests) | full | Tests exist and pass currently |
-| Quality gates pass | full | Code passes rubocop/standard |
-| No behaviour changes | full | Pure extraction refactoring |
+| Criterion                                            | Status | Gap                                       |
+| ---------------------------------------------------- | ------ | ----------------------------------------- |
+| Extract `network_sites_scope` private method         | none   | Method doesn't exist; needs to be created |
+| Extract `root_tenant` private method                 | none   | Method doesn't exist; needs to be created |
+| Replace all 7 occurrences with `network_sites_scope` | none   | All 7 methods have inline duplication     |
+| Extract `recent_publishable_items` private method    | none   | Method doesn't exist; needs to be created |
+| Refactor `recent_content` and `recent_notes`         | none   | Both use inline queries                   |
+| All existing tests pass (16 tests)                   | full   | Tests exist and pass currently            |
+| Quality gates pass                                   | full   | Code passes rubocop/standard              |
+| No behaviour changes                                 | full   | Pure extraction refactoring               |
 
 ### Risks
 
@@ -93,6 +98,7 @@ Found in:
 #### Phase A: Extract Helper Methods (Steps 1-2)
 
 **Step 1: Extract `root_tenant` private method**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Add after line 157 (after `cache_key` method):
   ```ruby
@@ -103,6 +109,7 @@ Found in:
 - Verify: `bundle exec rspec spec/services/network_feed_service_spec.rb` (16 tests pass)
 
 **Step 2: Extract `network_sites_scope` private method**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Add after `root_tenant` method:
   ```ruby
@@ -119,9 +126,11 @@ Found in:
 #### Phase B: Replace Network Sites Query (Steps 3-9)
 
 **Step 3: Refactor `sites_directory`**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Lines 11-17 → remove `root_tenant` variable and replace inline query with `network_sites_scope`
 - Before:
+
   ```ruby
   root_tenant = Tenant.find_by(slug: "root")
 
@@ -131,6 +140,7 @@ Found in:
       .where(status: :enabled)
       .where.not(tenant: root_tenant)
   ```
+
 - After:
   ```ruby
   network_sites_scope
@@ -138,32 +148,38 @@ Found in:
 - Verify: 5 `sites_directory` tests pass
 
 **Step 4: Refactor `recent_content`**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Lines 28-33 → remove `root_tenant` and `network_sites` variables, use `network_sites_scope` directly
 - Verify: 8 `recent_content` tests pass
 
 **Step 5: Refactor `trending_sites`**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Lines 50-57 → remove `root_tenant` variable, use `network_sites_scope` as base for JOIN
 - Note: This method adds additional clauses (JOIN, GROUP, ORDER) on top of base query
 - Verify: Tests pass (no direct tests, but syntax/runtime check)
 
 **Step 6: Refactor `new_sites`**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Lines 77-83 → remove `root_tenant` variable, use `network_sites_scope`
 - Verify: Tests pass
 
 **Step 7: Refactor `sites_by_topic`**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Lines 95-101 → remove `root_tenant` variable, use `network_sites_scope`
 - Verify: Tests pass
 
 **Step 8: Refactor `recent_notes`**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Lines 114-119 → remove `root_tenant` and `network_sites` variables, use `network_sites_scope`
 - Verify: Tests pass
 
 **Step 9: Refactor `network_stats`**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Lines 136-141 → remove `root_tenant` variable, use `network_sites_scope` for `network_sites`
 - Verify: 4 `network_stats` tests pass
@@ -171,6 +187,7 @@ Found in:
 #### Phase C: Extract Recent Items Pattern (Steps 10-12)
 
 **Step 10: Extract `recent_publishable_items` private method**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Add after `network_sites_scope` method:
   ```ruby
@@ -189,6 +206,7 @@ Found in:
 - Verify: Tests pass (no callers yet)
 
 **Step 11: Refactor `recent_content` to use extracted method**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Replace query body with:
   ```ruby
@@ -202,6 +220,7 @@ Found in:
 - Verify: 8 `recent_content` tests pass
 
 **Step 12: Refactor `recent_notes` to use extracted method**
+
 - File: `app/services/network_feed_service.rb`
 - Change: Replace query body with:
   ```ruby
@@ -217,6 +236,7 @@ Found in:
 #### Phase D: Final Verification (Step 13)
 
 **Step 13: Final quality checks**
+
 - Run: `bundle exec rspec spec/services/network_feed_service_spec.rb` (16 tests)
 - Run: `bundle exec rubocop app/services/network_feed_service.rb`
 - Run: `bundle exec standardrb app/services/network_feed_service.rb`
@@ -224,12 +244,12 @@ Found in:
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 2 | Helper methods exist, tests still pass (16 green) |
-| Step 9 | All 7 methods use `network_sites_scope`, tests pass |
-| Step 12 | Both recent methods use `recent_publishable_items`, tests pass |
-| Step 13 | Quality gates pass, no regressions |
+| After Step | Verify                                                         |
+| ---------- | -------------------------------------------------------------- |
+| Step 2     | Helper methods exist, tests still pass (16 green)              |
+| Step 9     | All 7 methods use `network_sites_scope`, tests pass            |
+| Step 12    | Both recent methods use `recent_publishable_items`, tests pass |
+| Step 13    | Quality gates pass, no regressions                             |
 
 ### Test Plan
 
@@ -246,23 +266,27 @@ Found in:
 ## Notes
 
 **In Scope:**
+
 - Extract `root_tenant` private method
 - Extract `network_sites_scope` private method
 - Extract `recent_publishable_items` private method
 - Replace all duplicated code with calls to extracted methods
 
 **Out of Scope:**
+
 - Adding tests for untested methods (`trending_sites`, `new_sites`, `sites_by_topic`, `recent_notes`)
 - Changing public API signatures
 - Performance optimizations beyond removing redundant `Tenant.find_by` calls
 - Refactoring cache keys or caching strategy
 
 **Assumptions:**
+
 - Class methods (`class << self`) can use instance variable memoization with `@root_tenant`
 - The `root` tenant slug is stable and won't change
 - All 7 methods need the exact same base query (no variations)
 
 **Edge Cases:**
+
 - Root tenant doesn't exist: Current behaviour returns empty results; this should be preserved
 - All tenants disabled: Returns empty results; preserved
 - Thread safety: Class-level memoization is safe since `find_by` returns same result
@@ -275,6 +299,7 @@ Found in:
 | Test coverage gaps | Medium | Low | Existing tests cover main paths; run full suite after each step |
 
 **Test Coverage Status:**
+
 - Covered: `sites_directory`, `recent_content`, `network_stats` (16 tests)
 - Not covered: `trending_sites`, `new_sites`, `sites_by_topic`, `recent_notes`
 - Strategy: Rely on existing tests; refactoring should not change behaviour
@@ -293,6 +318,7 @@ Found in:
 ### 2026-02-01 22:25 - Verification Complete
 
 Criteria: all met (8/8)
+
 - [x] Extract `network_sites_scope` private method - lines 113-119
 - [x] Extract `root_tenant` private method - lines 109-111
 - [x] Replace all 7 occurrences with `network_sites_scope` - verified in 7 public methods
@@ -303,6 +329,7 @@ Criteria: all met (8/8)
 - [x] No behaviour changes - pure extraction refactoring
 
 Quality gates: all pass
+
 - Tests: 17 examples, 0 failures
 - Lint: RuboCop 0 offenses
 
@@ -316,12 +343,14 @@ Reason: complete - all acceptance criteria verified
 ### 2026-02-01 22:20 - Review Complete
 
 Findings:
+
 - Blockers: 0 - N/A
 - High: 0 - N/A
 - Medium: 0 - N/A
 - Low: 1 - `network_stats` calls `network_sites_scope` twice (2 `root_tenant` lookups); acceptable, mitigated by 10-minute caching
 
 Review passes:
+
 - Correctness: pass - semantically identical extraction, all edge cases preserved
 - Design: pass - clean extraction, 16% line reduction, good naming
 - Security: pass - no injection vectors, parameterized queries used correctly
@@ -338,13 +367,16 @@ Status: COMPLETE
 ### 2026-02-01 22:15 - Documentation Sync
 
 Docs updated:
+
 - None required
 
 Inline comments:
+
 - Existing method comments in `app/services/network_feed_service.rb` remain accurate
 - New private helper methods (`root_tenant`, `network_sites_scope`, `recent_publishable_items`) are implementation details - no public documentation needed
 
 Consistency: verified
+
 - README.md services table: "Cross-network content aggregation" - still accurate
 - No external API changes, no user-facing changes
 - Pure internal refactoring per task scope
@@ -354,9 +386,11 @@ Consistency: verified
 ### 2026-02-01 22:10 - Testing Complete
 
 Tests written:
+
 - None new (pure refactoring; task explicitly excluded adding tests for untested methods)
 
 Quality gates:
+
 - Lint: pass (RuboCop: 1 file inspected, no offenses detected)
 - Types: N/A (Ruby)
 - Tests: pass (17 total, 0 new)
@@ -365,6 +399,7 @@ Quality gates:
 CI ready: yes
 
 Notes:
+
 - Existing 17 tests cover `sites_directory`, `recent_content`, `network_stats`
 - Private helper methods (`root_tenant`, `network_sites_scope`, `recent_publishable_items`) tested indirectly through public interface
 - No new public functions added - pure extraction refactoring
@@ -375,6 +410,7 @@ Notes:
 ### 2026-02-01 22:10 - Implementation Complete
 
 **Phase A: Extract Helper Methods (Steps 1-2)**
+
 - Step 1: Extracted `root_tenant` private method
   - Initially added memoization `@root_tenant ||=` per plan
   - Removed memoization after test failure (class-level instance var persists across tests)
@@ -386,12 +422,14 @@ Notes:
   - Verification: 17 tests pass
 
 **Phase B: Replace Network Sites Query (Steps 3-9)**
+
 - Steps 3-9: Replaced all 7 occurrences with `network_sites_scope`
   - `sites_directory`, `recent_content`, `trending_sites`, `new_sites`
   - `sites_by_topic`, `recent_notes`, `network_stats`
   - Verification after each step: all tests pass
 
 **Phase C: Extract Recent Items Pattern (Steps 10-12)**
+
 - Step 10: Extracted `recent_publishable_items` private method
   - Parameterized by model_class, includes, limit, offset
 
@@ -399,15 +437,18 @@ Notes:
   - Verification: 17 tests pass
 
 **Phase D: Final Verification (Step 13)**
+
 - Tests: 17 examples, 0 failures
 - Rubocop: 1 file inspected, no offenses detected
 - Commit: `34c3af1`
 
 **Deviation from Plan:**
+
 - Removed `@root_tenant` memoization due to test isolation issues
 - Reason: Class-level instance variables persist across test runs, causing stale root_tenant references
 
 **Summary:**
+
 - Lines: 159 → 133 (26 lines removed, ~16% reduction)
 - Extracted methods: 3 (`root_tenant`, `network_sites_scope`, `recent_publishable_items`)
 - Query duplications eliminated: 7 (network_sites) + 2 (recent items)
@@ -418,16 +459,19 @@ Notes:
 ### 2026-02-01 22:01 - Planning Complete
 
 **Gap Analysis Summary:**
+
 - 6/8 criteria have gaps (need implementation)
 - 2/8 criteria already satisfied (tests pass, quality gates pass)
 
 **Plan Details:**
+
 - Steps: 13 (3 extraction + 7 replacements + 2 refactors + 1 verification)
 - Phases: 4 (A: Extract helpers, B: Replace queries, C: Extract pattern, D: Verify)
 - Risks: 3 identified (all low-medium likelihood with clear mitigation)
 - Test coverage: Moderate (16 tests covering 3/7 methods; sufficient for refactoring)
 
 **Key Decisions:**
+
 1. Memoize `root_tenant` with `@root_tenant ||=` for efficiency
 2. Consolidate 7 occurrences into `network_sites_scope`
 3. Extract `recent_publishable_items` parameterized by model class
@@ -438,17 +482,20 @@ Notes:
 ### 2026-02-01 21:59 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop --format progress --display-cop-names`
 - Types: N/A (Ruby)
 - Tests: `bundle exec rspec spec/services/network_feed_service_spec.rb`
 - Build: `bin/quality` (full suite)
 
 Task validation:
+
 - Context: clear
 - Criteria: specific
 - Dependencies: none
 
 Complexity:
+
 - Files: few (1 source, 1 test)
 - Risk: low
 

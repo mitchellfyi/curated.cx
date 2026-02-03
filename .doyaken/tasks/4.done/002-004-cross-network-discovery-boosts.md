@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `002-004-cross-network-discovery-boosts`               |
-| Status      | `done`                                                 |
-| Priority    | `002` High                                             |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 18:18`                                     |
-| Completed   | `2026-01-30 19:15`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-30 18:14` |
+| Field       | Value                                    |
+| ----------- | ---------------------------------------- |
+| ID          | `002-004-cross-network-discovery-boosts` |
+| Status      | `done`                                   |
+| Priority    | `002` High                               |
+| Created     | `2026-01-30 15:30`                       |
+| Started     | `2026-01-30 18:18`                       |
+| Completed   | `2026-01-30 19:15`                       |
+| Blocked By  |                                          |
+| Blocks      |                                          |
+| Assigned To | `worker-1`                               |
+| Assigned At | `2026-01-30 18:14`                       |
 
 ---
 
@@ -28,11 +28,13 @@
 **Unique Advantage**: Curated is a multi-tenant network (curated.cx, ainews.cx, construction.cx, dayz.cx). This is a differentiator vs single-tenant platforms like Ghost or Substack.
 
 **Competitive Context**:
+
 - beehiiv's Boosts feature pays $1M+/month to publishers
 - Ghost added networked publishing in Aug 2025
 - Substack's internal discovery drove 32M new subscribers
 
 **Existing Foundation** (code analysis):
+
 - `NetworkFeedService` - Already aggregates cross-network content and sites directory
 - `TenantHomepageService` - Powers root tenant hub with sites/content feed
 - `ContentRecommendationService` - Personalized recommendations using engagement signals
@@ -97,6 +99,7 @@
 ## Notes
 
 **In Scope:**
+
 - NetworkBoost, BoostImpression, BoostClick models
 - Basic admin UI for boost configuration
 - Recommendation widget component
@@ -106,6 +109,7 @@
 - Manual payout tracking
 
 **Out of Scope (future tasks):**
+
 - Stripe Connect for automatic payouts
 - Fraud detection beyond IP deduplication
 - A/B testing of recommendation algorithms
@@ -114,6 +118,7 @@
 - Mobile-specific widget designs
 
 **Assumptions:**
+
 - CPC pricing is simpler to start than CPA
 - All sites in network are trusted (no spam filtering needed initially)
 - Manual payouts acceptable for MVP (low volume)
@@ -137,6 +142,7 @@
 | Performance impact of impression tracking | Batch writes, async processing |
 
 **Key Files to Create/Modify:**
+
 - `app/models/network_boost.rb` - NEW
 - `app/models/boost_impression.rb` - NEW
 - `app/models/boost_click.rb` - NEW
@@ -156,39 +162,39 @@
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| **Data Models** | none | NetworkBoost, BoostImpression, BoostClick, BoostPayout models don't exist |
-| NetworkBoost model | none | Need to create migration + model with source/target site refs |
-| BoostImpression model | none | Need to create with network_boost/site refs, ip_hash |
-| BoostClick model | none | Need to create with status enum, conversion tracking |
-| **Publisher Marketplace** | partial | Site model exists with JSONB config pattern but no boost settings |
-| Sites opt-in flag | partial | Site has JsonbSettingsAccessor but no boosts.enabled setting |
-| CPC/CPA rate config | none | Need to add boosts.cpc_rate to Site config |
-| Monthly budget cap | none | Need to add boosts.monthly_budget to Site config |
-| Admin interface | none | Need new admin controller for boost settings |
-| **Recommendation Widgets** | none | No ViewComponent pattern; use partial like `network/_site_card` |
-| Display widget | none | Create `network/_boost_recommendation` partial |
-| Impression tracking | none | Create tracking endpoint or inline JS |
-| Click tracking | none | Create redirect endpoint with attribution |
-| Exclude subscribed sites | partial | DigestSubscription has site_id, can filter |
-| **Hub Discovery Enhancement** | partial | `show_root.html.erb` shows sites but no personalization |
-| Personalized suggestions | partial | ContentRecommendationService pattern exists, apply to sites |
-| Trending sites | none | Add to NetworkFeedService |
-| New sites | none | Add to NetworkFeedService |
-| Topic-based filtering | partial | Sites have `topics` JSONB field already |
-| **Conversion Tracking** | partial | Referral model has the pattern, DigestSubscription exists |
-| Click → visit → subscribe funnel | none | Need BoostAttributionService |
-| 30-day attribution window | none | Need to implement lookback |
-| IP deduplication | partial | AffiliateClick pattern exists to copy |
-| **Earnings Dashboard** | none | Admin::ReferralsController/views provide pattern |
-| Impressions/clicks/conversions | none | Create Admin::BoostEarningsController |
-| Date range filtering | partial | AffiliateClicksController has parse_period pattern |
-| Export CSV | partial | AffiliateClicksController has generate_csv pattern |
-| **Payouts** | none | Need BoostPayout model and admin controller |
-| Calculate monthly earnings | none | Add aggregation methods |
-| Mark as paid | partial | Referral.mark_rewarded! pattern exists |
-| Payout history | none | Need BoostPayout model + index view |
+| Criterion                        | Status  | Gap                                                                       |
+| -------------------------------- | ------- | ------------------------------------------------------------------------- |
+| **Data Models**                  | none    | NetworkBoost, BoostImpression, BoostClick, BoostPayout models don't exist |
+| NetworkBoost model               | none    | Need to create migration + model with source/target site refs             |
+| BoostImpression model            | none    | Need to create with network_boost/site refs, ip_hash                      |
+| BoostClick model                 | none    | Need to create with status enum, conversion tracking                      |
+| **Publisher Marketplace**        | partial | Site model exists with JSONB config pattern but no boost settings         |
+| Sites opt-in flag                | partial | Site has JsonbSettingsAccessor but no boosts.enabled setting              |
+| CPC/CPA rate config              | none    | Need to add boosts.cpc_rate to Site config                                |
+| Monthly budget cap               | none    | Need to add boosts.monthly_budget to Site config                          |
+| Admin interface                  | none    | Need new admin controller for boost settings                              |
+| **Recommendation Widgets**       | none    | No ViewComponent pattern; use partial like `network/_site_card`           |
+| Display widget                   | none    | Create `network/_boost_recommendation` partial                            |
+| Impression tracking              | none    | Create tracking endpoint or inline JS                                     |
+| Click tracking                   | none    | Create redirect endpoint with attribution                                 |
+| Exclude subscribed sites         | partial | DigestSubscription has site_id, can filter                                |
+| **Hub Discovery Enhancement**    | partial | `show_root.html.erb` shows sites but no personalization                   |
+| Personalized suggestions         | partial | ContentRecommendationService pattern exists, apply to sites               |
+| Trending sites                   | none    | Add to NetworkFeedService                                                 |
+| New sites                        | none    | Add to NetworkFeedService                                                 |
+| Topic-based filtering            | partial | Sites have `topics` JSONB field already                                   |
+| **Conversion Tracking**          | partial | Referral model has the pattern, DigestSubscription exists                 |
+| Click → visit → subscribe funnel | none    | Need BoostAttributionService                                              |
+| 30-day attribution window        | none    | Need to implement lookback                                                |
+| IP deduplication                 | partial | AffiliateClick pattern exists to copy                                     |
+| **Earnings Dashboard**           | none    | Admin::ReferralsController/views provide pattern                          |
+| Impressions/clicks/conversions   | none    | Create Admin::BoostEarningsController                                     |
+| Date range filtering             | partial | AffiliateClicksController has parse_period pattern                        |
+| Export CSV                       | partial | AffiliateClicksController has generate_csv pattern                        |
+| **Payouts**                      | none    | Need BoostPayout model and admin controller                               |
+| Calculate monthly earnings       | none    | Add aggregation methods                                                   |
+| Mark as paid                     | partial | Referral.mark_rewarded! pattern exists                                    |
+| Payout history                   | none    | Need BoostPayout model + index view                                       |
 
 ### Risks
 
@@ -325,14 +331,14 @@
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 4 | All 4 models created, `rails db:migrate` succeeds, `rails c` can create records |
-| Step 8 | Click → BoostClick → job scheduled → confirmation flow works end-to-end |
-| Step 11 | DigestSubscription creation triggers conversion attribution automatically |
-| Step 14 | Hub homepage shows trending/new sites sections |
-| Step 17 | Admin can view earnings and mark payouts as paid |
-| Step 23 | All quality gates pass, no test failures |
+| After Step | Verify                                                                          |
+| ---------- | ------------------------------------------------------------------------------- |
+| Step 4     | All 4 models created, `rails db:migrate` succeeds, `rails c` can create records |
+| Step 8     | Click → BoostClick → job scheduled → confirmation flow works end-to-end         |
+| Step 11    | DigestSubscription creation triggers conversion attribution automatically       |
+| Step 14    | Hub homepage shows trending/new sites sections                                  |
+| Step 17    | Admin can view earnings and mark payouts as paid                                |
+| Step 23    | All quality gates pass, no test failures                                        |
 
 ### Test Plan
 
@@ -421,6 +427,7 @@ end
 ### 2026-01-30 18:23 - Implementation Complete
 
 **Files Created:**
+
 - `db/migrate/20260130180000_create_network_boosts.rb`
 - `db/migrate/20260130180001_create_boost_impressions.rb`
 - `db/migrate/20260130180002_create_boost_clicks.rb`
@@ -437,11 +444,12 @@ end
 - `app/controllers/admin/boost_earnings_controller.rb`
 - `app/controllers/admin/boost_payouts_controller.rb`
 - `app/views/network/_boost_recommendation.html.erb`
-- `app/views/admin/network_boosts/*.html.erb` (index, show, new, edit, _form)
+- `app/views/admin/network_boosts/*.html.erb` (index, show, new, edit, \_form)
 - `app/views/admin/boost_earnings/index.html.erb`
 - `app/views/admin/boost_payouts/*.html.erb` (index, show)
 
 **Files Modified:**
+
 - `app/models/site.rb` - Added boost config accessors and associations
 - `app/controllers/digest_subscriptions_controller.rb` - Added boost attribution on subscription create
 - `app/services/network_feed_service.rb` - Added trending_sites, new_sites, sites_by_topic
@@ -452,6 +460,7 @@ end
 - `config/locales/en.yml` - Added all boost-related translations
 
 **Verification:**
+
 - All migrations run successfully: `rails db:migrate`
 - Rubocop passes: `bundle exec rubocop` (459 files, no offenses)
 - Routes configured correctly: boost_click, admin_network_boosts, admin_boost_earnings, admin_boost_payouts
@@ -468,6 +477,7 @@ end
 - Test coverage: extensive (unit + integration for all new components)
 
 **Gap Analysis Summary:**
+
 - Data Models: none → 4 new models needed
 - Publisher Marketplace: partial → Site JSONB pattern exists, add boost settings
 - Recommendation Widgets: none → use partial pattern like existing `_site_card.html.erb`
@@ -476,6 +486,7 @@ end
 - Earnings/Payouts: none → new admin controllers needed
 
 **Key Patterns to Follow:**
+
 - `AffiliateClick` for click tracking with IP hashing
 - `Referral` for status enum and state transitions
 - `NetworkFeedService` for cross-tenant queries with `unscoped`
@@ -484,6 +495,7 @@ end
 - `Admin::AffiliateClicksController` for date filtering and CSV export
 
 **Architecture Decisions:**
+
 - Use partial instead of ViewComponent (no ViewComponent pattern exists)
 - Use `after_create_commit` on DigestSubscription for conversion attribution
 - Use background job for 24h click confirmation (same as ConfirmReferralJob)
@@ -494,21 +506,25 @@ end
 ### 2026-01-30 18:18 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop` (rubocop-rails-omakase)
 - Types: missing (no type checker configured)
 - Tests: `bundle exec rspec`
 - Build: missing (standard Rails - no explicit build step)
 
 Task validation:
+
 - Context: clear - problem/solution well-defined, competitive landscape documented
 - Criteria: specific - 7 main criteria groups with detailed sub-items, testable
 - Dependencies: none - task can proceed independently
 
 Complexity:
+
 - Files: many (~15 new/modified files: 4 models, 3 services, 1 component, 4 controllers, views)
 - Risk: medium - new monetization feature but builds on proven patterns (AffiliateClick, Referral)
 
 Verified existing patterns:
+
 - `AffiliateClick` model: IP hashing, click tracking, analytics scopes ✓
 - `Referral` model: Status enum (pending/confirmed/rewarded/cancelled), state transitions ✓
 - `NetworkFeedService`: Cross-network content aggregation ✓
@@ -526,6 +542,7 @@ Ready: yes
 - Complexity: HIGH (new monetization feature with tracking/attribution)
 
 **Codebase Analysis:**
+
 - Found existing `NetworkFeedService` for cross-network content aggregation
 - Found `AffiliateClick` pattern for click tracking with IP hashing
 - Found `Referral` model pattern for conversion states (pending → confirmed → rewarded)
@@ -540,6 +557,7 @@ Ready: yes
 ### 2026-01-30 18:53 - Testing Complete
 
 **Tests written:**
+
 - `spec/factories/network_boosts.rb` - Factory with traits (disabled, unlimited_budget, budget_exhausted, high_cpc)
 - `spec/factories/boost_impressions.rb` - Factory with temporal traits
 - `spec/factories/boost_clicks.rb` - Factory with status and conversion traits
@@ -555,6 +573,7 @@ Ready: yes
 **Total new tests:** 133
 
 **Quality gates:**
+
 - Lint: pass (470 files, 0 offenses)
 - Types: N/A (no type checker configured)
 - Tests: pass (133 new tests, 0 failures)
@@ -563,6 +582,7 @@ Ready: yes
 **CI ready:** yes
 
 **Fixes applied during testing:**
+
 - Fixed `NetworkBoostService.user_subscribed_site_ids` to use `active: true` instead of `status: :active` (DigestSubscription uses boolean column)
 - Added missing i18n translations for `admin.dashboard.title`, `admin.dashboard.description`, `admin.dashboard.uncategorized`, `admin.dashboard.view_all_listings`
 
@@ -571,11 +591,13 @@ Ready: yes
 ### 2026-01-30 18:55 - Documentation Sync
 
 Docs updated:
+
 - `docs/monetisation.md` - Added comprehensive Network Boosts section as fourth revenue stream
 - `docs/DATA_MODEL.md` - Added NetworkBoost, BoostImpression, BoostClick, BoostPayout model documentation
 - `docs/README.md` - Updated features table to include network boosts
 
 Inline comments:
+
 - Code already has adequate inline comments (service docstrings, schema annotations)
 
 Consistency: verified - code and docs tell the same story
@@ -585,12 +607,14 @@ Consistency: verified - code and docs tell the same story
 ### 2026-01-30 19:10 - Review Complete
 
 Findings:
+
 - Blockers: 0
 - High: 2 - fixed
 - Medium: 2 - fixed
 - Low: 0
 
 **HIGH severity issues (fixed):**
+
 1. **IDOR in Admin::BoostPayoutsController#set_payout** (`app/controllers/admin/boost_payouts_controller.rb:34`)
    - Issue: `BoostPayout.find(params[:id])` without site scoping allowed admins to view/update other sites' payouts
    - Fix: Changed to `BoostPayout.where(site: Current.site).find(params[:id])`
@@ -600,6 +624,7 @@ Findings:
    - Fix: Changed to `NetworkBoost.where(target_site: Current.site).find(params[:id])`
 
 **Medium severity issues (fixed):**
+
 1. **N+1 query in Admin::BoostEarningsController#calculate_top_boosts** (`app/controllers/admin/boost_earnings_controller.rb:97`)
    - Issue: Missing `includes(target_site: :primary_domain)` caused N+1 when displaying primary_hostname
    - Fix: Added proper eager loading
@@ -609,6 +634,7 @@ Findings:
    - Fix: Changed to `includes(source_site: :primary_domain)`
 
 Review passes:
+
 - Correctness: pass - All 133 tests passing, happy path and edge cases covered
 - Design: pass - Follows existing patterns (AffiliateClick, Referral, NetworkFeedService)
 - Security: pass (after fixes) - IDOR vulnerabilities fixed, IP hashing implemented, no injection vectors

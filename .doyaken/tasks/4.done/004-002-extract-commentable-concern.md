@@ -2,16 +2,16 @@
 
 ## Metadata
 
-| Field       | Value                                  |
-| ----------- | -------------------------------------- |
-| ID          | `004-002-extract-commentable-concern`  |
-| Status      | `done`                                 |
-| Completed   | `2026-02-02 02:37`                     |
-| Started     | `2026-02-02 02:23`                     |
-| Assigned To | `worker-1`                             |
-| Priority    | `002` High                             |
-| Created     | `2026-02-01 19:20`                     |
-| Labels      | `technical-debt`, `refactor`           |
+| Field       | Value                                 |
+| ----------- | ------------------------------------- |
+| ID          | `004-002-extract-commentable-concern` |
+| Status      | `done`                                |
+| Completed   | `2026-02-02 02:37`                    |
+| Started     | `2026-02-02 02:23`                    |
+| Assigned To | `worker-1`                            |
+| Priority    | `002` High                            |
+| Created     | `2026-02-01 19:20`                    |
+| Labels      | `technical-debt`, `refactor`          |
 
 ---
 
@@ -20,6 +20,7 @@
 **Intent**: IMPROVE
 
 Code duplication exists across three controllers handling user-generated content responses:
+
 - `CommentsController` (for ContentItem comments)
 - `NoteCommentsController` (for Note comments)
 - `DiscussionPostsController` (for Discussion posts)
@@ -46,6 +47,7 @@ Flay analysis identified mass=116 (2x) and mass=112 duplications. The duplicated
    - respond_to block
 
 **Key Differences to Account For:**
+
 - Different parent models (`@content_item`, `@note`, `@discussion`)
 - `CommentsController` and `NoteCommentsController` use `Comment` model; `DiscussionPostsController` uses `DiscussionPost` model
 - Different param keys (`comment` vs `discussion_post`)
@@ -76,17 +78,17 @@ Flay analysis identified mass=116 (2x) and mass=112 duplications. The duplicated
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| Create `Commentable` concern | none | Need to create new file |
-| Concern provides `create`, `update`, `destroy` actions | none | Must extract from 3 controllers |
-| Concern requires template methods | none | Must define 6 hooks with `NotImplementedError` |
-| Refactor `CommentsController` | none | Must include concern and implement hooks |
-| Refactor `NoteCommentsController` | none | Must include concern and implement hooks |
-| Refactor `DiscussionPostsController` | none | Must include concern and implement hooks |
-| Controllers retain unique behavior | full | `index`, `show`, locking already in controllers |
-| All 63 request specs pass | full | Tests exist, need verification after changes |
-| Quality gates pass | full | Will verify after implementation |
+| Criterion                                              | Status | Gap                                             |
+| ------------------------------------------------------ | ------ | ----------------------------------------------- |
+| Create `Commentable` concern                           | none   | Need to create new file                         |
+| Concern provides `create`, `update`, `destroy` actions | none   | Must extract from 3 controllers                 |
+| Concern requires template methods                      | none   | Must define 6 hooks with `NotImplementedError`  |
+| Refactor `CommentsController`                          | none   | Must include concern and implement hooks        |
+| Refactor `NoteCommentsController`                      | none   | Must include concern and implement hooks        |
+| Refactor `DiscussionPostsController`                   | none   | Must include concern and implement hooks        |
+| Controllers retain unique behavior                     | full   | `index`, `show`, locking already in controllers |
+| All 63 request specs pass                              | full   | Tests exist, need verification after changes    |
+| Quality gates pass                                     | full   | Will verify after implementation                |
 
 ### Risks
 
@@ -181,13 +183,13 @@ Flay analysis identified mass=116 (2x) and mass=112 duplications. The duplicated
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 4 | Concern file compiles: `ruby -c app/controllers/concerns/commentable.rb` |
-| Step 5 | CommentsController specs pass: 26 examples |
-| Step 6 | NoteCommentsController specs pass: 26 examples |
-| Step 7 | DiscussionPostsController specs pass: 24 examples |
-| Step 8 | Full quality check passes |
+| After Step | Verify                                                                   |
+| ---------- | ------------------------------------------------------------------------ |
+| Step 4     | Concern file compiles: `ruby -c app/controllers/concerns/commentable.rb` |
+| Step 5     | CommentsController specs pass: 26 examples                               |
+| Step 6     | NoteCommentsController specs pass: 26 examples                           |
+| Step 7     | DiscussionPostsController specs pass: 24 examples                        |
+| Step 8     | Full quality check passes                                                |
 
 ### Test Plan
 
@@ -206,27 +208,32 @@ Flay analysis identified mass=116 (2x) and mass=112 duplications. The duplicated
 ## Notes
 
 **In Scope:**
+
 - Extract shared create/update/destroy logic into concern
 - Refactor all three controllers to use concern
 - Maintain 100% test pass rate
 
 **Out of Scope:**
+
 - Unifying Comment and DiscussionPost models (different domains)
 - Adding shared concern tests (existing request specs provide coverage)
 - Changing any controller behavior or API responses
 - Modifying views or turbo stream templates
 
 **Assumptions:**
+
 - The `Votable` concern pattern is the preferred style for this codebase
 - Request specs provide sufficient coverage (no unit tests for concerns needed)
 - Rate limiting and ban checking remain in individual controllers via before_action
 
 **Edge Cases:**
+
 - CommentsController has `show` action that others don't - keep in controller
 - DiscussionPostsController allows author deletion, CommentsController doesn't - authorization is in Pundit policies, not controller
 - Different locking mechanisms - keep `check_*_locked` in individual controllers
 
 **Risks:**
+
 - **Low**: Subtle behavior differences could cause test failures → Mitigation: Run tests after each refactor step
 - **Low**: Missing a template method could cause runtime errors → Mitigation: Use `NotImplementedError` pattern from `Votable`
 
@@ -247,24 +254,26 @@ Flay analysis identified mass=116 (2x) and mass=112 duplications. The duplicated
 
 Criteria: all met
 
-| Criterion | Status | Evidence |
-|-----------|--------|----------|
-| Create `Commentable` concern | [x] | `app/controllers/concerns/commentable.rb` exists (152 lines) |
-| Concern provides `create`, `update`, `destroy` actions | [x] | Lines 45-103 implement all three actions |
-| Concern requires 6 template methods | [x] | Lines 124-150 define all 6 with `NotImplementedError` |
-| Refactor `CommentsController` | [x] | `include Commentable` at line 4, hooks at lines 54-76 |
-| Refactor `NoteCommentsController` | [x] | `include Commentable` at line 4, hooks at lines 38-60 |
-| Refactor `DiscussionPostsController` | [x] | `include Commentable` at line 4, hooks at lines 38-64 |
-| Controllers retain unique behavior | [x] | `index`/`show` kept in CommentsController, locking in respective controllers |
-| All 93 request specs pass | [x] | `bundle exec rspec` - 93 examples, 0 failures |
-| Quality gates pass | [x] | RuboCop: 4 files, no offenses; Brakeman: 0 warnings |
+| Criterion                                              | Status | Evidence                                                                     |
+| ------------------------------------------------------ | ------ | ---------------------------------------------------------------------------- |
+| Create `Commentable` concern                           | [x]    | `app/controllers/concerns/commentable.rb` exists (152 lines)                 |
+| Concern provides `create`, `update`, `destroy` actions | [x]    | Lines 45-103 implement all three actions                                     |
+| Concern requires 6 template methods                    | [x]    | Lines 124-150 define all 6 with `NotImplementedError`                        |
+| Refactor `CommentsController`                          | [x]    | `include Commentable` at line 4, hooks at lines 54-76                        |
+| Refactor `NoteCommentsController`                      | [x]    | `include Commentable` at line 4, hooks at lines 38-60                        |
+| Refactor `DiscussionPostsController`                   | [x]    | `include Commentable` at line 4, hooks at lines 38-64                        |
+| Controllers retain unique behavior                     | [x]    | `index`/`show` kept in CommentsController, locking in respective controllers |
+| All 93 request specs pass                              | [x]    | `bundle exec rspec` - 93 examples, 0 failures                                |
+| Quality gates pass                                     | [x]    | RuboCop: 4 files, no offenses; Brakeman: 0 warnings                          |
 
 Quality gates: all pass
+
 - Lint: pass (RuboCop: 4 files inspected, no offenses)
 - Tests: pass (93 examples, 0 failures)
 - Security: pass (Brakeman: 0 warnings)
 
 CI: pass - https://github.com/mitchellfyi/curated.cx/actions/runs/21575481857
+
 - Code Style ✓
 - Tests ✓
 - Security ✓
@@ -281,12 +290,14 @@ Reason: complete - all acceptance criteria met, all quality gates pass, CI green
 ### 2026-02-02 02:37 - Review Complete
 
 Findings:
+
 - Blockers: 0
 - High: 0
 - Medium: 0
 - Low: 0
 
 Review passes:
+
 - Correctness: pass - All behavior exactly preserved, verified against original code
 - Design: pass - Follows existing `Votable` concern pattern exactly
 - Security: pass - Proper authorization, authentication, rate limiting, strong params
@@ -303,14 +314,17 @@ Status: COMPLETE
 ### 2026-02-02 02:35 - Documentation Sync
 
 Docs updated:
+
 - None required (internal refactoring, no API changes)
 
 Inline comments:
+
 - `app/controllers/concerns/commentable.rb:3-37` - Module documentation with usage example
 - `app/controllers/concerns/commentable.rb:107-150` - Method-level comments for all private methods
 - `app/controllers/comments_controller.rb:52` - Section comment for Commentable hooks
 
 Consistency: verified
+
 - Concern documentation matches actual implementation
 - Example usage in concern header matches real controller implementations
 - All template methods documented with purpose and expected return types
@@ -321,9 +335,11 @@ Consistency: verified
 ### 2026-02-02 02:32 - Testing Complete
 
 Tests written:
+
 - No new tests needed (existing 93 request specs provide full coverage)
 
 Quality gates:
+
 - Lint: pass (RuboCop: 4 files inspected, no offenses)
 - Types: N/A (Ruby/Rails project)
 - Tests: pass (3851 total, 93 for Commentable controllers)
@@ -331,6 +347,7 @@ Quality gates:
 - Security: pass (Brakeman: 0 warnings)
 
 CI ready: yes
+
 - All tests run on standard RSpec
 - No platform-specific code (runs on ubuntu-latest in CI)
 - No hardcoded paths or macOS-specific commands
@@ -341,24 +358,28 @@ CI ready: yes
 ### 2026-02-02 02:28 - Implementation Complete
 
 Steps completed:
+
 1. Created `app/controllers/concerns/commentable.rb` with create/update/destroy actions
 2. Refactored `CommentsController` - 31 specs pass
 3. Refactored `NoteCommentsController` - 33 specs pass
 4. Refactored `DiscussionPostsController` - 29 specs pass
 
 Files modified:
+
 - Created: `app/controllers/concerns/commentable.rb` (133 lines)
 - Modified: `app/controllers/comments_controller.rb` (110→77 lines, -33 lines)
 - Modified: `app/controllers/note_comments_controller.rb` (94→61 lines, -33 lines)
 - Modified: `app/controllers/discussion_posts_controller.rb` (94→65 lines, -29 lines)
 
 Verification:
+
 - All 93 request specs pass (31+33+29)
 - RuboCop: 4 files inspected, no offenses
 - Brakeman: no security warnings
 - Full quality suite passes
 
 Implementation notes:
+
 - Added `commentable_redirect_back?` hook to handle `redirect_back` vs `redirect_to` difference
 - `DiscussionPostsController` overrides to return `false` (uses `redirect_to`)
 - Instance variables (`@comment`, `@post`) set in controller hooks for view compatibility
@@ -373,6 +394,7 @@ Implementation notes:
 - Test coverage: extensive (76 existing request specs)
 
 Analysis notes:
+
 - Reviewed all 3 controllers in detail - create/update/destroy actions are nearly identical
 - Key variance: `CommentsController` uses `redirect_back` while `DiscussionPostsController` uses `redirect_to`
 - Solution: Use `redirect_to commentable_fallback_location` consistently - controllers set appropriate fallback
@@ -385,6 +407,7 @@ Analysis notes:
 ### 2026-02-02 02:23 - Triage Complete
 
 Quality gates:
+
 - Lint: `bin/rubocop` (RuboCop Rails Omakase)
 - Types: N/A (Ruby/Rails project)
 - Tests: `bin/rspec`
@@ -392,15 +415,18 @@ Quality gates:
 - Full quality: `bin/quality` (comprehensive quality enforcement script)
 
 Task validation:
+
 - Context: clear (Flay analysis identified mass=116/112 duplications, 3 controllers with shared patterns)
 - Criteria: specific (9 acceptance criteria, all testable)
 - Dependencies: none (no blockers, `Votable` pattern exists as reference)
 
 Complexity:
+
 - Files: few (1 new concern, 3 controller modifications)
 - Risk: low (refactoring with 63 existing request specs for regression safety)
 
 Verified files exist:
+
 - `app/controllers/comments_controller.rb` ✓
 - `app/controllers/note_comments_controller.rb` ✓
 - `app/controllers/discussion_posts_controller.rb` ✓

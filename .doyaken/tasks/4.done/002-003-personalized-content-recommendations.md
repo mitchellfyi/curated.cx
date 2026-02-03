@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `002-003-personalized-content-recommendations`         |
-| Status      | `done`                                                 |
-| Priority    | `002` High                                             |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 17:27`                                     |
-| Completed   | `2026-01-30 17:56`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-30 17:22` |
+| Field       | Value                                          |
+| ----------- | ---------------------------------------------- |
+| ID          | `002-003-personalized-content-recommendations` |
+| Status      | `done`                                         |
+| Priority    | `002` High                                     |
+| Created     | `2026-01-30 15:30`                             |
+| Started     | `2026-01-30 17:27`                             |
+| Completed   | `2026-01-30 17:56`                             |
+| Blocked By  |                                                |
+| Blocks      |                                                |
+| Assigned To | `worker-1`                                     |
+| Assigned At | `2026-01-30 17:22`                             |
 
 ---
 
@@ -35,6 +35,7 @@ All users see the same content feed ranked by freshness, source quality, and eng
 ### Solution Overview
 
 Build a recommendation engine that:
+
 1. **Tracks user behavior** - Content views as implicit signals (existing Vote/Bookmark/Comment models provide explicit signals)
 2. **Computes user interests** - Aggregate topic/taxonomy preferences from behavior patterns
 3. **Generates personalized recommendations** - Content-based filtering using taxonomy similarity
@@ -44,6 +45,7 @@ Build a recommendation engine that:
 ### Codebase Analysis
 
 **Existing Infrastructure (use these):**
+
 - `Vote` model (`app/models/vote.rb:28-42`) - user_id, content_item_id, tracks upvotes with counter_cache
 - `Bookmark` model (`app/models/bookmark.rb:24-43`) - polymorphic, supports ContentItem
 - `Comment` model - user_id, content_item_id
@@ -54,17 +56,20 @@ Build a recommendation engine that:
 - `DigestMailer` (`app/mailers/digest_mailer.rb:3-70`) - Sends weekly/daily digests, currently not personalized
 
 **Key Patterns to Follow:**
+
 - Service pattern: Class method entry point (`.call` or similar), instance with dependencies
 - Multi-tenancy: Include `SiteScoped` concern, records scoped to Current.site
 - JSONB settings: Use `JsonbSettingsAccessor` concern for user preferences
 - Email from-address cascade: site → tenant → default
 
 **Files to Modify:**
+
 - `app/views/tenants/show.html.erb:18-34` - Add "For You" section above "Latest Content"
 - `app/services/tenant_homepage_service.rb:17-22` - Add personalized content to tenant_data
 - `app/mailers/digest_mailer.rb:42-49` - Add personalized recommendations section
 
 **New Files to Create:**
+
 - `app/models/content_view.rb` - Track content views
 - `db/migrate/xxx_create_content_views.rb` - Migration
 - `app/services/content_recommendation_service.rb` - Recommendation engine
@@ -77,6 +82,7 @@ Build a recommendation engine that:
 All must be checked before moving to done:
 
 ### Core Functionality
+
 - [x] **ContentView model tracks views**: Create `content_view` table with user_id, content_item_id, site_id, viewed_at, and unique constraint per user/content_item/site
 - [x] **View tracking endpoint**: POST endpoint to record views when user clicks into content (track via controller callback or JS)
 - [x] **ContentRecommendationService**: Service that computes personalized content using taxonomy affinity scores
@@ -84,15 +90,18 @@ All must be checked before moving to done:
 - [x] **Cold start fallback**: For users with <5 interactions, return engagement-ranked content from `FeedRankingService`
 
 ### User-Facing Features
+
 - [x] **"For You" section on homepage** (`app/views/tenants/show.html.erb`): Show 6 personalized items for logged-in users above "Latest Content"
 - [x] ~~**"Similar Content" on content pages**~~: **DESCOPED** - No content detail page exists; items link directly to external URLs. Create separate task if needed.
 - [x] **Personalized digest emails**: Add "Recommended for you" section to weekly/daily digests with 3-5 personalized items
 
 ### Data & Performance
+
 - [x] **Index on content_views**: Add composite index for (user_id, site_id, viewed_at DESC) for efficient lookups
 - [x] **Cache recommendations**: Cache personalized feed per user with 1-hour TTL using Rails.cache
 
 ### Quality
+
 - [x] Tests written and passing (service specs, model specs, controller specs)
 - [x] Quality gates pass (rubocop, brakeman, rspec)
 - [x] Changes committed with task reference [002-003-personalized-content-recommendations]
@@ -103,19 +112,19 @@ All must be checked before moving to done:
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| ContentView model tracks views | none | Model, migration, and tracking endpoint don't exist |
-| View tracking endpoint | none | No endpoint exists; no content detail page either (items link externally) |
-| ContentRecommendationService | none | Service doesn't exist |
-| Personalization algorithm | none | No implementation exists |
-| Cold start fallback | partial | `FeedRankingService.ranked_feed` exists and can be used |
-| "For You" section on homepage | none | Section doesn't exist; `TenantHomepageService` needs extension |
-| "Similar Content" on content pages | **BLOCKED** | No content detail page exists - items link directly to external URLs |
-| Personalized digest emails | none | `DigestMailer` exists but has no personalization |
-| Index on content_views | none | Table doesn't exist yet |
-| Cache recommendations | none | No caching implemented |
-| Tests | none | No tests for recommendation features |
+| Criterion                          | Status      | Gap                                                                       |
+| ---------------------------------- | ----------- | ------------------------------------------------------------------------- |
+| ContentView model tracks views     | none        | Model, migration, and tracking endpoint don't exist                       |
+| View tracking endpoint             | none        | No endpoint exists; no content detail page either (items link externally) |
+| ContentRecommendationService       | none        | Service doesn't exist                                                     |
+| Personalization algorithm          | none        | No implementation exists                                                  |
+| Cold start fallback                | partial     | `FeedRankingService.ranked_feed` exists and can be used                   |
+| "For You" section on homepage      | none        | Section doesn't exist; `TenantHomepageService` needs extension            |
+| "Similar Content" on content pages | **BLOCKED** | No content detail page exists - items link directly to external URLs      |
+| Personalized digest emails         | none        | `DigestMailer` exists but has no personalization                          |
+| Index on content_views             | none        | Table doesn't exist yet                                                   |
+| Cache recommendations              | none        | No caching implemented                                                    |
+| Tests                              | none        | No tests for recommendation features                                      |
 
 ### Risks
 
@@ -128,11 +137,13 @@ All must be checked before moving to done:
 ### Blocking Issue: "Similar Content" Criterion
 
 The acceptance criterion states:
+
 > **"Similar Content" on content pages**: Show 4 similar items based on shared topic_tags (below main content)
 
 However, **no content detail page exists**. The `_content_card.html.erb` partial links directly to `content_item.url_canonical` (external URL) at line 34-38. Routes (`config/routes.rb`) show `resources :content_items, only: []` - no show action.
 
 **Options:**
+
 1. **Descope**: Remove "Similar Content" from this task, add as future enhancement
 2. **Interstitial page**: Create a content detail page at `/content_items/:id` that shows item metadata + similar content before user clicks through to external URL
 3. **Expanded card modal**: Add "Show Similar" button to content cards that opens a modal/drawer with similar items
@@ -145,6 +156,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 #### Phase 1: Data Layer
 
 **Step 1: Create ContentView migration**
+
 - File: `db/migrate/[timestamp]_create_content_views.rb`
 - Change: Create `content_views` table with columns:
   - `id` (bigint, primary key)
@@ -158,6 +170,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 - Verify: `rails db:migrate` succeeds
 
 **Step 2: Create ContentView model**
+
 - File: `app/models/content_view.rb`
 - Change:
   ```ruby
@@ -170,6 +183,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 - Verify: `ContentView.new(user: User.first, content_item: ContentItem.first, site: Site.first).valid?` in console
 
 **Step 3: Add view tracking endpoint**
+
 - File: `app/controllers/content_views_controller.rb` (new)
 - Change: Create controller with `create` action that records view for current_user
 - File: `config/routes.rb`
@@ -177,6 +191,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 - Verify: `POST /content_items/:content_item_id/views` creates record
 
 **Step 4: Add JavaScript view tracking**
+
 - File: `app/views/feed/_content_card.html.erb`
 - Change: Add `data-content-id` attribute to external link
 - File: `app/javascript/controllers/track_view_controller.js` (new)
@@ -186,6 +201,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 #### Phase 2: Recommendation Engine
 
 **Step 5: Create ContentRecommendationService**
+
 - File: `app/services/content_recommendation_service.rb`
 - Change: Implement service with methods:
   - `.for_user(user, site:, limit: 6)` - Personalized feed for homepage
@@ -203,6 +219,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 #### Phase 3: Homepage Integration
 
 **Step 6: Update TenantHomepageService**
+
 - File: `app/services/tenant_homepage_service.rb`
 - Change: Add `personalized_content(user)` method that:
   - Returns nil if user is nil
@@ -211,6 +228,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 - Verify: `TenantHomepageService.new(site: Site.first, tenant: Tenant.first).personalized_content(User.first)` returns results
 
 **Step 7: Update TenantsController**
+
 - File: `app/controllers/tenants_controller.rb`
 - Change: In `show` action, after loading tenant_data:
   ```ruby
@@ -219,6 +237,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 - Verify: Controller sets `@personalized_content` for logged-in users
 
 **Step 8: Update homepage view**
+
 - File: `app/views/tenants/show.html.erb`
 - Change: Add "For You" section before "Latest Content" (line 18):
   ```erb
@@ -238,6 +257,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 #### Phase 4: Email Integration
 
 **Step 9: Update DigestMailer**
+
 - File: `app/mailers/digest_mailer.rb`
 - Change: In both `weekly_digest` and `daily_digest` methods, add:
   ```ruby
@@ -246,6 +266,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 - Verify: Mailer previews show `@personalized_content` populated
 
 **Step 10: Update email templates**
+
 - File: `app/views/digest_mailer/weekly_digest.html.erb`
 - File: `app/views/digest_mailer/daily_digest.html.erb`
 - Change: Add "Recommended for you" section after top content:
@@ -262,6 +283,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 #### Phase 5: Caching
 
 **Step 11: Add caching to ContentRecommendationService**
+
 - File: `app/services/content_recommendation_service.rb`
 - Change: In `for_user` method, wrap computation in:
   ```ruby
@@ -274,6 +296,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 #### Phase 6: Tests
 
 **Step 12: Write ContentView model specs**
+
 - File: `spec/models/content_view_spec.rb`
 - Coverage:
   - Validates presence of user, content_item, site
@@ -282,6 +305,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
   - `recent` scope orders by viewed_at DESC
 
 **Step 13: Write ContentRecommendationService specs**
+
 - File: `spec/services/content_recommendation_service_spec.rb`
 - Coverage:
   - `for_user` returns personalized results for user with interactions
@@ -294,6 +318,7 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
   - Caching works correctly
 
 **Step 14: Write controller/request specs**
+
 - File: `spec/requests/tenants_spec.rb` (extend existing or create)
 - Coverage:
   - Homepage shows "For You" section for logged-in user with interactions
@@ -307,13 +332,13 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 4 | Views are tracked when clicking content links |
-| Step 8 | Homepage shows "For You" for logged-in users with history |
-| Step 10 | Email previews include personalized section |
-| Step 14 | All tests pass, `bundle exec rspec` green |
-| Final | Quality gates pass: rubocop, brakeman, rspec |
+| After Step | Verify                                                    |
+| ---------- | --------------------------------------------------------- |
+| Step 4     | Views are tracked when clicking content links             |
+| Step 8     | Homepage shows "For You" for logged-in users with history |
+| Step 10    | Email previews include personalized section               |
+| Step 14    | All tests pass, `bundle exec rspec` green                 |
+| Final      | Quality gates pass: rubocop, brakeman, rspec              |
 
 ### Test Plan
 
@@ -334,12 +359,14 @@ Recommend **Option 1 (Descope)** for v1 to avoid scope creep. Can add as separat
 ### 2026-01-30 17:56 - Review Complete
 
 Findings:
+
 - Blockers: 0 - none
 - High: 0 - none
 - Medium: 0 - none
 - Low: 1 - cache invalidation on new interactions (acceptable, documented 1-hour TTL)
 
 Review passes:
+
 - Correctness: pass - Happy path, cold start fallback, edge cases all verified
 - Design: pass - Follows service pattern, SiteScoped concern, graceful degradation
 - Security: pass - Pundit authorization, parameterized queries, brakeman clean
@@ -356,11 +383,13 @@ Status: COMPLETE
 ### 2026-01-30 17:52 - Documentation Sync
 
 Docs updated:
+
 - `README.md` - Added `ContentRecommendationService` to Key Services table
 - `docs/ARCHITECTURE.md` - Removed "Personalized Feeds" from Future Enhancements (now implemented)
 - `docs/ARCHITECTURE.md` - Added personalized recommendations to Summary strengths
 
 Inline comments:
+
 - `app/services/content_recommendation_service.rb:1-10` - Already has class-level usage documentation
 - `app/models/content_view.rb:1-28` - Already has schema annotations
 
@@ -371,6 +400,7 @@ Consistency: verified - Code and docs aligned
 ### 2026-01-30 17:51 - Testing Complete
 
 Tests written:
+
 - `spec/factories/content_views.rb` - Factory for ContentView model
 - `spec/models/content_view_spec.rb` - 14 tests (unit)
 - `spec/services/content_recommendation_service_spec.rb` - 21 tests (unit)
@@ -378,6 +408,7 @@ Tests written:
 - `spec/requests/tenants_spec.rb` - 5 tests added (integration)
 
 Quality gates:
+
 - Lint: pass
 - Types: N/A (Ruby/Rails)
 - Tests: pass (2770 examples, 0 failures)
@@ -391,6 +422,7 @@ CI ready: yes
 ### 2026-01-30 17:44 - Implementation Complete
 
 **Files Created (6 new files):**
+
 - `db/migrate/20260130173100_create_content_views.rb` - Migration for view tracking
 - `app/models/content_view.rb` - ContentView model with SiteScoped concern
 - `app/controllers/content_views_controller.rb` - View tracking endpoint
@@ -399,6 +431,7 @@ CI ready: yes
 - `app/javascript/controllers/track_view_controller.js` - Stimulus controller for tracking
 
 **Files Modified (11 files):**
+
 - `app/models/user.rb` - Added `has_many :content_views` association
 - `app/models/content_item.rb` - Added `has_many :content_views` association
 - `config/routes.rb` - Added view tracking route under content_items
@@ -413,6 +446,7 @@ CI ready: yes
 - `config/locales/en.yml` - Added translation keys
 
 **Implementation Details:**
+
 - ContentRecommendationService uses content-based filtering on topic_tags
 - Interaction weights: votes (3x), bookmarks (2x), views (1x)
 - Time decay with 14-day half-life
@@ -422,6 +456,7 @@ CI ready: yes
 - View tracking via sendBeacon for reliable delivery during navigation
 
 **Quality Gates:**
+
 - ✓ Rubocop: All files pass
 - ✓ Brakeman: No security warnings
 - ✓ ESLint: JavaScript passes
@@ -433,6 +468,7 @@ CI ready: yes
 ### 2026-01-30 17:28 - Planning Complete
 
 **Gap Analysis Summary:**
+
 - 9 of 11 criteria have status "none" - need full implementation
 - 1 criterion (cold start) is "partial" - FeedRankingService exists
 - 1 criterion ("Similar Content") is **BLOCKED** - no content detail page exists
@@ -442,6 +478,7 @@ CI ready: yes
 **Recommendation:** Descope "Similar Content on content pages" from this task. Implement as separate task that creates an interstitial content detail page.
 
 **Revised Scope (10 criteria):**
+
 1. ContentView model ✓ planned
 2. View tracking endpoint ✓ planned (via JS on external link click)
 3. ContentRecommendationService ✓ planned
@@ -463,6 +500,7 @@ CI ready: yes
 ### 2026-01-30 17:27 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop` (Ruby), `npm run lint` (JS)
 - Types: N/A (Ruby/Rails project)
 - Tests: `bundle exec rspec`
@@ -470,15 +508,18 @@ Quality gates:
 - Security: `bundle exec brakeman`
 
 Task validation:
+
 - Context: clear - Problem statement is specific, business context documented, solution approach defined
 - Criteria: specific - 11 acceptance criteria with clear pass/fail conditions
 - Dependencies: none - No blocked_by listed, no blockers in 1.blocked/
 
 Complexity:
+
 - Files: some (~8 files to modify/create)
 - Risk: low - Content-based filtering on existing infrastructure, clear fallback behavior
 
 Key file verification:
+
 - ✓ `app/models/vote.rb` exists
 - ✓ `app/models/bookmark.rb` exists
 - ✓ `app/services/feed_ranking_service.rb` exists
@@ -519,6 +560,7 @@ Ready: yes
 ### 2026-01-30 17:51 - Testing Complete
 
 **Tests written:**
+
 - `spec/models/content_view_spec.rb` - 14 tests (unit)
   - associations, validations, scopes (.recent, .for_user, .since), site scoping, factory
 - `spec/services/content_recommendation_service_spec.rb` - 21 tests (unit)
@@ -532,6 +574,7 @@ Ready: yes
   - "For You" section display for users with/without interactions, anonymous users
 
 **Quality gates:**
+
 - Lint: pass (rubocop 4 files, no offenses)
 - Types: N/A (Ruby/Rails)
 - Tests: pass (2770 examples, 0 failures, 1 pending)
@@ -545,6 +588,7 @@ Ready: yes
 ## Notes
 
 **In Scope:**
+
 - ContentView model to track implicit signals (views)
 - ContentRecommendationService with content-based filtering using topic_tags
 - "For You" section on homepage for logged-in users
@@ -554,6 +598,7 @@ Ready: yes
 - 1-hour cache for recommendations
 
 **Out of Scope:**
+
 - User interest preferences in profile settings (future task - keep simple first)
 - Collaborative filtering (similar users) - adds complexity, not needed for v1
 - ML/AI-based recommendations - start with rules-based approach
@@ -561,11 +606,13 @@ Ready: yes
 - Real-time view duration tracking - just track view events
 
 **Assumptions:**
+
 - topic_tags JSONB field is reliably populated for content items (TaggingService handles this)
 - Users have enough interaction history after ~5 interactions for meaningful personalization
 - 1-hour cache TTL is acceptable for recommendation freshness
 
 **Edge Cases:**
+
 - Anonymous users: Show engagement-ranked content (no personalization)
 - New users (<5 interactions): Show engagement-ranked content with fallback
 - Users with narrow interests: Include some diversity to avoid filter bubble
@@ -582,6 +629,7 @@ Ready: yes
 | Multi-tenant leak: Cross-site data | SiteScoped concern ensures isolation |
 
 **Privacy Considerations:**
+
 - ContentView records are internal only, never exposed via API
 - No user-to-user similarity data exposed (no "users who liked this also liked...")
 - Reading history only visible to the user themselves (if we add that feature later)
@@ -591,6 +639,7 @@ Ready: yes
 ## Links
 
 **Related Code:**
+
 - `app/models/vote.rb:28-42` - Vote model with counter_cache
 - `app/models/bookmark.rb:24-43` - Polymorphic bookmark model
 - `app/models/content_item.rb:58-211` - ContentItem with topic_tags JSONB
@@ -601,6 +650,7 @@ Ready: yes
 - `app/models/concerns/site_scoped.rb:1-76` - Multi-tenant isolation pattern
 
 **Research:**
+
 - Netflix recommendation engine architecture
 - Ghost discovery engine (Nov 2025)
 - Content-based filtering algorithms

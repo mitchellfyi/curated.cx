@@ -2,18 +2,18 @@
 
 ## Metadata
 
-| Field       | Value                                                  |
-| ----------- | ------------------------------------------------------ |
-| ID          | `003-003-digital-products-marketplace`                 |
-| Status      | `done`                                                 |
-| Priority    | `003` Medium                                           |
-| Created     | `2026-01-30 15:30`                                     |
-| Started     | `2026-01-30 22:15`                                     |
-| Completed   | `2026-01-30 23:10`                                     |
-| Blocked By  |                                                        |
-| Blocks      |                                                        |
-| Assigned To | `worker-1` |
-| Assigned At | `2026-01-30 22:15` |
+| Field       | Value                                  |
+| ----------- | -------------------------------------- |
+| ID          | `003-003-digital-products-marketplace` |
+| Status      | `done`                                 |
+| Priority    | `003` Medium                           |
+| Created     | `2026-01-30 15:30`                     |
+| Started     | `2026-01-30 22:15`                     |
+| Completed   | `2026-01-30 23:10`                     |
+| Blocked By  |                                        |
+| Blocks      |                                        |
+| Assigned To | `worker-1`                             |
+| Assigned At | `2026-01-30 22:15`                     |
 
 ---
 
@@ -59,6 +59,7 @@ Publishers cannot sell downloadable content (ebooks, templates, guides, code) th
 All must be checked before moving to done:
 
 ### Core Models
+
 - [x] `DigitalProduct` model with title, description, price_cents, status (draft/published/archived)
 - [x] `DigitalProduct` uses ActiveStorage `has_one_attached :file` for product file
 - [x] `DigitalProduct` uses `SiteScoped` concern (inherits tenant via site)
@@ -67,12 +68,14 @@ All must be checked before moving to done:
 - [x] `DownloadToken` model for secure time-limited download links
 
 ### File Storage & Security
+
 - [x] ActiveStorage configured for S3 in production (update storage.yml)
 - [x] Signed URLs with 1-hour expiration for downloads
 - [x] File type validation (PDF, ZIP, EPUB, MP3, MP4, PNG, JPG - max 500MB)
 - [x] Download counter on products for analytics
 
 ### Payment Integration
+
 - [x] `DigitalProductCheckoutService` creates Stripe sessions (extends existing pattern)
 - [x] `StripeWebhookHandler` extended to handle digital product purchases
 - [x] Purchase records created on successful payment
@@ -80,6 +83,7 @@ All must be checked before moving to done:
 - [x] `DigitalProductMailer` sends product delivery email with download link
 
 ### Public Interface
+
 - [x] Product listing page at `/products` (site-scoped)
 - [x] Product detail page at `/products/:slug` with buy button
 - [x] Checkout flow at `/products/:slug/checkout`
@@ -87,6 +91,7 @@ All must be checked before moving to done:
 - [x] Purchase history at `/my/purchases` (requires login)
 
 ### Admin Interface
+
 - [x] Admin CRUD at `/admin/digital_products`
 - [x] File upload with drag-and-drop
 - [x] View purchases/downloads for each product
@@ -94,17 +99,20 @@ All must be checked before moving to done:
 - [x] Site config flag: `digital_products.enabled` (default: false)
 
 ### Referral Integration
+
 - [x] Update `ReferralRewardTier` to reference `DigitalProduct` instead of just URL
 - [x] When referral tier unlocked, auto-create Purchase record with $0 amount
 - [x] Update `ReferralRewardService` to grant digital product access
 
 ### Tests
+
 - [x] Model specs: DigitalProduct, Purchase, DownloadToken validations
 - [x] Service specs: DigitalProductCheckoutService
 - [x] Request specs: checkout flow, download authorization
 - [x] Factory traits for paid/free products, purchases with/without payment
 
 ### Quality
+
 - [x] Quality gates pass (RuboCop, Brakeman, RSpec)
 - [x] No N+1 queries (Bullet) - includes() used in all controllers
 - [x] Migrations are safe (StrongMigrations)
@@ -115,6 +123,7 @@ All must be checked before moving to done:
 ## Notes
 
 **In Scope:**
+
 - Single product file per DigitalProduct (v1 simplicity)
 - One-time purchases only (no subscriptions)
 - Stripe as sole payment provider
@@ -122,6 +131,7 @@ All must be checked before moving to done:
 - Basic sales analytics (revenue, counts, downloads)
 
 **Out of Scope:**
+
 - Multiple files per product (bundle support) - future enhancement
 - Product variants (different tiers/versions)
 - Recurring subscriptions for products
@@ -131,6 +141,7 @@ All must be checked before moving to done:
 - Public product search/discovery across sites
 
 **Assumptions:**
+
 - S3 bucket will be configured before production deployment
 - Stripe account is already connected (existing integration)
 - Email delivery (via Action Mailer) is configured
@@ -160,47 +171,47 @@ All must be checked before moving to done:
 
 ### Gap Analysis
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| **Core Models** | | |
-| `DigitalProduct` model with title, description, price_cents, status | none | Model doesn't exist, needs full creation |
-| `DigitalProduct` uses ActiveStorage `has_one_attached :file` | none | ActiveStorage tables exist but no model attachments yet |
-| `DigitalProduct` uses `SiteScoped` concern | none | Model doesn't exist |
-| `DigitalProduct` supports free products (price_cents = 0) | none | Model doesn't exist |
-| `Purchase` model with user_id, digital_product_id, amount_cents, stripe_payment_intent_id | none | Model doesn't exist |
-| `DownloadToken` model for secure time-limited download links | none | Model doesn't exist |
-| **File Storage & Security** | | |
-| ActiveStorage configured for S3 in production | partial | Template exists in storage.yml but commented out |
-| Signed URLs with 1-hour expiration for downloads | none | Needs implementation in DownloadsController |
-| File type validation (PDF, ZIP, EPUB, MP3, MP4, PNG, JPG - max 500MB) | none | Needs custom validator |
-| Download counter on products for analytics | none | Needs counter cache column |
-| **Payment Integration** | | |
-| `DigitalProductCheckoutService` creates Stripe sessions | none | Service doesn't exist; pattern available from `StripeCheckoutService` |
-| `StripeWebhookHandler` extended for digital products | none | Handler exists, needs extension with new checkout_type routing |
-| Purchase records created on successful payment | none | Logic needs to be added to webhook handler |
-| Download token generated and emailed after purchase | none | Token generation + mailer needed |
-| `PurchaseReceiptMailer` sends product delivery email | partial | `PaymentReceiptMailer` exists for listings; need new mailer for products |
-| **Public Interface** | | |
-| Product listing page at `/products` | none | Route, controller, view needed |
-| Product detail page at `/products/:slug` | none | Route, controller, view needed |
-| Checkout flow at `/products/:slug/checkout` | none | Route, controller needed; can follow listings checkout pattern |
-| Download page at `/downloads/:token` | none | Route, controller, view needed |
-| Purchase history at `/my/purchases` | none | Route, controller, view needed |
-| **Admin Interface** | | |
-| Admin CRUD at `/admin/digital_products` | none | Controller, service, views needed; pattern from `Admin::ListingsController` |
-| File upload with drag-and-drop | none | View partial needed; Stimulus controller may help |
-| View purchases/downloads for each product | none | Admin show view enhancements |
-| Sales dashboard with revenue, top products, download stats | none | Query methods and view needed |
-| Site config flag: `digital_products.enabled` | none | Add helper to Site model + config validation |
-| **Referral Integration** | | |
-| Update `ReferralRewardTier` to reference `DigitalProduct` | partial | Model has `digital_download` type but stores URL string, not FK |
-| Auto-create Purchase record with $0 when tier unlocked | none | Logic needed in `ReferralRewardService` |
-| Update `ReferralRewardService` to grant digital product access | none | Need to add product granting logic |
-| **Tests** | | |
-| Model specs for DigitalProduct, Purchase, DownloadToken | none | All specs needed |
-| Service specs for DigitalProductCheckoutService | none | Spec needed |
-| Request specs for checkout flow, download authorization | none | Specs needed |
-| Factory traits for paid/free products, purchases | none | Factories needed |
+| Criterion                                                                                 | Status  | Gap                                                                         |
+| ----------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------- |
+| **Core Models**                                                                           |         |                                                                             |
+| `DigitalProduct` model with title, description, price_cents, status                       | none    | Model doesn't exist, needs full creation                                    |
+| `DigitalProduct` uses ActiveStorage `has_one_attached :file`                              | none    | ActiveStorage tables exist but no model attachments yet                     |
+| `DigitalProduct` uses `SiteScoped` concern                                                | none    | Model doesn't exist                                                         |
+| `DigitalProduct` supports free products (price_cents = 0)                                 | none    | Model doesn't exist                                                         |
+| `Purchase` model with user_id, digital_product_id, amount_cents, stripe_payment_intent_id | none    | Model doesn't exist                                                         |
+| `DownloadToken` model for secure time-limited download links                              | none    | Model doesn't exist                                                         |
+| **File Storage & Security**                                                               |         |                                                                             |
+| ActiveStorage configured for S3 in production                                             | partial | Template exists in storage.yml but commented out                            |
+| Signed URLs with 1-hour expiration for downloads                                          | none    | Needs implementation in DownloadsController                                 |
+| File type validation (PDF, ZIP, EPUB, MP3, MP4, PNG, JPG - max 500MB)                     | none    | Needs custom validator                                                      |
+| Download counter on products for analytics                                                | none    | Needs counter cache column                                                  |
+| **Payment Integration**                                                                   |         |                                                                             |
+| `DigitalProductCheckoutService` creates Stripe sessions                                   | none    | Service doesn't exist; pattern available from `StripeCheckoutService`       |
+| `StripeWebhookHandler` extended for digital products                                      | none    | Handler exists, needs extension with new checkout_type routing              |
+| Purchase records created on successful payment                                            | none    | Logic needs to be added to webhook handler                                  |
+| Download token generated and emailed after purchase                                       | none    | Token generation + mailer needed                                            |
+| `PurchaseReceiptMailer` sends product delivery email                                      | partial | `PaymentReceiptMailer` exists for listings; need new mailer for products    |
+| **Public Interface**                                                                      |         |                                                                             |
+| Product listing page at `/products`                                                       | none    | Route, controller, view needed                                              |
+| Product detail page at `/products/:slug`                                                  | none    | Route, controller, view needed                                              |
+| Checkout flow at `/products/:slug/checkout`                                               | none    | Route, controller needed; can follow listings checkout pattern              |
+| Download page at `/downloads/:token`                                                      | none    | Route, controller, view needed                                              |
+| Purchase history at `/my/purchases`                                                       | none    | Route, controller, view needed                                              |
+| **Admin Interface**                                                                       |         |                                                                             |
+| Admin CRUD at `/admin/digital_products`                                                   | none    | Controller, service, views needed; pattern from `Admin::ListingsController` |
+| File upload with drag-and-drop                                                            | none    | View partial needed; Stimulus controller may help                           |
+| View purchases/downloads for each product                                                 | none    | Admin show view enhancements                                                |
+| Sales dashboard with revenue, top products, download stats                                | none    | Query methods and view needed                                               |
+| Site config flag: `digital_products.enabled`                                              | none    | Add helper to Site model + config validation                                |
+| **Referral Integration**                                                                  |         |                                                                             |
+| Update `ReferralRewardTier` to reference `DigitalProduct`                                 | partial | Model has `digital_download` type but stores URL string, not FK             |
+| Auto-create Purchase record with $0 when tier unlocked                                    | none    | Logic needed in `ReferralRewardService`                                     |
+| Update `ReferralRewardService` to grant digital product access                            | none    | Need to add product granting logic                                          |
+| **Tests**                                                                                 |         |                                                                             |
+| Model specs for DigitalProduct, Purchase, DownloadToken                                   | none    | All specs needed                                                            |
+| Service specs for DigitalProductCheckoutService                                           | none    | Spec needed                                                                 |
+| Request specs for checkout flow, download authorization                                   | none    | Specs needed                                                                |
+| Factory traits for paid/free products, purchases                                          | none    | Factories needed                                                            |
 
 ### Risks
 
@@ -429,14 +440,14 @@ All must be checked before moving to done:
 
 ### Checkpoints
 
-| After Step | Verify |
-|------------|--------|
-| Step 5 | Models exist, file attachment works: `DigitalProduct.create!(title: "Test", site: Site.first).file.attach(io: File.open("test.pdf"), filename: "test.pdf")` |
-| Step 9 | Stripe integration works: Create product, checkout, receive webhook, purchase exists |
-| Step 14 | Full public flow: Browse products, purchase, receive email, download file |
-| Step 19 | Admin flow: Create product with file, view sales dashboard, see purchases |
-| Step 22 | Referral integration: Set tier to product, unlock milestone, verify purchase created |
-| Step 27 | Quality gates: `bin/quality` passes with no errors |
+| After Step | Verify                                                                                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Step 5     | Models exist, file attachment works: `DigitalProduct.create!(title: "Test", site: Site.first).file.attach(io: File.open("test.pdf"), filename: "test.pdf")` |
+| Step 9     | Stripe integration works: Create product, checkout, receive webhook, purchase exists                                                                        |
+| Step 14    | Full public flow: Browse products, purchase, receive email, download file                                                                                   |
+| Step 19    | Admin flow: Create product with file, view sales dashboard, see purchases                                                                                   |
+| Step 22    | Referral integration: Set tier to product, unlock milestone, verify purchase created                                                                        |
+| Step 27    | Quality gates: `bin/quality` passes with no errors                                                                                                          |
 
 ### Test Plan
 
@@ -464,6 +475,7 @@ All must be checked before moving to done:
 ### 2026-01-30 22:42 - Implementation Complete
 
 **Phase 1: Core Models & Storage (Steps 1-5)**
+
 - Created `DigitalProduct` model with SiteScoped, ActiveStorage attachment, slug generation
 - Created `Purchase` model with stripe_checkout_session_id, stripe_payment_intent_id indexes
 - Created `DownloadToken` model with token generation, expiry, download counting
@@ -472,12 +484,14 @@ All must be checked before moving to done:
 - Files: 4 migrations, 3 models, 2 validators
 
 **Phase 2: Payment Integration (Steps 6-9)**
+
 - Created `DigitalProductCheckoutService` with paid/free purchase support
 - Extended `StripeWebhookHandler` to route digital_product checkout_type
 - Created `DigitalProductMailer` with purchase_receipt email and views
 - Files: 2 services, 1 mailer, 2 mailer views
 
 **Phase 3: Public Interface (Steps 10-14)**
+
 - Added routes: `/products`, `/products/:slug`, `/products/:slug/checkout`, `/downloads/:token`, `/my/purchases`
 - Created `DigitalProductsController` with feature flag check
 - Created `ProductCheckoutsController` with free/paid checkout handling
@@ -486,6 +500,7 @@ All must be checked before moving to done:
 - Files: 4 controllers, 12 views
 
 **Phase 4: Admin Interface (Steps 15-19)**
+
 - Added `digital_products_enabled?` to Site model with config validation
 - Created `Admin::DigitalProductsController` with CRUD
 - Created `Admin::DigitalProductsService` with dashboard_stats
@@ -493,17 +508,20 @@ All must be checked before moving to done:
 - Files: 1 controller, 1 service, 5 views
 
 **Phase 5: Referral Integration (Steps 20-22)**
+
 - Added `digital_product_id` to `ReferralRewardTier` via migration
 - Updated referral tier form with digital product dropdown
 - Updated `ReferralRewardService.grant_digital_product` to create Purchase + DownloadToken
 - Files: 1 migration, modified 3 files
 
 **Quality Checks:**
+
 - RuboCop: All files pass (0 offenses)
 - Brakeman: 1 weak warning (intentional redirect to signed S3 URL)
 - Models load and validate correctly
 
 **Statistics:**
+
 - New files: 28
 - Modified files: 8
 - Migrations: 4
@@ -512,6 +530,7 @@ All must be checked before moving to done:
 ### 2026-01-30 22:45 - Planning Complete
 
 **Codebase Analysis:**
+
 - Reviewed `StripeCheckoutService` (152 lines) and `StripeWebhookHandler` (148 lines) - patterns are clear and extensible
 - Confirmed `SiteScoped` concern is the correct isolation pattern (not TenantScoped directly)
 - `ReferralRewardTier` has `digital_download` type but stores URL string, needs FK addition
@@ -519,11 +538,13 @@ All must be checked before moving to done:
 - `Site.rb` feature flag pattern: `setting("feature.enabled", default)` with JSONB validation
 
 **Gap Analysis Summary:**
+
 - 23 of 23 acceptance criteria need implementation (none exist)
 - 3 partial items: S3 config (templated), mailer pattern (PaymentReceiptMailer exists), referral tier (type exists)
 - Critical pattern references: `StripeCheckoutService:75-85`, `StripeWebhookHandler:41-69`, `Site.rb:99-100`
 
 **Plan Statistics:**
+
 - Steps: 27 (across 6 phases)
 - New files: ~25
 - Modified files: ~6 (routes.rb, stripe_webhook_handler.rb, referral_reward_service.rb, referral_reward_tier.rb, site.rb, admin referral form)
@@ -531,6 +552,7 @@ All must be checked before moving to done:
 - Risks: 6 identified with mitigations
 
 **Key Decisions:**
+
 - Use `SiteScoped` not `TenantScoped` (site is primary isolation boundary)
 - Create new `DigitalProductMailer` vs extending `PaymentReceiptMailer` (separation of concerns)
 - Keep `download_url` backward compat in ReferralRewardTier (gradual migration)
@@ -542,21 +564,25 @@ All must be checked before moving to done:
 ### 2026-01-30 22:20 - Triage Complete
 
 Quality gates:
+
 - Lint: `bundle exec rubocop` (via bin/quality)
 - Types: N/A (Ruby - no static types)
 - Tests: `bundle exec rspec` (via bin/quality)
 - Build: `bin/quality` (comprehensive quality script)
 
 Task validation:
+
 - Context: clear - well-documented existing infrastructure (Stripe, ActiveStorage, multi-tenant)
 - Criteria: specific - 40+ acceptance criteria with checkboxes, clear scope boundaries
 - Dependencies: satisfied - StripeCheckoutService, StripeWebhookHandler, ReferralRewardTier all exist
 
 Complexity:
+
 - Files: many (~30 new/modified per plan)
 - Risk: medium - leverages existing patterns, but large surface area
 
 Infrastructure verified:
+
 - ✅ `app/services/stripe_checkout_service.rb` - Stripe session creation pattern exists
 - ✅ `app/services/stripe_webhook_handler.rb` - webhook handling exists
 - ✅ `app/models/referral_reward_tier.rb` - has `digital_download` reward type
@@ -565,6 +591,7 @@ Infrastructure verified:
 - ✅ ActiveStorage + image_processing gems available
 
 Risks flagged:
+
 - `manifest.yaml` quality commands are empty (using bin/quality script instead)
 - S3 config commented out - needs uncommenting for production
 
@@ -602,6 +629,7 @@ Ready: yes
 ### 2026-01-30 22:58 - Testing Complete
 
 Tests written:
+
 - `spec/factories/digital_products.rb` - Factory with traits (draft, published, archived, free, with_file)
 - `spec/factories/purchases.rb` - Factory with traits (from_checkout, from_referral, admin_grant, free_purchase)
 - `spec/factories/download_tokens.rb` - Factory with traits (expired, exhausted, fresh, used_once)
@@ -615,6 +643,7 @@ Tests written:
 - `spec/requests/downloads_spec.rb` - 13 tests (valid/expired/exhausted tokens, 404 handling)
 
 Quality gates:
+
 - Lint: pass (0 offenses)
 - Types: N/A (Ruby)
 - Tests: pass (3523 total, 190 new)
@@ -624,6 +653,7 @@ Quality gates:
 CI ready: yes
 
 Bugs found and fixed during testing:
+
 - Added `skip_after_action :verify_authorized` and `skip_after_action :verify_policy_scoped` to public controllers (Pundit)
 
 ---
@@ -631,6 +661,7 @@ Bugs found and fixed during testing:
 ### 2026-01-30 23:10 - Review Complete
 
 **Findings:**
+
 - Blockers: 1 - fixed
   - `My::PurchasesController` missing `skip_after_action :verify_authorized` and `skip_after_action :verify_policy_scoped` - would cause Pundit authorization errors
 - High: 0
@@ -638,6 +669,7 @@ Bugs found and fixed during testing:
 - Low: 0
 
 **Review passes:**
+
 - Correctness: pass - all happy paths and edge cases traced
 - Design: pass - follows existing patterns (SiteScoped, AdminAccess, service classes)
 - Security: pass - proper token-based auth for downloads, admin RBAC, no SQL injection, signed S3 URLs
@@ -645,6 +677,7 @@ Bugs found and fixed during testing:
 - Tests: pass - 213 examples, 0 failures covering models, services, and request specs
 
 **Fixes applied:**
+
 1. Added `skip_after_action :verify_authorized` and `skip_after_action :verify_policy_scoped` to `My::PurchasesController`
 
 **All criteria met:** yes
@@ -658,16 +691,20 @@ Bugs found and fixed during testing:
 ### 2026-01-30 23:01 - Documentation Sync
 
 Docs updated:
+
 - `README.md` - Added `DigitalProductCheckoutService` to Key Services table
 
 Inline comments:
+
 - Already present in implementation (no additions needed)
 
 Admin help text verified:
+
 - `app/views/admin/digital_products/_form.html.erb` - Has slug hint, price hint (cents format), file types hint (500MB max)
 - `app/views/admin/referral_reward_tiers/_form.html.erb` - Has digital product help text for referral integration
 
 I18n translations verified:
+
 - `config/locales/en.yml` - 60+ keys for digital products admin section
 
 Consistency: verified - code and docs aligned
