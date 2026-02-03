@@ -48,7 +48,8 @@ class Source < ApplicationRecord
     rss: 1,
     api: 2,
     web_scraper: 3,
-    serp_api_google_jobs: 4
+    serp_api_google_jobs: 4,
+    serp_api_youtube: 5
   }
 
   # Validations
