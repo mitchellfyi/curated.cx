@@ -1,0 +1,213 @@
+<div class="py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <%= link_to "← Back to Notes", admin_notes_path, class: "text-gray-600 hover:underline text-sm" %>
+      <div class="mt-4 flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">Note #<%= @note.id %></h1>
+        <div class="flex space-x-2">
+          <% if @note.hidden? %>
+            <%= button_to "Unhide", unhide_admin_note_path(@note), method: :post, class: "inline-flex items-center px-3 py-1.5 border border-green-600 rounded-md text-sm font-medium text-green-600 bg-white hover:bg-green-50" %>
+          <% else %>
+            <%= button_to "Hide", hide_admin_note_path(@note), method: :post, class: "inline-flex items-center px-3 py-1.5 border border-yellow-600 rounded-md text-sm font-medium text-yellow-600 bg-white hover:bg-yellow-50", data: { confirm: "Hide this note from public view?" } %>
+          <% end %>
+          <%= button_to "Delete", admin_note_path(@note), method: :delete, class: "inline-flex items-center px-3 py-1.5 border border-red-600 rounded-md text-sm font-medium text-red-600 bg-white hover:bg-red-50", data: { confirm: "Permanently delete this note?" } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Badges -->
+    <div class="flex flex-wrap gap-2 mb-6">
+      <% if @note.published? %>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+          ✓ Published <%= time_ago_in_words(@note.published_at) %> ago
+        </span>
+      <% else %>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">Draft</span>
+      <% end %>
+      <% if @note.hidden? %>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+          🚫 Hidden by <%= @note.hidden_by&.email || "system" %>
+        </span>
+      <% end %>
+      <% if @note.repost? %>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+          Repost of #<%= @note.repost_of_id %>
+        </span>
+      <% end %>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Main Content -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Note Body -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="flex items-center mb-4">
+            <% if @note.user.avatar_url.present? %>
+              <%= image_tag @note.user.avatar_url, class: "h-12 w-12 rounded-full mr-4" %>
+            <% else %>
+              <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center mr-4">
+                <span class="text-gray-500 font-medium"><%= @note.user.email.first.upcase %></span>
+              </div>
+            <% end %>
+            <div>
+              <p class="font-medium text-gray-900">
+                <%= link_to @note.user.display_name.presence || @note.user.email, admin_user_path(@note.user), class: "hover:underline" %>
+              </p>
+              <p class="text-sm text-gray-500">
+                <%= @note.created_at.strftime("%B %d, %Y at %H:%M UTC") %>
+              </p>
+            </div>
+          </div>
+          <div class="prose max-w-none">
+            <p class="text-gray-800 whitespace-pre-wrap"><%= @note.body %></p>
+          </div>
+          <% if @note.image.attached? %>
+            <div class="mt-4">
+              <%= image_tag @note.image, class: "max-w-full rounded-lg" %>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Link Preview -->
+        <% if @note.has_link_preview? %>
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Link Preview</h3>
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <% if @note.link_preview["image"].present? %>
+                <%= image_tag @note.link_preview["image"], class: "w-full h-32 object-cover rounded mb-3" %>
+              <% end %>
+              <h4 class="font-medium text-gray-900"><%= @note.link_preview["title"] %></h4>
+              <p class="text-sm text-gray-600 mt-1"><%= @note.link_preview["description"] %></p>
+              <p class="text-xs text-gray-400 mt-2"><%= @note.link_preview["url"] %></p>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Comments -->
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Comments (<%= @note.comments_count %>)</h3>
+          </div>
+          <% if @comments.any? %>
+            <ul class="divide-y divide-gray-200">
+              <% @comments.each do |comment| %>
+                <li class="px-4 py-4 sm:px-6">
+                  <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                      <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-gray-500 text-xs"><%= comment.user&.email&.first&.upcase || "?" %></span>
+                      </div>
+                    </div>
+                    <div class="ml-3 flex-1">
+                      <p class="text-sm font-medium text-gray-900">
+                        <%= comment.user&.display_name.presence || comment.user&.email || "Anonymous" %>
+                      </p>
+                      <p class="text-sm text-gray-700 mt-1"><%= comment.body %></p>
+                      <p class="text-xs text-gray-400 mt-1"><%= time_ago_in_words(comment.created_at) %> ago</p>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <div class="px-4 py-8 text-center text-gray-500">
+              No comments yet
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Engagement Stats -->
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Engagement</h3>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p class="text-2xl font-semibold text-gray-900"><%= @note.upvotes_count %></p>
+                <p class="text-xs text-gray-500">Upvotes</p>
+              </div>
+              <div>
+                <p class="text-2xl font-semibold text-gray-900"><%= @note.comments_count %></p>
+                <p class="text-xs text-gray-500">Comments</p>
+              </div>
+              <div>
+                <p class="text-2xl font-semibold text-gray-900"><%= @note.reposts_count %></p>
+                <p class="text-xs text-gray-500">Reposts</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Details</h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <dl class="space-y-4">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Site</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @note.site&.name %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Created</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @note.created_at.strftime("%Y-%m-%d %H:%M UTC") %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Published</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @note.published_at&.strftime("%Y-%m-%d %H:%M UTC") || "Not published" %></dd>
+              </div>
+              <% if @note.hidden_at %>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Hidden</dt>
+                  <dd class="mt-1 text-sm text-red-600"><%= @note.hidden_at.strftime("%Y-%m-%d %H:%M UTC") %></dd>
+                </div>
+              <% end %>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Character Count</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @note.body.length %> / 500</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Recent Voters -->
+        <% if @votes.any? %>
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+              <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Upvotes</h3>
+            </div>
+            <ul class="divide-y divide-gray-200">
+              <% @votes.each do |vote| %>
+                <li class="px-4 py-2 flex items-center justify-between">
+                  <span class="text-sm text-gray-900"><%= vote.user&.email || "Anonymous" %></span>
+                  <span class="text-xs text-gray-400"><%= time_ago_in_words(vote.created_at) %> ago</span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <!-- User Actions -->
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">User Actions</h3>
+          </div>
+          <div class="p-4 space-y-2">
+            <%= link_to admin_user_path(@note.user), class: "w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+              View User Profile
+            <% end %>
+            <%= link_to admin_notes_path(user_id: @note.user_id), class: "w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+              View All Notes by User
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

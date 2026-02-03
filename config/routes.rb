@@ -47,6 +47,16 @@ Rails.application.routes.draw do
       end
     end
 
+    # Notes (user-generated short posts)
+    resources :notes, only: [:index, :show, :destroy] do
+      member do
+        post :hide
+        post :unhide
+        post :feature
+        post :unfeature
+      end
+    end
+
     resources :categories
     resources :listings do
       member do
