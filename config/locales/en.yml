@@ -997,9 +997,9 @@ en:
     visit_site: Visit Site
   categories:
     index:
-      browse_content: Browse content
-      description: Description
-      title: Title
+      browse_content: Browse all content categories
+      description: Explore topics and find curated content
+      title: Categories
     show:
       description: Description
   checkouts:
@@ -1061,8 +1061,12 @@ en:
     save: Save
     view: View
   counts:
-    item: Item
-    listing: Listing
+    item:
+      one: "%{count} item"
+      other: "%{count} items"
+    listing:
+      one: "%{count} listing"
+      other: "%{count} listings"
   date:
     formats:
       default: "%B %d, %Y"
