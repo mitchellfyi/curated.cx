@@ -2,105 +2,118 @@
 
 # Job to fetch and parse RSS/Atom feeds
 class FetchRssJob < ApplicationJob
+  include JobLogging
+  include HttpClient
+
   queue_as :ingestion
 
   retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  discard_on ActiveRecord::RecordNotFound
+
+  class ConfigurationError < StandardError; end
 
   def perform(source_id)
-    source = Source.find(source_id)
-    tenant = source.tenant
-    site = source.site
+    @source = Source.find(source_id)
+    @site = @source.site
+    @tenant = @site.tenant
 
-    # Set tenant context for the job
-    Current.tenant = tenant
-    Current.site = site
+    set_current_context
 
-    # Verify source is enabled and correct kind
-    unless source.enabled? && source.rss?
-      source.update_run_status("skipped")
-      return
+    with_job_logging("RSS fetch for source #{source_id}") do
+      execute_fetch
     end
-
-    # Get feed URL from config
-    feed_url = source.config["url"] || source.config[:url]
-    raise "RSS feed URL not configured" if feed_url.blank?
-
-    # Fetch and parse feed
-    feed = fetch_and_parse_feed(feed_url)
-
-    # Extract URLs from feed entries
-    urls = extract_urls_from_feed(feed)
-
-    # Enqueue upsert jobs for each URL
-    category = find_or_create_category(site, tenant, "news")
-    urls.each do |url|
-      UpsertListingsJob.perform_later(tenant.id, category.id, url, source_id: source.id)
-    end
-
-    # Update source status
-    source.update_run_status("success")
-  rescue StandardError => e
-    source.update_run_status("error: #{e.message}")
-    log_job_error(e, source_id: source_id)
-    raise
   ensure
-    Current.tenant = nil
-    Current.site = nil
+    clear_current_context
   end
 
   private
 
+  def execute_fetch
+    unless @source.enabled? && @source.rss?
+      @source.update_run_status("skipped")
+      log_job_info("Source skipped", reason: "disabled or wrong kind")
+      return
+    end
+
+    feed_url = config_value("url")
+    raise ConfigurationError, "RSS feed URL not configured" if feed_url.blank?
+
+    # Create import run for tracking
+    @import_run = ImportRun.create_for_source!(@source)
+
+    begin
+      feed = fetch_and_parse_feed(feed_url)
+      urls = extract_urls_from_feed(feed)
+
+      enqueue_upserts(urls)
+
+      @import_run.mark_completed!(
+        items_created: urls.size,
+        items_updated: 0,
+        items_failed: 0
+      )
+      @source.update_run_status("success")
+
+      log_job_info("RSS fetch completed", urls_found: urls.size)
+    rescue StandardError => e
+      @import_run&.mark_failed!(e.message)
+      @source.update_run_status("error: #{e.message.truncate(100)}")
+      raise
+    end
+  end
+
   def fetch_and_parse_feed(feed_url)
     require "feedjira"
 
-    response = fetch_url(feed_url)
+    response = http_get(feed_url, headers: {
+      "User-Agent" => "Mozilla/5.0 (compatible; Curated.cx Feed Fetcher/1.0)",
+      "Accept" => "application/rss+xml, application/atom+xml, application/xml, text/xml"
+    })
+
     Feedjira.parse(response.body)
-  end
-
-  def fetch_url(url)
-    require "net/http"
-    require "uri"
-
-    uri = URI.parse(url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = (uri.scheme == "https")
-    http.open_timeout = 10
-    http.read_timeout = 30
-
-    request = Net::HTTP::Get.new(uri.path)
-    request["User-Agent"] = "Mozilla/5.0 (compatible; Curated.cx Feed Fetcher)"
-
-    response = http.request(request)
-
-    unless response.is_a?(Net::HTTPSuccess)
-      raise "Feed fetch failed: #{response.code} #{response.message}"
-    end
-
-    response
+  rescue Feedjira::NoParserAvailable => e
+    raise "Unable to parse feed: #{e.message}"
   end
 
   def extract_urls_from_feed(feed)
-    urls = []
-
-    feed.entries.each do |entry|
-      url = entry.url || entry.entry_id
-      urls << url if url.present?
-    end
-
-    urls
+    feed.entries.filter_map do |entry|
+      entry.url.presence || entry.entry_id.presence
+    end.uniq
   end
 
-  def find_or_create_category(site, tenant, category_key)
-    category = Category.find_by(site: site, key: category_key)
-    return category if category
+  def enqueue_upserts(urls)
+    return if urls.empty?
 
-    Category.create!(
-      tenant: tenant,
-      site: site,
-      key: category_key,
-      name: category_key.humanize,
-      allow_paths: true,
-      shown_fields: {}
-    )
+    category = find_or_create_category("news")
+
+    urls.each do |url|
+      UpsertListingsJob.perform_later(@tenant.id, category.id, url, source_id: @source.id)
+    end
+  end
+
+  def find_or_create_category(category_key)
+    Category.find_by(site: @site, key: category_key) ||
+      Category.create!(
+        tenant: @tenant,
+        site: @site,
+        key: category_key,
+        name: category_key.humanize,
+        allow_paths: true,
+        shown_fields: {}
+      )
+  end
+
+  def config_value(key)
+    @source.config[key] || @source.config[key.to_sym]
+  end
+
+  def set_current_context
+    Current.tenant = @tenant
+    Current.site = @site
+  end
+
+  def clear_current_context
+    Current.tenant = nil
+    Current.site = nil
   end
 end
