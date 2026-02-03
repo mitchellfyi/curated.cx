@@ -40,52 +40,19 @@
                 <div class="flex items-start justify-between">
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center flex-wrap gap-2 mb-2">
-                      <!-- Type Badge -->
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        <%= t("admin.listings.listing_types.#{listing.listing_type}") %>
-                      </span>
-                      <!-- Category Badge -->
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        <%= listing.category.name %>
-                      </span>
-                      <!-- Published Status -->
+                      <%= type_badge(listing.listing_type) %>
+                      <%= badge(listing.category.name, :blue) %>
                       <% if listing.scheduled? %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                          <%= t("admin.listings.scheduling.scheduled") %> <%= l(listing.scheduled_for, format: :short) %>
-                        </span>
+                        <%= badge("#{t('admin.listings.scheduling.scheduled')} #{l(listing.scheduled_for, format: :short)}", :yellow) %>
                       <% elsif listing.published_at %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Published
-                        </span>
+                        <%= badge_success("Published") %>
                       <% else %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Draft
-                        </span>
+                        <%= badge_warning("Draft") %>
                       <% end %>
-                      <!-- Featured Badge -->
-                      <% if listing.featured? %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          <%= t("monetisation.badges.featured") %>
-                        </span>
-                      <% end %>
-                      <!-- Expired Badge -->
-                      <% if listing.expired? %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          <%= t("monetisation.job.expired") %>
-                        </span>
-                      <% end %>
-                      <!-- Paid Badge -->
-                      <% if listing.paid? %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                          Paid
-                        </span>
-                      <% end %>
-                      <!-- Affiliate Badge -->
-                      <% if listing.has_affiliate? %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                          Affiliate
-                        </span>
-                      <% end %>
+                      <%= badge(t("monetisation.badges.featured"), :purple) if listing.featured? %>
+                      <%= badge_danger(t("monetisation.job.expired")) if listing.expired? %>
+                      <%= badge_success("Paid") if listing.paid? %>
+                      <%= badge("Affiliate", :yellow) if listing.has_affiliate? %>
                     </div>
                     <h3 class="text-lg font-medium text-gray-900">
                       <%= link_to listing.title, admin_listing_path(listing), class: "hover:text-blue-600" %>
