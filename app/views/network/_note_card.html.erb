@@ -5,7 +5,7 @@
     <%# Author avatar %>
     <div class="flex-shrink-0">
       <% if note.author_avatar_url.present? %>
-        <%= image_tag note.author_avatar_url, alt: note.author_profile_name, class: "w-10 h-10 rounded-full object-cover" %>
+        <%= image_tag note.author_avatar_url, alt: note.author_profile_name, class: "w-10 h-10 rounded-full object-cover", loading: "lazy" %>
       <% else %>
         <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
           <%= note.author_initials %>

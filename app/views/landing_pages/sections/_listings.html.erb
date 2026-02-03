@@ -21,7 +21,7 @@
           <% next unless listing %>
           <article class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
             <% if listing.image_url.present? %>
-              <img src="<%= listing.image_url %>" alt="" class="w-full h-48 object-cover">
+              <img src="<%= listing.image_url %>" alt="" class="w-full h-48 object-cover" loading="lazy">
             <% end %>
             <div class="p-6">
               <% if listing.category %>

@@ -17,7 +17,7 @@
       <%= link_to profile_path(note.repost? ? note.repost_of.user : note.user), class: "flex-shrink-0" do %>
         <% author = note.repost? ? note.repost_of.user : note.user %>
         <% if author.avatar_url.present? %>
-          <%= image_tag author.avatar_url, alt: author.profile_name, class: "w-10 h-10 rounded-full object-cover" %>
+          <%= image_tag author.avatar_url, alt: author.profile_name, class: "w-10 h-10 rounded-full object-cover", loading: "lazy" %>
         <% else %>
           <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
             <%= author.initials %>
