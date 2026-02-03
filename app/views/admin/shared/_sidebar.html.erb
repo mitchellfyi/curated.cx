@@ -1,5 +1,18 @@
 <%# Admin Sidebar Navigation %>
 <nav class="space-y-1">
+  <!-- Current Context -->
+  <% if Current.tenant %>
+    <div class="px-3 py-2 mb-2 bg-blue-50 rounded-md border border-blue-100">
+      <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Current Site</p>
+      <p class="text-sm font-medium text-blue-900 truncate"><%= Current.tenant.title %></p>
+      <% if current_user&.admin? %>
+        <p class="text-xs text-blue-600 mt-1">
+          <%= link_to "Switch tenant →", admin_tenants_path, class: "hover:underline" %>
+        </p>
+      <% end %>
+    </div>
+  <% end %>
+
   <!-- Search -->
   <div class="px-3 mb-4">
     <%= form_with url: admin_search_path, method: :get, class: "relative" do |f| %>
@@ -13,7 +26,29 @@
     <% end %>
   </div>
 
-  <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Dashboard</p>
+  <% if current_user&.admin? %>
+    <p class="px-3 text-xs font-semibold text-red-500 uppercase tracking-wider">🔑 Super Admin</p>
+
+    <%= link_to admin_tenants_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('tenants') ? 'bg-red-50 text-red-900' : 'text-gray-600 hover:bg-red-50 hover:text-red-900'}" do %>
+      <svg class="mr-3 h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+      </svg>
+      All Tenants
+      <span class="ml-auto text-xs text-gray-400"><%= Tenant.count rescue 0 %></span>
+    <% end %>
+
+    <%= link_to admin_users_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('users') ? 'bg-red-50 text-red-900' : 'text-gray-600 hover:bg-red-50 hover:text-red-900'}" do %>
+      <svg class="mr-3 h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+      </svg>
+      All Users
+      <span class="ml-auto text-xs text-gray-400"><%= User.count rescue 0 %></span>
+    <% end %>
+
+    <div class="my-3 border-t border-gray-200"></div>
+  <% end %>
+
+  <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Site Dashboard</p>
   
   <%= link_to admin_root_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path == admin_root_path ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
     <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,24 +92,13 @@
     Background Jobs
   <% end %>
 
-  <% if current_user&.admin? %>
-    <div class="pt-4">
-      <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Platform</p>
-    </div>
-
-    <%= link_to admin_tenants_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('tenants') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
+  <% unless current_user&.admin? %>
+    <%= link_to admin_users_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('users') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
       <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
       </svg>
-      Tenants
+      Users
     <% end %>
-  <% end %>
-
-  <%= link_to admin_users_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('users') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-    </svg>
-    Users
   <% end %>
 
   <div class="pt-4">
