@@ -1,16 +1,20 @@
 <%# Discussion index page - list all discussions %>
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-900"><%= t("discussions.index.title") %></h1>
-    <% if policy(Discussion).create? %>
-      <%= link_to new_discussion_path, class: button_classes(variant: :primary) do %>
-        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        <%= t("discussions.new") %>
+<div class="py-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t("discussions.index.title") %></h1>
+        <p class="mt-2 text-gray-600"><%= t("discussions.index.description", default: "Join the conversation with the community") %></p>
+      </div>
+      <% if policy(Discussion).create? %>
+        <%= link_to new_discussion_path, class: button_classes(variant: :primary) do %>
+          <svg class="h-4 w-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <%= t("discussions.new") %>
+        <% end %>
       <% end %>
-    <% end %>
-  </div>
+    </div>
 
   <% if @discussions.any? %>
     <div class="bg-white shadow rounded-lg divide-y divide-gray-200" id="discussions_list">
@@ -34,4 +38,5 @@
       <% end %>
     </div>
   <% end %>
+  </div>
 </div>

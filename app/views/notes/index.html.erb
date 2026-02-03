@@ -1,35 +1,44 @@
 <%# Notes feed listing %>
-<div class="max-w-2xl mx-auto px-4 py-8">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-900"><%= t('notes.title') %></h1>
-    <% if policy(Note).create? %>
-      <%= link_to new_note_path, class: "inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        <%= t('notes.new') %>
-      <% end %>
-    <% end %>
-  </div>
-
-  <%= turbo_frame_tag "notes_list" do %>
-    <div class="space-y-4">
-      <% if @notes.any? %>
-        <% @notes.each do |note| %>
-          <%= render 'notes/note', note: note %>
-        <% end %>
-      <% else %>
-        <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-          <svg class="mx-auto w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+<div class="py-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t('notes.title') %></h1>
+        <p class="mt-2 text-gray-600"><%= t('notes.description', default: "Quick thoughts and updates from the community") %></p>
+      </div>
+      <% if policy(Note).create? %>
+        <%= link_to new_note_path, class: button_classes(variant: :primary) do %>
+          <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
-          <p class="text-gray-500"><%= t('notes.empty') %></p>
-          <% if policy(Note).create? %>
-            <%= link_to t('notes.be_first'), new_note_path, class: "mt-4 inline-block text-blue-600 hover:text-blue-800" %>
-          <% end %>
-        </div>
+          <%= t('notes.new') %>
+        <% end %>
       <% end %>
     </div>
-  <% end %>
 
+    <%= turbo_frame_tag "notes_list" do %>
+      <div class="space-y-4">
+        <% if @notes.any? %>
+          <% @notes.each do |note| %>
+            <%= render 'notes/note', note: note %>
+          <% end %>
+        <% else %>
+          <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <svg class="mx-auto w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t('notes.empty', default: "No notes yet") %></h3>
+            <p class="mt-1 text-sm text-gray-500"><%= t('notes.empty_description', default: "Be the first to share a note.") %></p>
+            <% if policy(Note).create? %>
+              <div class="mt-6">
+                <%= link_to new_note_path, class: button_classes(variant: :primary) do %>
+                  <%= t('notes.be_first', default: "Post a note") %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 </div>
