@@ -124,6 +124,13 @@
     <% end %>
   <% end %>
 
+  <%= link_to admin_discussions_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('discussions') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
+    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
+    </svg>
+    Discussions
+  <% end %>
+
   <%= link_to admin_flags_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('flags') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
     <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path>
@@ -132,6 +139,17 @@
     <% open_flags = Flag.open.count rescue 0 %>
     <% if open_flags > 0 %>
       <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><%= open_flags %></span>
+    <% end %>
+  <% end %>
+
+  <%= link_to admin_site_bans_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('site_bans') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
+    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+    </svg>
+    Site Bans
+    <% active_bans = SiteBan.active.count rescue 0 %>
+    <% if active_bans > 0 %>
+      <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><%= active_bans %></span>
     <% end %>
   <% end %>
 
@@ -158,6 +176,13 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
     </svg>
     Taxonomies
+  <% end %>
+
+  <%= link_to admin_tagging_rules_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('tagging_rules') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
+    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+    </svg>
+    Tagging Rules
   <% end %>
 
   <%= link_to admin_sites_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('sites') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
