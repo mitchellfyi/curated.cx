@@ -679,3 +679,49 @@ Tenant.all.each do |tenant|
 end
 
 puts "Extended categories seeding complete!"
+
+# =============================================
+# JOB LISTING SOURCES SEEDING
+# =============================================
+
+puts "\n=== Seeding Job Listing Sources ==="
+
+job_source_configs = {
+  "ai" => {
+    name: "AI Jobs",
+    query: "AI engineer OR machine learning engineer OR data scientist",
+    location: "United States"
+  },
+  "construction" => {
+    name: "Construction Jobs",
+    query: "construction manager OR site supervisor OR project engineer construction",
+    location: "United States"
+  }
+  # Note: dayz doesn't need job listings
+}
+
+job_source_configs.each do |tenant_slug, config|
+  tenant = Tenant.find_by(slug: tenant_slug)
+  next unless tenant
+
+  site = tenant.sites.find_by(slug: tenant_slug) || tenant.sites.first
+  next unless site
+
+  source = Source.find_or_initialize_by(site: site, name: config[:name])
+  source.assign_attributes(
+    tenant: tenant,
+    kind: :serp_api_google_jobs,
+    enabled: true,
+    config: {
+      query: config[:query],
+      location: config[:location],
+      max_results: 30
+    },
+    schedule: { interval_seconds: 14400 },  # 4 hours
+    quality_weight: 1.0
+  )
+  source.save!
+  puts "  ✓ Created/updated job source for #{tenant.title}: #{source.name}"
+end
+
+puts "Job sources seeding complete!"

@@ -8,7 +8,8 @@ class ProcessDueSourcesJob < ApplicationJob
   # Map source kinds to their ingestion job classes
   JOB_MAPPING = {
     "serp_api_google_news" => SerpApiIngestionJob,
-    "rss" => FetchRssJob
+    "rss" => FetchRssJob,
+    "serp_api_google_jobs" => SerpApiJobsIngestionJob
   }.freeze
 
   def perform

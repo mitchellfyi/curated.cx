@@ -47,7 +47,8 @@ class Source < ApplicationRecord
     serp_api_google_news: 0,
     rss: 1,
     api: 2,
-    web_scraper: 3
+    web_scraper: 3,
+    serp_api_google_jobs: 4
   }
 
   # Validations
