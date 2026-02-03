@@ -29,10 +29,15 @@ class MuxWebhooksController < ApplicationController
   end
 
   def verify_signature(payload, sig_header, secret)
-    # In development without webhook secret, skip verification
+    # Only allow unsigned webhooks in dev/test
     if secret.blank?
-      Rails.logger.warn("Mux webhook secret not configured, skipping signature verification")
-      return true
+      if Rails.env.development? || Rails.env.test?
+        Rails.logger.warn("Mux webhook secret not configured, skipping signature verification (dev/test only)")
+        return true
+      else
+        Rails.logger.error("Mux webhook secret not configured in production - rejecting webhook")
+        return false
+      end
     end
 
     return false if sig_header.blank?

@@ -32,11 +32,15 @@ class StripeWebhooksController < ApplicationController
   def build_stripe_event(payload, sig_header, secret)
     if secret.present?
       Stripe::Webhook.construct_event(payload, sig_header, secret)
-    else
-      # In development without webhook secret, parse directly
-      Rails.logger.warn("Stripe webhook secret not configured, skipping signature verification")
+    elsif Rails.env.development? || Rails.env.test?
+      # Only allow unsigned webhooks in dev/test
+      Rails.logger.warn("Stripe webhook secret not configured, skipping signature verification (dev/test only)")
       data = JSON.parse(payload, symbolize_names: true)
       Stripe::Event.construct_from(data)
+    else
+      # In production, require webhook secret
+      Rails.logger.error("Stripe webhook secret not configured in production - rejecting webhook")
+      nil
     end
   end
 end
