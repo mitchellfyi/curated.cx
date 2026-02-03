@@ -7,11 +7,7 @@
       <div class="mt-2 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <h1 class="text-3xl font-bold text-gray-900"><%= @subscriber_segment.name %></h1>
-          <% if @subscriber_segment.system_segment? %>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-              <%= t('admin.subscriber_segments.show.system_badge') %>
-            </span>
-          <% end %>
+          <%= badge(t('admin.subscriber_segments.show.system_badge'), :purple) if @subscriber_segment.system_segment? %>
         </div>
         <% unless @subscriber_segment.system_segment? %>
           <%= link_to t('actions.edit'), edit_admin_subscriber_segment_path(@subscriber_segment), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>

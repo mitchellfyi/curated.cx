@@ -70,11 +70,7 @@
                     <p class="text-sm text-gray-500 truncate max-w-xs"><%= rule.pattern %></p>
                   </div>
                   <div class="flex items-center space-x-2">
-                    <% if rule.enabled? %>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"><%= t('admin.tagging_rules.enabled') %></span>
-                    <% else %>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"><%= t('admin.tagging_rules.disabled') %></span>
-                    <% end %>
+                    <%= status_indicator(rule.enabled? ? :enabled : :disabled) %>
                     <span class="text-sm text-gray-500"><%= t('admin.tagging_rules.priority') %>: <%= rule.priority %></span>
                   </div>
                 </div>
