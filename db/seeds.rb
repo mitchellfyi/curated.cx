@@ -169,19 +169,28 @@ puts "Category seeding complete!"
 # Seed users and roles
 puts "Seeding users and roles..."
 
-# Create developer user with admin access
-developer_email = Rails.application.credentials.dig(:developer, :email) || "developer@curated.cx"
-developer_password = Rails.application.credentials.dig(:developer, :password) || "password123"
+# Create developer user with admin access from Rails credentials
+developer_email = Rails.application.credentials.dig(:developer, :email)
+developer_password = Rails.application.credentials.dig(:developer, :password)
 
-developer = User.find_or_initialize_by(email: developer_email)
-developer.assign_attributes(
-  email: developer_email,
-  password: developer_password,
-  password_confirmation: developer_password,
-  admin: true
-)
-developer.save!
-puts "  ✓ Created/updated developer user: #{developer.email}"
+if developer_email.blank? || developer_password.blank?
+  puts "  ⚠ Skipping developer user: credentials.developer.email/password not set"
+  puts "    Run: rails credentials:edit and add:"
+  puts "      developer:"
+  puts "        email: your@email.com"
+  puts "        password: your_secure_password"
+else
+  developer = User.find_or_initialize_by(email: developer_email)
+  developer.assign_attributes(
+    email: developer_email,
+    password: developer_password,
+    password_confirmation: developer_password,
+    admin: true,
+    confirmed_at: Time.current  # Skip email confirmation
+  )
+  developer.save!
+  puts "  ✓ Created/updated developer admin: #{developer.email}"
+end
 
 # Create tenant owners
 tenants = Tenant.all
