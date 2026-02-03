@@ -3,14 +3,14 @@
   <div class="p-6">
     <div class="flex items-center justify-between mb-3">
       <%# Site badge with link %>
-      <% if content_item.site.present? %>
-        <% site_url = content_item.site.primary_hostname.present? ? "https://#{content_item.site.primary_hostname}" : "#" %>
+      <% if content_item.site_name.present? %>
+        <% site_url = content_item.site_primary_hostname.present? ? "https://#{content_item.site_primary_hostname}" : "#" %>
         <%= link_to site_url,
                     class: "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors",
                     target: "_blank",
                     rel: "noopener",
-                    title: t('network.feed.view_on_site', site: content_item.site.name) do %>
-          <%= content_item.site.name %>
+                    title: t('network.feed.view_on_site', site: content_item.site_name) do %>
+          <%= content_item.site_name %>
         <% end %>
       <% end %>
 

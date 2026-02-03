@@ -18,15 +18,15 @@
       <div class="flex items-center gap-2 text-sm">
         <span class="font-medium text-gray-900"><%= note.author_profile_name %></span>
         <span class="text-gray-400">·</span>
-        <% if note.site.primary_domain.present? %>
-          <a href="<%= "https://#{note.site.primary_domain.hostname}/notes/#{note.id}" %>"
+        <% if note.site_primary_domain.present? %>
+          <a href="<%= "https://#{note.site_primary_domain.hostname}/notes/#{note.id}" %>"
              class="text-blue-600 hover:underline"
              target="_blank"
              rel="noopener">
-            <%= note.site.name %>
+            <%= note.site_name %>
           </a>
         <% else %>
-          <span class="text-gray-500"><%= note.site.name %></span>
+          <span class="text-gray-500"><%= note.site_name %></span>
         <% end %>
       </div>
 
