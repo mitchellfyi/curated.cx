@@ -25,8 +25,8 @@ class SerpApiIngestionJob < ApplicationJob
     # Check GLOBAL rate limit first (monthly cap across all tenants)
     unless SerpApiGlobalRateLimiter.allow?
       @source.update_run_status("global_rate_limited")
-      log_job_warning("Global monthly SerpAPI limit exceeded", 
-                      source_id: source_id, 
+      log_job_warning("Global monthly SerpAPI limit exceeded",
+                      source_id: source_id,
                       stats: SerpApiGlobalRateLimiter.usage_stats)
       return
     end
@@ -34,8 +34,8 @@ class SerpApiIngestionJob < ApplicationJob
     # Check daily soft limit (to spread usage across month)
     unless SerpApiGlobalRateLimiter.allow_today?
       @source.update_run_status("daily_rate_limited")
-      log_job_warning("Daily SerpAPI soft limit reached", 
-                      source_id: source_id, 
+      log_job_warning("Daily SerpAPI soft limit reached",
+                      source_id: source_id,
                       stats: SerpApiGlobalRateLimiter.usage_stats)
       return
     end

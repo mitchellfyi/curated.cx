@@ -226,11 +226,11 @@ class DigestSubscriptionTest < ActiveSupport::TestCase
   end
 
   test "preferences can store values" do
-    @subscription.preferences = { "topics" => ["ai", "tools"], "include_jobs" => true }
+    @subscription.preferences = { "topics" => [ "ai", "tools" ], "include_jobs" => true }
     @subscription.save!
     @subscription.reload
 
-    assert_equal ["ai", "tools"], @subscription.preferences["topics"]
+    assert_equal [ "ai", "tools" ], @subscription.preferences["topics"]
     assert_equal true, @subscription.preferences["include_jobs"]
   end
 

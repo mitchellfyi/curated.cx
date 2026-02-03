@@ -61,12 +61,12 @@ puts "✅ Environment ready"
 puts_header("1. CODE STYLE & CONVENTIONS")
 run_check(
   "RuboCop Rails Omakase - Code Style Compliance",
-  "bundle exec rubocop --format progress --display-cop-names"
+  "bundle exec rubocop --format progress --display-cop-names --autocorrect"
 )
 
 run_check(
   "ERB Lint - Template Quality",
-  "bundle exec erb_lint --lint-all"
+  "bundle exec erb_lint --lint-all --autocorrect"
 )
 
 # 2. Security Analysis (Critical)

@@ -86,7 +86,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: @taxonomy,
       name: "AI Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["AI", "artificial intelligence"] },
+      config: { "keywords" => [ "AI", "artificial intelligence" ] },
       enabled: true
     )
 
@@ -104,7 +104,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: @taxonomy,
       name: "AI Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["AI"] },
+      config: { "keywords" => [ "AI" ] },
       enabled: true
     )
 
@@ -123,7 +123,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: @taxonomy,
       name: "Disabled Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["AI"] },
+      config: { "keywords" => [ "AI" ] },
       enabled: false
     )
 
@@ -149,7 +149,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: @taxonomy,
       name: "AI Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["AI"] },
+      config: { "keywords" => [ "AI" ] },
       enabled: true
     )
 
@@ -159,7 +159,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: ml_taxonomy,
       name: "ML Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["machine learning"] },
+      config: { "keywords" => [ "machine learning" ] },
       enabled: true
     )
 
@@ -178,7 +178,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: @taxonomy,
       name: "AI Rule 1",
       rule_type: :keyword,
-      config: { "keywords" => ["AI"] },
+      config: { "keywords" => [ "AI" ] },
       enabled: true
     )
 
@@ -188,7 +188,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: @taxonomy,
       name: "AI Rule 2",
       rule_type: :keyword,
-      config: { "keywords" => ["artificial intelligence"] },
+      config: { "keywords" => [ "artificial intelligence" ] },
       enabled: true
     )
 
@@ -206,7 +206,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: @taxonomy,
       name: "High Confidence Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["AI"], "confidence" => 0.9 },
+      config: { "keywords" => [ "AI" ], "confidence" => 0.9 },
       enabled: true
     )
 
@@ -226,7 +226,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: @taxonomy,
       name: "AI Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["AI"] },
+      config: { "keywords" => [ "AI" ] },
       enabled: true
     )
 
@@ -263,7 +263,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: low_priority_taxonomy,
       name: "Low Priority Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["AI"] },
+      config: { "keywords" => [ "AI" ] },
       priority: 10,
       enabled: true
     )
@@ -274,7 +274,7 @@ class TaggingServiceTest < ActiveSupport::TestCase
       taxonomy: high_priority_taxonomy,
       name: "High Priority Rule",
       rule_type: :keyword,
-      config: { "keywords" => ["AI"] },
+      config: { "keywords" => [ "AI" ] },
       priority: 1,
       enabled: true
     )
