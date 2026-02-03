@@ -12,11 +12,7 @@
           </p>
         <% end %>
       </div>
-      <% if site.topics.any? %>
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          <%= site.topics.first %>
-        </span>
-      <% end %>
+      <%= badge(site.topics.first, :blue) if site.topics.any? %>
     </div>
 
     <% if site.description.present? %>
@@ -29,9 +25,7 @@
       <% if site.topics.size > 1 %>
         <div class="flex flex-wrap gap-1">
           <% site.topics.drop(1).first(2).each do |topic| %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-600 bg-gray-100">
-              <%= topic %>
-            </span>
+            <%= badge(topic, :gray) %>
           <% end %>
           <% if site.topics.size > 3 %>
             <span class="text-xs text-gray-500">+<%= site.topics.size - 3 %></span>
