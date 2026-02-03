@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_01_170200) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_03_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -144,12 +144,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_01_170200) do
     t.string "commentable_type", null: false
     t.datetime "created_at", null: false
     t.datetime "edited_at"
+    t.datetime "hidden_at"
+    t.bigint "hidden_by_id"
     t.bigint "parent_id"
     t.bigint "site_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["commentable_type", "commentable_id", "parent_id"], name: "index_comments_on_commentable_and_parent"
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
+    t.index ["hidden_at"], name: "index_comments_on_hidden_at"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["site_id", "user_id"], name: "index_comments_on_site_and_user"
     t.index ["site_id"], name: "index_comments_on_site_id"
@@ -892,6 +895,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_01_170200) do
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "sites"
   add_foreign_key "comments", "users"
+  add_foreign_key "comments", "users", column: "hidden_by_id"
   add_foreign_key "content_items", "sites"
   add_foreign_key "content_items", "sources"
   add_foreign_key "content_items", "users", column: "comments_locked_by_id"
