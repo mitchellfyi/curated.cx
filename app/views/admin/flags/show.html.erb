@@ -13,15 +13,11 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div>
           <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.status") %></h3>
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium <%= @flag.pending? ? 'bg-yellow-100 text-yellow-800' : (@flag.action_taken? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800') %>">
-            <%= t("flags.statuses.#{@flag.status}") %>
-          </span>
+          <%= status_indicator(@flag.status) %>
         </div>
         <div>
           <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.reason") %></h3>
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
-            <%= t("flags.reasons.#{@flag.reason}") %>
-          </span>
+          <%= badge(t("flags.reasons.#{@flag.reason}"), :red) %>
         </div>
         <div>
           <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("admin.flags.flagged_by") %></h3>
@@ -44,9 +40,7 @@
         <h2 class="text-lg font-semibold mb-4"><%= t("admin.flags.show.flagged_content") %></h2>
         <div class="bg-gray-50 p-4 rounded-lg">
           <div class="flex items-center mb-3">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= @flag.content_item? ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' %>">
-              <%= @flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment") %>
-            </span>
+            <%= badge(@flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), @flag.content_item? ? :blue : :green) %>
           </div>
           <% if @flag.content_item? %>
             <% content_item = @flag.flaggable %>
