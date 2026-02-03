@@ -124,12 +124,7 @@
               <span class="font-medium"><%= referral.referee_user.display_name || t("referrals.anonymous_user") %></span>
               <span class="text-gray-500 text-sm ml-2"><%= time_ago_in_words(referral.created_at) %> ago</span>
             </div>
-            <span class="px-2 py-1 text-xs rounded-full
-                         <%= referral.confirmed? || referral.rewarded? ? 'bg-green-100 text-green-800' :
-                             referral.pending? ? 'bg-yellow-100 text-yellow-800' :
-                             'bg-gray-100 text-gray-800' %>">
-              <%= referral.status.humanize %>
-            </span>
+            <%= status_indicator(referral.status) %>
           </div>
         <% end %>
       </div>

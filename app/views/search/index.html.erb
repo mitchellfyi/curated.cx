@@ -119,11 +119,7 @@
                       </p>
                     <% end %>
                   </div>
-                  <% if listing.featured? %>
-                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">
-                      <%= t('monetisation.badges.featured') %>
-                    </span>
-                  <% end %>
+                  <%= badge_warning(t('monetisation.badges.featured')) if listing.featured? %>
                 </div>
                 <div class="flex items-center gap-4 text-xs text-gray-500 mt-2">
                   <span class="capitalize"><%= listing.listing_type %></span>
