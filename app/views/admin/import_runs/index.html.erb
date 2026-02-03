@@ -18,26 +18,26 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total</dt>
-        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@stats[:total]) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= number_with_delimiter(@stats[:total]) %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Completed</dt>
-        <dd class="mt-1 text-2xl font-semibold text-green-600"><%= number_with_delimiter(@stats[:completed]) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= number_with_delimiter(@stats[:completed]) %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Failed</dt>
-        <dd class="mt-1 text-2xl font-semibold text-red-600"><%= number_with_delimiter(@stats[:failed]) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-red-600"><%= number_with_delimiter(@stats[:failed]) %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Running</dt>
-        <dd class="mt-1 text-2xl font-semibold text-yellow-600"><%= number_with_delimiter(@stats[:running]) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-yellow-600"><%= number_with_delimiter(@stats[:running]) %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Last 24h</dt>
-        <dd class="mt-1 text-2xl font-semibold text-blue-600"><%= number_with_delimiter(@stats[:last_24h]) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= number_with_delimiter(@stats[:last_24h]) %></dd>
       </div>
     </div>
 

@@ -8,22 +8,22 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total</dt>
-        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= @discussions.count %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @discussions.count %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Pinned</dt>
-        <dd class="mt-1 text-2xl font-semibold text-yellow-600"><%= @discussions.count(&:pinned?) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-yellow-600"><%= @discussions.count(&:pinned?) %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Locked</dt>
-        <dd class="mt-1 text-2xl font-semibold text-gray-400"><%= @discussions.count(&:locked?) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-400"><%= @discussions.count(&:locked?) %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total Posts</dt>
-        <dd class="mt-1 text-2xl font-semibold text-blue-600"><%= @discussions.sum(&:posts_count) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @discussions.sum(&:posts_count) %></dd>
       </div>
     </div>
 

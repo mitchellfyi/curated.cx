@@ -16,22 +16,22 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total Sequences</dt>
-        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= @sequences.count %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @sequences.count %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Enabled</dt>
-        <dd class="mt-1 text-2xl font-semibold text-green-600"><%= @sequences.count(&:enabled?) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @sequences.count(&:enabled?) %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total Steps</dt>
-        <dd class="mt-1 text-2xl font-semibold text-blue-600"><%= @sequences.sum { |s| s.email_steps.count } %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @sequences.sum { |s| s.email_steps.count } %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total Enrollments</dt>
-        <dd class="mt-1 text-2xl font-semibold text-purple-600"><%= @sequences.sum { |s| s.sequence_enrollments.count } %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-purple-600"><%= @sequences.sum { |s| s.sequence_enrollments.count } %></dd>
       </div>
     </div>
 

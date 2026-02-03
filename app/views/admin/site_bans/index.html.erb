@@ -14,18 +14,18 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total Bans</dt>
-        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= @site_bans.count %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @site_bans.count %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Active</dt>
-        <dd class="mt-1 text-2xl font-semibold text-red-600"><%= @site_bans.count { |b| b.expires_at.nil? || b.expires_at > Time.current } %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-red-600"><%= @site_bans.count { |b| b.expires_at.nil? || b.expires_at > Time.current } %></dd>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Permanent</dt>
-        <dd class="mt-1 text-2xl font-semibold text-gray-600"><%= @site_bans.count { |b| b.expires_at.nil? } %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-600"><%= @site_bans.count { |b| b.expires_at.nil? } %></dd>
       </div>
     </div>
 

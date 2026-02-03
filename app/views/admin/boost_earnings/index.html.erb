@@ -26,7 +26,7 @@
   </div>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
     <div class="bg-white rounded-lg shadow p-4 text-center">
       <div class="text-3xl font-bold"><%= number_with_delimiter(@stats[:total_impressions]) %></div>
       <div class="text-gray-600 text-sm"><%= t("admin.boost_earnings.stats.impressions") %></div>
@@ -46,7 +46,7 @@
   </div>
 
   <!-- Earnings Cards -->
-  <div class="grid grid-cols-3 gap-4 mb-8">
+  <div class="grid grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-lg shadow p-6 text-center">
       <div class="text-4xl font-bold text-yellow-600">$<%= number_with_precision(@stats[:pending_earnings], precision: 2) %></div>
       <div class="text-gray-600"><%= t("admin.boost_earnings.stats.pending") %></div>
