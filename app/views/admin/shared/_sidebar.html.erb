@@ -235,10 +235,10 @@
     </button>
     <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
       <%= link_to admin_observability_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('observability') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
-        Observability
+        System Health
       <% end %>
       <%= link_to admin_activity_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('activity') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
-        Activity
+        Activity Log
       <% end %>
       <%= link_to admin_import_runs_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('import_runs') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Import Runs
