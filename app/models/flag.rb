@@ -74,12 +74,15 @@ class Flag < ApplicationRecord
 
   # Scopes
   scope :pending, -> { where(status: :pending) }
+  scope :open, -> { pending } # Alias for consistency with other models
   scope :resolved, -> { where.not(status: :pending) }
   scope :for_content_items, -> { where(flaggable_type: "ContentItem") }
   scope :for_comments, -> { where(flaggable_type: "Comment") }
   scope :for_notes, -> { where(flaggable_type: "Note") }
+  scope :for_listings, -> { where(flaggable_type: "Listing") }
   scope :recent, -> { order(created_at: :desc) }
   scope :by_user, ->(user) { where(user: user) }
+  scope :by_reason, ->(reason) { where(reason: reason) }
 
   # Callbacks
   after_create :check_threshold_and_notify

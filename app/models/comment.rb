@@ -40,6 +40,7 @@ class Comment < ApplicationRecord
   belongs_to :user
   belongs_to :commentable, polymorphic: true, counter_cache: :comments_count
   belongs_to :parent, class_name: "Comment", optional: true
+  belongs_to :hidden_by, class_name: "User", optional: true
   has_many :replies, class_name: "Comment", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
   has_many :flags, as: :flaggable, dependent: :destroy
 
@@ -56,6 +57,8 @@ class Comment < ApplicationRecord
   scope :for_note, ->(note) { where(commentable: note) }
   scope :content_items, -> { where(commentable_type: "ContentItem") }
   scope :notes, -> { where(commentable_type: "Note") }
+  scope :visible, -> { where(hidden_at: nil) }
+  scope :hidden, -> { where.not(hidden_at: nil) }
 
   # Instance methods
   def edited?
@@ -68,6 +71,22 @@ class Comment < ApplicationRecord
 
   def reply?
     parent_id.present?
+  end
+
+  def hidden?
+    hidden_at.present?
+  end
+
+  def visible?
+    !hidden?
+  end
+
+  def hide!(user)
+    update!(hidden_at: Time.current, hidden_by: user)
+  end
+
+  def unhide!
+    update!(hidden_at: nil, hidden_by: nil)
   end
 
   def mark_as_edited!
