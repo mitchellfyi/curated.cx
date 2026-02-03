@@ -22,11 +22,7 @@
                 <%= t("discussions.locked_badge") %>
               </span>
             <% end %>
-            <% if discussion.visibility_subscribers_only? %>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                <%= t("discussions.subscribers_only") %>
-              </span>
-            <% end %>
+            <%= badge(t("discussions.subscribers_only"), :purple) if discussion.visibility_subscribers_only? %>
           </div>
           <h3 class="mt-1 text-base font-medium text-gray-900 truncate"><%= discussion.title %></h3>
           <% if discussion.body.present? %>
