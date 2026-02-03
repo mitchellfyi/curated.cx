@@ -150,6 +150,15 @@ class ContentItem < ApplicationRecord
     super || []
   end
 
+  # Setter for form input (comma-separated string)
+  def topic_tags_string=(value)
+    self.topic_tags = value.to_s.split(",").map(&:strip).reject(&:blank?)
+  end
+
+  def topic_tags_string
+    topic_tags.join(", ")
+  end
+
   def tagging_explanation
     super || []
   end

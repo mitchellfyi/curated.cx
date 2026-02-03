@@ -97,6 +97,7 @@ module Admin
         :published_at, :scheduled_for,
         :ai_summary, :why_it_matters,
         :content_type, :extracted_text,
+        :topic_tags_string,
         topic_tags: [], ai_suggested_tags: []
       )
     end
