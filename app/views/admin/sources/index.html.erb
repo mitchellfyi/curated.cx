@@ -13,6 +13,26 @@
       <% end %>
     </div>
 
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Sources</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= @sources.count %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Enabled</dt>
+        <dd class="mt-1 text-2xl font-semibold text-green-600"><%= @sources.count(&:enabled?) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">SerpAPI</dt>
+        <dd class="mt-1 text-2xl font-semibold text-purple-600"><%= @sources.count { |s| s.kind.to_s.start_with?('serp_api') } %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">RSS</dt>
+        <dd class="mt-1 text-2xl font-semibold text-blue-600"><%= @sources.count(&:rss?) %></dd>
+      </div>
+    </div>
+
     <% if @sources.any? %>
       <div class="bg-white shadow overflow-hidden sm:rounded-md">
         <ul class="divide-y divide-gray-200">
