@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Require error classes that are used in retry_on/discard_on declarations
 # This ensures they're loaded before the class body is evaluated
 require_dependency "application_error"
