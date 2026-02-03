@@ -85,6 +85,38 @@ module Admin
       redirect_to admin_content_item_path(@content_item), notice: "Editorialisation job queued."
     end
 
+    # POST /admin/content_items/bulk_action
+    def bulk_action
+      ids = params[:content_item_ids].to_s.split(",").map(&:to_i).reject(&:zero?)
+      
+      if ids.empty?
+        redirect_to admin_content_items_path, alert: "No items selected."
+        return
+      end
+
+      items = ContentItem.where(id: ids)
+      count = items.count
+
+      case params[:bulk_action]
+      when "publish"
+        items.update_all(published_at: Time.current)
+        redirect_to admin_content_items_path, notice: "#{count} items published."
+      when "unpublish"
+        items.update_all(published_at: nil)
+        redirect_to admin_content_items_path, notice: "#{count} items unpublished."
+      when "editorialise"
+        items.find_each do |item|
+          EditorialisationJob.perform_later(item.id)
+        end
+        redirect_to admin_content_items_path, notice: "#{count} items queued for editorialisation."
+      when "delete"
+        items.destroy_all
+        redirect_to admin_content_items_path, notice: "#{count} items deleted."
+      else
+        redirect_to admin_content_items_path, alert: "Unknown action."
+      end
+    end
+
     private
 
     def set_content_item

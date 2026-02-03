@@ -40,6 +40,9 @@ Rails.application.routes.draw do
 
     # Content items management
     resources :content_items do
+      collection do
+        post :bulk_action
+      end
       member do
         post :publish
         post :unpublish

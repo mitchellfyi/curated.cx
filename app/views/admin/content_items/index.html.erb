@@ -55,11 +55,33 @@
       <% end %>
     </div>
 
+    <!-- Bulk Actions -->
+    <div id="bulk-actions" class="bg-yellow-50 border border-yellow-200 rounded-lg mb-4 p-4 hidden">
+      <%= form_with url: bulk_action_admin_content_items_path, method: :post, id: "bulk-form" do |f| %>
+        <%= f.hidden_field :content_item_ids, id: "bulk-ids", value: "" %>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-yellow-800">
+            <strong id="selected-count">0</strong> items selected
+          </span>
+          <div class="flex gap-2">
+            <%= f.submit "Publish", name: "bulk_action", value: "publish", class: "px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer" %>
+            <%= f.submit "Unpublish", name: "bulk_action", value: "unpublish", class: "px-3 py-1.5 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700 cursor-pointer" %>
+            <%= f.submit "Editorialise", name: "bulk_action", value: "editorialise", class: "px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 cursor-pointer" %>
+            <%= f.submit "Delete", name: "bulk_action", value: "delete", class: "px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer", data: { confirm: "Delete selected items permanently?" } %>
+            <button type="button" onclick="clearSelection()" class="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Clear</button>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
     <!-- Content Items Table -->
     <div class="bg-white shadow rounded-lg overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
+            <th scope="col" class="px-3 py-3 text-left">
+              <input type="checkbox" id="select-all" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" onclick="toggleSelectAll(this)">
+            </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Content</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -71,6 +93,9 @@
         <tbody class="bg-white divide-y divide-gray-200">
           <% @content_items.each do |item| %>
             <tr>
+              <td class="px-3 py-4">
+                <input type="checkbox" class="item-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500" value="<%= item.id %>" onclick="updateSelection()">
+              </td>
               <td class="px-6 py-4">
                 <div class="text-sm font-medium text-gray-900 truncate" style="max-width: 350px;">
                   <%= item.title.presence || "(No title)" %>
@@ -132,3 +157,41 @@
     </div>
   </div>
 </div>
+
+<script>
+  function updateSelection() {
+    const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value);
+    const bulkActions = document.getElementById('bulk-actions');
+    const bulkIds = document.getElementById('bulk-ids');
+    const selectedCount = document.getElementById('selected-count');
+    
+    bulkIds.value = ids.join(',');
+    selectedCount.textContent = ids.length;
+    
+    if (ids.length > 0) {
+      bulkActions.classList.remove('hidden');
+    } else {
+      bulkActions.classList.add('hidden');
+    }
+    
+    // Update select-all checkbox state
+    const allCheckboxes = document.querySelectorAll('.item-checkbox');
+    const selectAll = document.getElementById('select-all');
+    selectAll.checked = allCheckboxes.length > 0 && checkboxes.length === allCheckboxes.length;
+    selectAll.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
+  }
+  
+  function toggleSelectAll(checkbox) {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(cb => cb.checked = checkbox.checked);
+    updateSelection();
+  }
+  
+  function clearSelection() {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(cb => cb.checked = false);
+    document.getElementById('select-all').checked = false;
+    updateSelection();
+  }
+</script>
