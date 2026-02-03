@@ -14,19 +14,9 @@
     <div class="flex items-start justify-between">
       <div class="flex-1">
         <div class="flex items-center gap-2 mb-2">
-          <% if @discussion.pinned? %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-              <%= t("discussions.pinned") %>
-            </span>
-          <% end %>
-          <% if @discussion.locked? %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-              <%= t("discussions.locked_badge") %>
-            </span>
-          <% end %>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= @discussion.visibility_public_access? ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800' %>">
-            <%= @discussion.visibility_public_access? ? t("discussions.visibility.public") : t("discussions.visibility.subscribers_only") %>
-          </span>
+          <%= badge(t("discussions.pinned"), :yellow) if @discussion.pinned? %>
+          <%= badge(t("discussions.locked_badge"), :gray) if @discussion.locked? %>
+          <%= badge(@discussion.visibility_public_access? ? t("discussions.visibility.public") : t("discussions.visibility.subscribers_only"), @discussion.visibility_public_access? ? :green : :purple) %>
         </div>
         <h1 class="text-2xl font-bold text-gray-900"><%= @discussion.title %></h1>
         <% if @discussion.body.present? %>
@@ -111,11 +101,7 @@
                   <% if post.edited? %>
                     <span class="text-gray-400">(edited)</span>
                   <% end %>
-                  <% if post.hidden? %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                      Hidden
-                    </span>
-                  <% end %>
+                  <%= badge_danger("Hidden") if post.hidden? %>
                 </div>
                 <div class="mt-1 text-gray-700">
                   <%= simple_format(post.body, {}, sanitize: true) %>
@@ -139,11 +125,7 @@
                             <time class="text-gray-500" datetime="<%= reply.created_at.iso8601 %>">
                               <%= time_ago_in_words(reply.created_at) %> ago
                             </time>
-                            <% if reply.hidden? %>
-                              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                Hidden
-                              </span>
-                            <% end %>
+                            <%= badge_danger("Hidden") if reply.hidden? %>
                           </div>
                           <div class="mt-1 text-gray-700 text-sm">
                             <%= simple_format(reply.body, {}, sanitize: true) %>
