@@ -3,6 +3,20 @@
 module ApplicationHelper
   # General purpose helpers - model-specific logic moved to decorators
 
+  # Navigation categories - memoized per request via helper instance variable
+  # Avoids repeated queries when navigation is rendered
+  # Always fetches 10 (max used), then slices for smaller requests
+  def navigation_categories(limit: 10)
+    return [] unless Current.tenant
+
+    @_nav_categories ||= Category
+      .order(:name)
+      .limit(10)
+      .to_a
+
+    @_nav_categories.first(limit)
+  end
+
   # Safe external URL helper - validates URL is HTTP/HTTPS to prevent XSS
   # Returns nil for invalid URLs (javascript:, data:, etc.)
   def safe_external_url(url)
