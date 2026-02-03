@@ -32,7 +32,7 @@
     <div class="bg-white rounded-lg shadow p-6 mb-8">
       <h2 class="text-xl font-semibold mb-4"><%= t("admin.referrals.top_referrers") %></h2>
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="min-w-full divide-y divide-gray-200">
           <thead>
             <tr class="border-b">
               <th class="text-left py-2"><%= t("admin.referrals.table.user") %></th>
@@ -59,7 +59,7 @@
     <h2 class="text-xl font-semibold mb-4"><%= t("admin.referrals.recent_referrals") %></h2>
     <% if @referrals.any? %>
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="min-w-full divide-y divide-gray-200">
           <thead>
             <tr class="border-b">
               <th class="text-left py-2"><%= t("admin.referrals.table.referrer") %></th>

@@ -28,7 +28,7 @@
     <h2 class="text-xl font-semibold mb-4"><%= t("admin.boost_payouts.payout_history") %></h2>
     <% if @payouts.any? %>
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="min-w-full divide-y divide-gray-200">
           <thead>
             <tr class="border-b">
               <th class="text-left py-2"><%= t("admin.boost_payouts.table.period") %></th>
