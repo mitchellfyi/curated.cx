@@ -1,10 +1,13 @@
 <% content_for :title, @query.present? ? t('search.results_title', query: @query) : t('search.title') %>
 
-<div class="container mx-auto px-4 py-8">
-  <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-6">
-      <%= t('search.title') %>
-    </h1>
+<div class="py-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">
+        <%= t('search.title') %>
+      </h1>
+      <p class="mt-2 text-gray-600"><%= t('search.description', default: "Find content and listings") %></p>
+    </div>
 
     <%# Search form %>
     <%= form_with url: search_path, method: :get, class: "mb-6", data: { turbo_frame: "_top" } do |f| %>
@@ -135,15 +138,15 @@
       <% end %>
     <% else %>
       <%# No results %>
-      <div class="text-center py-12">
+      <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <h3 class="mt-4 text-lg font-medium text-gray-900"><%= t('search.no_results.title') %></h3>
-        <p class="mt-2 text-gray-500"><%= t('search.no_results.description', query: @query) %></p>
+        <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t('search.no_results.title') %></h3>
+        <p class="mt-1 text-sm text-gray-500"><%= t('search.no_results.description', query: @query) %></p>
         <div class="mt-4">
           <p class="text-sm text-gray-500"><%= t('search.no_results.suggestions_title') %></p>
-          <ul class="mt-2 text-sm text-gray-500 list-disc list-inside">
+          <ul class="mt-2 text-sm text-gray-500 list-disc list-inside text-left max-w-xs mx-auto">
             <li><%= t('search.no_results.suggestion_spelling') %></li>
             <li><%= t('search.no_results.suggestion_keywords') %></li>
             <li><%= t('search.no_results.suggestion_broader') %></li>
@@ -153,12 +156,13 @@
     <% end %>
   <% else %>
     <%# Empty state - no query yet %>
-    <div class="text-center py-12">
+    <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
       <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
       </svg>
-      <h3 class="mt-4 text-lg font-medium text-gray-900"><%= t('search.empty.title') %></h3>
-      <p class="mt-2 text-gray-500"><%= t('search.empty.description') %></p>
+      <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t('search.empty.title') %></h3>
+      <p class="mt-1 text-sm text-gray-500"><%= t('search.empty.description') %></p>
     </div>
   <% end %>
+  </div>
 </div>
