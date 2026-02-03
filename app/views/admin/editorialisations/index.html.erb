@@ -58,8 +58,8 @@
       </div>
 
       <% if @stats[:failed].to_i > 0 %>
-        <%= button_to "Retry Failed (#{@stats[:failed]})", retry_failed_admin_editorialisations_path, 
-            method: :post, 
+        <%= button_to "Retry Failed (#{@stats[:failed]})", retry_failed_admin_editorialisations_path,
+            method: :post,
             class: "px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700",
             data: { confirm: "Retry all #{@stats[:failed]} failed editorialisations?" } %>
       <% end %>

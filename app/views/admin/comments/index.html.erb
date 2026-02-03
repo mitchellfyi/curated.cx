@@ -49,15 +49,15 @@
           <%= f.text_field :search, value: params[:search], placeholder: "Search comments...", class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
         </div>
         <div>
-          <%= f.select :commentable_type, 
-              options_for_select([["All types", ""], ["Content Items", "ContentItem"], ["Notes", "Note"], ["Discussions", "Discussion"]], params[:commentable_type]), 
-              {}, 
+          <%= f.select :commentable_type,
+              options_for_select([["All types", ""], ["Content Items", "ContentItem"], ["Notes", "Note"], ["Discussions", "Discussion"]], params[:commentable_type]),
+              {},
               class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
         </div>
         <div>
-          <%= f.select :hidden, 
-              options_for_select([["All", ""], ["Visible only", "false"], ["Hidden only", "true"]], params[:hidden]), 
-              {}, 
+          <%= f.select :hidden,
+              options_for_select([["All", ""], ["Visible only", "false"], ["Hidden only", "true"]], params[:hidden]),
+              {},
               class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
         </div>
         <%= f.submit "Filter", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer" %>

@@ -8,7 +8,7 @@
     <div class="bg-white shadow rounded-lg mb-8 p-6">
       <%= form_with url: admin_search_path, method: :get, class: "flex gap-4" do |f| %>
         <div class="flex-1">
-          <%= f.text_field :q, value: @query, placeholder: "Search users, content, notes, listings, sources...", 
+          <%= f.text_field :q, value: @query, placeholder: "Search users, content, notes, listings, sources...",
               class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg",
               autofocus: true %>
         </div>

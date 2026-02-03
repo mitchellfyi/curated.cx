@@ -45,9 +45,9 @@
           <%= f.text_field :search, value: params[:search], placeholder: "Search note content...", class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
         </div>
         <div>
-          <%= f.select :status, 
-              options_for_select([["All status", ""], ["Published", "published"], ["Drafts", "drafts"], ["Hidden", "hidden"]], params[:status]), 
-              {}, 
+          <%= f.select :status,
+              options_for_select([["All status", ""], ["Published", "published"], ["Drafts", "drafts"], ["Hidden", "hidden"]], params[:status]),
+              {},
               class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
         </div>
         <%= f.submit "Filter", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer" %>

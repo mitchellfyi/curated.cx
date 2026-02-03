@@ -45,15 +45,15 @@
     <div class="bg-white shadow rounded-lg mb-6 p-4">
       <%= form_with url: admin_import_runs_path, method: :get, class: "flex flex-wrap gap-4" do |f| %>
         <div>
-          <%= f.select :source_id, 
-              options_for_select([["All sources", ""]] + Source.enabled.order(:name).pluck(:name, :id), params[:source_id]), 
-              {}, 
+          <%= f.select :source_id,
+              options_for_select([["All sources", ""]] + Source.enabled.order(:name).pluck(:name, :id), params[:source_id]),
+              {},
               class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
         </div>
         <div>
-          <%= f.select :status, 
-              options_for_select([["All status", ""], ["Running", "running"], ["Completed", "completed"], ["Failed", "failed"]], params[:status]), 
-              {}, 
+          <%= f.select :status,
+              options_for_select([["All status", ""], ["Running", "running"], ["Completed", "completed"], ["Failed", "failed"]], params[:status]),
+              {},
               class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
         </div>
         <%= f.submit "Filter", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer" %>

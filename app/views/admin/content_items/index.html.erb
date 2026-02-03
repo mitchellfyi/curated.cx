@@ -165,29 +165,29 @@
     const bulkActions = document.getElementById('bulk-actions');
     const bulkIds = document.getElementById('bulk-ids');
     const selectedCount = document.getElementById('selected-count');
-    
+
     bulkIds.value = ids.join(',');
     selectedCount.textContent = ids.length;
-    
+
     if (ids.length > 0) {
       bulkActions.classList.remove('hidden');
     } else {
       bulkActions.classList.add('hidden');
     }
-    
+
     // Update select-all checkbox state
     const allCheckboxes = document.querySelectorAll('.item-checkbox');
     const selectAll = document.getElementById('select-all');
     selectAll.checked = allCheckboxes.length > 0 && checkboxes.length === allCheckboxes.length;
     selectAll.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
   }
-  
+
   function toggleSelectAll(checkbox) {
     const checkboxes = document.querySelectorAll('.item-checkbox');
     checkboxes.forEach(cb => cb.checked = checkbox.checked);
     updateSelection();
   }
-  
+
   function clearSelection() {
     const checkboxes = document.querySelectorAll('.item-checkbox');
     checkboxes.forEach(cb => cb.checked = false);
