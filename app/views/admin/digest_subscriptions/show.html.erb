@@ -18,11 +18,7 @@
           <div>
             <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.status') %></dt>
             <dd class="mt-1">
-              <% if @digest_subscription.active? %>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
-              <% else %>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
-              <% end %>
+              <%= status_indicator(@digest_subscription.active? ? :active : :inactive) %>
             </dd>
           </div>
           <div>
