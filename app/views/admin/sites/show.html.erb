@@ -45,28 +45,10 @@
                   <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                       <div>
-                        <p class="text-sm font-medium text-gray-900">
+                        <p class="text-sm font-medium text-gray-900 flex items-center flex-wrap gap-2">
                           <%= domain.hostname %>
-                          <% if domain.primary? %>
-                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                              Primary
-                            </span>
-                          <% end %>
-                          <% status_color_class = case domain.status_color
-                             when "green"
-                               "bg-green-100 text-green-800"
-                             when "yellow"
-                               "bg-yellow-100 text-yellow-800"
-                             when "blue"
-                               "bg-blue-100 text-blue-800"
-                             when "red"
-                               "bg-red-100 text-red-800"
-                             else
-                               "bg-gray-100 text-gray-800"
-                             end %>
-                          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= status_color_class %>">
-                            <%= domain.status.humanize %>
-                          </span>
+                          <%= badge("Primary", :blue) if domain.primary? %>
+                          <%= status_indicator(domain.status) %>
                         </p>
                         <% if domain.last_checked_at %>
                           <p class="text-xs text-gray-500 mt-1">Last checked <%= time_ago_in_words(domain.last_checked_at) %> ago</p>
