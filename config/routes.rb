@@ -57,6 +57,14 @@ Rails.application.routes.draw do
       end
     end
 
+    # Comments moderation
+    resources :comments, only: [:index, :show, :destroy] do
+      member do
+        post :hide
+        post :unhide
+      end
+    end
+
     resources :categories
     resources :listings do
       member do

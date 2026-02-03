@@ -1,0 +1,151 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Comments</h1>
+        <p class="mt-2 text-gray-600">
+          <% if @user %>
+            Comments by: <strong><%= @user.email %></strong>
+            (<%= link_to "show all", admin_comments_path, class: "text-blue-600 hover:underline" %>)
+          <% else %>
+            All user comments for moderation
+          <% end %>
+        </p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@stats[:total]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Visible</dt>
+        <dd class="mt-1 text-2xl font-semibold text-green-600"><%= number_with_delimiter(@stats[:visible]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Hidden</dt>
+        <dd class="mt-1 text-2xl font-semibold text-red-600"><%= number_with_delimiter(@stats[:hidden]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">This Week</dt>
+        <dd class="mt-1 text-2xl font-semibold text-blue-600">+<%= number_with_delimiter(@stats[:this_week]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">On Content</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-600"><%= number_with_delimiter(@stats[:on_content_items]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">On Notes</dt>
+        <dd class="mt-1 text-2xl font-semibold text-purple-600"><%= number_with_delimiter(@stats[:on_notes]) %></dd>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white shadow rounded-lg mb-6 p-4">
+      <%= form_with url: admin_comments_path, method: :get, class: "flex flex-wrap gap-4" do |f| %>
+        <div class="flex-1 min-w-[200px]">
+          <%= f.text_field :search, value: params[:search], placeholder: "Search comments...", class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <div>
+          <%= f.select :commentable_type, 
+              options_for_select([["All types", ""], ["Content Items", "ContentItem"], ["Notes", "Note"], ["Discussions", "Discussion"]], params[:commentable_type]), 
+              {}, 
+              class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <div>
+          <%= f.select :hidden, 
+              options_for_select([["All", ""], ["Visible only", "false"], ["Hidden only", "true"]], params[:hidden]), 
+              {}, 
+              class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <%= f.submit "Filter", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer" %>
+        <%= link_to "Clear", admin_comments_path, class: "px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" %>
+      <% end %>
+    </div>
+
+    <!-- Comments List -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <ul class="divide-y divide-gray-200">
+        <% @comments.each do |comment| %>
+          <li class="p-4 <%= comment.hidden_at ? 'bg-red-50' : 'hover:bg-gray-50' %>">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <!-- Author & Meta -->
+                <div class="flex items-center mb-2">
+                  <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+                    <span class="text-gray-500 text-xs font-medium"><%= comment.user&.email&.first&.upcase || "?" %></span>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-900">
+                      <% if comment.user %>
+                        <%= link_to comment.user.display_name.presence || comment.user.email, admin_user_path(comment.user), class: "hover:underline" %>
+                      <% else %>
+                        Anonymous
+                      <% end %>
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      <%= time_ago_in_words(comment.created_at) %> ago
+                      on <%= comment.commentable_type %>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Body -->
+                <p class="text-gray-700 text-sm mb-2"><%= truncate(comment.body, length: 300) %></p>
+
+                <!-- Context -->
+                <div class="text-xs text-gray-500">
+                  <% if comment.commentable %>
+                    On: <strong><%= truncate(comment.commentable.try(:title) || comment.commentable.try(:body) || "Item ##{comment.commentable_id}", length: 80) %></strong>
+                  <% end %>
+                </div>
+
+                <!-- Badges -->
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <% if comment.hidden_at %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                      Hidden
+                    </span>
+                  <% end %>
+                  <% if comment.parent_id.present? %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                      Reply
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="ml-4 flex-shrink-0 flex items-center space-x-2">
+                <% if comment.hidden_at %>
+                  <%= button_to "Unhide", unhide_admin_comment_path(comment), method: :post, class: "text-green-600 hover:underline text-sm", form: { class: "inline" } %>
+                <% else %>
+                  <%= button_to "Hide", hide_admin_comment_path(comment), method: :post, class: "text-yellow-600 hover:underline text-sm", form: { class: "inline" } %>
+                <% end %>
+                <%= button_to "Delete", admin_comment_path(comment), method: :delete, class: "text-red-600 hover:underline text-sm", data: { confirm: "Delete this comment?" }, form: { class: "inline" } %>
+              </div>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+
+      <% if @comments.empty? %>
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No comments found</h3>
+          <p class="mt-1 text-sm text-gray-500">Try adjusting your filters.</p>
+        </div>
+      <% end %>
+
+      <% if @comments.respond_to?(:total_pages) && @comments.total_pages > 1 %>
+        <div class="px-4 py-3 border-t border-gray-200">
+          <%= paginate @comments %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
