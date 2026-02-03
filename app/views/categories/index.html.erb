@@ -10,17 +10,17 @@
         <% @categories.each do |category| %>
           <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
             <div class="p-6">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="text-lg font-medium text-gray-900">
-                    <%= link_to category.name, category_path(category), class: "hover:text-blue-600" %>
-                  </h3>
-                </div>
-                <div class="mt-2">
-                <p class="text-sm text-gray-600">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-medium text-gray-900">
+                  <%= link_to category.name, category_path(category), class: "hover:text-blue-600" %>
+                </h3>
+                <span class="text-sm text-gray-500">
                   <%= t('counts.item', count: category.listings.size) %>
-                </p>
+                </span>
               </div>
+              <% if category.respond_to?(:description) && category.description.present? %>
+                <p class="text-sm text-gray-600 mb-4"><%= truncate(category.description, length: 100) %></p>
+              <% end %>
               <div class="mt-4">
                 <%= link_to t('actions.browse'), category_path(category), class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
               </div>

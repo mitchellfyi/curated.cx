@@ -1,9 +1,11 @@
 <% content_for :title, t('bookmarks.title') %>
 
-<div class="container mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold text-gray-900 mb-6">
-    <%= t('bookmarks.title') %>
-  </h1>
+<div class="py-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900"><%= t('bookmarks.title') %></h1>
+      <p class="mt-2 text-gray-600"><%= t('bookmarks.description', default: "Your saved content and listings") %></p>
+    </div>
 
   <% if @bookmarks.any? %>
     <div class="space-y-4">
@@ -70,13 +72,18 @@
       <% end %>
     </div>
   <% else %>
-    <div class="text-center py-12">
+    <div class="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
       <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
       </svg>
-      <h3 class="mt-4 text-lg font-medium text-gray-900"><%= t('bookmarks.empty.title') %></h3>
-      <p class="mt-2 text-gray-500"><%= t('bookmarks.empty.description') %></p>
-      <%= link_to t('bookmarks.empty.browse'), feed_index_path, class: "mt-4 inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors" %>
+      <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t('bookmarks.empty.title') %></h3>
+      <p class="mt-1 text-sm text-gray-500"><%= t('bookmarks.empty.description') %></p>
+      <div class="mt-6">
+        <%= link_to feed_index_path, class: button_classes(variant: :primary) do %>
+          <%= t('bookmarks.empty.browse') %>
+        <% end %>
+      </div>
     </div>
   <% end %>
+  </div>
 </div>
