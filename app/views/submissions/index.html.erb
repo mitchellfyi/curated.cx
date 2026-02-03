@@ -1,16 +1,17 @@
-<div class="container mx-auto px-4 py-8 max-w-4xl">
-  <div class="mb-8 flex justify-between items-start">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900"><%= t("submissions.index.title") %></h1>
-      <p class="mt-2 text-gray-600"><%= t("submissions.index.description") %></p>
+<div class="py-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8 flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t("submissions.index.title") %></h1>
+        <p class="mt-2 text-gray-600"><%= t("submissions.index.description") %></p>
+      </div>
+      <%= link_to new_submission_path, class: button_classes(variant: :primary) do %>
+        <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <%= t("submissions.new_submission") %>
+      <% end %>
     </div>
-    <%= link_to new_submission_path, class: button_classes(variant: :primary) do %>
-      <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-      <%= t("submissions.new_submission") %>
-    <% end %>
-  </div>
 
   <% if @submissions.any? %>
     <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
@@ -53,4 +54,5 @@
       </div>
     </div>
   <% end %>
+  </div>
 </div>
