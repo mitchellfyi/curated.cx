@@ -110,9 +110,7 @@
                       <h3 class="text-sm font-medium text-gray-900">
                         <%= link_to submission.title, admin_submission_path(submission), class: "hover:text-blue-600" %>
                       </h3>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                        <%= t("submissions.types.#{submission.listing_type}") %>
-                      </span>
+                      <%= type_badge(submission.listing_type) %>
                     </div>
                     <p class="text-sm text-gray-500 truncate mt-1">
                       <a href="<%= submission.url %>" target="_blank" rel="noopener" class="hover:underline"><%= submission.url %></a>
@@ -149,16 +147,7 @@
                     </div>
                   <% else %>
                     <div class="ml-4 flex-shrink-0">
-                      <% case submission.status %>
-                      <% when "approved" %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <%= t("submissions.status.approved") %>
-                        </span>
-                      <% when "rejected" %>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          <%= t("submissions.status.rejected") %>
-                        </span>
-                      <% end %>
+                      <%= status_indicator(submission.status) %>
                     </div>
                   <% end %>
                 </div>
