@@ -1,0 +1,93 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Tenants</h1>
+        <p class="mt-2 text-gray-600">Manage all tenants across the platform</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Tenants</dt>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @stats[:total_tenants] %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Sites</dt>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @stats[:total_sites] %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Listings</dt>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @stats[:total_listings] %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+        <dd class="mt-1 text-3xl font-semibold text-purple-600"><%= @stats[:total_users] %></dd>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="bg-white shadow rounded-lg mb-6 p-4">
+      <%= form_with url: admin_tenants_path, method: :get, class: "flex gap-4" do |f| %>
+        <div class="flex-1">
+          <%= f.text_field :search, value: params[:search], placeholder: "Search tenants...", class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <%= f.submit "Search", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" %>
+        <%= link_to "Clear", admin_tenants_path, class: "px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" %>
+      <% end %>
+    </div>
+
+    <!-- Tenants Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sites</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hostname</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @tenants.each do |tenant| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <% if tenant.logo_url.present? %>
+                    <%= image_tag tenant.logo_url, class: "h-8 w-8 rounded-full mr-3" %>
+                  <% else %>
+                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                      <span class="text-gray-500 text-sm font-medium"><%= tenant.title.first.upcase %></span>
+                    </div>
+                  <% end %>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900"><%= tenant.title %></div>
+                    <div class="text-xs text-gray-500"><%= tenant.slug %></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <%= tenant.sites.count %> sites
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= tenant.hostname %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= tenant.created_at.strftime("%Y-%m-%d") %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <%= link_to "View", admin_tenant_path(tenant), class: "text-blue-600 hover:underline mr-3" %>
+                <%= link_to "Edit", edit_admin_tenant_path(tenant), class: "text-gray-600 hover:underline mr-3" %>
+                <%= button_to "Visit", impersonate_admin_tenant_path(tenant), method: :post, class: "text-green-600 hover:underline", form: { class: "inline" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

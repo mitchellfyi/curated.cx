@@ -1,0 +1,134 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Content Items</h1>
+        <p class="mt-2 text-gray-600">
+          <% if @source %>
+            Content from: <strong><%= @source.name %></strong>
+            (<%= link_to "show all", admin_content_items_path, class: "text-blue-600 hover:underline" %>)
+          <% else %>
+            All imported content across sources
+          <% end %>
+        </p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total</dt>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= number_with_delimiter(@stats[:total]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Published</dt>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= number_with_delimiter(@stats[:published]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Unpublished</dt>
+        <dd class="mt-1 text-3xl font-semibold text-gray-400"><%= number_with_delimiter(@stats[:unpublished]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Editorialised</dt>
+        <dd class="mt-1 text-3xl font-semibold text-purple-600"><%= number_with_delimiter(@stats[:editorialised]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">This Week</dt>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600">+<%= number_with_delimiter(@stats[:this_week]) %></dd>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white shadow rounded-lg mb-6 p-4">
+      <%= form_with url: admin_content_items_path, method: :get, class: "flex flex-wrap gap-4" do |f| %>
+        <div class="flex-1 min-w-[200px]">
+          <%= f.text_field :search, value: params[:search], placeholder: "Search by title or URL...", class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <div>
+          <%= f.select :source_id, options_for_select([["All sources", ""]] + @sources.map { |s| [s.name, s.id] }, params[:source_id]), {}, class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <div>
+          <%= f.select :status, options_for_select([["All status", ""], ["Published", "published"], ["Unpublished", "unpublished"], ["Editorialised", "editorialised"], ["Not editorialised", "not_editorialised"]], params[:status]), {}, class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <%= f.submit "Filter", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" %>
+        <%= link_to "Clear", admin_content_items_path, class: "px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" %>
+      <% end %>
+    </div>
+
+    <!-- Content Items Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Content</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @content_items.each do |item| %>
+            <tr>
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900 truncate" style="max-width: 350px;">
+                  <%= item.title.presence || "(No title)" %>
+                </div>
+                <div class="text-xs text-gray-500 truncate" style="max-width: 350px;">
+                  <%= item.url_canonical %>
+                </div>
+                <% if item.topic_tags.present? %>
+                  <div class="mt-1 flex flex-wrap gap-1">
+                    <% item.topic_tags.first(3).each do |tag| %>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600"><%= tag %></span>
+                    <% end %>
+                    <% if item.topic_tags.size > 3 %>
+                      <span class="text-xs text-gray-400">+<%= item.topic_tags.size - 3 %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900"><%= item.source&.name || "Unknown" %></div>
+                <div class="text-xs text-gray-500"><%= item.site&.name %></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% if item.published_at.present? %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Published</span>
+                <% else %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Draft</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% if item.editorialised_at.present? %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">✓ Done</span>
+                <% else %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Pending</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= item.created_at.strftime("%Y-%m-%d %H:%M") %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <%= link_to "View", admin_content_item_path(item), class: "text-blue-600 hover:underline mr-2" %>
+                <%= link_to "Edit", edit_admin_content_item_path(item), class: "text-gray-600 hover:underline mr-2" %>
+                <% if item.published_at.nil? %>
+                  <%= button_to "Publish", publish_admin_content_item_path(item), method: :post, class: "text-green-600 hover:underline", form: { class: "inline" } %>
+                <% else %>
+                  <%= button_to "Unpublish", unpublish_admin_content_item_path(item), method: :post, class: "text-yellow-600 hover:underline", form: { class: "inline" } %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <% if @content_items.respond_to?(:total_pages) && @content_items.total_pages > 1 %>
+        <div class="px-4 py-3 border-t border-gray-200">
+          <%= paginate @content_items %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

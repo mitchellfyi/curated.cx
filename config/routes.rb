@@ -21,6 +21,32 @@ Rails.application.routes.draw do
     # Import runs management
     resources :import_runs, only: [:index, :show]
 
+    # Super admin: Tenants management (cross-tenant)
+    resources :tenants, only: [:index, :show, :edit, :update, :destroy] do
+      member do
+        post :impersonate
+      end
+    end
+
+    # Users management
+    resources :users do
+      member do
+        post :ban
+        post :unban
+        post :make_admin
+        post :remove_admin
+      end
+    end
+
+    # Content items management
+    resources :content_items do
+      member do
+        post :publish
+        post :unpublish
+        post :editorialise
+      end
+    end
+
     resources :categories
     resources :listings do
       member do
