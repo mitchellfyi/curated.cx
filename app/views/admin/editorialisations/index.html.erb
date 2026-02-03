@@ -5,6 +5,44 @@
       <p class="mt-2 text-gray-600"><%= t('admin.editorialisations.description') %></p>
     </div>
 
+    <!-- Stats -->
+    <% if @stats.present? %>
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
+        <div class="bg-white overflow-hidden shadow rounded-lg p-3">
+          <dt class="text-xs font-medium text-gray-500 truncate">Total</dt>
+          <dd class="mt-1 text-lg font-semibold text-gray-900"><%= number_with_delimiter(@stats[:total]) %></dd>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg p-3">
+          <dt class="text-xs font-medium text-gray-500 truncate">Completed</dt>
+          <dd class="mt-1 text-lg font-semibold text-green-600"><%= number_with_delimiter(@stats[:completed]) %></dd>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg p-3">
+          <dt class="text-xs font-medium text-gray-500 truncate">Pending</dt>
+          <dd class="mt-1 text-lg font-semibold text-yellow-600"><%= number_with_delimiter(@stats[:pending]) %></dd>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg p-3">
+          <dt class="text-xs font-medium text-gray-500 truncate">Processing</dt>
+          <dd class="mt-1 text-lg font-semibold text-blue-600"><%= number_with_delimiter(@stats[:processing]) %></dd>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg p-3">
+          <dt class="text-xs font-medium text-gray-500 truncate">Failed</dt>
+          <dd class="mt-1 text-lg font-semibold text-red-600"><%= number_with_delimiter(@stats[:failed]) %></dd>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg p-3">
+          <dt class="text-xs font-medium text-gray-500 truncate">Skipped</dt>
+          <dd class="mt-1 text-lg font-semibold text-gray-400"><%= number_with_delimiter(@stats[:skipped]) %></dd>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg p-3">
+          <dt class="text-xs font-medium text-gray-500 truncate">Today</dt>
+          <dd class="mt-1 text-lg font-semibold text-purple-600"><%= number_with_delimiter(@stats[:today_count]) %></dd>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg p-3">
+          <dt class="text-xs font-medium text-gray-500 truncate">Tokens Today</dt>
+          <dd class="mt-1 text-lg font-semibold text-indigo-600"><%= number_with_delimiter(@stats[:tokens_today]) %></dd>
+        </div>
+      </div>
+    <% end %>
+
     <div class="mb-6 flex gap-2">
       <%= link_to admin_editorialisations_path,
           class: "px-3 py-1 text-sm rounded-full #{params[:status].blank? ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}" do %>
@@ -81,6 +119,12 @@
           </tbody>
         </table>
       </div>
+
+      <% if @editorialisations.respond_to?(:total_pages) && @editorialisations.total_pages > 1 %>
+        <div class="px-4 py-3 border-t border-gray-200">
+          <%= paginate @editorialisations %>
+        </div>
+      <% end %>
     <% else %>
       <div class="text-center py-12 bg-white rounded-lg shadow">
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
