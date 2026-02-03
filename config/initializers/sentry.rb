@@ -2,6 +2,7 @@
 
 Sentry.init do |config|
   config.dsn = ENV.fetch("SENTRY_DSN", "https://b9d1397c94515abbd33442a539ed2d9a@o4509412457906176.ingest.de.sentry.io/4510822660112464")
+  config.enabled_environments = %w[ production staging ]
   config.breadcrumbs_logger = [ :active_support_logger, :http_logger ]
   config.traces_sample_rate = 1.0
 

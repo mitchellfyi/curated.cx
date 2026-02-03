@@ -104,7 +104,7 @@ jobs:
         id: migrations
         run: |
           echo "Running database migrations..."
-          if ssh -o StrictHostKeyChecking=no dokku@${{ secrets.DOKKU_HOST }} run ${{ env.APP_NAME }} rails db:migrate 2>&1 | tee /tmp/migrate.log; then
+          if ssh -o StrictHostKeyChecking=no dokku@${{ secrets.DOKKU_HOST }} run ${{ env.APP_NAME }} rails db:migrate db:seed 2>&1 | tee /tmp/migrate.log; then
             echo "migration_success=true" >> $GITHUB_OUTPUT
             echo "✅ Migrations completed"
           else

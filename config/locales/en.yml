@@ -205,13 +205,13 @@ en:
       locked: Discussion has been locked.
       no_discussions: No discussions yet.
       pinned: Discussion has been pinned.
-      statuses:
-        open: Open
-        hidden: Hidden
       show:
         back: Back to Discussions
         moderation: Moderation Actions
         posts_section: Posts
+      statuses:
+        hidden: Hidden
+        open: Open
       table:
         actions: Actions
         author: Author
@@ -235,6 +235,7 @@ en:
         submit: Add Domain
       show:
         back_to_site: Back to Site
+        primary: Primary
         sites_breadcrumb: Sites
       updated: Domain updated successfully
     editorialisations:
@@ -362,7 +363,10 @@ en:
         comment: Comment
         content_item: Content Item
     listings:
+      affiliate: Affiliate
+      affiliate_enabled: Affiliate Enabled
       created: Created
+      currently_featured: Currently Featured
       deleted: Deleted
       expiry_extended: Listing expiry has been extended
       featured: Listing has been featured
@@ -400,12 +404,8 @@ en:
         job: Job
         service: Service
         tool: Tool
-      statuses:
-        published: Published
-        draft: Draft
-        scheduled: Scheduled
-        paid: Paid
-        free: Free
+      no_affiliate: No Affiliate
+      not_featured: Not Featured
       published_now: Listing published
       scheduling:
         currently_scheduled: This listing is scheduled to publish at %{time}
@@ -422,6 +422,12 @@ en:
       show:
         no_expiry: No expiry
         not_published: Not published
+      statuses:
+        draft: Draft
+        free: Free
+        paid: Paid
+        published: Published
+        scheduled: Scheduled
       unfeatured: Listing is no longer featured
       unscheduled: Listing schedule cancelled
       updated: Updated
@@ -1057,6 +1063,12 @@ en:
   counts:
     item: Item
     listing: Listing
+  date:
+    formats:
+      default: "%B %d, %Y"
+      long: "%B %d, %Y"
+      month_year: "%B %Y"
+      short: "%b %d"
   digest_mailer:
     daily_digest:
       intro: Here's what's happening today
@@ -1297,6 +1309,20 @@ en:
         learn_more: Learn more →
         no_listings: No listings to display.
   listings:
+    filters:
+      all_categories: All categories
+      all_types: All types
+      any_time: Any time
+      apply: Search
+      category: Category
+      clear: Clear filters
+      freshness: Time period
+      results: results
+      showing: Showing
+      this_month: This month
+      this_week: This week
+      today: Today
+      type: Type
     index:
       across_categories: across all categories
       all_listings: All Listings
@@ -1313,29 +1339,15 @@ en:
       latest_content: Latest content
       no_listings_yet: No listings yet
       no_results: No listings found
-      try_different_filters: Try adjusting your filters or search terms.
       title: All Listings
+      try_different_filters: Try adjusting your filters or search terms.
       view_details: View Details
     search:
       placeholder: Search tools, jobs, services...
-    filters:
-      type: Type
-      category: Category
-      freshness: Time period
-      all_types: All types
-      all_categories: All categories
-      any_time: Any time
-      today: Today
-      this_week: This week
-      this_month: This month
-      apply: Search
-      clear: Clear filters
-      showing: Showing
-      results: results
     types:
-      tool: Tool
       job: Job
       service: Service
+      tool: Tool
   live_stream_mailer:
     footer:
       manage_preferences: Manage Preferences
@@ -1477,13 +1489,6 @@ en:
     settings: Settings
     sign_up: Sign up
     submit: Submit
-  newsletter:
-    cta:
-      title: Stay updated with %{site}
-      description: Get the latest news, tools, and insights delivered to your inbox.
-      subscribe: Subscribe to Newsletter
-      manage_preferences: Manage Preferences
-      frequency: Daily or weekly digest • Unsubscribe anytime
   network:
     cta:
       button: Get in Touch
@@ -1509,6 +1514,13 @@ en:
       sites: Sites
     trending:
       title: Trending Sites
+  newsletter:
+    cta:
+      description: Get the latest news, tools, and insights delivered to your inbox.
+      frequency: Daily or weekly digest • Unsubscribe anytime
+      manage_preferences: Manage Preferences
+      subscribe: Subscribe to Newsletter
+      title: Stay updated with %{site}
   notes:
     back_to_note: Back to note
     back_to_notes: Back to notes
@@ -1748,20 +1760,14 @@ en:
       disabled: Disabled
       enabled: Enabled
       private: Private
-  date:
-    formats:
-      default: "%B %d, %Y"
-      long: "%B %d, %Y"
-      short: "%b %d"
-      month_year: "%B %Y"
   time:
     ago: "%{time} ago"
     ago_suffix: ago
     formats:
       default: "%B %d, %Y"
       long: "%B %d, %Y at %I:%M %p"
-      short: "%b %d"
       month_year: "%B %Y"
+      short: "%b %d"
   votes:
     rate_limited: You're voting too quickly. Please wait before voting again.
     sign_in_to_vote: Sign in to vote

@@ -52,10 +52,10 @@ RSpec.describe "Listings", type: :request do
         expect(listings.last).to eq(old_listing)
       end
 
-      it "limits listings to 20" do
-        create_list(:listing, 25, :published, tenant: tenant, category: category1)
+      it "limits listings to 50" do
+        create_list(:listing, 55, :published, tenant: tenant, category: category1)
         get listings_path
-        expect(assigns(:listings).count).to eq(20)
+        expect(assigns(:listings).count).to eq(50)
       end
 
       it "renders the index template" do
@@ -156,10 +156,10 @@ RSpec.describe "Listings", type: :request do
         expect(listings.last).to eq(old_listing)
       end
 
-      it "limits listings to 20" do
-        create_list(:listing, 25, :published, tenant: tenant, category: category1)
+      it "limits listings to 50" do
+        create_list(:listing, 55, :published, tenant: tenant, category: category1)
         get category_listings_path(category1)
-        expect(assigns(:listings).count).to eq(20)
+        expect(assigns(:listings).count).to eq(50)
       end
 
       it "renders the index template" do

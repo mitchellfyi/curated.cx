@@ -1,6 +1,8 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
+# frozen_string_literal: true
+
+# Seeds are IDEMPOTENT: safe to run multiple times (e.g. bin/rails db:seed).
+# All records use find_or_initialize_by / find_or_initialize_by with stable unique keys,
+# then assign_attributes and save!, so re-running updates existing rows instead of creating duplicates.
 
 # Seed tenants for multi-tenancy
 puts "Seeding tenants..."
@@ -462,6 +464,8 @@ Tenant.all.each do |tenant|
     category = Category.find_by(site: site, key: category_key)
     next unless category
 
+    listing_type = (category_key == "services" ? :service : :tool)
+
     listings.each do |listing_attrs|
       canonical_url = UrlCanonicaliser.canonicalize(listing_attrs[:url_raw]) rescue listing_attrs[:url_raw]
 
@@ -470,6 +474,7 @@ Tenant.all.each do |tenant|
         tenant: tenant,
         category: category,
         site: site,
+        listing_type: listing_type,
         url_raw: listing_attrs[:url_raw],
         url_canonical: canonical_url,
         title: listing_attrs[:title],
@@ -485,21 +490,25 @@ end
 
 puts "Listing seeding complete!"
 
-# Display summary
+# Display summary (scoped per tenant for correct counts)
 puts "\n=== Seeding Summary ==="
+grand_total_listings = 0
 Tenant.all.each do |tenant|
   site = tenant.sites.find_by(slug: tenant.slug) || tenant.sites.first
   next unless site
 
   Current.site = site
+  Current.tenant = tenant
 
-  total_listings = Listing.count
-  categories_with_counts = Category.includes(:listings).map { |cat| "#{cat.name}: #{cat.listings.count}" }.join(", ")
+  site_categories = Category.where(site: site)
+  total_listings = Listing.where(site: site).count
+  grand_total_listings += total_listings
+  categories_with_counts = site_categories.map { |cat| "#{cat.name}: #{cat.listings.count}" }.join(", ")
   puts "#{tenant.title}: #{total_listings} total listings (#{categories_with_counts})"
 end
 Current.site = nil
-puts "GRAND TOTAL: #{Listing.count} listings across all tenants"
-puts "TARGET ACHIEVED: Exactly 3 listings per category per tenant ✅"
+Current.tenant = nil
+puts "GRAND TOTAL: #{grand_total_listings} listings across all tenants"
 puts "========================"
 
 # =============================================

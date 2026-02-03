@@ -218,7 +218,7 @@
               <div>
                 <dt class="text-sm font-medium text-gray-500">Status</dt>
                 <dd class="mt-1">
-                  <%= @listing.featured? ? badge("Currently Featured", :purple) : badge("Not Featured", :gray) %>
+                  <%= @listing.featured? ? badge(t("admin.listings.currently_featured"), :purple) : badge(t("admin.listings.not_featured"), :gray) %>
                 </dd>
               </div>
               <div>
@@ -247,7 +247,7 @@
               <div>
                 <dt class="text-sm font-medium text-gray-500">Status</dt>
                 <dd class="mt-1">
-                  <%= @listing.has_affiliate? ? badge_success("Affiliate Enabled") : badge("No Affiliate", :gray) %>
+                  <%= @listing.has_affiliate? ? badge_success(t("admin.listings.affiliate_enabled")) : badge(t("admin.listings.no_affiliate"), :gray) %>
                 </dd>
               </div>
               <% if @listing.has_affiliate? %>

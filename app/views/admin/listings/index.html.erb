@@ -52,7 +52,7 @@
                       <%= badge(t("monetisation.badges.featured"), :purple) if listing.featured? %>
                       <%= badge_danger(t("monetisation.job.expired")) if listing.expired? %>
                       <%= badge_success(t("admin.listings.statuses.paid")) if listing.paid? %>
-                      <%= badge("Affiliate", :yellow) if listing.has_affiliate? %>
+                      <%= badge(t("admin.listings.affiliate"), :yellow) if listing.has_affiliate? %>
                     </div>
                     <h3 class="text-lg font-medium text-gray-900">
                       <%= link_to listing.title, admin_listing_path(listing), class: "hover:text-blue-600" %>

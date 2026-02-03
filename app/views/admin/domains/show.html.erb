@@ -28,7 +28,7 @@
         <div>
           <h1 class="text-3xl font-bold text-gray-900"><%= @domain.hostname %></h1>
           <div class="mt-2 flex items-center gap-2">
-            <%= badge("Primary", :blue) if @domain.primary? %>
+            <%= badge(t("admin.domains.show.primary"), :blue) if @domain.primary? %>
             <%= status_indicator(@domain.status) %>
           </div>
           <% if @domain.next_step.present? %>

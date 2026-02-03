@@ -66,7 +66,7 @@ RSpec.describe Source, type: :model do
 
   describe 'enums' do
     it 'has correct kind values' do
-      expect(Source.kinds.keys).to match_array(%w[serp_api_google_news rss api web_scraper])
+      expect(Source.kinds.keys).to match_array(%w[ serp_api_google_news rss api web_scraper serp_api_google_jobs serp_api_youtube ])
     end
   end
 

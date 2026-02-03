@@ -96,6 +96,26 @@ ignore_unused:
   - 'activerecord.*'
   - 'helpers.*'
   - 'errors.*'
+  # Admin and listings keys used in views/helpers with dynamic or indirect lookups
+  - 'admin.common.disabled'
+  - 'admin.common.enabled'
+  - 'admin.listings.statuses.scheduled'
+  - 'admin.network_boosts.disabled'
+  - 'admin.network_boosts.enabled'
+  - 'admin.referral_reward_tiers.active'
+  - 'admin.referral_reward_tiers.inactive'
+  - 'admin.sources.disabled'
+  - 'admin.sources.enabled'
+  - 'admin.tagging_rules.disabled'
+  - 'admin.tagging_rules.enabled'
+  - 'listings.index.across_categories'
+  - 'listings.index.all_listings'
+  - 'listings.index.breadcrumb_listings'
+  - 'listings.index.category_listings'
+  - 'listings.index.empty.no_content_in_category'
+  - 'listings.index.in_category'
+  - 'listings.index.item_count'
+  - 'listings.index.item_count.*'
 
 ## Exclude these keys from the `i18n-tasks eq-base' report:
 # ignore_eq_base:

@@ -14,8 +14,8 @@ RSpec.describe ProcessDueSourcesJob, type: :job do
         create(:source, :serp_api_google_news, :due_for_run, site: site)
       end
 
-      let!(:due_rss_source) do
-        create(:source, :rss, :due_for_run, site: site)
+      let!(:due_api_source) do
+        create(:source, :api, :due_for_run, site: site)
       end
 
       it "enqueues SerpApiIngestionJob for serp_api_google_news sources" do
@@ -27,13 +27,13 @@ RSpec.describe ProcessDueSourcesJob, type: :job do
       it "does not enqueue jobs for unmapped source kinds" do
         expect {
           described_class.perform_now
-        }.not_to have_enqueued_job(SerpApiIngestionJob).with(due_rss_source.id)
+        }.not_to have_enqueued_job(SerpApiIngestionJob).with(due_api_source.id)
       end
 
       it "logs info for unmapped source kinds" do
         allow(Rails.logger).to receive(:info)
         described_class.perform_now
-        expect(Rails.logger).to have_received(:info).with(/No job mapping for source kind 'rss'/)
+        expect(Rails.logger).to have_received(:info).with(/No job mapping for source kind 'api'/)
       end
     end
 
@@ -141,7 +141,7 @@ RSpec.describe ProcessDueSourcesJob, type: :job do
     end
 
     it "returns nil for unmapped kinds" do
-      expect(described_class::JOB_MAPPING["rss"]).to be_nil
+      expect(described_class::JOB_MAPPING["api"]).to be_nil
     end
   end
 

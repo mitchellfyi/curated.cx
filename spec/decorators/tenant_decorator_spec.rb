@@ -72,18 +72,18 @@ RSpec.describe TenantDecorator, type: :decorator do
 
       it 'returns success badge' do
         badge = decorated_tenant.status_badge
-        expect(badge).to include('Active')
-        expect(badge).to include('badge-success')
+        expect(badge).to include('Enabled')
+        expect(badge).to include('bg-green')
       end
     end
 
     context 'when status is disabled' do
       before { tenant.update!(status: 'disabled') }
 
-      it 'returns danger badge' do
+      it 'returns disabled badge' do
         badge = decorated_tenant.status_badge
         expect(badge).to include('Disabled')
-        expect(badge).to include('badge-danger')
+        expect(badge).to include('bg-gray')
       end
     end
   end
