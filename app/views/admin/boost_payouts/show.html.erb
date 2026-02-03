@@ -17,14 +17,7 @@
       </div>
       <div>
         <dt class="text-sm text-gray-500"><%= t("admin.boost_payouts.table.status") %></dt>
-        <dd class="mt-1">
-          <span class="px-2 py-1 text-sm rounded-full
-                       <%= @payout.paid? ? 'bg-green-100 text-green-800' :
-                           @payout.pending? ? 'bg-yellow-100 text-yellow-800' :
-                           'bg-gray-100 text-gray-800' %>">
-            <%= @payout.status.humanize %>
-          </span>
-        </dd>
+        <dd class="mt-1"><%= status_indicator(@payout.status) %></dd>
       </div>
       <div>
         <dt class="text-sm text-gray-500"><%= t("admin.boost_payouts.created") %></dt>
