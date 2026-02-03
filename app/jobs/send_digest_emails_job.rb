@@ -6,7 +6,7 @@ class SendDigestEmailsJob < ApplicationJob
   BATCH_SIZE = 100
 
   def perform(frequency: "weekly", segment_id: nil)
-    @segment = segment_id.present? ? SubscriberSegment.find_by(id: segment_id) : nil
+    @segment = SubscriberSegment.find_by(id: segment_id) if segment_id
 
     case frequency.to_s
     when "weekly"

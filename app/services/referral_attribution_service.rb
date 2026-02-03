@@ -99,7 +99,7 @@ class ReferralAttributionService
       referrer_subscription: referrer,
       referee_subscription: referee_subscription,
       site: referee_subscription.site,
-      referee_ip_hash: ip_address.present? ? hash_ip(ip_address) : nil,
+      referee_ip_hash: (hash_ip(ip_address) if ip_address.present?),
       status: :pending
     )
 
