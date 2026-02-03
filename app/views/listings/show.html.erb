@@ -2,7 +2,7 @@
   <%= json_ld_tag(listing_schema(@listing)) %>
   <%= json_ld_tag(breadcrumb_schema([
     { name: t('nav.categories'), url: categories_url },
-    { name: @listing.category.name, url: category_url(@listing.category) },
+    { name: @listing.category_name, url: category_url(@listing.category) },
     { name: @listing.title, url: listing_url(@listing) }
   ])) %>
 <% end %>
@@ -21,7 +21,7 @@
           <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
           </svg>
-          <%= link_to @listing.category.name, category_path(@listing.category), class: "ml-4 text-gray-400 hover:text-gray-500" %>
+          <%= link_to @listing.category_name, category_path(@listing.category), class: "ml-4 text-gray-400 hover:text-gray-500" %>
         </li>
         <li class="flex">
           <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -36,7 +36,7 @@
       <!-- Header -->
       <div class="px-6 py-8 border-b border-gray-200">
         <div class="flex items-center flex-wrap gap-2 mb-4">
-          <%= badge(@listing.category.name, :blue) %>
+          <%= badge(@listing.category_name, :blue) %>
           <% if @listing.featured? %>
             <%= badge(t('monetisation.badges.featured'), :purple) %>
           <% end %>
@@ -190,7 +190,7 @@
         <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
-        <%= t('actions.back') %> to <%= @listing.category.name %>
+        <%= t('actions.back') %> to <%= @listing.category_name %>
       <% end %>
     </div>
   </div>

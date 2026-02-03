@@ -111,6 +111,9 @@ class Listing < ApplicationRecord
   has_many :affiliate_clicks, dependent: :destroy
   has_many :bookmarks, as: :bookmarkable, dependent: :destroy
 
+  # Delegate common category attributes for cleaner views
+  delegate :name, to: :category, prefix: true, allow_nil: true
+
   # Validations
   validates :category, presence: true
   validates :url_raw, presence: true

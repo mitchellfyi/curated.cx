@@ -41,7 +41,7 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center flex-wrap gap-2 mb-2">
                       <%= type_badge(listing.listing_type) %>
-                      <%= badge(listing.category.name, :blue) %>
+                      <%= badge(listing.category_name, :blue) %>
                       <% if listing.scheduled? %>
                         <%= badge("#{t('admin.listings.scheduling.scheduled')} #{l(listing.scheduled_for, format: :short)}", :yellow) %>
                       <% elsif listing.published_at %>

@@ -17,7 +17,7 @@
             <%= badge_success(t("admin.listings.statuses.paid")) if @listing.paid? %>
           </div>
           <h1 class="text-3xl font-bold text-gray-900"><%= @listing.title %></h1>
-          <p class="mt-2 text-gray-600"><%= @listing.category.name %> &middot; <%= @listing.domain %></p>
+          <p class="mt-2 text-gray-600"><%= @listing.category_name %> &middot; <%= @listing.domain %></p>
         </div>
         <div class="flex space-x-3">
           <%= link_to t("actions.edit"), edit_admin_listing_path(@listing), class: "inline-flex items-center <%= button_classes(variant: :secondary) %>" %>
@@ -123,7 +123,7 @@
               </div>
               <div>
                 <dt class="text-sm font-medium text-gray-500">Category</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @listing.category.name %></dd>
+                <dd class="mt-1 text-sm text-gray-900"><%= @listing.category_name %></dd>
               </div>
               <div class="sm:col-span-2">
                 <dt class="text-sm font-medium text-gray-500">URL</dt>
