@@ -191,6 +191,11 @@
           </div>
         </div>
       <% end %>
+
+      <!-- Social Sharing -->
+      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <%= render 'shared/social_share', title: @listing.title, url: listing_url(@listing), description: @listing.description %>
+      </div>
     </article>
 
     <!-- Back Navigation -->
