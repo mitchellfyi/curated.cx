@@ -1467,11 +1467,6 @@ en:
     settings: Settings
     sign_up: Sign up
     submit: Submit
-  social:
-    share: Share
-    share_on: Share on %{platform}
-    copy_link: Copy link
-    copied: Copied!
   newsletter:
     cta:
       title: Stay updated with %{site}
