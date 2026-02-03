@@ -501,3 +501,181 @@ Current.site = nil
 puts "GRAND TOTAL: #{Listing.count} listings across all tenants"
 puts "TARGET ACHIEVED: Exactly 3 listings per category per tenant ✅"
 puts "========================"
+
+# =============================================
+# CONTENT SOURCES SEEDING
+# =============================================
+
+puts "\n=== Seeding Content Sources ==="
+
+# Source configuration per tenant
+source_configs = {
+  "ai" => [
+    {
+      name: "AI News - General",
+      kind: :serp_api_google_news,
+      config: {
+        query: "artificial intelligence news OR machine learning news",
+        location: "United States",
+        language: "en",
+        max_results: 50,
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }  # 1 hour
+    },
+    {
+      name: "AI Tools & Products",
+      kind: :serp_api_google_news,
+      config: {
+        query: "AI tools OR AI apps OR ChatGPT OR Claude AI OR Gemini AI",
+        location: "United States",
+        language: "en",
+        max_results: 30,
+        editorialise: true
+      },
+      schedule: { interval_seconds: 7200 }  # 2 hours
+    }
+  ],
+  "construction" => [
+    {
+      name: "Construction Industry News",
+      kind: :serp_api_google_news,
+      config: {
+        query: "construction industry news OR building materials",
+        location: "United States",
+        language: "en",
+        max_results: 50,
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
+    },
+    {
+      name: "Construction Technology",
+      kind: :serp_api_google_news,
+      config: {
+        query: "construction technology OR ConTech OR building automation",
+        location: "United States",
+        language: "en",
+        max_results: 30,
+        editorialise: true
+      },
+      schedule: { interval_seconds: 7200 }
+    }
+  ],
+  "dayz" => [
+    {
+      name: "DayZ Game News",
+      kind: :serp_api_google_news,
+      config: {
+        query: "DayZ game news OR DayZ update OR DayZ patch",
+        location: "United States",
+        language: "en",
+        max_results: 30,
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
+    },
+    {
+      name: "DayZ Community",
+      kind: :serp_api_google_news,
+      config: {
+        query: "DayZ mods OR DayZ servers OR DayZ community",
+        location: "United States",
+        language: "en",
+        max_results: 20,
+        editorialise: true
+      },
+      schedule: { interval_seconds: 7200 }
+    }
+  ]
+}
+
+source_configs.each do |tenant_slug, sources|
+  tenant = Tenant.find_by(slug: tenant_slug)
+  next unless tenant
+
+  site = tenant.sites.find_by(slug: tenant_slug) || tenant.sites.first
+  next unless site
+
+  sources.each do |source_attrs|
+    source = Source.find_or_initialize_by(site: site, name: source_attrs[:name])
+    source.assign_attributes(
+      tenant: tenant,
+      kind: source_attrs[:kind],
+      enabled: true,
+      config: source_attrs[:config],
+      schedule: source_attrs[:schedule],
+      quality_weight: 1.0
+    )
+    source.save!
+    puts "  ✓ Created/updated source for #{tenant.title}: #{source.name}"
+  end
+end
+
+puts "Source seeding complete!"
+puts "Total sources: #{Source.count}"
+
+# =============================================
+# EXTENDED CATEGORIES SEEDING
+# =============================================
+
+puts "\n=== Seeding Extended Categories ==="
+
+# Standard categories for all tenants
+standard_categories = [
+  { key: "jobs", name: "Jobs", shown_fields: { company: true, location: true, salary_range: true, apply_url: true } },
+  { key: "events", name: "Events", shown_fields: { location: true, description: true } }
+]
+
+# Tenant-specific categories
+tenant_specific_categories = {
+  "ai" => [
+    { key: "models", name: "AI Models", shown_fields: { description: true, company: true } },
+    { key: "datasets", name: "Datasets", shown_fields: { description: true } },
+    { key: "research", name: "Research Papers", shown_fields: { description: true } }
+  ],
+  "construction" => [
+    { key: "suppliers", name: "Material Suppliers", shown_fields: { company: true, location: true } },
+    { key: "contractors", name: "Contractors", shown_fields: { company: true, location: true } },
+    { key: "equipment", name: "Equipment", shown_fields: { company: true, description: true } }
+  ],
+  "dayz" => [
+    { key: "servers", name: "Game Servers", shown_fields: { description: true, location: true } },
+    { key: "mods", name: "Mods & Add-ons", shown_fields: { description: true } },
+    { key: "guides", name: "Guides & Tutorials", shown_fields: { description: true } }
+  ]
+}
+
+Tenant.all.each do |tenant|
+  site = tenant.sites.find_by(slug: tenant.slug) || tenant.sites.first
+  next unless site
+
+  # Create standard categories
+  standard_categories.each do |cat_attrs|
+    category = Category.find_or_initialize_by(site: site, key: cat_attrs[:key])
+    category.assign_attributes(
+      tenant: tenant,
+      name: cat_attrs[:name],
+      allow_paths: true,
+      shown_fields: cat_attrs[:shown_fields]
+    )
+    category.save!
+  end
+
+  # Create tenant-specific categories
+  specific_cats = tenant_specific_categories[tenant.slug] || []
+  specific_cats.each do |cat_attrs|
+    category = Category.find_or_initialize_by(site: site, key: cat_attrs[:key])
+    category.assign_attributes(
+      tenant: tenant,
+      name: cat_attrs[:name],
+      allow_paths: true,
+      shown_fields: cat_attrs[:shown_fields]
+    )
+    category.save!
+  end
+
+  puts "  ✓ Categories for #{tenant.title}: #{Category.where(site: site).count}"
+end
+
+puts "Extended categories seeding complete!"
