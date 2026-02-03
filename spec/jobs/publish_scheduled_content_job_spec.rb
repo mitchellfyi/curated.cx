@@ -29,7 +29,7 @@ RSpec.describe PublishScheduledContentJob, type: :job do
 
         described_class.perform_now
 
-        expect(Rails.logger).to have_received(:info).with(/Published scheduled ContentItem #{due_item.id}/)
+        expect(Rails.logger).to have_received(:info).with(/Published scheduled content.*"type":"ContentItem".*"id":#{due_item.id}/)
       end
     end
 
@@ -53,7 +53,7 @@ RSpec.describe PublishScheduledContentJob, type: :job do
 
         described_class.perform_now
 
-        expect(Rails.logger).to have_received(:info).with(/Published scheduled Listing #{due_listing.id}/)
+        expect(Rails.logger).to have_received(:info).with(/Published scheduled content.*"type":"Listing".*"id":#{due_listing.id}/)
       end
     end
 
@@ -111,11 +111,11 @@ RSpec.describe PublishScheduledContentJob, type: :job do
       end
 
       it "logs the error" do
-        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:warn)
 
         described_class.perform_now
 
-        expect(Rails.logger).to have_received(:error).with(/Failed to publish scheduled ContentItem #{due_item.id}/)
+        expect(Rails.logger).to have_received(:warn).with(/Failed to publish scheduled content.*"type":"ContentItem".*"id":#{due_item.id}/)
       end
 
       it "continues processing other items" do
@@ -140,11 +140,11 @@ RSpec.describe PublishScheduledContentJob, type: :job do
       end
 
       it "logs the error" do
-        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:warn)
 
         described_class.perform_now
 
-        expect(Rails.logger).to have_received(:error).with(/Failed to publish scheduled Listing #{due_listing.id}/)
+        expect(Rails.logger).to have_received(:warn).with(/Failed to publish scheduled content.*"type":"Listing".*"id":#{due_listing.id}/)
       end
     end
 

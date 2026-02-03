@@ -41,25 +41,23 @@ class FetchRssJob < ApplicationJob
     # Create import run for tracking
     @import_run = ImportRun.create_for_source!(@source)
 
-    begin
-      feed = fetch_and_parse_feed(feed_url)
-      urls = extract_urls_from_feed(feed)
+    feed = fetch_and_parse_feed(feed_url)
+    urls = extract_urls_from_feed(feed)
 
-      enqueue_upserts(urls)
+    enqueue_upserts(urls)
 
-      @import_run.mark_completed!(
-        items_created: urls.size,
-        items_updated: 0,
-        items_failed: 0
-      )
-      @source.update_run_status("success")
+    @import_run.mark_completed!(
+      items_created: urls.size,
+      items_updated: 0,
+      items_failed: 0
+    )
+    @source.update_run_status("success")
 
-      log_job_info("RSS fetch completed", urls_found: urls.size)
-    rescue StandardError => e
-      @import_run&.mark_failed!(e.message)
-      @source.update_run_status("error: #{e.message.truncate(100)}")
-      raise
-    end
+    log_job_info("RSS fetch completed", urls_found: urls.size)
+  rescue StandardError => e
+    @import_run&.mark_failed!(e.message)
+    @source.update_run_status("error: #{e.message.truncate(100)}")
+    raise
   end
 
   def fetch_and_parse_feed(feed_url)

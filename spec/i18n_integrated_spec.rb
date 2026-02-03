@@ -8,6 +8,9 @@ RSpec.describe 'i18n Integration', type: :i18n do
       missing_translations = []
 
       view_files.each do |file|
+        # Skip admin views - internal tooling doesn't need i18n
+        next if file.include?('/admin/')
+
         content = File.read(file)
 
         # Look for hardcoded strings that should be translated
