@@ -725,3 +725,71 @@ job_source_configs.each do |tenant_slug, config|
 end
 
 puts "Job sources seeding complete!"
+
+# =============================================
+# TAXONOMIES AND TAGGING RULES SEEDING
+# =============================================
+
+puts "\n=== Seeding Taxonomies and Tagging Rules ==="
+
+# Standard taxonomies for content classification
+standard_taxonomies = [
+  { slug: "news", name: "News", description: "News articles and updates" },
+  { slug: "tools", name: "Tools & Apps", description: "Software tools and applications" },
+  { slug: "tutorials", name: "Tutorials", description: "How-to guides and tutorials" },
+  { slug: "research", name: "Research", description: "Research papers and studies" },
+  { slug: "opinion", name: "Opinion", description: "Opinion pieces and editorials" },
+  { slug: "announcements", name: "Announcements", description: "Product launches and announcements" }
+]
+
+# Keyword patterns for each taxonomy
+taxonomy_keywords = {
+  "news" => "breaking,latest,update,report,announces,revealed,launches",
+  "tools" => "tool,app,software,platform,API,SDK,library,framework,extension,plugin",
+  "tutorials" => "how to,tutorial,guide,step-by-step,learn,beginner,getting started",
+  "research" => "study,research,paper,findings,analysis,experiment,data shows",
+  "opinion" => "opinion,think,believe,should,editorial,perspective,take",
+  "announcements" => "announcing,launch,release,new,introducing,available now"
+}
+
+Tenant.all.each do |tenant|
+  site = tenant.sites.find_by(slug: tenant.slug) || tenant.sites.first
+  next unless site
+
+  # Create taxonomies
+  taxonomies = {}
+  standard_taxonomies.each do |tax_attrs|
+    taxonomy = Taxonomy.find_or_initialize_by(site: site, slug: tax_attrs[:slug])
+    taxonomy.assign_attributes(
+      tenant: tenant,
+      name: tax_attrs[:name],
+      description: tax_attrs[:description],
+      position: standard_taxonomies.index { |t| t[:slug] == tax_attrs[:slug] } || 0
+    )
+    taxonomy.save!
+    taxonomies[tax_attrs[:slug]] = taxonomy
+  end
+
+  # Create tagging rules for each taxonomy
+  taxonomy_keywords.each do |taxonomy_slug, keywords|
+    taxonomy = taxonomies[taxonomy_slug]
+    next unless taxonomy
+
+    rule = TaggingRule.find_or_initialize_by(
+      site: site,
+      taxonomy: taxonomy,
+      rule_type: :keyword
+    )
+    rule.assign_attributes(
+      tenant: tenant,
+      pattern: keywords,
+      priority: 10,
+      enabled: true
+    )
+    rule.save!
+  end
+
+  puts "  ✓ Taxonomies and rules for #{tenant.title}: #{Taxonomy.where(site: site).count} taxonomies, #{TaggingRule.where(site: site).count} rules"
+end
+
+puts "Taxonomy and tagging rules seeding complete!"
