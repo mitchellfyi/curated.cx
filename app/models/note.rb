@@ -44,6 +44,9 @@ class Note < ApplicationRecord
 
   # Associations
   belongs_to :user
+
+  # Delegate common user attributes for cleaner views
+  delegate :avatar_url, :profile_name, :initials, to: :user, prefix: :author, allow_nil: true
   belongs_to :hidden_by, class_name: "User", optional: true
   belongs_to :repost_of, class_name: "Note", optional: true, counter_cache: :reposts_count
   has_many :reposts, class_name: "Note", foreign_key: :repost_of_id, dependent: :nullify, inverse_of: :repost_of

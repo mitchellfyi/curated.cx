@@ -4,11 +4,11 @@
   <div class="flex items-start gap-3">
     <%# Author avatar %>
     <div class="flex-shrink-0">
-      <% if note.user.avatar_url.present? %>
-        <%= image_tag note.user.avatar_url, alt: note.user.profile_name, class: "w-10 h-10 rounded-full object-cover" %>
+      <% if note.author_avatar_url.present? %>
+        <%= image_tag note.author_avatar_url, alt: note.author_profile_name, class: "w-10 h-10 rounded-full object-cover" %>
       <% else %>
         <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
-          <%= note.user.initials %>
+          <%= note.author_initials %>
         </div>
       <% end %>
     </div>
@@ -16,7 +16,7 @@
     <div class="flex-1 min-w-0">
       <%# Author and site info %>
       <div class="flex items-center gap-2 text-sm">
-        <span class="font-medium text-gray-900"><%= note.user.profile_name %></span>
+        <span class="font-medium text-gray-900"><%= note.author_profile_name %></span>
         <span class="text-gray-400">·</span>
         <% if note.site.primary_domain.present? %>
           <a href="<%= "https://#{note.site.primary_domain.hostname}/notes/#{note.id}" %>"
