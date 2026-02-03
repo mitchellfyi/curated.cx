@@ -21,7 +21,7 @@
           <div>
             <h1 class="text-2xl font-bold text-gray-900"><%= @user.profile_name %></h1>
             <p class="text-gray-500 text-sm mt-1">
-              <%= t('profiles.member_since', date: @user.created_at.strftime('%B %Y')) %>
+              <%= t('profiles.member_since', date: l(@user.created_at, format: :month_year)) %>
             </p>
           </div>
 

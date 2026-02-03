@@ -1747,6 +1747,12 @@ en:
       disabled: Disabled
       enabled: Enabled
       private: Private
+  date:
+    formats:
+      default: "%B %d, %Y"
+      long: "%B %d, %Y"
+      short: "%b %d"
+      month_year: "%B %Y"
   time:
     ago: "%{time} ago"
     ago_suffix: ago
@@ -1754,6 +1760,7 @@ en:
       default: "%B %d, %Y"
       long: "%B %d, %Y at %I:%M %p"
       short: "%b %d"
+      month_year: "%B %Y"
   votes:
     rate_limited: You're voting too quickly. Please wait before voting again.
     sign_in_to_vote: Sign in to vote
