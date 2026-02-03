@@ -6,7 +6,7 @@
       <% end %>
       <div class="mt-2 flex items-center justify-between">
         <h1 class="text-3xl font-bold text-gray-900"><%= @subscriber_tag.name %></h1>
-        <%= link_to t('actions.edit'), edit_admin_subscriber_tag_path(@subscriber_tag), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+        <%= link_to t('actions.edit'), edit_admin_subscriber_tag_path(@subscriber_tag), class: button_classes(variant: :secondary) %>
       </div>
     </div>
 

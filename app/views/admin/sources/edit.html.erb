@@ -16,7 +16,7 @@
         <h2 class="text-lg font-medium text-red-900"><%= t("admin.sources.edit_page.danger_zone") %></h2>
         <p class="mt-1 text-sm text-red-700"><%= t("admin.sources.edit_page.delete_warning") %></p>
         <div class="mt-4">
-          <%= button_to t("admin.sources.edit_page.delete"), admin_source_path(@source), method: :delete, data: { turbo_confirm: t("actions.confirm") }, class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700" %>
+          <%= button_to t("admin.sources.edit_page.delete"), admin_source_path(@source), method: :delete, data: { turbo_confirm: t("actions.confirm") }, class: button_classes(variant: :danger) %>
         </div>
       </div>
     </div>

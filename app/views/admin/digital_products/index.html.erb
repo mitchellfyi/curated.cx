@@ -5,7 +5,7 @@
       <p class="text-sm text-gray-500 mt-1"><%= t("admin.digital_products.description") %></p>
     </div>
     <% if Current.site.digital_products_enabled? %>
-      <%= link_to t("admin.digital_products.new"), new_admin_digital_product_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700" %>
+      <%= link_to t("admin.digital_products.new"), new_admin_digital_product_path, class: button_classes(variant: :primary) %>
     <% end %>
   </div>
 

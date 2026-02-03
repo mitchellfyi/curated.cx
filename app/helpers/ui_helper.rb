@@ -81,8 +81,16 @@ module UiHelper
       "bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500 border border-gray-300"
     when :danger
       "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 border border-transparent"
+    when :danger_outline
+      "bg-white text-red-700 hover:bg-red-50 focus:ring-red-500 border border-red-300"
+    when :warning_outline
+      "bg-yellow-50 text-yellow-700 hover:bg-yellow-100 focus:ring-yellow-500 border border-yellow-300"
+    when :info_outline
+      "bg-blue-50 text-blue-700 hover:bg-blue-100 focus:ring-blue-500 border border-blue-300"
     when :success
       "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 border border-transparent"
+    when :purple
+      "bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 border border-transparent"
     when :ghost
       "bg-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-500"
     else

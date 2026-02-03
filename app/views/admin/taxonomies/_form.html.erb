@@ -49,7 +49,7 @@
   </div>
 
   <div class="flex justify-end space-x-3">
-    <%= link_to t('actions.cancel'), admin_taxonomies_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
-    <%= form.submit class: "inline-flex items-center px-4 py-2 <%= button_classes(variant: :primary) %> cursor-pointer" %>
+    <%= link_to t('actions.cancel'), admin_taxonomies_path, class: button_classes(variant: :secondary) %>
+    <%= form.submit class: "#{button_classes(variant: :primary)} cursor-pointer" %>
   </div>
 <% end %>

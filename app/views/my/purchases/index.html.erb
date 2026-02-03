@@ -39,7 +39,7 @@
       <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t("my.purchases.empty.title") %></h3>
       <p class="mt-1 text-sm text-gray-500"><%= t("my.purchases.empty.description") %></p>
       <div class="mt-6">
-        <%= link_to products_path, class: "inline-flex items-center px-4 py-2 <%= button_classes(variant: :primary) %>" do %>
+        <%= link_to products_path, class: button_classes(variant: :primary) do %>
           <%= t("my.purchases.browse_products") %>
         <% end %>
       </div>

@@ -14,8 +14,8 @@
           <p class="mt-2 text-gray-600"><code class="bg-gray-100 px-2 py-1 rounded"><%= @taxonomy.slug %></code></p>
         </div>
         <div class="flex space-x-2">
-          <%= link_to t('actions.edit'), edit_admin_taxonomy_path(@taxonomy), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
-          <%= button_to t('actions.delete'), admin_taxonomy_path(@taxonomy), method: :delete, data: { confirm: t('admin.taxonomies.confirm_delete') }, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700" %>
+          <%= link_to t('actions.edit'), edit_admin_taxonomy_path(@taxonomy), class: button_classes(variant: :secondary) %>
+          <%= button_to t('actions.delete'), admin_taxonomy_path(@taxonomy), method: :delete, data: { confirm: t('admin.taxonomies.confirm_delete') }, class: button_classes(variant: :danger) %>
         </div>
       </div>
     </div>

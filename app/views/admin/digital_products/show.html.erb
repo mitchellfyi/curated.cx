@@ -16,8 +16,8 @@
           <p class="text-sm text-gray-500 mt-1">/<%= @digital_product.slug %></p>
         </div>
         <div class="space-x-2">
-          <%= link_to t("admin.common.edit"), edit_admin_digital_product_path(@digital_product), class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
-          <%= button_to t("admin.common.delete"), admin_digital_product_path(@digital_product), method: :delete, data: { confirm: t("admin.common.confirm_delete") }, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700" %>
+          <%= link_to t("admin.common.edit"), edit_admin_digital_product_path(@digital_product), class: button_classes(variant: :secondary) %>
+          <%= button_to t("admin.common.delete"), admin_digital_product_path(@digital_product), method: :delete, data: { confirm: t("admin.common.confirm_delete") }, class: button_classes(variant: :danger) %>
         </div>
       </div>
 

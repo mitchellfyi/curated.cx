@@ -96,7 +96,7 @@
   </fieldset>
 
   <div class="flex justify-end space-x-3">
-    <%= link_to t("admin.sources.form.cancel"), admin_sources_path, class: "<%= button_classes(variant: :secondary) %>" %>
+    <%= link_to t("admin.sources.form.cancel"), admin_sources_path, class: button_classes(variant: :secondary) %>
     <%= form.submit @source.persisted? ? t("admin.sources.form.update") : t("admin.sources.form.create"), class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" %>
   </div>
 <% end %>

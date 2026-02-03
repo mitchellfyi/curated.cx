@@ -5,7 +5,7 @@
       <p class="text-sm text-gray-500 mt-1"><%= t("admin.live_streams.index.description") %></p>
     </div>
     <% if Current.site.streaming_enabled? %>
-      <%= link_to t("admin.live_streams.index.new_stream"), new_admin_live_stream_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700" %>
+      <%= link_to t("admin.live_streams.index.new_stream"), new_admin_live_stream_path, class: button_classes(variant: :primary) %>
     <% end %>
   </div>
 

@@ -16,11 +16,11 @@
     </p>
 
     <div class="mt-8 space-x-4">
-      <%= link_to product_path(@digital_product.slug), class: "inline-flex items-center px-4 py-2 <%= button_classes(variant: :primary) %>" do %>
+      <%= link_to product_path(@digital_product.slug), class: button_classes(variant: :primary) do %>
         <%= t("digital_products.checkout.try_again") %>
       <% end %>
 
-      <%= link_to products_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+      <%= link_to products_path, class: button_classes(variant: :secondary) do %>
         <%= t("digital_products.back_to_products") %>
       <% end %>
     </div>
