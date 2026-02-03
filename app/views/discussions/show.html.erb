@@ -15,21 +15,9 @@
     <div class="flex items-start justify-between">
       <div class="flex-1">
         <div class="flex items-center gap-2 mb-2">
-          <% if @discussion.pinned? %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-              <%= t("discussions.pinned") %>
-            </span>
-          <% end %>
-          <% if @discussion.locked? %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-              <%= t("discussions.locked_badge") %>
-            </span>
-          <% end %>
-          <% if @discussion.visibility_subscribers_only? %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-              <%= t("discussions.subscribers_only") %>
-            </span>
-          <% end %>
+          <%= badge(t("discussions.pinned"), :yellow) if @discussion.pinned? %>
+          <%= badge(t("discussions.locked_badge"), :gray) if @discussion.locked? %>
+          <%= badge(t("discussions.subscribers_only"), :purple) if @discussion.visibility_subscribers_only? %>
         </div>
         <h1 class="text-2xl font-bold text-gray-900"><%= @discussion.title %></h1>
         <% if @discussion.body.present? %>

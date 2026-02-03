@@ -26,11 +26,7 @@
           <%= t("monetisation.badges.featured") %>
         </span>
       <% end %>
-      <% if @listing.paid? %>
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          <%= t("checkouts.paid") %>
-        </span>
-      <% end %>
+      <%= badge_success(t("checkouts.paid")) if @listing.paid? %>
     </div>
   </div>
 
