@@ -1,10 +1,31 @@
-<div class="container mx-auto px-4 py-8">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold"><%= t("admin.flags.index.title") %></h1>
-    <span class="text-sm text-gray-500">
-      <%= t("admin.flags.index.pending_count", count: @flags.count) %>
-    </span>
-  </div>
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.flags.index.title", default: "Content Flags") %></h1>
+        <p class="mt-2 text-gray-600">Review and resolve flagged content</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Pending</dt>
+        <dd class="mt-1 text-2xl font-semibold text-yellow-600"><%= @flags.count %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Resolved (24h)</dt>
+        <dd class="mt-1 text-2xl font-semibold text-green-600"><%= @resolved_flags.count { |f| f.reviewed_at && f.reviewed_at > 24.hours.ago } rescue 0 %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Content Items</dt>
+        <dd class="mt-1 text-2xl font-semibold text-blue-600"><%= @flags.count(&:content_item?) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Comments</dt>
+        <dd class="mt-1 text-2xl font-semibold text-purple-600"><%= @flags.count(&:comment?) %></dd>
+      </div>
+    </div>
 
   <%# Pending Flags Queue %>
   <div class="mb-8">
@@ -104,9 +125,10 @@
         </table>
       </div>
     <% else %>
-      <div class="bg-white shadow-md rounded-lg p-6 text-center text-gray-500">
-        <%= t("admin.flags.no_resolved_flags") %>
+      <div class="bg-white shadow rounded-lg p-6 text-center text-gray-500">
+        <%= t("admin.flags.no_resolved_flags", default: "No resolved flags yet") %>
       </div>
     <% end %>
+  </div>
   </div>
 </div>
