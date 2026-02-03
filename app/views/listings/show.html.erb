@@ -36,19 +36,11 @@
       <!-- Header -->
       <div class="px-6 py-8 border-b border-gray-200">
         <div class="flex items-center flex-wrap gap-2 mb-4">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            <%= @listing.category.name %>
-          </span>
+          <%= badge(@listing.category.name, :blue) %>
           <% if @listing.featured? %>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-              <%= t('monetisation.badges.featured') %>
-            </span>
+            <%= badge(t('monetisation.badges.featured'), :purple) %>
           <% end %>
-          <% if @listing.job? %>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              Job
-            </span>
-          <% end %>
+          <%= type_badge(@listing.listing_type) unless @listing.tool? %>
         </div>
 
         <h1 class="text-3xl font-bold text-gray-900 mb-4"><%= @listing.title %></h1>
@@ -184,9 +176,7 @@
           <h3 class="text-sm font-medium text-gray-700 mb-2">Tags</h3>
           <div class="flex flex-wrap gap-2">
             <% @listing.ai_tags['keywords'].each do |tag| %>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                <%= tag %>
-              </span>
+              <%= badge(tag, :gray) %>
             <% end %>
           </div>
         </div>
