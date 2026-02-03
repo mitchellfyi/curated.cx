@@ -55,13 +55,13 @@
     <h2 class="text-lg font-medium text-gray-900 mb-4"><%= t("admin.discussions.show.moderation") %></h2>
     <div class="flex flex-wrap gap-3">
       <% if @discussion.locked? %>
-        <%= button_to t("admin.discussions.actions.unlock"), unlock_admin_discussion_path(@discussion), method: :post, class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        <%= button_to t("admin.discussions.actions.unlock"), unlock_admin_discussion_path(@discussion), method: :post, class: "inline-flex items-center <%= button_classes(variant: :secondary) %> focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
       <% else %>
-        <%= button_to t("admin.discussions.actions.lock"), lock_admin_discussion_path(@discussion), method: :post, class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        <%= button_to t("admin.discussions.actions.lock"), lock_admin_discussion_path(@discussion), method: :post, class: "inline-flex items-center <%= button_classes(variant: :secondary) %> focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
       <% end %>
 
       <% if @discussion.pinned? %>
-        <%= button_to t("admin.discussions.actions.unpin"), unpin_admin_discussion_path(@discussion), method: :post, class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        <%= button_to t("admin.discussions.actions.unpin"), unpin_admin_discussion_path(@discussion), method: :post, class: "inline-flex items-center <%= button_classes(variant: :secondary) %> focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
       <% else %>
         <%= button_to t("admin.discussions.actions.pin"), pin_admin_discussion_path(@discussion), method: :post, class: "inline-flex items-center px-4 py-2 border border-yellow-300 rounded-md shadow-sm text-sm font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" %>
       <% end %>

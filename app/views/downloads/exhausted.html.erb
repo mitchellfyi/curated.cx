@@ -17,7 +17,7 @@
 
     <% if user_signed_in? %>
       <div class="mt-8">
-        <%= link_to my_purchases_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+        <%= link_to my_purchases_path, class: "inline-flex items-center px-4 py-2 <%= button_classes(variant: :primary) %>" do %>
           <%= t("downloads.exhausted.view_purchases") %>
         <% end %>
       </div>

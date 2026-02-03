@@ -49,6 +49,6 @@
 
   <div class="flex justify-end space-x-3">
     <%= link_to t('actions.cancel'), admin_tagging_rules_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
-    <%= form.submit class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer" %>
+    <%= form.submit class: "inline-flex items-center px-4 py-2 <%= button_classes(variant: :primary) %> cursor-pointer" %>
   </div>
 <% end %>

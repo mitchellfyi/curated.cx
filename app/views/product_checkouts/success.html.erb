@@ -16,7 +16,7 @@
     </p>
 
     <div class="mt-8">
-      <%= link_to products_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+      <%= link_to products_path, class: "inline-flex items-center px-4 py-2 <%= button_classes(variant: :primary) %>" do %>
         <%= t("digital_products.back_to_products") %>
       <% end %>
     </div>

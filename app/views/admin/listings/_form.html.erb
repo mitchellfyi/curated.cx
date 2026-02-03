@@ -218,7 +218,7 @@
   </fieldset>
 
   <div class="flex justify-end space-x-3">
-    <%= link_to t("actions.cancel"), admin_listings_path, class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= link_to t("actions.cancel"), admin_listings_path, class: "<%= button_classes(variant: :secondary) %>" %>
     <%= form.submit @listing.persisted? ? t("actions.update") : t("admin.listings.form.create"), class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 cursor-pointer" %>
   </div>
 <% end %>
