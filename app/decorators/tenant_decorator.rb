@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TenantDecorator < ApplicationDecorator
   # Tenant-specific presentation logic
 
