@@ -1,15 +1,39 @@
 <% content_for :title, t("admin.email_sequences.title") %>
 
-<div class="max-w-4xl mx-auto py-8 px-4">
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-3xl font-bold"><%= t("admin.email_sequences.title") %></h1>
-      <p class="text-gray-600 mt-1"><%= t("admin.email_sequences.description") %></p>
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.email_sequences.title") %></h1>
+        <p class="mt-2 text-gray-600"><%= t("admin.email_sequences.description") %></p>
+      </div>
+      <%= link_to new_admin_email_sequence_path, class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" do %>
+        <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <%= t("admin.email_sequences.new") %>
+      <% end %>
     </div>
-    <%= link_to t("admin.email_sequences.new"),
-                new_admin_email_sequence_path,
-                class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" %>
-  </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Sequences</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= @sequences.count %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Enabled</dt>
+        <dd class="mt-1 text-2xl font-semibold text-green-600"><%= @sequences.count(&:enabled?) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Steps</dt>
+        <dd class="mt-1 text-2xl font-semibold text-blue-600"><%= @sequences.sum { |s| s.email_steps.count } %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Enrollments</dt>
+        <dd class="mt-1 text-2xl font-semibold text-purple-600"><%= @sequences.sum { |s| s.sequence_enrollments.count } %></dd>
+      </div>
+    </div>
 
   <% if @sequences.any? %>
     <div class="bg-white rounded-lg shadow">
@@ -50,11 +74,21 @@
       </table>
     </div>
   <% else %>
-    <div class="bg-white rounded-lg shadow p-6 text-center">
-      <p class="text-gray-600 mb-4"><%= t("admin.email_sequences.no_sequences") %></p>
-      <%= link_to t("admin.email_sequences.create_first"),
-                  new_admin_email_sequence_path,
-                  class: "text-blue-600 hover:underline" %>
+    <div class="bg-white rounded-lg shadow p-12 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t("admin.email_sequences.no_sequences", default: "No email sequences") %></h3>
+      <p class="mt-1 text-sm text-gray-500">Create automated email sequences for your subscribers.</p>
+      <div class="mt-6">
+        <%= link_to new_admin_email_sequence_path, class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" do %>
+          <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          New Sequence
+        <% end %>
+      </div>
     </div>
   <% end %>
+  </div>
 </div>
