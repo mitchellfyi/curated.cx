@@ -1,0 +1,301 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">System Observability</h1>
+      <p class="mt-2 text-gray-600">Monitor imports, AI processing, and background jobs</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="border-b border-gray-200 mb-8">
+      <nav class="-mb-px flex space-x-8">
+        <%= link_to "Overview", admin_observability_path, 
+            class: "border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "Import Pipeline", imports_admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "AI Editorialisation", editorialisations_admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "SerpAPI Usage", serp_api_admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "Background Jobs →", "/admin/jobs",
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+      </nav>
+    </div>
+
+    <!-- Overview Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Import Stats -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Imports Today</p>
+              <p class="text-2xl font-semibold text-gray-900"><%= @stats[:imports_today] %></p>
+              <p class="text-xs text-gray-400"><%= @stats[:items_imported_today] %> items created</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+          <div class="text-sm">
+            <% if @stats[:failed_imports_today] > 0 %>
+              <span class="text-red-600 font-medium"><%= @stats[:failed_imports_today] %> failed</span>
+            <% else %>
+              <span class="text-green-600">All successful</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editorialisation Stats -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">AI Processing Today</p>
+              <p class="text-2xl font-semibold text-gray-900"><%= @stats[:editorialisations_completed] %></p>
+              <p class="text-xs text-gray-400"><%= @stats[:editorialisations_pending] %> pending</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+          <div class="text-sm">
+            <% if @stats[:editorialisations_failed] > 0 %>
+              <span class="text-red-600 font-medium"><%= @stats[:editorialisations_failed] %> failed</span>
+            <% else %>
+              <span class="text-green-600">All successful</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Stats -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Content Items</p>
+              <p class="text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@stats[:content_items_total]) %></p>
+              <p class="text-xs text-gray-400"><%= @stats[:content_items_published] %> published</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+          <div class="text-sm">
+            <span class="text-gray-600"><%= @stats[:content_items_editorialised] %> editorialised</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Background Jobs Stats -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Background Jobs</p>
+              <p class="text-2xl font-semibold text-gray-900"><%= @stats[:jobs_pending] %></p>
+              <p class="text-xs text-gray-400">pending in queue</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+          <div class="text-sm">
+            <% if @stats[:jobs_failed] > 0 %>
+              <span class="text-red-600 font-medium"><%= @stats[:jobs_failed] %> failed</span>
+            <% else %>
+              <span class="text-green-600">No failures</span>
+            <% end %>
+            · <%= link_to "View all →", "/admin/jobs", class: "text-blue-600 hover:underline" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SerpAPI Usage Alert -->
+    <% if @serp_api_stats[:monthly][:percent_used] > 80 %>
+      <div class="rounded-md bg-yellow-50 p-4 mb-8">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-yellow-800">SerpAPI Usage Warning</h3>
+            <div class="mt-2 text-sm text-yellow-700">
+              <p>You've used <%= @serp_api_stats[:monthly][:percent_used] %>% of your monthly SerpAPI quota (<%= @serp_api_stats[:monthly][:used] %>/<%= @serp_api_stats[:monthly][:limit] %> searches).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Recent Import Runs -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Import Runs</h3>
+            <%= link_to "View all →", imports_admin_observability_path, class: "text-sm text-blue-600 hover:underline" %>
+          </div>
+        </div>
+        <ul class="divide-y divide-gray-200">
+          <% @recent_import_runs.each do |run| %>
+            <li class="px-4 py-4 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <% case run.status %>
+                  <% when "completed" %>
+                    <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-green-400"></span>
+                  <% when "failed" %>
+                    <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                  <% else %>
+                    <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
+                  <% end %>
+                  <p class="ml-3 text-sm font-medium text-gray-900 truncate">
+                    <%= run.source.name %>
+                  </p>
+                </div>
+                <div class="ml-2 flex-shrink-0 flex">
+                  <p class="text-sm text-gray-500">
+                    <% if run.completed? %>
+                      +<%= run.items_created %> items
+                    <% elsif run.failed? %>
+                      <span class="text-red-600">Error</span>
+                    <% else %>
+                      Running...
+                    <% end %>
+                  </p>
+                </div>
+              </div>
+              <div class="mt-1 text-xs text-gray-400">
+                <%= time_ago_in_words(run.started_at) %> ago
+                <% if run.source.kind.start_with?("serp_api") %>
+                  · <span class="text-purple-600"><%= run.source.kind.gsub("serp_api_", "").titleize %></span>
+                <% end %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+
+      <!-- Recent AI Processing -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Recent AI Processing</h3>
+            <%= link_to "View all →", editorialisations_admin_observability_path, class: "text-sm text-blue-600 hover:underline" %>
+          </div>
+        </div>
+        <ul class="divide-y divide-gray-200">
+          <% @recent_editorialisations.each do |ed| %>
+            <li class="px-4 py-4 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <% case ed.status %>
+                  <% when "completed" %>
+                    <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-green-400"></span>
+                  <% when "failed" %>
+                    <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                  <% when "skipped" %>
+                    <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+                  <% else %>
+                    <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
+                  <% end %>
+                  <p class="ml-3 text-sm font-medium text-gray-900 truncate" style="max-width: 250px;">
+                    <%= ed.content_item&.title || "Unknown" %>
+                  </p>
+                </div>
+                <div class="ml-2 flex-shrink-0 flex">
+                  <p class="text-sm text-gray-500">
+                    <% if ed.completed? && ed.tokens_used %>
+                      <%= ed.tokens_used %> tokens
+                    <% elsif ed.skipped? %>
+                      <span class="text-gray-400">Skipped</span>
+                    <% elsif ed.failed? %>
+                      <span class="text-red-600">Failed</span>
+                    <% end %>
+                  </p>
+                </div>
+              </div>
+              <div class="mt-1 text-xs text-gray-400">
+                <%= time_ago_in_words(ed.created_at) %> ago
+                <% if ed.duration_ms %>
+                  · <%= (ed.duration_ms / 1000.0).round(2) %>s
+                <% end %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SerpAPI Usage Summary -->
+    <div class="mt-8 bg-white shadow rounded-lg">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">SerpAPI Usage</h3>
+          <%= link_to "Details →", serp_api_admin_observability_path, class: "text-sm text-blue-600 hover:underline" %>
+        </div>
+      </div>
+      <div class="px-4 py-5 sm:p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Monthly Usage</dt>
+            <dd class="mt-1 flex items-baseline">
+              <span class="text-2xl font-semibold text-gray-900"><%= @serp_api_stats[:monthly][:used] %></span>
+              <span class="ml-2 text-sm text-gray-500">/ <%= @serp_api_stats[:monthly][:limit] %></span>
+            </dd>
+            <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+              <div class="<%= @serp_api_stats[:monthly][:percent_used] > 80 ? 'bg-yellow-500' : 'bg-blue-500' %> h-2 rounded-full" style="width: <%= [@serp_api_stats[:monthly][:percent_used], 100].min %>%"></div>
+            </div>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Today's Usage</dt>
+            <dd class="mt-1 flex items-baseline">
+              <span class="text-2xl font-semibold text-gray-900"><%= @serp_api_stats[:daily][:used] %></span>
+              <span class="ml-2 text-sm text-gray-500">/ <%= @serp_api_stats[:daily][:soft_limit] %> soft limit</span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Projected Monthly</dt>
+            <dd class="mt-1 flex items-baseline">
+              <span class="text-2xl font-semibold <%= @serp_api_stats[:projections][:on_track] ? 'text-green-600' : 'text-red-600' %>">
+                <%= @serp_api_stats[:projections][:projected_monthly_total] %>
+              </span>
+              <span class="ml-2 text-sm text-gray-500">
+                <%= @serp_api_stats[:projections][:on_track] ? '✓ On track' : '⚠ Over budget' %>
+              </span>
+            </dd>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

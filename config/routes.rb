@@ -1,10 +1,26 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  # Mission Control for background job monitoring (admin only)
+  authenticate :user, ->(user) { user.admin? } do
+    mount MissionControl::Jobs::Engine, at: "/admin/jobs"
+  end
+
   # Admin routes with proper RESTful routing
   namespace :admin do
     get "dashboard/index"
     root "dashboard#index"
+
+    # Observability dashboard
+    resource :observability, only: [:show], controller: "observability" do
+      get :imports
+      get :editorialisations
+      get :serp_api
+    end
+
+    # Import runs management
+    resources :import_runs, only: [:index, :show]
+
     resources :categories
     resources :listings do
       member do

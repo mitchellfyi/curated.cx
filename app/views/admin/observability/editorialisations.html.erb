@@ -1,0 +1,169 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">AI Editorialisation Pipeline</h1>
+      <p class="mt-2 text-gray-600">Monitor AI content processing and token usage</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="border-b border-gray-200 mb-8">
+      <nav class="-mb-px flex space-x-8">
+        <%= link_to "Overview", admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "Import Pipeline", imports_admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "AI Editorialisation", editorialisations_admin_observability_path,
+            class: "border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "SerpAPI Usage", serp_api_admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "Background Jobs →", "/admin/jobs",
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+      </nav>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total (24h)</dt>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @stats[:total_24h] %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Completed</dt>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @stats[:by_status]["completed"] || 0 %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Failed</dt>
+        <dd class="mt-1 text-3xl font-semibold text-red-600"><%= @stats[:by_status]["failed"] || 0 %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Pending Queue</dt>
+        <dd class="mt-1 text-3xl font-semibold text-yellow-600"><%= @stats[:pending_content_items] %></dd>
+      </div>
+    </div>
+
+    <!-- Token Usage Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Total Tokens (24h)</dt>
+        <dd class="mt-1 text-2xl font-semibold text-purple-600"><%= number_with_delimiter(@stats[:total_tokens_24h]) %></dd>
+        <p class="text-xs text-gray-400 mt-1">≈ $<%= (@stats[:total_tokens_24h] * 0.00015).round(4) %> (gpt-4o-mini)</p>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Avg Tokens/Item</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@stats[:avg_tokens]) %></dd>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg p-5">
+        <dt class="text-sm font-medium text-gray-500 truncate">Avg Duration</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-900"><%= (@stats[:avg_duration_ms] / 1000.0).round(2) %>s</dd>
+      </div>
+    </div>
+
+    <!-- Status Breakdown -->
+    <div class="bg-white shadow rounded-lg mb-8">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Status Breakdown (24h)</h3>
+      </div>
+      <div class="px-4 py-5 sm:p-6">
+        <div class="flex flex-wrap gap-4">
+          <% @stats[:by_status].each do |status, count| %>
+            <div class="flex items-center">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                <%= status == 'completed' ? 'bg-green-100 text-green-800' : 
+                    status == 'failed' ? 'bg-red-100 text-red-800' :
+                    status == 'skipped' ? 'bg-gray-100 text-gray-800' :
+                    status == 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-blue-100 text-blue-800' %>">
+                <%= status.titleize %>: <%= count %>
+              </span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Editorialisations Table -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Recent AI Processing</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Content Item</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @editorialisations.each do |ed| %>
+              <tr>
+                <td class="px-6 py-4">
+                  <div class="text-sm font-medium text-gray-900 truncate" style="max-width: 300px;">
+                    <%= ed.content_item&.title || "Unknown" %>
+                  </div>
+                  <div class="text-xs text-gray-500"><%= ed.site&.name %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= ed.created_at.strftime("%Y-%m-%d %H:%M") %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% case ed.status %>
+                  <% when "completed" %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
+                  <% when "failed" %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Failed</span>
+                  <% when "skipped" %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Skipped</span>
+                  <% when "pending" %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Processing</span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= ed.ai_model || "-" %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= ed.tokens_used ? number_with_delimiter(ed.tokens_used) : "-" %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= ed.duration_ms ? "#{(ed.duration_ms / 1000.0).round(2)}s" : "-" %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <%= link_to "View", admin_editorialisation_path(ed), class: "text-blue-600 hover:underline mr-3" %>
+                  <% if ed.failed? %>
+                    <%= button_to "Retry", retry_admin_editorialisation_path(ed), method: :post, class: "text-green-600 hover:underline", form: { class: "inline" } %>
+                  <% end %>
+                </td>
+              </tr>
+              <% if ed.failed? && ed.error_message.present? %>
+                <tr class="bg-red-50">
+                  <td colspan="7" class="px-6 py-2 text-sm text-red-700">
+                    <strong>Error:</strong> <%= truncate(ed.error_message, length: 200) %>
+                  </td>
+                </tr>
+              <% end %>
+              <% if ed.skipped? && ed.error_message.present? %>
+                <tr class="bg-gray-50">
+                  <td colspan="7" class="px-6 py-2 text-sm text-gray-600">
+                    <strong>Reason:</strong> <%= ed.error_message %>
+                  </td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      <% if @editorialisations.respond_to?(:total_pages) && @editorialisations.total_pages > 1 %>
+        <div class="px-4 py-3 border-t border-gray-200">
+          <%= paginate @editorialisations %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,256 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">SerpAPI Usage</h1>
+      <p class="mt-2 text-gray-600">Monitor search API quota and usage across all tenants</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="border-b border-gray-200 mb-8">
+      <nav class="-mb-px flex space-x-8">
+        <%= link_to "Overview", admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "Import Pipeline", imports_admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "AI Editorialisation", editorialisations_admin_observability_path,
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "SerpAPI Usage", serp_api_admin_observability_path,
+            class: "border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+        <%= link_to "Background Jobs →", "/admin/jobs",
+            class: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+      </nav>
+    </div>
+
+    <!-- Warning Banner if Over Budget -->
+    <% unless @stats[:projections][:on_track] %>
+      <div class="rounded-md bg-red-50 p-4 mb-8">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">Projected to exceed monthly limit!</h3>
+            <div class="mt-2 text-sm text-red-700">
+              <p>At current rate, you'll use ~<%= @stats[:projections][:projected_monthly_total] %> searches this month (limit: <%= @stats[:monthly][:limit] %>). Consider reducing source frequency or disabling some sources.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Main Usage Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- Monthly Usage Card -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <dt class="text-sm font-medium text-gray-500 truncate">Monthly Usage</dt>
+              <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                <%= @stats[:monthly][:used] %>
+                <span class="text-lg text-gray-500">/ <%= @stats[:monthly][:limit] %></span>
+              </dd>
+            </div>
+            <div class="text-right">
+              <span class="text-2xl font-bold <%= @stats[:monthly][:percent_used] > 80 ? 'text-yellow-500' : 'text-blue-500' %>">
+                <%= @stats[:monthly][:percent_used] %>%
+              </span>
+              <p class="text-xs text-gray-400">used</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div class="<%= @stats[:monthly][:percent_used] > 80 ? 'bg-yellow-500' : @stats[:monthly][:percent_used] > 50 ? 'bg-blue-500' : 'bg-green-500' %> h-3 rounded-full transition-all" style="width: <%= [@stats[:monthly][:percent_used], 100].min %>%"></div>
+            </div>
+          </div>
+          <p class="mt-2 text-xs text-gray-500">
+            <%= @stats[:monthly][:remaining] %> searches remaining this month
+          </p>
+        </div>
+      </div>
+
+      <!-- Daily Usage Card -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <dt class="text-sm font-medium text-gray-500 truncate">Today's Usage</dt>
+          <dd class="mt-1 text-3xl font-semibold text-gray-900">
+            <%= @stats[:daily][:used] %>
+            <span class="text-lg text-gray-500">/ <%= @stats[:daily][:soft_limit] %></span>
+          </dd>
+          <p class="mt-2 text-xs text-gray-500">
+            Soft limit to spread usage evenly
+          </p>
+          <p class="mt-1 text-xs <%= @stats[:daily][:remaining] > 0 ? 'text-green-600' : 'text-yellow-600' %>">
+            <%= @stats[:daily][:remaining] > 0 ? "#{@stats[:daily][:remaining]} remaining today" : "Daily soft limit reached" %>
+          </p>
+        </div>
+      </div>
+
+      <!-- Projection Card -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <dt class="text-sm font-medium text-gray-500 truncate">Projected Monthly Total</dt>
+          <dd class="mt-1 text-3xl font-semibold <%= @stats[:projections][:on_track] ? 'text-green-600' : 'text-red-600' %>">
+            <%= @stats[:projections][:projected_monthly_total] %>
+          </dd>
+          <p class="mt-2 text-sm <%= @stats[:projections][:on_track] ? 'text-green-600' : 'text-red-600' %>">
+            <% if @stats[:projections][:on_track] %>
+              ✓ On track to stay within limit
+            <% else %>
+              ⚠ Projected to exceed limit by <%= @stats[:projections][:projected_monthly_total] - @stats[:monthly][:limit] %>
+            <% end %>
+          </p>
+          <p class="mt-1 text-xs text-gray-500">
+            <%= @stats[:projections][:days_remaining_in_month] %> days remaining in month
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usage Chart (last 30 days) -->
+    <div class="bg-white shadow rounded-lg mb-8">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Daily Usage (Last 30 Days)</h3>
+      </div>
+      <div class="p-6">
+        <div class="h-48 flex items-end space-x-1">
+          <% max_daily = [@daily_usage.values.max || 1, 1].max %>
+          <% 30.downto(0).each do |days_ago| %>
+            <% date = days_ago.days.ago.to_date.to_s %>
+            <% count = @daily_usage[date] || 0 %>
+            <% height_pct = (count.to_f / max_daily * 100).round %>
+            <div class="flex-1 group relative">
+              <div class="bg-blue-500 hover:bg-blue-600 rounded-t transition-all" style="height: <%= [height_pct, 5].max %>%;"></div>
+              <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                <%= date %>: <%= count %> searches
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <div class="flex justify-between mt-2 text-xs text-gray-500">
+          <span>30 days ago</span>
+          <span>Today</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SerpAPI Sources -->
+    <div class="bg-white shadow rounded-lg mb-8">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">SerpAPI Sources (<%= @sources.count %>)</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interval</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Run</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @sources.each do |source| %>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900"><%= source.name %></div>
+                  <div class="text-xs text-gray-500"><%= source.config["query"] %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= source.site.name %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    <%= source.serp_api_google_news? ? 'bg-blue-100 text-blue-800' :
+                        source.serp_api_google_jobs? ? 'bg-green-100 text-green-800' :
+                        'bg-purple-100 text-purple-800' %>">
+                    <%= source.kind.gsub('serp_api_', '').titleize %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <% interval = source.schedule_interval_seconds %>
+                  <% if interval %>
+                    Every <%= distance_of_time_in_words(interval) %>
+                  <% else %>
+                    Not scheduled
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% if source.enabled? %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Enabled</span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Disabled</span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= source.last_run_at ? time_ago_in_words(source.last_run_at) + " ago" : "Never" %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <%= link_to "View", admin_source_path(source), class: "text-blue-600 hover:underline" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent SerpAPI Runs -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Recent SerpAPI Runs</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @recent_runs.each do |run| %>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900"><%= run.source.name %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    <%= run.source.kind.gsub('serp_api_', '').titleize %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= run.started_at.strftime("%Y-%m-%d %H:%M") %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% case run.status %>
+                  <% when "completed" %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
+                  <% when "failed" %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Failed</span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Running</span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <span class="text-green-600">+<%= run.items_created %></span>
+                  <% if run.items_updated > 0 %>
+                    / <span class="text-blue-600"><%= run.items_updated %> updated</span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
