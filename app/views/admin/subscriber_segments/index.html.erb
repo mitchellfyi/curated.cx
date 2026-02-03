@@ -34,23 +34,11 @@
                   <%= link_to segment.name, admin_subscriber_segment_path(segment), class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <% if segment.system_segment? %>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      <%= t('admin.subscriber_segments.types.system') %>
-                    </span>
-                  <% else %>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      <%= t('admin.subscriber_segments.types.custom') %>
-                    </span>
-                  <% end %>
+                  <%= badge(segment.system_segment? ? t('admin.subscriber_segments.types.system') : t('admin.subscriber_segments.types.custom'), segment.system_segment? ? :purple : :gray) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= segment.subscribers_count %></td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <% if segment.enabled? %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"><%= t('admin.common.enabled') %></span>
-                  <% else %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"><%= t('admin.common.disabled') %></span>
-                  <% end %>
+                  <%= status_indicator(segment.enabled? ? :enabled : :disabled) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                   <%= link_to t('actions.view'), admin_subscriber_segment_path(segment), class: "text-gray-600 hover:text-gray-500" %>

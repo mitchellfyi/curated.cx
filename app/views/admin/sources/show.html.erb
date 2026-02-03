@@ -30,9 +30,7 @@
           <div class="px-4 py-5 bg-gray-50 shadow rounded-lg overflow-hidden sm:p-6">
             <dt class="text-sm font-medium text-gray-500 truncate"><%= t("admin.sources.status") %></dt>
             <dd class="mt-1 text-lg font-semibold">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium <%= @source.enabled? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-                <%= @source.enabled? ? t("admin.sources.enabled") : t("admin.sources.disabled") %>
-              </span>
+              <%= status_indicator(@source.enabled? ? :enabled : :disabled) %>
             </dd>
           </div>
           <div class="px-4 py-5 bg-gray-50 shadow rounded-lg overflow-hidden sm:p-6">
@@ -104,14 +102,7 @@
                       <%= run.started_at.strftime("%Y-%m-%d %H:%M:%S") %>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <% status_class = case run.status
-                         when "completed" then "bg-green-100 text-green-800"
-                         when "failed" then "bg-red-100 text-red-800"
-                         else "bg-yellow-100 text-yellow-800"
-                         end %>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= status_class %>">
-                        <%= run.status.humanize %>
-                      </span>
+                      <%= status_indicator(run.status) %>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <%= run.duration ? "#{run.duration.round(1)}s" : "-" %>
