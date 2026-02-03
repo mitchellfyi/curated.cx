@@ -47,21 +47,8 @@
                 <%= tenant.hostname %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <% if tenant.enabled? %>
-                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                    <%= t('tenants.status.enabled') %>
-                  </span>
-                <% else %>
-                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                    <%= t('tenants.status.disabled') %>
-                  </span>
-                <% end %>
-
-                <% if tenant.private_access? %>
-                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 ml-1">
-                    <%= t('tenants.status.private') %>
-                  </span>
-                <% end %>
+                <%= tenant.enabled? ? badge_success(t('tenants.status.enabled')) : badge_danger(t('tenants.status.disabled')) %>
+                <%= badge_warning(t('tenants.status.private')) if tenant.private_access? %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <%= l(tenant.created_at, format: :short) %>
