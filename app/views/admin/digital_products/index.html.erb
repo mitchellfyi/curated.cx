@@ -1,13 +1,19 @@
-<div class="container mx-auto px-4 py-8">
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-2xl font-bold"><%= t("admin.digital_products.title") %></h1>
-      <p class="text-sm text-gray-500 mt-1"><%= t("admin.digital_products.description") %></p>
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.digital_products.title") %></h1>
+        <p class="mt-2 text-gray-600"><%= t("admin.digital_products.description") %></p>
+      </div>
+      <% if Current.site.digital_products_enabled? %>
+        <%= link_to new_admin_digital_product_path, class: button_classes(variant: :primary) do %>
+          <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <%= t("admin.digital_products.new") %>
+        <% end %>
+      <% end %>
     </div>
-    <% if Current.site.digital_products_enabled? %>
-      <%= link_to t("admin.digital_products.new"), new_admin_digital_product_path, class: button_classes(variant: :primary) %>
-    <% end %>
-  </div>
 
   <% unless Current.site.digital_products_enabled? %>
     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -94,8 +100,23 @@
       </table>
     </div>
   <% else %>
-    <div class="bg-white shadow-md rounded-lg p-6 text-center text-gray-500">
-      <%= t("admin.digital_products.no_products") %>
+    <div class="bg-white shadow rounded-lg p-12 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No products yet</h3>
+      <p class="mt-1 text-sm text-gray-500"><%= t("admin.digital_products.no_products") %></p>
+      <% if Current.site.digital_products_enabled? %>
+        <div class="mt-6">
+          <%= link_to new_admin_digital_product_path, class: button_classes(variant: :primary) do %>
+            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <%= t("admin.digital_products.new") %>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   <% end %>
+  </div>
 </div>
