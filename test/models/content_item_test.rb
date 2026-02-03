@@ -33,7 +33,7 @@ class ContentItemTest < ActiveSupport::TestCase
       title: "Test Article",
       description: "A test article description",
       raw_payload: { "title" => "Test Article" },
-      tags: ["tech", "news"]
+      tags: [ "tech", "news" ]
     )
   end
 

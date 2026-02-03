@@ -45,7 +45,6 @@ class FeedsController < ApplicationController
 
   def content_items_for_feed
     ContentItem
-      
       .published
       .not_hidden
       .order(published_at: :desc)
@@ -54,7 +53,6 @@ class FeedsController < ApplicationController
 
   def listings_for_feed
     Listing
-      
       .published
       .not_expired
       .order(published_at: :desc)

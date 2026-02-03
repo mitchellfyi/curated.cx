@@ -110,7 +110,7 @@ module UiHelper
 
   # Card wrapper for consistent card styling
   def card_classes(padding: true, shadow: true, hover: false)
-    classes = ["bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"]
+    classes = [ "bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700" ]
     classes << "p-6" if padding
     classes << "shadow-sm" if shadow
     classes << "hover:shadow-md transition-shadow" if hover

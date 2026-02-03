@@ -40,13 +40,13 @@ class DomainTest < ActiveSupport::TestCase
 
   test "should require unique hostname globally" do
     @domain.save!
-    
+
     other_site = Site.create!(
       tenant: @tenant,
       name: "Other Site",
       slug: "other_site_domain"
     )
-    
+
     duplicate = Domain.new(
       site: other_site,
       hostname: "test-domain.example.com"  # Same hostname
