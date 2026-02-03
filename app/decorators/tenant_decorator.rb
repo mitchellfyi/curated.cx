@@ -26,16 +26,7 @@ class TenantDecorator < ApplicationDecorator
 
   # Status and metadata
   def status_badge
-    case status
-    when "enabled"
-      h.content_tag :span, "Active", class: "badge badge-success"
-    when "disabled"
-      h.content_tag :span, "Disabled", class: "badge badge-danger"
-    when "maintenance"
-      h.content_tag :span, "Maintenance", class: "badge badge-warning"
-    else
-      h.content_tag :span, status.humanize, class: "badge badge-secondary"
-    end
+    h.status_indicator(status)
   end
 
   def enabled_categories_list

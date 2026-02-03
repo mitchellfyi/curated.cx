@@ -20,7 +20,7 @@ class ApplicationDecorator < Draper::Decorator
     status = object.send(status_attribute)
     return nil unless status.present?
 
-    h.content_tag(:span, status.humanize, class: "badge badge-#{status}")
+    h.status_indicator(status)
   end
 
   # Avatar/image placeholder helper
