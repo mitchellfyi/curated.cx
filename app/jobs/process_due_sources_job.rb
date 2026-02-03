@@ -9,7 +9,8 @@ class ProcessDueSourcesJob < ApplicationJob
   JOB_MAPPING = {
     "serp_api_google_news" => SerpApiIngestionJob,
     "rss" => FetchRssJob,
-    "serp_api_google_jobs" => SerpApiJobsIngestionJob
+    "serp_api_google_jobs" => SerpApiJobsIngestionJob,
+    "serp_api_youtube" => SerpApiYoutubeIngestionJob
   }.freeze
 
   def perform
