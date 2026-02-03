@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
-    "@hotwired/turbo-rails": "^8.0.18",
+    "@hotwired/turbo-rails": "^8.0.23",
     "@mux/mux-player": "^3.10.2",
     "@rails/actiontext": "^8.1.200",
     "@tailwindcss/cli": "^4.1.13",
