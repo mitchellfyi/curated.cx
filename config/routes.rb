@@ -32,6 +32,7 @@ Rails.application.routes.draw do
     resources :workflow_pauses, only: [ :index, :create, :destroy ] do
       collection do
         post :pause
+        get :backlog
       end
       member do
         post :resume

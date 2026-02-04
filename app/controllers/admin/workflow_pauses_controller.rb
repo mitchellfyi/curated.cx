@@ -72,6 +72,17 @@ module Admin
       destroy
     end
 
+    # GET /admin/workflow_pauses/backlog
+    def backlog
+      workflow_type = params[:workflow_type]
+      size = WorkflowPauseService.backlog_size(workflow_type, tenant: current_tenant_for_pause)
+
+      render json: {
+        workflow_type: workflow_type,
+        backlog_size: size
+      }
+    end
+
     private
 
     def require_admin_for_global
