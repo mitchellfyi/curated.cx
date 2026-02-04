@@ -24,35 +24,46 @@ class AiUsageTracker
   }.freeze
 
   class RateLimitExceeded < StandardError; end
+  CostLimitExceeded = RateLimitExceeded # Alias for backward compatibility
+
+  # Cost-based limits (in cents)
+  MONTHLY_COST_LIMIT_CENTS = ENV.fetch("AI_MONTHLY_COST_LIMIT_CENTS", 10_000).to_i
+  DAILY_COST_SOFT_LIMIT_CENTS = ENV.fetch("AI_DAILY_COST_LIMIT_CENTS", (MONTHLY_COST_LIMIT_CENTS / 31.0).ceil).to_i
 
   class << self
     # Track a completed AI request
-    def track!(tokens_in:, tokens_out:, model:, editorialisation: nil, tenant: nil)
-      cost_cents = calculate_cost(tokens_in, tokens_out, model)
+    # Accepts both old (tokens_in/tokens_out) and new (input_tokens/output_tokens) parameter names
+    def track!(input_tokens: nil, output_tokens: nil, tokens_in: nil, tokens_out: nil,
+               model: "default", editorialisation: nil, tenant: nil, cost_cents: nil)
+      # Support both parameter naming conventions
+      actual_input = input_tokens || tokens_in || 0
+      actual_output = output_tokens || tokens_out || 0
+
+      calculated_cost = cost_cents || calculate_cost(actual_input, actual_output, model)
 
       if editorialisation
         editorialisation.update!(
-          input_tokens: tokens_in,
-          output_tokens: tokens_out,
-          estimated_cost_cents: cost_cents
+          input_tokens: actual_input,
+          output_tokens: actual_output,
+          estimated_cost_cents: calculated_cost
         )
       end
 
       Rails.logger.info(
-        "[AiUsageTracker] Tracked: in=#{tokens_in} out=#{tokens_out} " \
-        "model=#{model} cost=#{cost_cents}¢ tenant=#{tenant&.id || 'global'}"
+        "[AiUsageTracker] Tracked: in=#{actual_input} out=#{actual_output} " \
+        "model=#{model} cost=#{calculated_cost}¢ tenant=#{tenant&.id || 'global'}"
       )
 
-      { tokens_in: tokens_in, tokens_out: tokens_out, cost_cents: cost_cents }
+      { input_tokens: actual_input, output_tokens: actual_output, cost_cents: calculated_cost }
     end
 
-    # Check if we're within limits
+    # Check if we're within limits (cost-based)
     def allow?
-      monthly_remaining.positive?
+      monthly_cost_used <= MONTHLY_COST_LIMIT_CENTS
     end
 
     def allow_today?
-      daily_remaining.positive?
+      daily_cost_used <= DAILY_COST_SOFT_LIMIT_CENTS
     end
 
     def can_make_request?
@@ -62,11 +73,11 @@ class AiUsageTracker
     # Raise if over limit
     def check!
       unless allow?
-        raise RateLimitExceeded, "Monthly AI token limit exceeded: #{monthly_used}/#{MONTHLY_TOKEN_LIMIT}"
+        raise CostLimitExceeded, "Monthly AI cost limit exceeded: #{monthly_cost_used}¢/#{MONTHLY_COST_LIMIT_CENTS}¢"
       end
 
       unless allow_today?
-        Rails.logger.warn("AI daily soft limit reached: #{daily_used}/#{DAILY_SOFT_LIMIT}")
+        Rails.logger.warn("AI daily soft limit reached: #{daily_cost_used}¢/#{DAILY_COST_SOFT_LIMIT_CENTS}¢")
       end
 
       true
@@ -101,6 +112,15 @@ class AiUsageTracker
           soft_limit: DAILY_SOFT_LIMIT,
           remaining: daily_remaining(tenant)
         },
+        tokens: {
+          monthly: {
+            used: monthly_used(tenant),
+            limit: MONTHLY_TOKEN_LIMIT
+          },
+          daily: {
+            used: daily_used(tenant)
+          }
+        },
         costs: {
           monthly_cents: monthly_cost(tenant),
           daily_cents: daily_cost(tenant),
@@ -109,7 +129,7 @@ class AiUsageTracker
         cost: {
           monthly: {
             used_cents: monthly_cost(tenant),
-            limit_cents: 10_000  # $100 monthly limit
+            limit_cents: MONTHLY_COST_LIMIT_CENTS
           }
         },
         projections: {

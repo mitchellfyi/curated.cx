@@ -262,7 +262,7 @@ RSpec.describe DigestSubscription, type: :model do
         expect(subscription.confirmation_token.length).to be >= 32
       end
 
-      it "sends confirmation email on create", :perform_enqueued_jobs, skip: "Pending investigation" do
+      it "sends confirmation email on create" do
         expect {
           create(:digest_subscription, user: user, site: site)
         }.to have_enqueued_mail(DigestMailer, :confirmation)

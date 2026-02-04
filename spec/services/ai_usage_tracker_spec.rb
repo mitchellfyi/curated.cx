@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe AiUsageTracker, skip: "Pending investigation - pre-existing failures" do
+RSpec.describe AiUsageTracker do
   before do
     # Clear any cached values between tests
     stub_const("AiUsageTracker::MONTHLY_COST_LIMIT_CENTS", 10_000)

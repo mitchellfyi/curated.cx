@@ -129,11 +129,20 @@ module Admin
     end
 
     def build_editorialisation_stats
+      # Build status counts with string keys
+      status_counts = Editorialisation.where("created_at > ?", 24.hours.ago)
+                                      .group(:status).count
+                                      .transform_keys do |k|
+                                        # Handle both integer enum values and string status names
+                                        if k.is_a?(Integer)
+                                          Editorialisation.statuses.key(k) || k.to_s
+                                        else
+                                          k.to_s
+                                        end
+                                      end
       {
         total_24h: Editorialisation.where("created_at > ?", 24.hours.ago).count,
-        by_status: Editorialisation.where("created_at > ?", 24.hours.ago)
-                                   .group(:status).count
-                                   .transform_keys { |k| Editorialisation.statuses.key(k) },
+        by_status: status_counts,
         avg_tokens: Editorialisation.completed
                                     .where("created_at > ?", 24.hours.ago)
                                     .average(:tokens_used)&.round || 0,

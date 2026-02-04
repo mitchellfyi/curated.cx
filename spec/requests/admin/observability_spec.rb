@@ -247,7 +247,7 @@ RSpec.describe "Admin::Observability", type: :request do
           )
         end
 
-        it "calculates stats correctly", skip: "Pending investigation" do
+        it "calculates stats correctly" do
           get editorialisations_admin_observability_path
           stats = assigns(:stats)
 
