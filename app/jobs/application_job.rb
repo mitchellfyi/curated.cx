@@ -6,10 +6,10 @@ require_dependency "application_error"
 
 class ApplicationJob < ActiveJob::Base
   # Retry transient external service errors (API timeouts, network issues)
-  retry_on ExternalServiceError, wait: :exponentially_longer, attempts: 3
+  retry_on ExternalServiceError, wait: :polynomially_longer, attempts: 3
 
   # Retry DNS errors (may be temporary network issues)
-  retry_on DnsError, wait: :exponentially_longer, attempts: 3
+  retry_on DnsError, wait: :polynomially_longer, attempts: 3
 
   # Discard jobs that encounter permanent configuration errors
   discard_on ConfigurationError

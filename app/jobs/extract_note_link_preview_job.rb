@@ -5,7 +5,7 @@ class ExtractNoteLinkPreviewJob < ApplicationJob
   queue_as :default
 
   # Retry on network errors
-  retry_on LinkPreviewService::ExtractionError, wait: :exponentially_longer, attempts: 3
+  retry_on LinkPreviewService::ExtractionError, wait: :polynomially_longer, attempts: 3
 
   # Discard if the note was deleted
   discard_on ActiveRecord::RecordNotFound

@@ -12,7 +12,7 @@ require_relative "application_error"
 #   - AiConfigurationError: Missing API key or bad config (non-retryable)
 #
 # Usage in Jobs:
-#   retry_on AiApiError, wait: :exponentially_longer, attempts: 3
+#   retry_on AiApiError, wait: :polynomially_longer, attempts: 3
 #   retry_on AiRateLimitError, wait: 60.seconds, attempts: 5
 #   discard_on AiInvalidResponseError
 #   discard_on AiConfigurationError

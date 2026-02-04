@@ -12,7 +12,7 @@
 #   - DnsError: DNS resolution failures (may be retryable)
 #
 # Usage in Jobs:
-#   retry_on ExternalServiceError, wait: :exponentially_longer, attempts: 3
+#   retry_on ExternalServiceError, wait: :polynomially_longer, attempts: 3
 #   discard_on ConfigurationError
 #
 class ApplicationError < StandardError

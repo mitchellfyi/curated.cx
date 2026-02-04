@@ -16,8 +16,8 @@ class EditorialiseContentItemJob < ApplicationJob
   queue_as :editorialisation
 
   # Override default retry for AI-specific errors
-  retry_on AiApiError, wait: :exponentially_longer, attempts: 3
-  retry_on AiTimeoutError, wait: :exponentially_longer, attempts: 3
+  retry_on AiApiError, wait: :polynomially_longer, attempts: 3
+  retry_on AiTimeoutError, wait: :polynomially_longer, attempts: 3
   retry_on AiRateLimitError, wait: 60.seconds, attempts: 5
 
   # Non-retryable AI errors

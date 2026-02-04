@@ -82,7 +82,7 @@ RSpec.describe ExternalServiceError do
   it "is retryable (appropriate for transient failures)" do
     # This is a documentation test - ExternalServiceError indicates transient failures
     # that should be retried. ApplicationJob is configured with:
-    # retry_on ExternalServiceError, wait: :exponentially_longer, attempts: 3
+    # retry_on ExternalServiceError, wait: :polynomially_longer, attempts: 3
     expect(ExternalServiceError.new).to be_a(ApplicationError)
   end
 end

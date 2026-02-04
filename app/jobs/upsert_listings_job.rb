@@ -5,8 +5,8 @@
 class UpsertListingsJob < ApplicationJob
   queue_as :ingestion
 
-  retry_on ActiveRecord::RecordNotUnique, wait: :exponentially_longer, attempts: 5
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  retry_on ActiveRecord::RecordNotUnique, wait: :polynomially_longer, attempts: 5
+  retry_on StandardError, wait: :polynomially_longer, attempts: 3
 
   def perform(tenant_id, category_id, url_raw, source_id: nil)
     tenant = Tenant.find(tenant_id)

@@ -5,7 +5,7 @@ class ScrapeMetadataJob < ApplicationJob
   queue_as :scraping
 
   # Retry on transient network errors (timeouts, connection failures)
-  retry_on ExternalServiceError, wait: :exponentially_longer, attempts: 3
+  retry_on ExternalServiceError, wait: :polynomially_longer, attempts: 3
 
   # Discard if the listing was deleted before we could scrape
   # (inherited from ApplicationJob via discard_on ActiveRecord::RecordNotFound)

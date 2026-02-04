@@ -7,7 +7,7 @@ class FetchRssJob < ApplicationJob
 
   queue_as :ingestion
 
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  retry_on StandardError, wait: :polynomially_longer, attempts: 3
   discard_on ActiveRecord::RecordNotFound
 
   class ConfigurationError < StandardError; end

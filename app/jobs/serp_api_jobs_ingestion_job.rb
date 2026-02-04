@@ -5,7 +5,7 @@
 class SerpApiJobsIngestionJob < ApplicationJob
   queue_as :ingestion
 
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  retry_on StandardError, wait: :polynomially_longer, attempts: 3
 
   def perform(source_id)
     @source = Source.find(source_id)
