@@ -262,7 +262,7 @@ RSpec.describe DigestSubscription, type: :model do
         expect(subscription.confirmation_token.length).to be >= 32
       end
 
-      it "sends confirmation email on create" do
+      it "sends confirmation email on create", :commit do
         expect {
           create(:digest_subscription, user: user, site: site)
         }.to have_enqueued_mail(DigestMailer, :confirmation)

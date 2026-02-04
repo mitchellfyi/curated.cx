@@ -9,7 +9,12 @@ RSpec.configure do |config|
     DatabaseCleaner.start
   end
 
+  # Use truncation for tests that need after_commit callbacks to fire
   config.before(:each, js: true) do
+    DatabaseCleaner.strategy = :truncation
+  end
+
+  config.before(:each, commit: true) do
     DatabaseCleaner.strategy = :truncation
   end
 
