@@ -9,6 +9,7 @@ module Admin
     # GET /admin/workflow_pauses
     def index
       @pauses = WorkflowPause.active.order(created_at: :desc)
+      @recent_history = WorkflowPause.resolved.order(resumed_at: :desc).limit(10)
       @status = WorkflowPauseService.status_summary(tenant: current_tenant_for_pause)
       @import_backlog = WorkflowPauseService.backlog_size(:imports, tenant: current_tenant_for_pause)
       @ai_backlog = WorkflowPauseService.backlog_size(:ai_processing, tenant: current_tenant_for_pause)
