@@ -4,13 +4,12 @@ require "rails_helper"
 
 RSpec.describe "Admin::Search", type: :request do
   let(:tenant) { create(:tenant) }
-  let(:site) { create(:site, tenant: tenant) }
   let(:admin_user) { create(:user, :admin) }
   let(:regular_user) { create(:user) }
 
   before do
-    Current.tenant = tenant
-    Current.site = site
+    setup_tenant_context(tenant)
+    host! tenant.hostname
   end
 
   describe "GET /admin/search" do
@@ -51,7 +50,7 @@ RSpec.describe "Admin::Search", type: :request do
       end
 
       it "finds matching content items" do
-        source = create(:source, site: site)
+        source = create(:source, site: Current.site)
         content_item = create(:content_item, source: source, title: "Searchable Title")
 
         get admin_search_path(q: "Searchable")
