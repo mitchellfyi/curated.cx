@@ -1,6 +1,23 @@
 # frozen_string_literal: true
 
 class DigestMailer < ApplicationMailer
+  # Double opt-in confirmation email
+  def confirmation(subscription)
+    @subscription = subscription
+    @user = subscription.user
+    @site = subscription.site
+    @tenant = @site.tenant
+    @confirmation_link = subscription.confirmation_link
+
+    return if @confirmation_link.blank?
+
+    mail(
+      to: @user.email,
+      subject: I18n.t("digest_mailer.confirmation.subject", site: @site.name),
+      from: digest_from_address
+    )
+  end
+
   def weekly_digest(subscription)
     @subscription = subscription
     @user = subscription.user

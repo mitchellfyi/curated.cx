@@ -1,0 +1,120 @@
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold text-gray-900 mb-8"><%= t("dashboard.title", default: "Dashboard") %></h1>
+
+  <!-- Stats Overview -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <%= link_to bookmarks_path, class: "bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow" do %>
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500"><%= t("dashboard.saved_items", default: "Saved Items") %></p>
+          <p class="text-3xl font-bold text-gray-900"><%= @bookmarks_count %></p>
+        </div>
+        <div class="p-3 bg-blue-100 rounded-full">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+          </svg>
+        </div>
+      </div>
+    <% end %>
+
+    <%= link_to submissions_path, class: "bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow" do %>
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500"><%= t("dashboard.submissions", default: "Submissions") %></p>
+          <p class="text-3xl font-bold text-gray-900"><%= @submissions_count %></p>
+        </div>
+        <div class="p-3 bg-green-100 rounded-full">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+        </div>
+      </div>
+    <% end %>
+
+    <%= link_to my_purchases_path, class: "bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow" do %>
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500"><%= t("dashboard.purchases", default: "Purchases") %></p>
+          <p class="text-3xl font-bold text-gray-900"><%= @purchases_count %></p>
+        </div>
+        <div class="p-3 bg-purple-100 rounded-full">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+          </svg>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Recent Saves -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-lg font-medium text-gray-900"><%= t("dashboard.recent_saves", default: "Recent Saves") %></h2>
+        <%= link_to t("dashboard.view_all", default: "View all"), bookmarks_path, class: "text-sm text-blue-600 hover:text-blue-500" %>
+      </div>
+      <div class="divide-y divide-gray-200">
+        <% if @recent_bookmarks.any? %>
+          <% @recent_bookmarks.each do |bookmark| %>
+            <% item = bookmark.bookmarkable %>
+            <% next unless item %>
+            <% url = item.respond_to?(:url_canonical) ? item.url_canonical : (item.respond_to?(:url) ? item.url : "#") %>
+            <%= link_to url, target: "_blank", rel: "noopener noreferrer", class: "block px-6 py-4 hover:bg-gray-50" do %>
+              <p class="text-sm font-medium text-gray-900 truncate"><%= item.try(:title) || item.try(:name) || "Saved item" %></p>
+              <p class="text-xs text-gray-500 mt-1"><%= time_ago_in_words(bookmark.created_at) %> ago</p>
+            <% end %>
+          <% end %>
+        <% else %>
+          <div class="px-6 py-8 text-center">
+            <p class="text-sm text-gray-500"><%= t("dashboard.no_saves", default: "No saved items yet") %></p>
+            <%= link_to t("dashboard.browse_content", default: "Browse content"), root_path, class: "text-sm text-blue-600 hover:text-blue-500" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Recent Purchases -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-lg font-medium text-gray-900"><%= t("dashboard.recent_purchases", default: "Recent Purchases") %></h2>
+        <%= link_to t("dashboard.view_all", default: "View all"), my_purchases_path, class: "text-sm text-blue-600 hover:text-blue-500" %>
+      </div>
+      <div class="divide-y divide-gray-200">
+        <% if @recent_purchases.any? %>
+          <% @recent_purchases.each do |purchase| %>
+            <%= link_to my_purchase_path(purchase), class: "block px-6 py-4 hover:bg-gray-50" do %>
+              <p class="text-sm font-medium text-gray-900 truncate"><%= purchase.digital_product&.name || purchase.listing&.title || "Purchase ##{purchase.id}" %></p>
+              <p class="text-xs text-gray-500 mt-1"><%= time_ago_in_words(purchase.created_at) %> ago</p>
+            <% end %>
+          <% end %>
+        <% else %>
+          <div class="px-6 py-8 text-center">
+            <p class="text-sm text-gray-500"><%= t("dashboard.no_purchases", default: "No purchases yet") %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="mt-8 bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-medium text-gray-900 mb-4"><%= t("dashboard.quick_actions", default: "Quick Actions") %></h2>
+    <div class="flex flex-wrap gap-4">
+      <%= link_to edit_user_registration_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+        <svg class="mr-2 -ml-1 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        <%= t("dashboard.account_settings", default: "Account Settings") %>
+      <% end %>
+
+      <%= link_to new_submission_path, class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" do %>
+        <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        <%= t("dashboard.submit_content", default: "Submit Content") %>
+      <% end %>
+    </div>
+  </div>
+</div>

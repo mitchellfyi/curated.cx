@@ -1,0 +1,15 @@
+<%= t('digest_mailer.confirmation.heading') %>
+
+<%= t('digest_mailer.confirmation.greeting', name: @user.display_name || @user.email.split('@').first) %>
+
+<%= t('digest_mailer.confirmation.body', site: @site.name, frequency: @subscription.frequency) %>
+
+<%= t('digest_mailer.confirmation.button') %>:
+<%= @confirmation_link %>
+
+<%= t('digest_mailer.confirmation.expires') %>
+
+<%= t('digest_mailer.confirmation.ignore') %>
+
+---
+© <%= Date.current.year %> <%= @site.name %>

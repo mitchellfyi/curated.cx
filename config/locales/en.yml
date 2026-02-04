@@ -1072,6 +1072,15 @@ en:
       month_year: "%B %Y"
       short: "%b %d"
   digest_mailer:
+    confirmation:
+      body: Please confirm your subscription to receive %{frequency} digest emails from %{site}.
+      button: Confirm Subscription
+      expires: This confirmation link will expire in 7 days.
+      greeting: Hi %{name}!
+      heading: Confirm Your Email Subscription
+      ignore: If you didn't request this subscription, you can safely ignore this email.
+      link_fallback: If the button doesn't work, copy and paste this link into your browser
+      subject: Confirm your subscription to %{site}
     daily_digest:
       intro: Here's what's happening today
       subject: Today's highlights from %{site}
@@ -1089,9 +1098,15 @@ en:
       intro: Here's what you missed this week
       subject: Your weekly digest from %{site}
   digest_subscriptions:
+    already_confirmed: Your subscription is already confirmed.
     back_to_site: Back to Site
     confirm_unsubscribe: Are you sure you want to unsubscribe?
-    created: You're now subscribed to the digest
+    confirmation_error_message: This confirmation link is invalid or has expired. Please request a new one.
+    confirmation_error_title: Invalid Link
+    confirmation_resent: Confirmation email has been resent. Please check your inbox.
+    confirmed_message: You're all set! You'll start receiving digest emails from %{site}.
+    confirmed_title: Subscription Confirmed!
+    created: Please check your email to confirm your subscription
     currently_unsubscribed: You're currently unsubscribed
     description: Get the best content delivered to your inbox
     error_message: This unsubscribe link is invalid or has expired.
@@ -1100,7 +1115,10 @@ en:
       daily: Daily
       weekly: Weekly (every Monday)
     frequency_label: Frequency
+    pending_confirmation: Awaiting confirmation - check your email
+    pending_confirmation_info: We've sent a confirmation email to %{email}. Please click the link to activate your subscription.
     resubscribe: Resubscribe
+    resend_confirmation: Resend Confirmation Email
     subscribe: Subscribe to Digest
     subscribed: You're subscribed
     title: Email Digest

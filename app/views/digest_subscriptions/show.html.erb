@@ -6,7 +6,33 @@
   </h1>
 
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-    <% if @subscription&.active? %>
+    <% if @subscription&.pending_confirmation? %>
+      <%# Pending confirmation %>
+      <div class="flex items-center gap-3 mb-6">
+        <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+          <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900"><%= t('digest_subscriptions.pending_confirmation') %></p>
+          <p class="text-sm text-gray-500"><%= t("digest_subscriptions.frequency.#{@subscription.frequency}") %></p>
+        </div>
+      </div>
+
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <p class="text-sm text-yellow-800">
+          <%= t('digest_subscriptions.pending_confirmation_info', email: current_user.email) %>
+        </p>
+      </div>
+
+      <div class="text-center">
+        <%= link_to resend_digest_confirmation_path, class: "text-blue-600 hover:text-blue-700 text-sm font-medium" do %>
+          <%= t('digest_subscriptions.resend_confirmation') %>
+        <% end %>
+      </div>
+
+    <% elsif @subscription&.active? %>
       <%# Active subscription %>
       <div class="flex items-center gap-3 mb-6">
         <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">

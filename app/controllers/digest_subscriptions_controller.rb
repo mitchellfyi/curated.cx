@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class DigestSubscriptionsController < ApplicationController
-  before_action :authenticate_user!, except: [ :unsubscribe ]
-  skip_after_action :verify_authorized, only: [ :unsubscribe ]
+  before_action :authenticate_user!, except: [ :unsubscribe, :confirm ]
+  skip_after_action :verify_authorized, only: [ :unsubscribe, :confirm ]
   skip_after_action :verify_policy_scoped
 
   def show
@@ -55,6 +55,30 @@ class DigestSubscriptionsController < ApplicationController
     render :unsubscribed
   rescue ActiveRecord::RecordNotFound
     render :unsubscribe_error, status: :not_found
+  end
+
+  # Confirm subscription via token (double opt-in)
+  def confirm
+    @subscription = DigestSubscription.find_by!(confirmation_token: params[:token])
+    @subscription.confirm!
+
+    @site = @subscription.site
+    render :confirmed
+  rescue ActiveRecord::RecordNotFound
+    render :confirmation_error, status: :not_found
+  end
+
+  # Resend confirmation email
+  def resend_confirmation
+    @subscription = current_user.digest_subscriptions.find_by(site: Current.site)
+    authorize(@subscription || DigestSubscription)
+
+    if @subscription&.pending_confirmation?
+      @subscription.resend_confirmation!
+      redirect_to digest_subscription_path, notice: t("digest_subscriptions.confirmation_resent")
+    else
+      redirect_to digest_subscription_path, alert: t("digest_subscriptions.already_confirmed")
+    end
   end
 
   private

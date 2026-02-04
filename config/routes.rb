@@ -242,7 +242,12 @@ Rails.application.routes.draw do
 
   # Digest subscriptions
   resource :digest_subscription, only: [ :show, :create, :update, :destroy ]
+  get "digest_subscription/confirm/:token", to: "digest_subscriptions#confirm", as: :confirm_digest
+  get "digest_subscription/resend_confirmation", to: "digest_subscriptions#resend_confirmation", as: :resend_digest_confirmation
   get "unsubscribe/:token", to: "digest_subscriptions#unsubscribe", as: :unsubscribe_digest
+
+  # User dashboard
+  resource :dashboard, only: [ :show ], controller: "dashboard"
 
   # Referral program
   resource :referrals, only: [ :show ]
