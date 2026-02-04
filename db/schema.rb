@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_03_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_04_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -219,6 +219,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_03_180000) do
 
   create_table "digest_subscriptions", force: :cascade do |t|
     t.boolean "active", default: true, null: false
+    t.string "confirmation_token"
+    t.datetime "confirmation_sent_at"
+    t.datetime "confirmed_at"
     t.datetime "created_at", null: false
     t.integer "frequency", default: 0, null: false
     t.datetime "last_sent_at"
@@ -228,6 +231,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_03_180000) do
     t.string "unsubscribe_token", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["confirmation_token"], name: "index_digest_subscriptions_on_confirmation_token", unique: true
     t.index ["referral_code"], name: "index_digest_subscriptions_on_referral_code", unique: true
     t.index ["site_id", "frequency", "active"], name: "index_digest_subscriptions_on_site_id_and_frequency_and_active"
     t.index ["site_id"], name: "index_digest_subscriptions_on_site_id"
