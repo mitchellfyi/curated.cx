@@ -719,6 +719,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_100001) do
   create_table "sources", force: :cascade do |t|
     t.jsonb "config", default: {}, null: false
     t.datetime "created_at", null: false
+    t.boolean "editorialisation_enabled", default: false, null: false
     t.boolean "enabled", default: true, null: false
     t.integer "kind", null: false
     t.datetime "last_run_at"

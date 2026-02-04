@@ -2,6 +2,9 @@
 
 class AddAiTrackingToEditorialisations < ActiveRecord::Migration[8.1]
   def change
+    # Add editorialisation_enabled flag to sources for query optimization
+    add_column :sources, :editorialisation_enabled, :boolean, default: false, null: false
+
     # Add separate token tracking for input and output
     add_column :editorialisations, :input_tokens, :integer
     add_column :editorialisations, :output_tokens, :integer

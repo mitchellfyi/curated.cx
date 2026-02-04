@@ -41,6 +41,7 @@ class WorkflowPause < ApplicationRecord
 
   # Scopes
   scope :active, -> { where(resumed_at: nil) }
+  scope :resolved, -> { where.not(resumed_at: nil) }
   scope :global, -> { where(tenant_id: nil) }
   scope :for_tenant, ->(tenant) { where(tenant: tenant) }
   scope :for_workflow, ->(type) { where(workflow_type: type) }

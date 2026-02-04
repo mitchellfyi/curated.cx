@@ -439,9 +439,9 @@ RSpec.describe "Admin::Observability", type: :request do
       end
 
       it "calculates avg_duration_ms correctly" do
-        # Create completed import runs with known durations
-        create(:import_run, :completed, source: source, started_at: 2.hours.ago, completed_at: 2.hours.ago + 100.milliseconds)
-        create(:import_run, :completed, source: source, started_at: 1.hour.ago, completed_at: 1.hour.ago + 200.milliseconds)
+        # Create completed import runs with known durations (0.1 and 0.2 seconds)
+        create(:import_run, :completed, source: source, started_at: 2.hours.ago, completed_at: 2.hours.ago + 0.1.seconds)
+        create(:import_run, :completed, source: source, started_at: 1.hour.ago, completed_at: 1.hour.ago + 0.2.seconds)
 
         get imports_admin_observability_path
         stats = assigns(:stats)
