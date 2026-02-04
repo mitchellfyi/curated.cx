@@ -13,6 +13,7 @@
 #   - Discards on record not found
 #
 class EditorialiseContentItemJob < ApplicationJob
+  include JobLogging
   include WorkflowPausable
 
   self.workflow_type = :editorialisation

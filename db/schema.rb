@@ -875,19 +875,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_100001) do
   end
 
   create_table "workflow_pauses", force: :cascade do |t|
-    t.bigint "tenant_id"
     t.string "workflow_type", null: false
-    t.string "workflow_subtype"
+    t.bigint "tenant_id"
     t.bigint "source_id"
-    t.boolean "paused", default: false, null: false
-    t.datetime "paused_at"
-    t.datetime "resumed_at"
-    t.bigint "paused_by_id"
+    t.bigint "paused_by_id", null: false
     t.text "reason"
+    t.datetime "paused_at", null: false
+    t.datetime "resumed_at"
+    t.bigint "resumed_by_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["tenant_id", "workflow_type", "workflow_subtype"], name: "idx_workflow_pauses_lookup"
-    t.index ["workflow_type", "paused"], name: "idx_workflow_pauses_active"
+    t.index [ "workflow_type", "paused_at" ], name: "index_workflow_pauses_history"
+    t.index [ "workflow_type", "tenant_id", "source_id" ], name: "index_workflow_pauses_active_unique", unique: true, where: "(resumed_at IS NULL)"
+    t.index [ "workflow_type", "tenant_id" ], name: "index_workflow_pauses_active_by_type_tenant", where: "(resumed_at IS NULL)"
   end
 
   create_table "votes", force: :cascade do |t|
@@ -1006,4 +1006,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_100001) do
   add_foreign_key "workflow_pauses", "sources"
   add_foreign_key "workflow_pauses", "tenants"
   add_foreign_key "workflow_pauses", "users", column: "paused_by_id"
+  add_foreign_key "workflow_pauses", "users", column: "resumed_by_id"
 end

@@ -21,21 +21,26 @@
 #  tenant_id        :bigint
 #
 class WorkflowPause < ApplicationRecord
+  WORKFLOW_TYPES = %w[imports ai_processing rss_ingestion serp_api_ingestion editorialisation all_ingestion].freeze
+
   # Associations
   belongs_to :tenant, optional: true  # nil = global pause
   belongs_to :source, optional: true  # for source-specific pauses
-  belongs_to :paused_by, class_name: "User", optional: true
+  belongs_to :paused_by, class_name: "User"
+  belongs_to :resumed_by, class_name: "User", optional: true
 
   # Validations
   validates :workflow_type, presence: true
-  validates :workflow_type, inclusion: { in: %w[imports ai_processing rss_ingestion serp_api_ingestion editorialisation] }
+  validates :workflow_type, inclusion: { in: WORKFLOW_TYPES }
+  validates :paused_at, presence: true
+  validates :paused_by, presence: true
   validates :workflow_subtype, inclusion: {
     in: %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube all],
     allow_nil: true
   }
 
   # Scopes
-  scope :active, -> { where(paused: true) }
+  scope :active, -> { where(resumed_at: nil) }
   scope :global, -> { where(tenant_id: nil) }
   scope :for_tenant, ->(tenant) { where(tenant: tenant) }
   scope :for_workflow, ->(type) { where(workflow_type: type) }
@@ -91,7 +96,6 @@ class WorkflowPause < ApplicationRecord
   # Instance methods
   def pause!(by:, reason: nil)
     update!(
-      paused: true,
       paused_at: Time.current,
       resumed_at: nil,
       paused_by: by,
@@ -101,9 +105,8 @@ class WorkflowPause < ApplicationRecord
 
   def resume!(by:)
     update!(
-      paused: false,
       resumed_at: Time.current,
-      paused_by: by
+      resumed_by: by
     )
   end
 
