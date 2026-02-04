@@ -118,8 +118,28 @@ class AiUsageTracker
           projected_monthly_cost_cents: projected_monthly_cost(tenant),
           on_track: projected_monthly_usage(tenant) <= MONTHLY_TOKEN_LIMIT
         },
-        breakdown: usage_breakdown(tenant)
+        breakdown: usage_breakdown(tenant),
+        models: model_breakdown(tenant),
+        requests: {
+          total_this_month: editorialisation_scope(tenant).where("created_at >= ?", start_of_month).count
+        }
       }
+    end
+
+    def model_breakdown(tenant = nil)
+      scope = editorialisation_scope(tenant).where("created_at >= ?", start_of_month)
+
+      scope.group(:ai_model).select(
+        "ai_model as model",
+        "COUNT(*) as count",
+        "COALESCE(SUM(input_tokens), 0) + COALESCE(SUM(output_tokens), 0) as total_tokens"
+      ).map do |row|
+        {
+          model: row.model,
+          count: row.count,
+          total_tokens: row.total_tokens
+        }
+      end
     end
 
     # Token usage methods
