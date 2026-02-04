@@ -9,13 +9,12 @@ RSpec.describe "Admin::WorkflowPauses" do
   let(:regular_user) { create(:user) }
 
   before do
-    # Set up tenant context
-    allow_any_instance_of(ApplicationController).to receive(:current_tenant).and_return(tenant)
-    Current.tenant = tenant
+    # Set up tenant context using the helper which also sets up domain resolution
+    setup_tenant_context(tenant)
   end
 
   after do
-    Current.tenant = nil
+    clear_tenant_context
   end
 
   describe "GET /admin/workflow_pauses" do
