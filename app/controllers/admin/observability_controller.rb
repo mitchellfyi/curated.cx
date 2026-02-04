@@ -127,15 +127,28 @@ module Admin
     end
 
     def solid_queue_pending_count
+      return 0 unless solid_queue_available?
+
       SolidQueue::Job.where(finished_at: nil).count
-    rescue
+    rescue StandardError
       0
     end
 
     def solid_queue_failed_count
+      return 0 unless solid_queue_available?
+
       SolidQueue::FailedExecution.count
-    rescue
+    rescue StandardError
       0
+    end
+
+    def solid_queue_available?
+      return @solid_queue_available if defined?(@solid_queue_available)
+
+      @solid_queue_available = defined?(SolidQueue) &&
+                               ActiveRecord::Base.connection.table_exists?("solid_queue_jobs")
+    rescue StandardError
+      @solid_queue_available = false
     end
   end
 end
