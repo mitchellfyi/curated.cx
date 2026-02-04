@@ -6,7 +6,7 @@ RSpec.describe WorkflowPause do
   describe "associations" do
     it { is_expected.to belong_to(:tenant).optional }
     it { is_expected.to belong_to(:source).optional }
-    it { is_expected.to belong_to(:paused_by).class_name("User") }
+    it { is_expected.to belong_to(:paused_by).class_name("User").optional }
     it { is_expected.to belong_to(:resumed_by).class_name("User").optional }
   end
 
@@ -227,7 +227,7 @@ RSpec.describe WorkflowPause do
     end
 
     context "with days" do
-      let(:pause) { create(:workflow_pause, paused_at: 3.days.ago + 5.hours.ago) }
+      let(:pause) { create(:workflow_pause, paused_at: (3.days + 5.hours).ago) }
 
       it "includes days and hours" do
         text = pause.duration_text

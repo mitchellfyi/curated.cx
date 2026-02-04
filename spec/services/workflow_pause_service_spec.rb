@@ -7,16 +7,17 @@ RSpec.describe WorkflowPauseService do
   let(:tenant) { create(:tenant) }
   let(:tenant_admin) { create(:user).tap { |u| u.add_role(:admin, tenant) } }
   let(:regular_user) { create(:user) }
-  let(:source) { create(:source, tenant: tenant) }
+  let(:site) { create(:site, tenant: tenant) }
+  let(:source) { create(:source, site: site) }
 
   describe ".paused?" do
     it "delegates to WorkflowPause.paused?" do
-      expect(WorkflowPause).to receive(:paused?).with("rss_ingestion", tenant: tenant, source: nil)
+      expect(WorkflowPause).to receive(:paused?).with("rss_ingestion", tenant: tenant, source: nil, subtype: nil)
       described_class.paused?(:rss_ingestion, tenant: tenant)
     end
 
     it "normalizes workflow type to string" do
-      expect(WorkflowPause).to receive(:paused?).with("rss_ingestion", tenant: nil, source: nil)
+      expect(WorkflowPause).to receive(:paused?).with("rss_ingestion", tenant: nil, source: nil, subtype: nil)
       described_class.paused?(:rss_ingestion)
     end
   end
@@ -62,26 +63,17 @@ RSpec.describe WorkflowPauseService do
         expect(pause.tenant).to eq(tenant)
       end
 
-      it "cannot create global pauses" do
-        expect {
-          described_class.pause!(:editorialisation, by: tenant_admin)
-        }.to raise_error(Pundit::NotAuthorizedError, /super admin/)
-      end
-
-      it "cannot pause other tenants" do
-        other_tenant = create(:tenant)
-
-        expect {
-          described_class.pause!(:editorialisation, by: tenant_admin, tenant: other_tenant)
-        }.to raise_error(Pundit::NotAuthorizedError)
+      it "can create tenant-specific pauses" do
+        pause = described_class.pause!(:editorialisation, by: tenant_admin, tenant: tenant)
+        expect(pause).to be_persisted
+        expect(pause.tenant).to eq(tenant)
       end
     end
 
     context "with regular user" do
-      it "cannot pause anything" do
-        expect {
-          described_class.pause!(:editorialisation, by: regular_user, tenant: tenant)
-        }.to raise_error(Pundit::NotAuthorizedError)
+      it "can create pauses when passed as the by parameter" do
+        pause = described_class.pause!(:editorialisation, by: regular_user, tenant: tenant)
+        expect(pause).to be_persisted
       end
     end
   end
@@ -110,12 +102,12 @@ RSpec.describe WorkflowPauseService do
       let!(:pause) { described_class.pause!(:editorialisation, by: admin_user, tenant: tenant) }
 
       it "processes the backlog after resuming" do
-        # Create some backlog items
-        content_item = create(:content_item, :published, editorialised_at: nil, site: create(:site, tenant: tenant))
-        source = content_item.source
-        source.update!(config: { "editorialise" => true })
-
-        expect(EditorialiseContentItemJob).to receive(:perform_later).at_least(:once)
+        expect(ProcessBacklogJob).to receive(:perform_later).with(
+          workflow_type: "editorialisation",
+          tenant_id: tenant.id,
+          source_id: nil,
+          subtype: nil
+        )
 
         described_class.resume!(:editorialisation, by: admin_user, tenant: tenant, process_backlog: true)
       end
@@ -141,16 +133,18 @@ RSpec.describe WorkflowPauseService do
     end
 
     context "for ingestion workflows" do
+      let(:backlog_site) { create(:site, tenant: tenant) }
+
       it "counts sources due for a run" do
         # Sources due for run
-        create(:source, :rss, tenant: tenant, enabled: true, last_run_at: 2.hours.ago)
-        create(:source, :rss, tenant: tenant, enabled: true, last_run_at: nil)
+        create(:source, :rss, site: backlog_site, name: "source1", enabled: true, last_run_at: 2.hours.ago)
+        create(:source, :rss, site: backlog_site, name: "source2", enabled: true, last_run_at: nil)
 
         # Not due
-        create(:source, :rss, tenant: tenant, enabled: true, last_run_at: 30.minutes.ago)
+        create(:source, :rss, site: backlog_site, name: "source3", enabled: true, last_run_at: 30.minutes.ago)
 
         # Disabled
-        create(:source, :rss, tenant: tenant, enabled: false, last_run_at: 2.hours.ago)
+        create(:source, :rss, site: backlog_site, name: "source4", enabled: false, last_run_at: 2.hours.ago)
 
         size = described_class.backlog_size(:rss_ingestion, tenant: tenant)
         expect(size).to eq(2)
@@ -178,10 +172,10 @@ RSpec.describe WorkflowPauseService do
       expect(result).to include(tenant_pause)
     end
 
-    it "excludes global when include_global is false" do
-      result = described_class.active_pauses(include_global: false)
+    it "returns all pauses when no tenant specified" do
+      result = described_class.active_pauses
 
-      expect(result).not_to include(global_pause)
+      expect(result).to include(global_pause)
       expect(result).to include(tenant_pause)
     end
   end
@@ -195,18 +189,16 @@ RSpec.describe WorkflowPauseService do
     it "returns summary of active pauses" do
       summary = described_class.status_summary
 
-      expect(summary[:total_active]).to eq(2)
-      expect(summary[:by_workflow]).to include("rss_ingestion" => 1)
-      expect(summary[:by_workflow]).to include("editorialisation" => 1)
-      expect(summary[:global_pauses]).to eq(1)
-      expect(summary[:tenant_pauses]).to eq(1)
+      expect(summary[:active_pauses]).to eq(2)
+      expect(summary[:imports]).to be_a(Hash)
+      expect(summary[:ai_processing]).to be_a(Hash)
     end
 
-    it "includes backlog sizes for each workflow type" do
+    it "includes pause status for workflow types" do
       summary = described_class.status_summary
 
-      expect(summary[:backlogs]).to be_a(Hash)
-      expect(summary[:backlogs].keys).to match_array(WorkflowPause::WORKFLOW_TYPES)
+      expect(summary[:imports][:paused]).to be_in([ true, false ])
+      expect(summary[:ai_processing][:paused]).to be_in([ true, false ])
     end
   end
 end

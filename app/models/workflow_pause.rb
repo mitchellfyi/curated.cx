@@ -39,6 +39,7 @@ class WorkflowPause < ApplicationRecord
     in: %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube all],
     allow_nil: true
   }
+  validate :source_belongs_to_tenant
 
   # Scopes
   scope :active, -> { where(resumed_at: nil) }
@@ -49,10 +50,19 @@ class WorkflowPause < ApplicationRecord
   scope :for_subtype, ->(subtype) { where(workflow_subtype: [ subtype, "all", nil ]) }
   scope :recent, -> { order(created_at: :desc) }
 
+  # Ingestion workflow types that should be paused when all_ingestion is paused
+  INGESTION_WORKFLOW_TYPES = %w[rss_ingestion serp_api_ingestion].freeze
+
   # Class methods
   def self.paused?(workflow_type, tenant: nil, source: nil, subtype: nil)
     # Check global pause first
     return true if global.for_workflow(workflow_type).for_subtype(subtype).active.exists?
+
+    # Check all_ingestion pause for ingestion workflows
+    if INGESTION_WORKFLOW_TYPES.include?(workflow_type.to_s)
+      return true if global.for_workflow("all_ingestion").active.exists?
+      return true if tenant && for_tenant(tenant).for_workflow("all_ingestion").active.exists?
+    end
 
     # Check tenant-specific pause
     if tenant
@@ -125,6 +135,17 @@ class WorkflowPause < ApplicationRecord
   def active_pause_record?
     paused_at.present?
   end
+
+  private
+
+  def source_belongs_to_tenant
+    return unless source.present? && tenant.present?
+    return if source.site&.tenant == tenant
+
+    errors.add(:source, "must belong to the specified tenant")
+  end
+
+  public
 
   def duration_text
     return nil unless paused_at

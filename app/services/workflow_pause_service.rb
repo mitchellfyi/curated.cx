@@ -49,7 +49,7 @@ class WorkflowPauseService
         source: source
       )
 
-      return nil unless pause&.paused?
+      return nil unless pause&.active?
 
       pause.resume!(by: by)
 
@@ -94,9 +94,9 @@ class WorkflowPauseService
     # Estimate backlog size for a workflow
     def backlog_size(workflow_type, tenant: nil, since: nil)
       case workflow_type.to_s
-      when "imports"
+      when "imports", "rss_ingestion", "serp_api_ingestion"
         estimate_import_backlog(tenant, since)
-      when "ai_processing"
+      when "ai_processing", "editorialisation"
         estimate_ai_backlog(tenant, since)
       else
         0

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_04_100001) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_04_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -219,8 +219,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_100001) do
 
   create_table "digest_subscriptions", force: :cascade do |t|
     t.boolean "active", default: true, null: false
-    t.string "confirmation_token"
     t.datetime "confirmation_sent_at"
+    t.string "confirmation_token"
     t.datetime "confirmed_at"
     t.datetime "created_at", null: false
     t.integer "frequency", default: 0, null: false
@@ -875,23 +875,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_100001) do
     t.index ["user_id"], name: "index_users_roles_on_user_id"
   end
 
-  create_table "workflow_pauses", force: :cascade do |t|
-    t.string "workflow_type", null: false
-    t.string "workflow_subtype"
-    t.bigint "tenant_id"
-    t.bigint "source_id"
-    t.bigint "paused_by_id", null: false
-    t.text "reason"
-    t.datetime "paused_at", null: false
-    t.datetime "resumed_at"
-    t.bigint "resumed_by_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index [ "workflow_type", "paused_at" ], name: "index_workflow_pauses_history"
-    t.index [ "workflow_type", "tenant_id", "source_id" ], name: "index_workflow_pauses_active_unique", unique: true, where: "(resumed_at IS NULL)"
-    t.index [ "workflow_type", "tenant_id" ], name: "index_workflow_pauses_active_by_type_tenant", where: "(resumed_at IS NULL)"
-  end
-
   create_table "votes", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "site_id", null: false
@@ -904,6 +887,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_100001) do
     t.index ["site_id"], name: "index_votes_on_site_id"
     t.index ["user_id"], name: "index_votes_on_user_id"
     t.index ["votable_type", "votable_id"], name: "index_votes_on_votable"
+  end
+
+  create_table "workflow_pauses", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "paused_at"
+    t.bigint "paused_by_id"
+    t.text "reason"
+    t.datetime "resumed_at"
+    t.bigint "resumed_by_id"
+    t.bigint "source_id"
+    t.bigint "tenant_id"
+    t.datetime "updated_at", null: false
+    t.string "workflow_subtype"
+    t.string "workflow_type", null: false
+    t.index ["workflow_type", "paused_at"], name: "index_workflow_pauses_history"
+    t.index ["workflow_type", "tenant_id", "source_id"], name: "index_workflow_pauses_active_unique", unique: true, where: "(resumed_at IS NULL)"
+    t.index ["workflow_type", "tenant_id"], name: "index_workflow_pauses_active_by_type_tenant", where: "(resumed_at IS NULL)"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
