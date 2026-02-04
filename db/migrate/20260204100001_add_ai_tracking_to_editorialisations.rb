@@ -22,7 +22,7 @@ class AddAiTrackingToEditorialisations < ActiveRecord::Migration[8.1]
     end
 
     # Add index for cost tracking queries
-    add_index :editorialisations, [:site_id, :created_at, :estimated_cost_cents],
+    add_index :editorialisations, [ :site_id, :created_at, :estimated_cost_cents ],
               name: "index_editorialisations_cost_tracking"
   end
 end

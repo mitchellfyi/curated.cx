@@ -29,7 +29,7 @@ Rails.application.routes.draw do
     end
 
     # Workflow pause management
-    resources :workflow_pauses, only: [:index, :create, :destroy]
+    resources :workflow_pauses, only: [ :index, :create, :destroy ]
 
     # Import runs management
     resources :import_runs, only: [ :index, :show ]

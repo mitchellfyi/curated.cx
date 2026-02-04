@@ -27,18 +27,18 @@ class CreateWorkflowPauses < ActiveRecord::Migration[8.1]
     end
 
     # Unique constraint: only one active pause per workflow_type + tenant + source combination
-    add_index :workflow_pauses, [:workflow_type, :tenant_id, :source_id],
+    add_index :workflow_pauses, [ :workflow_type, :tenant_id, :source_id ],
               unique: true,
               where: "resumed_at IS NULL",
               name: "index_workflow_pauses_active_unique"
 
     # Index for finding active pauses quickly
-    add_index :workflow_pauses, [:workflow_type, :tenant_id],
+    add_index :workflow_pauses, [ :workflow_type, :tenant_id ],
               where: "resumed_at IS NULL",
               name: "index_workflow_pauses_active_by_type_tenant"
 
     # Index for history queries
-    add_index :workflow_pauses, [:workflow_type, :paused_at],
+    add_index :workflow_pauses, [ :workflow_type, :paused_at ],
               name: "index_workflow_pauses_history"
   end
 end
