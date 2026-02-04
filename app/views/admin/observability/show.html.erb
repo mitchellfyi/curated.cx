@@ -191,7 +191,7 @@
     <% end %>
 
     <!-- AI Usage Alert -->
-    <% if @ai_usage_stats[:cost][:monthly][:percent_used] > 80 %>
+    <% if @ai_usage_stats[:monthly][:percent_used] > 80 %>
       <div class="rounded-md bg-yellow-50 p-4 mb-8">
         <div class="flex">
           <div class="flex-shrink-0">
@@ -202,7 +202,7 @@
           <div class="ml-3">
             <h3 class="text-sm font-medium text-yellow-800">AI Usage Warning</h3>
             <div class="mt-2 text-sm text-yellow-700">
-              <p>You've used <%= @ai_usage_stats[:cost][:monthly][:percent_used] %>% of your monthly AI budget ($<%= @ai_usage_stats[:cost][:monthly][:used_dollars] %>/$<%= @ai_usage_stats[:cost][:monthly][:limit_dollars] %>).</p>
+              <p>You've used <%= @ai_usage_stats[:monthly][:percent_used] %>% of your monthly AI budget ($<%= @ai_usage_stats[:costs][:monthly_dollars] %>).</p>
             </div>
             <div class="mt-2">
               <%= link_to "View AI Costs →", ai_usage_admin_observability_path, class: "text-sm font-medium text-yellow-800 hover:text-yellow-900" %>

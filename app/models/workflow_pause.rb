@@ -114,13 +114,39 @@ class WorkflowPause < ApplicationRecord
     tenant_id.nil?
   end
 
+  def active?
+    resumed_at.nil?
+  end
+
+  def duration_text
+    return nil unless paused_at
+
+    seconds = if resumed_at
+      resumed_at - paused_at
+    else
+      Time.current - paused_at
+    end
+
+    if seconds < 60
+      "#{seconds.to_i}s"
+    elsif seconds < 3600
+      "#{(seconds / 60).to_i}m"
+    elsif seconds < 86400
+      "#{(seconds / 3600).to_i}h"
+    else
+      "#{(seconds / 86400).to_i}d"
+    end
+  end
+
   def scope_description
-    if source
+    type_name = workflow_type.to_s.titleize
+    scope = if source
       "Source: #{source.name}"
     elsif tenant
-      "Tenant: #{tenant.title}"
+      tenant.name
     else
-      "Global (all tenants)"
+      "(global)"
     end
+    "#{type_name} - #{scope}"
   end
 end
