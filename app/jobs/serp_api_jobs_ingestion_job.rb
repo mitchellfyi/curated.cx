@@ -3,6 +3,10 @@
 # Job to fetch job listings from Google Jobs via SerpAPI and store as Listings.
 # Uses the ingestion architecture with ImportRun tracking.
 class SerpApiJobsIngestionJob < ApplicationJob
+  include WorkflowPausable
+
+  self.workflow_type = :serp_api_ingestion
+
   queue_as :ingestion
 
   retry_on StandardError, wait: :polynomially_longer, attempts: 3
@@ -15,6 +19,9 @@ class SerpApiJobsIngestionJob < ApplicationJob
     # Set tenant context for the job
     Current.tenant = @tenant
     Current.site = @site
+
+    # Check if workflow is paused
+    return if workflow_paused?(source: @source, tenant: @tenant)
 
     # Verify source is enabled and correct kind
     unless @source.enabled? && @source.serp_api_google_jobs?

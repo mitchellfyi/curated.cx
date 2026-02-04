@@ -58,6 +58,9 @@ FactoryBot.define do
         }
       end
       tokens_used { 150 }
+      input_tokens { 100 }
+      output_tokens { 50 }
+      estimated_cost_cents { 2 }
       duration_ms { 1500 }
       ai_model { "gpt-4o-mini" }
     end

@@ -10,6 +10,9 @@ module Admin
       @recent_import_runs = ImportRun.recent.includes(:source).limit(10)
       @recent_editorialisations = Editorialisation.recent.includes(:content_item).limit(10)
       @serp_api_stats = SerpApiGlobalRateLimiter.usage_stats
+      @ai_usage_stats = AiUsageTracker.usage_stats
+      @active_pauses = WorkflowPause.active.recent.limit(5).includes(:tenant, :source, :paused_by)
+      @pause_status = WorkflowPauseService.status_summary
     end
 
     # GET /admin/observability/imports
@@ -35,9 +38,45 @@ module Admin
                               .includes(:source)
                               .limit(50)
       @daily_usage = build_daily_usage_chart
+      @is_paused = WorkflowPauseService.paused?(:serp_api_ingestion)
+      @active_pause = WorkflowPause.find_active(:serp_api_ingestion)
+    end
+
+    # GET /admin/observability/ai_usage
+    def ai_usage
+      @stats = AiUsageTracker.usage_stats
+      @is_paused = WorkflowPauseService.paused?(:editorialisation)
+      @active_pause = WorkflowPause.find_active(:editorialisation)
+      @daily_usage = build_ai_daily_usage_chart
+      @recent_editorialisations = Editorialisation.completed
+                                                  .recent
+                                                  .includes(:content_item, :site)
+                                                  .limit(50)
     end
 
     private
+
+    def build_ai_daily_usage_chart
+      # Last 30 days of AI usage
+      Editorialisation.completed
+                      .where("created_at > ?", 30.days.ago)
+                      .group("DATE(created_at)")
+                      .select(
+                        "DATE(created_at) as date",
+                        "COUNT(*) as count",
+                        "SUM(tokens_used) as total_tokens",
+                        "SUM(estimated_cost_cents) as total_cost"
+                      )
+                      .order("date")
+                      .map do |row|
+                        {
+                          date: row.date.to_s,
+                          count: row.count,
+                          tokens: row.total_tokens || 0,
+                          cost_cents: row.total_cost || 0
+                        }
+                      end
+    end
 
     def build_overview_stats
       {

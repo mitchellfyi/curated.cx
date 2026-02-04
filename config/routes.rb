@@ -25,6 +25,18 @@ Rails.application.routes.draw do
       get :imports
       get :editorialisations
       get :serp_api
+      get :ai_usage
+    end
+
+    # Workflow pause management
+    resources :workflow_pauses, only: [ :index, :show ] do
+      collection do
+        post :pause
+        get :backlog
+      end
+      member do
+        post :resume
+      end
     end
 
     # Import runs management

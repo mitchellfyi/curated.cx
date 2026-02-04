@@ -4,6 +4,9 @@
 class FetchRssJob < ApplicationJob
   include JobLogging
   include HttpClient
+  include WorkflowPausable
+
+  self.workflow_type = :rss_ingestion
 
   queue_as :ingestion
 
@@ -18,6 +21,9 @@ class FetchRssJob < ApplicationJob
     @tenant = @site.tenant
 
     set_current_context
+
+    # Check if workflow is paused
+    return if workflow_paused?(source: @source, tenant: @tenant)
 
     with_job_logging("RSS fetch for source #{source_id}") do
       execute_fetch
