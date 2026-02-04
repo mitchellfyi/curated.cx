@@ -106,6 +106,12 @@ class AiUsageTracker
           daily_cents: daily_cost(tenant),
           monthly_dollars: (monthly_cost(tenant) / 100.0).round(2)
         },
+        cost: {
+          monthly: {
+            used_cents: monthly_cost(tenant),
+            limit_cents: 10_000  # $100 monthly limit
+          }
+        },
         projections: {
           days_remaining_in_month: days_remaining_in_month,
           projected_monthly_tokens: projected_monthly_usage(tenant),
