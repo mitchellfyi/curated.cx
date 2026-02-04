@@ -156,8 +156,8 @@
               <ul class="list-disc list-inside">
                 <% @active_pauses.each do |pause| %>
                   <li>
-                    <strong><%= pause.workflow_type.titleize %></strong>
-                    <% if pause.global? %>(global)<% elsif pause.tenant %>(tenant: <%= pause.tenant.name %>)<% end %>
+                    <strong><%= pause.workflow_type&.titleize || "Unknown" %></strong>
+                    <% if pause.global? %>(global)<% elsif pause.tenant %>(tenant: <%= pause.tenant.title || pause.tenant.name %>)<% end %>
                     - paused <%= pause.duration_text %> ago
                   </li>
                 <% end %>
