@@ -29,7 +29,7 @@ module Admin
 
       respond_to do |format|
         format.html { redirect_to admin_workflow_pauses_path, notice: "Workflow paused successfully" }
-        format.json { render json: pause }
+        format.json { render json: { message: "Paused successfully", pause: pause } }
       end
     rescue ArgumentError => e
       respond_to do |format|
@@ -58,7 +58,7 @@ module Admin
 
       respond_to do |format|
         format.html { redirect_to admin_workflow_pauses_path, notice: "Workflow resumed successfully" }
-        format.json { render json: { success: true } }
+        format.json { render json: { message: "Resumed successfully", success: true } }
       end
     end
 
