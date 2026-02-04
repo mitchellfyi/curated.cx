@@ -140,11 +140,11 @@ class WorkflowPause < ApplicationRecord
   end
 
   def scope_description
-    type_name = workflow_type.to_s.titleize
+    type_name = workflow_type&.to_s&.titleize || "Unknown"
     scope = if source
       "Source: #{source.name}"
     elsif tenant
-      tenant.name
+      tenant.title || tenant.name
     else
       "(global)"
     end

@@ -224,7 +224,7 @@ RSpec.describe WorkflowPause do
     end
 
     it "describes tenant pause" do
-      tenant = build(:tenant, name: "Test Tenant")
+      tenant = build(:tenant, title: "Test Tenant")
       pause = build(:workflow_pause, workflow_type: "editorialisation", tenant: tenant)
       expect(pause.scope_description).to include("Editorialisation")
       expect(pause.scope_description).to include("Test Tenant")
