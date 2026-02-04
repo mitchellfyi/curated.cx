@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_04_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_04_140001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -334,6 +334,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_000000) do
     t.datetime "created_at", null: false
     t.integer "duration_ms"
     t.text "error_message"
+    t.integer "estimated_cost_cents"
+    t.integer "input_tokens"
+    t.integer "output_tokens"
     t.jsonb "parsed_response", default: {}, null: false
     t.text "prompt_text", null: false
     t.string "prompt_version", null: false
@@ -871,6 +874,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_000000) do
     t.index ["user_id"], name: "index_users_roles_on_user_id"
   end
 
+  create_table "workflow_pauses", force: :cascade do |t|
+    t.bigint "tenant_id"
+    t.string "workflow_type", null: false
+    t.string "workflow_subtype"
+    t.bigint "source_id"
+    t.boolean "paused", default: false, null: false
+    t.datetime "paused_at"
+    t.datetime "resumed_at"
+    t.bigint "paused_by_id"
+    t.text "reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "workflow_type", "workflow_subtype"], name: "idx_workflow_pauses_lookup"
+    t.index ["workflow_type", "paused"], name: "idx_workflow_pauses_active"
+  end
+
   create_table "votes", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "site_id", null: false
@@ -984,4 +1003,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_000000) do
   add_foreign_key "taxonomies", "tenants"
   add_foreign_key "votes", "sites"
   add_foreign_key "votes", "users"
+  add_foreign_key "workflow_pauses", "sources"
+  add_foreign_key "workflow_pauses", "tenants"
+  add_foreign_key "workflow_pauses", "users", column: "paused_by_id"
 end

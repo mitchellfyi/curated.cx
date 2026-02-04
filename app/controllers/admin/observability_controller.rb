@@ -38,15 +38,15 @@ module Admin
                               .includes(:source)
                               .limit(50)
       @daily_usage = build_daily_usage_chart
-      @is_paused = WorkflowPauseService.paused?(:serp_api_ingestion)
-      @active_pause = WorkflowPause.find_active(:serp_api_ingestion)
+      @is_paused = WorkflowPauseService.paused?(:imports, subtype: "serp_api_google_news")
+      @active_pauses = WorkflowPause.active.for_workflow("imports")
     end
 
     # GET /admin/observability/ai_usage
     def ai_usage
       @stats = AiUsageTracker.usage_stats
-      @is_paused = WorkflowPauseService.paused?(:editorialisation)
-      @active_pause = WorkflowPause.find_active(:editorialisation)
+      @is_paused = WorkflowPauseService.paused?(:ai_processing)
+      @active_pauses = WorkflowPause.active.for_workflow("ai_processing")
       @daily_usage = build_ai_daily_usage_chart
       @recent_editorialisations = Editorialisation.completed
                                                   .recent

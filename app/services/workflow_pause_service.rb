@@ -1,258 +1,144 @@
 # frozen_string_literal: true
 
-# Service for managing workflow pauses.
-# Provides a clean API for pausing/resuming workflows and checking pause status.
+# Service for managing workflow pause states.
+# Provides a clean API for pausing/resuming imports and AI processing.
 #
 # Usage:
-#   # Check if paused
-#   WorkflowPauseService.paused?(:rss_ingestion, tenant: tenant)
-#
-#   # Pause a workflow
-#   WorkflowPauseService.pause!(:editorialisation, by: user, tenant: tenant, reason: "Cost control")
-#
-#   # Resume a workflow
-#   WorkflowPauseService.resume!(:editorialisation, by: user, tenant: tenant, process_backlog: true)
-#
-#   # Get backlog size
-#   WorkflowPauseService.backlog_size(:editorialisation, tenant: tenant)
+#   WorkflowPauseService.paused?(:imports, tenant: tenant)
+#   WorkflowPauseService.pause!(:imports, by: user, tenant: tenant)
+#   WorkflowPauseService.resume!(:imports, by: user, tenant: tenant, process_backlog: true)
 #
 class WorkflowPauseService
+  WORKFLOW_TYPES = %w[imports ai_processing].freeze
+  IMPORT_SUBTYPES = %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube all].freeze
+
   class << self
-    # Check if a workflow is currently paused
-    # Returns true if any applicable pause exists (global, tenant, or source level)
-    def paused?(workflow_type, tenant: nil, source: nil)
-      workflow_type = normalize_workflow_type(workflow_type)
-      WorkflowPause.paused?(workflow_type, tenant: tenant, source: source)
+    # Check if a workflow is paused
+    # Returns true if ANY applicable pause is active (global, tenant, or source)
+    def paused?(workflow_type, tenant: nil, source: nil, subtype: nil)
+      validate_workflow_type!(workflow_type)
+      WorkflowPause.paused?(workflow_type.to_s, tenant: tenant, source: source, subtype: subtype&.to_s)
     end
 
     # Pause a workflow
-    # @param workflow_type [Symbol, String] The type of workflow to pause
-    # @param by [User] The user pausing the workflow
-    # @param tenant [Tenant, nil] The tenant to pause for (nil = global)
-    # @param source [Source, nil] The specific source to pause
-    # @param reason [String, nil] Optional reason for the pause
-    # @return [WorkflowPause] The created pause record
-    def pause!(workflow_type, by:, tenant: nil, source: nil, reason: nil)
-      workflow_type = normalize_workflow_type(workflow_type)
-
-      # Validate permissions
-      validate_pause_permissions!(by, tenant: tenant, source: source)
-
-      # Check if already paused at this level
-      existing = WorkflowPause.active
-                              .for_workflow(workflow_type)
-                              .where(tenant: tenant, source: source)
-                              .first
-
-      return existing if existing
-
-      WorkflowPause.create!(
-        workflow_type: workflow_type,
+    def pause!(workflow_type, by:, tenant: nil, source: nil, subtype: nil, reason: nil)
+      validate_workflow_type!(workflow_type)
+      
+      pause = WorkflowPause.find_or_create_for(
+        workflow_type: workflow_type.to_s,
         tenant: tenant,
-        source: source,
-        paused_by: by,
-        paused_at: Time.current,
-        reason: reason
+        subtype: subtype&.to_s,
+        source: source
       )
-    end
-
-    # Resume a workflow
-    # @param workflow_type [Symbol, String] The type of workflow to resume
-    # @param by [User] The user resuming the workflow
-    # @param tenant [Tenant, nil] The tenant to resume for (nil = global)
-    # @param source [Source, nil] The specific source to resume
-    # @param process_backlog [Boolean] Whether to process accumulated backlog
-    # @return [WorkflowPause, nil] The resumed pause record, or nil if not paused
-    def resume!(workflow_type, by:, tenant: nil, source: nil, process_backlog: false)
-      workflow_type = normalize_workflow_type(workflow_type)
-
-      # Validate permissions
-      validate_pause_permissions!(by, tenant: tenant, source: source)
-
-      # Find active pause at this exact level
-      pause = WorkflowPause.active
-                           .for_workflow(workflow_type)
-                           .where(tenant: tenant, source: source)
-                           .first
-
-      return nil unless pause
-
-      pause.resume!(by: by)
-
-      # Process backlog if requested
-      process_workflow_backlog(workflow_type, tenant: tenant, source: source) if process_backlog
-
+      
+      pause.pause!(by: by, reason: reason)
+      
+      log_action(:pause, workflow_type, by: by, tenant: tenant, source: source, subtype: subtype)
+      
       pause
     end
 
-    # Get the size of the backlog for a paused workflow
-    def backlog_size(workflow_type, tenant: nil, source: nil)
-      workflow_type = normalize_workflow_type(workflow_type)
+    # Resume a workflow
+    def resume!(workflow_type, by:, tenant: nil, source: nil, subtype: nil, process_backlog: true)
+      validate_workflow_type!(workflow_type)
+      
+      pause = WorkflowPause.find_by(
+        workflow_type: workflow_type.to_s,
+        workflow_subtype: subtype&.to_s,
+        tenant: tenant,
+        source: source
+      )
+      
+      return nil unless pause&.paused?
+      
+      pause.resume!(by: by)
+      
+      log_action(:resume, workflow_type, by: by, tenant: tenant, source: source, subtype: subtype)
+      
+      # Process backlog if requested
+      if process_backlog
+        ProcessBacklogJob.perform_later(
+          workflow_type: workflow_type.to_s,
+          tenant_id: tenant&.id,
+          source_id: source&.id,
+          subtype: subtype&.to_s
+        )
+      end
+      
+      pause
+    end
 
-      case workflow_type
-      when "editorialisation"
-        editorialisation_backlog_size(tenant: tenant, source: source)
-      when "rss_ingestion", "serp_api_ingestion", "all_ingestion"
-        ingestion_backlog_size(workflow_type, tenant: tenant, source: source)
+    # Get all active pauses
+    def active_pauses(tenant: nil)
+      scope = WorkflowPause.active
+      scope = scope.where(tenant: [nil, tenant]) if tenant
+      scope.order(created_at: :desc)
+    end
+
+    # Get pause status summary
+    def status_summary(tenant: nil)
+      {
+        imports: {
+          paused: paused?(:imports, tenant: tenant),
+          subtypes: IMPORT_SUBTYPES.each_with_object({}) do |subtype, hash|
+            hash[subtype] = paused?(:imports, tenant: tenant, subtype: subtype)
+          end
+        },
+        ai_processing: {
+          paused: paused?(:ai_processing, tenant: tenant)
+        },
+        active_pauses: active_pauses(tenant: tenant).count
+      }
+    end
+
+    # Estimate backlog size for a workflow
+    def backlog_size(workflow_type, tenant: nil, since: nil)
+      case workflow_type.to_s
+      when "imports"
+        estimate_import_backlog(tenant, since)
+      when "ai_processing"
+        estimate_ai_backlog(tenant, since)
       else
         0
       end
     end
 
-    # Get all active pauses, optionally filtered
-    def active_pauses(tenant: nil, include_global: true)
-      pauses = WorkflowPause.active.recent
-
-      if tenant
-        pauses = pauses.where(tenant: [tenant, nil])
-      elsif !include_global
-        pauses = pauses.where.not(tenant_id: nil)
-      end
-
-      pauses
-    end
-
-    # Get pause status summary for admin UI
-    def status_summary(tenant: nil)
-      pauses = active_pauses(tenant: tenant)
-
-      {
-        total_active: pauses.count,
-        by_workflow: pauses.group(:workflow_type).count,
-        global_pauses: pauses.global.count,
-        tenant_pauses: pauses.where.not(tenant_id: nil).count,
-        oldest_pause: pauses.order(:paused_at).first,
-        backlogs: WorkflowPause::WORKFLOW_TYPES.index_with do |type|
-          backlog_size(type, tenant: tenant)
-        end
-      }
-    end
-
     private
 
-    def normalize_workflow_type(type)
-      type.to_s.underscore
+    def validate_workflow_type!(type)
+      unless WORKFLOW_TYPES.include?(type.to_s)
+        raise ArgumentError, "Invalid workflow type: #{type}. Must be one of: #{WORKFLOW_TYPES.join(', ')}"
+      end
     end
 
-    def validate_pause_permissions!(user, tenant:, source:)
-      # Super admin can do anything
-      return if user.admin?
-
-      # Global pauses require super admin
-      if tenant.nil? && source.nil?
-        raise Pundit::NotAuthorizedError, "Only super admins can create global pauses"
-      end
-
-      # Tenant admin can pause their own tenant
-      if tenant && user.has_role?(:admin, tenant)
-        # If source specified, verify it belongs to tenant
-        if source && source.tenant_id != tenant.id
-          raise Pundit::NotAuthorizedError, "Source does not belong to this tenant"
-        end
-        return
-      end
-
-      raise Pundit::NotAuthorizedError, "You don't have permission to pause this workflow"
-    end
-
-    def editorialisation_backlog_size(tenant:, source:)
-      scope = ContentItem.published.where(editorialised_at: nil)
-
-      if source
-        scope = scope.where(source: source)
-      elsif tenant
-        scope = scope.joins(:site).where(sites: { tenant_id: tenant.id })
-      end
-
-      # Only count items from sources with editorialisation enabled
-      scope.joins(:source)
-           .where(sources: { config: {} }) # This needs to check editorialisation_enabled
-           .or(
-             scope.joins(:source).where("sources.config->>'editorialise' = 'true'")
-           )
-           .count
-    end
-
-    def ingestion_backlog_size(workflow_type, tenant:, source:)
+    def estimate_import_backlog(tenant, since)
+      # Count sources that haven't run since pause started
       scope = Source.enabled
-
-      case workflow_type
-      when "rss_ingestion"
-        scope = scope.where(kind: :rss)
-      when "serp_api_ingestion"
-        scope = scope.where(kind: [:serp_api_google_news, :serp_api_google_jobs, :serp_api_youtube])
-      end
-
-      if source
-        scope = scope.where(id: source.id)
-      elsif tenant
-        scope = scope.joins(:site).where(sites: { tenant_id: tenant.id })
-      end
-
-      # Count sources that are due for a run
-      scope.due_for_run.count
-    end
-
-    def process_workflow_backlog(workflow_type, tenant:, source:)
-      case workflow_type
-      when "editorialisation"
-        process_editorialisation_backlog(tenant: tenant, source: source)
-      when "rss_ingestion"
-        process_ingestion_backlog(:rss, tenant: tenant, source: source)
-      when "serp_api_ingestion"
-        process_ingestion_backlog(:serp_api, tenant: tenant, source: source)
-      when "all_ingestion"
-        process_ingestion_backlog(:all, tenant: tenant, source: source)
+      scope = scope.where(tenant: tenant) if tenant
+      
+      if since
+        scope.where("last_run_at < ? OR last_run_at IS NULL", since).count
+      else
+        scope.where("last_run_at < ? OR last_run_at IS NULL", 1.hour.ago).count
       end
     end
 
-    def process_editorialisation_backlog(tenant:, source:)
+    def estimate_ai_backlog(tenant, since)
+      # Count content items awaiting editorialisation
       scope = ContentItem.published.where(editorialised_at: nil)
-
-      if source
-        scope = scope.where(source: source)
-      elsif tenant
-        scope = scope.joins(:site).where(sites: { tenant_id: tenant.id })
-      end
-
-      # Only process items from sources with editorialisation enabled
-      scope = scope.joins(:source)
-                   .where("sources.config->>'editorialise' = 'true'")
-                   .limit(100) # Process in batches
-
-      scope.find_each do |content_item|
-        EditorialiseContentItemJob.perform_later(content_item.id)
-      end
+      scope = scope.joins(:source).where(sources: { tenant: tenant }) if tenant
+      scope = scope.where("content_items.created_at > ?", since) if since
+      scope.count
     end
 
-    def process_ingestion_backlog(kind, tenant:, source:)
-      scope = Source.enabled.due_for_run
-
-      case kind
-      when :rss
-        scope = scope.where(kind: :rss)
-      when :serp_api
-        scope = scope.where(kind: [:serp_api_google_news, :serp_api_google_jobs, :serp_api_youtube])
-      end
-
-      if source
-        scope = scope.where(id: source.id)
-      elsif tenant
-        scope = scope.joins(:site).where(sites: { tenant_id: tenant.id })
-      end
-
-      scope.find_each do |src|
-        case src.kind
-        when "rss"
-          FetchRssJob.perform_later(src.id)
-        when "serp_api_google_news"
-          SerpApiIngestionJob.perform_later(src.id)
-        when "serp_api_google_jobs"
-          SerpApiJobsIngestionJob.perform_later(src.id)
-        when "serp_api_youtube"
-          SerpApiYoutubeIngestionJob.perform_later(src.id)
-        end
-      end
+    def log_action(action, workflow_type, by:, tenant:, source:, subtype:)
+      Rails.logger.info(
+        "[WorkflowPauseService] #{action.upcase} #{workflow_type}" \
+        " | user=#{by&.id}" \
+        " | tenant=#{tenant&.id || 'global'}" \
+        " | source=#{source&.id || 'all'}" \
+        " | subtype=#{subtype || 'all'}"
+      )
     end
   end
 end
