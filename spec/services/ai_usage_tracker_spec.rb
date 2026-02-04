@@ -136,10 +136,11 @@ RSpec.describe AiUsageTracker do
     it "calculates cost based on token counts" do
       cost = described_class.estimate_cost(input_tokens: 1000, output_tokens: 1000)
 
-      # 1000 input * 0.3/1000 = 0.3 cents
-      # 1000 output * 1.5/1000 = 1.5 cents
-      # Total = 1.8, rounds up to 2 cents
-      expect(cost).to eq(2)
+      # Default model pricing: 15 cents/M input, 60 cents/M output
+      # 1000 input * 15/1M * 100 = 1.5 cents
+      # 1000 output * 60/1M * 100 = 6 cents
+      # Total = 7.5, rounds to 8 cents
+      expect(cost).to eq(8)
     end
 
     it "handles zero tokens" do
@@ -153,9 +154,9 @@ RSpec.describe AiUsageTracker do
     let(:site) { create(:site, tenant: tenant) }
 
     before do
-      # Create some editorialisations
-      create(:editorialisation, :completed, site: site, tokens_used: 500, estimated_cost_cents: 2, ai_model: "claude-3-sonnet")
-      create(:editorialisation, :completed, site: site, tokens_used: 1000, estimated_cost_cents: 5, ai_model: "claude-3-sonnet")
+      # Create editorialisations with input_tokens + output_tokens (the tracker sums these, not tokens_used)
+      create(:editorialisation, :completed, site: site, input_tokens: 300, output_tokens: 200, estimated_cost_cents: 2, ai_model: "claude-3-sonnet")
+      create(:editorialisation, :completed, site: site, input_tokens: 600, output_tokens: 400, estimated_cost_cents: 5, ai_model: "claude-3-sonnet")
     end
 
     it "returns comprehensive usage stats" do
@@ -166,7 +167,7 @@ RSpec.describe AiUsageTracker do
       expect(stats[:cost][:monthly][:limit_cents]).to eq(10_000)
 
       expect(stats[:tokens]).to be_a(Hash)
-      expect(stats[:tokens][:monthly][:used]).to eq(1500)
+      expect(stats[:tokens][:monthly][:used]).to eq(1500) # 300+200 + 600+400
 
       expect(stats[:requests]).to be_a(Hash)
       expect(stats[:requests][:total_this_month]).to eq(2)
@@ -179,7 +180,7 @@ RSpec.describe AiUsageTracker do
 
     it "filters by tenant when specified" do
       other_site = create(:site)
-      create(:editorialisation, :completed, site: other_site, tokens_used: 2000, estimated_cost_cents: 10)
+      create(:editorialisation, :completed, site: other_site, input_tokens: 1000, output_tokens: 1000, estimated_cost_cents: 10)
 
       stats = described_class.usage_stats(tenant: tenant)
 
