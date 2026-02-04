@@ -2,7 +2,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center sm:justify-between mb-8">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Site Bans</h1>
+        <h1 class="text-3xl font-bold text-gray-900"><%= t("admin.site_bans.index.title") %></h1>
         <p class="mt-2 text-gray-600">Manage banned users on this site</p>
       </div>
       <%= link_to new_admin_site_ban_path, class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700" do %>
@@ -93,7 +93,7 @@
       <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900">No banned users</h3>
+      <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t("admin.site_bans.no_bans") %></h3>
       <p class="mt-1 text-sm text-gray-500">All users are in good standing.</p>
     </div>
   <% end %>

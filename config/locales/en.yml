@@ -337,9 +337,6 @@ en:
       flagged_by: Flagged By
       hide_content: Hide Content
       index:
-        pending_count:
-          one: "%{count} pending flag"
-          other: "%{count} pending flags"
         pending_section: Pending Flags
         resolved_section: Recently Resolved
         title: Content Moderation Queue
