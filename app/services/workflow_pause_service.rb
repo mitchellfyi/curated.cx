@@ -9,7 +9,7 @@
 #   WorkflowPauseService.resume!(:imports, by: user, tenant: tenant, process_backlog: true)
 #
 class WorkflowPauseService
-  WORKFLOW_TYPES = %w[imports ai_processing].freeze
+  WORKFLOW_TYPES = %w[imports ai_processing rss_ingestion serp_api_ingestion editorialisation].freeze
   IMPORT_SUBTYPES = %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube all].freeze
 
   class << self

@@ -28,7 +28,7 @@ class WorkflowPause < ApplicationRecord
 
   # Validations
   validates :workflow_type, presence: true
-  validates :workflow_type, inclusion: { in: %w[imports ai_processing] }
+  validates :workflow_type, inclusion: { in: %w[imports ai_processing rss_ingestion serp_api_ingestion editorialisation] }
   validates :workflow_subtype, inclusion: {
     in: %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube all],
     allow_nil: true
@@ -58,6 +58,25 @@ class WorkflowPause < ApplicationRecord
     end
 
     false
+  end
+
+  def self.find_active(workflow_type, tenant: nil, source: nil, subtype: nil)
+    # Find the most specific active pause for this context
+    # Priority: source-specific > tenant-specific > global
+    scope = active.for_workflow(workflow_type.to_s)
+
+    if source
+      pause = scope.where(source: source).first
+      return pause if pause
+    end
+
+    if tenant
+      pause = scope.for_tenant(tenant).for_subtype(subtype).first
+      return pause if pause
+    end
+
+    # Return global pause if any
+    scope.global.for_subtype(subtype).first
   end
 
   def self.find_or_create_for(workflow_type:, tenant: nil, subtype: nil, source: nil)
