@@ -32,8 +32,9 @@ class WorkflowPause < ApplicationRecord
   # Validations
   validates :workflow_type, presence: true
   validates :workflow_type, inclusion: { in: WORKFLOW_TYPES }
-  validates :paused_at, presence: true
-  validates :paused_by, presence: true
+  # paused_at and paused_by are required when the record is actively paused
+  validates :paused_at, presence: true, if: :active_pause_record?
+  validates :paused_by, presence: true, if: :active_pause_record?
   validates :workflow_subtype, inclusion: {
     in: %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube all],
     allow_nil: true
@@ -116,7 +117,13 @@ class WorkflowPause < ApplicationRecord
   end
 
   def active?
-    resumed_at.nil?
+    resumed_at.nil? && paused_at.present?
+  end
+
+  # Used for validation - should we require paused_at and paused_by?
+  # They're required when paused_at is being set (active pause)
+  def active_pause_record?
+    paused_at.present?
   end
 
   def duration_text

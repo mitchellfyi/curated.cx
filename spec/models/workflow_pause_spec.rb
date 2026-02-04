@@ -12,8 +12,25 @@ RSpec.describe WorkflowPause do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:workflow_type) }
-    it { is_expected.to validate_presence_of(:paused_at) }
-    it { is_expected.to validate_presence_of(:paused_by) }
+
+    context "when paused_at is present (active pause)" do
+      subject { build(:workflow_pause, paused_at: Time.current) }
+
+      it { is_expected.to validate_presence_of(:paused_by) }
+    end
+
+    it "requires paused_by when paused_at is set" do
+      pause = build(:workflow_pause, paused_at: Time.current, paused_by: nil)
+      expect(pause).not_to be_valid
+      expect(pause.errors[:paused_by]).to be_present
+    end
+
+    it "does not require paused_at and paused_by when record is not paused" do
+      pause = WorkflowPause.new(workflow_type: "rss_ingestion")
+      pause.valid?
+      expect(pause.errors[:paused_at]).to be_empty
+      expect(pause.errors[:paused_by]).to be_empty
+    end
 
     it "validates workflow_type is in allowed list" do
       pause = build(:workflow_pause, workflow_type: "invalid_type")

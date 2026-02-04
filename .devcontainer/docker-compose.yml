@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+      - bundle_cache:/usr/local/bundle
+      - node_modules:/workspace/node_modules
+    environment:
+      - RAILS_ENV=test
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/curated_test
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - postgres
+      - redis
+    command: sleep infinity
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: curated_test
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+
+volumes:
+  bundle_cache:
+  node_modules:
+  postgres_data:
+  redis_data:

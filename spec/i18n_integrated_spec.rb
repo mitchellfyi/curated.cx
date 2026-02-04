@@ -34,6 +34,11 @@ RSpec.describe 'i18n Integration', type: :i18n do
           next if string.match?(/^UTF-8$/i) # XML encoding
           next if file.match?(/\.xml\.erb$/) # XML templates don't need i18n
 
+          # Skip strings that appear as default values in t() helper calls
+          # e.g., t("key", default: "Default Value")
+          line_with_string = content.lines.find { |line| line.include?(string) }
+          next if line_with_string&.match?(/\bt\s*\([^)]*default:\s*["']#{Regexp.escape(string)}["']/)
+
           missing_translations << "#{file}: #{string}"
         end
       end

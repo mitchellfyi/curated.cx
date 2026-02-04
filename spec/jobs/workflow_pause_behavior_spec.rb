@@ -30,10 +30,11 @@ RSpec.describe "Workflow Pause Behavior" do
 
     context "when workflow is not paused" do
       it "executes normally" do
-        # Allow the job to fail on HTTP - we're testing it runs
+        # Allow the job to fail on HTTP/config - we're testing it actually runs (not skipped)
+        # ConfigurationError inherits from StandardError, so this catches both
         expect {
           FetchRssJob.perform_now(source.id)
-        }.to raise_error(FetchRssJob::ConfigurationError).or raise_error(StandardError)
+        }.to raise_error(StandardError)
       end
     end
 
