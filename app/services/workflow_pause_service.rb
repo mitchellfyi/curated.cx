@@ -23,38 +23,38 @@ class WorkflowPauseService
     # Pause a workflow
     def pause!(workflow_type, by:, tenant: nil, source: nil, subtype: nil, reason: nil)
       validate_workflow_type!(workflow_type)
-      
+
       pause = WorkflowPause.find_or_create_for(
         workflow_type: workflow_type.to_s,
         tenant: tenant,
         subtype: subtype&.to_s,
         source: source
       )
-      
+
       pause.pause!(by: by, reason: reason)
-      
+
       log_action(:pause, workflow_type, by: by, tenant: tenant, source: source, subtype: subtype)
-      
+
       pause
     end
 
     # Resume a workflow
     def resume!(workflow_type, by:, tenant: nil, source: nil, subtype: nil, process_backlog: true)
       validate_workflow_type!(workflow_type)
-      
+
       pause = WorkflowPause.find_by(
         workflow_type: workflow_type.to_s,
         workflow_subtype: subtype&.to_s,
         tenant: tenant,
         source: source
       )
-      
+
       return nil unless pause&.paused?
-      
+
       pause.resume!(by: by)
-      
+
       log_action(:resume, workflow_type, by: by, tenant: tenant, source: source, subtype: subtype)
-      
+
       # Process backlog if requested
       if process_backlog
         ProcessBacklogJob.perform_later(
@@ -64,14 +64,14 @@ class WorkflowPauseService
           subtype: subtype&.to_s
         )
       end
-      
+
       pause
     end
 
     # Get all active pauses
     def active_pauses(tenant: nil)
       scope = WorkflowPause.active
-      scope = scope.where(tenant: [nil, tenant]) if tenant
+      scope = scope.where(tenant: [ nil, tenant ]) if tenant
       scope.order(created_at: :desc)
     end
 
@@ -115,7 +115,7 @@ class WorkflowPauseService
       # Count sources that haven't run since pause started
       scope = Source.enabled
       scope = scope.where(tenant: tenant) if tenant
-      
+
       if since
         scope.where("last_run_at < ? OR last_run_at IS NULL", since).count
       else

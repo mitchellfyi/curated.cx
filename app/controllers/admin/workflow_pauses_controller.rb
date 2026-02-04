@@ -4,7 +4,7 @@ module Admin
   class WorkflowPausesController < ApplicationController
     include AdminAccess
 
-    before_action :require_admin_for_global, only: [:create, :destroy]
+    before_action :require_admin_for_global, only: [ :create, :destroy ]
 
     # GET /admin/workflow_pauses
     def index
@@ -17,7 +17,7 @@ module Admin
     # POST /admin/workflow_pauses
     def create
       tenant = params[:global] == "true" ? nil : Current.tenant
-      
+
       pause = WorkflowPauseService.pause!(
         params[:workflow_type],
         by: current_user,
@@ -40,7 +40,7 @@ module Admin
     # DELETE /admin/workflow_pauses/:id
     def destroy
       pause = WorkflowPause.find(params[:id])
-      
+
       # Check authorization
       unless current_user.admin? || pause.tenant == Current.tenant
         raise Pundit::NotAuthorizedError, "Cannot resume this pause"

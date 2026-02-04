@@ -29,9 +29,9 @@ class WorkflowPause < ApplicationRecord
   # Validations
   validates :workflow_type, presence: true
   validates :workflow_type, inclusion: { in: %w[imports ai_processing] }
-  validates :workflow_subtype, inclusion: { 
+  validates :workflow_subtype, inclusion: {
     in: %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube all],
-    allow_nil: true 
+    allow_nil: true
   }
 
   # Scopes
@@ -39,7 +39,7 @@ class WorkflowPause < ApplicationRecord
   scope :global, -> { where(tenant_id: nil) }
   scope :for_tenant, ->(tenant) { where(tenant: tenant) }
   scope :for_workflow, ->(type) { where(workflow_type: type) }
-  scope :for_subtype, ->(subtype) { where(workflow_subtype: [subtype, "all", nil]) }
+  scope :for_subtype, ->(subtype) { where(workflow_subtype: [ subtype, "all", nil ]) }
   scope :recent, -> { order(created_at: :desc) }
 
   # Class methods

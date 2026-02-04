@@ -108,7 +108,7 @@ class AiUsageTracker
     end
 
     def monthly_remaining(tenant = nil)
-      [MONTHLY_TOKEN_LIMIT - monthly_used(tenant), 0].max
+      [ MONTHLY_TOKEN_LIMIT - monthly_used(tenant), 0 ].max
     end
 
     def daily_used(tenant = nil)
@@ -117,7 +117,7 @@ class AiUsageTracker
     end
 
     def daily_remaining(tenant = nil)
-      [DAILY_SOFT_LIMIT - daily_used(tenant), 0].max
+      [ DAILY_SOFT_LIMIT - daily_used(tenant), 0 ].max
     end
 
     # Cost methods
@@ -143,10 +143,10 @@ class AiUsageTracker
 
     def calculate_cost(tokens_in, tokens_out, model)
       costs = MODEL_COSTS[model] || MODEL_COSTS["default"]
-      
+
       input_cost = (tokens_in.to_f / 1_000_000) * costs[:input] * 100  # cents
       output_cost = (tokens_out.to_f / 1_000_000) * costs[:output] * 100
-      
+
       (input_cost + output_cost).round
     end
 
@@ -178,7 +178,7 @@ class AiUsageTracker
 
     def usage_breakdown(tenant)
       scope = editorialisation_scope(tenant).where("created_at >= ?", start_of_month)
-      
+
       {
         by_status: scope.unscoped.where("created_at >= ?", start_of_month).group(:status).count,
         by_model: scope.group(:ai_model).sum(:input_tokens).transform_values { |v| v || 0 },
