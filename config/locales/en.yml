@@ -1083,18 +1083,12 @@ en:
     listing:
       one: "%{count} listing"
       other: "%{count} listings"
-  date:
-    formats:
-      default: "%B %d, %Y"
-      long: "%B %d, %Y"
-      month_year: "%B %Y"
-      short: "%b %d"
   dashboard:
     account_settings: Account Settings
     browse_content: Browse content
     no_purchases: No purchases yet
     no_saves: No saved items yet
-    purchase_fallback: "Purchase #%{id}"
+    purchase_fallback: 'Purchase #%{id}'
     purchases: Purchases
     quick_actions: Quick Actions
     recent_purchases: Recent Purchases
@@ -1105,15 +1099,24 @@ en:
     submit_content: Submit Content
     title: Dashboard
     view_all: View all
+  date:
+    formats:
+      default: "%B %d, %Y"
+      long: "%B %d, %Y"
+      month_year: "%B %Y"
+      short: "%b %d"
   digest_mailer:
     confirmation:
-      body: Please confirm your subscription to receive %{frequency} digest emails from %{site}.
+      body: Please confirm your subscription to receive %{frequency} digest emails
+        from %{site}.
       button: Confirm Subscription
       expires: This confirmation link will expire in 7 days.
       greeting: Hi %{name}!
       heading: Confirm Your Email Subscription
-      ignore: If you didn't request this subscription, you can safely ignore this email.
-      link_fallback: If the button doesn't work, copy and paste this link into your browser
+      ignore: If you didn't request this subscription, you can safely ignore this
+        email.
+      link_fallback: If the button doesn't work, copy and paste this link into your
+        browser
       subject: Confirm your subscription to %{site}
     daily_digest:
       intro: Here's what's happening today
@@ -1135,7 +1138,8 @@ en:
     already_confirmed: Your subscription is already confirmed.
     back_to_site: Back to Site
     confirm_unsubscribe: Are you sure you want to unsubscribe?
-    confirmation_error_message: This confirmation link is invalid or has expired. Please request a new one.
+    confirmation_error_message: This confirmation link is invalid or has expired.
+      Please request a new one.
     confirmation_error_title: Invalid Link
     confirmation_resent: Confirmation email has been resent. Please check your inbox.
     confirmed_message: You're all set! You'll start receiving digest emails from %{site}.
@@ -1150,9 +1154,10 @@ en:
       weekly: Weekly (every Monday)
     frequency_label: Frequency
     pending_confirmation: Awaiting confirmation - check your email
-    pending_confirmation_info: We've sent a confirmation email to %{email}. Please click the link to activate your subscription.
-    resubscribe: Resubscribe
+    pending_confirmation_info: We've sent a confirmation email to %{email}. Please
+      click the link to activate your subscription.
     resend_confirmation: Resend Confirmation Email
+    resubscribe: Resubscribe
     subscribe: Subscribe to Digest
     subscribed: You're subscribed
     title: Email Digest
