@@ -31,7 +31,8 @@ RSpec.describe WorkflowPause do
     context "source and tenant relationship" do
       let(:tenant) { create(:tenant) }
       let(:other_tenant) { create(:tenant) }
-      let(:source) { create(:source, tenant: tenant) }
+      let(:site) { create(:site, tenant: tenant) }
+      let(:source) { create(:source, site: site) }
 
       it "is valid when source belongs to tenant" do
         pause = build(:workflow_pause, tenant: tenant, source: source)
@@ -77,7 +78,8 @@ RSpec.describe WorkflowPause do
 
   describe ".paused?" do
     let(:tenant) { create(:tenant) }
-    let(:source) { create(:source, tenant: tenant) }
+    let(:site) { create(:site, tenant: tenant) }
+    let(:source) { create(:source, site: site) }
 
     context "with no pauses" do
       it "returns false" do
@@ -116,7 +118,7 @@ RSpec.describe WorkflowPause do
 
     context "with a source-specific pause" do
       before { create(:workflow_pause, workflow_type: "serp_api_ingestion", source: source, tenant: tenant) }
-      let(:other_source) { create(:source, tenant: tenant) }
+      let(:other_source) { create(:source, site: site) }
 
       it "returns true for that source" do
         expect(described_class.paused?("serp_api_ingestion", source: source)).to be true
@@ -146,7 +148,8 @@ RSpec.describe WorkflowPause do
 
   describe ".find_active" do
     let(:tenant) { create(:tenant) }
-    let(:source) { create(:source, tenant: tenant) }
+    let(:site) { create(:site, tenant: tenant) }
+    let(:source) { create(:source, site: site) }
 
     context "with overlapping pauses" do
       let!(:global_pause) { create(:workflow_pause, workflow_type: "rss_ingestion", tenant: nil) }
