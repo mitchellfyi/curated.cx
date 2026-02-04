@@ -1,4 +1,4 @@
-<%# Admin Sidebar Navigation - Simplified with collapsible sections %>
+<%# Admin Sidebar Navigation - Organized with clear Super Admin / Tenant Admin separation %>
 <nav class="space-y-1" data-controller="sidebar">
   <!-- Current Context -->
   <% if Current.tenant %>
@@ -26,27 +26,36 @@
     <% end %>
   </div>
 
+  <%# ==================== SUPER ADMIN SECTION ==================== %>
   <% if current_user&.admin? %>
-    <p class="px-3 text-xs font-semibold text-red-500 uppercase tracking-wider">🔑 Super Admin</p>
+    <div class="mb-4 pb-4 border-b-2 border-red-200">
+      <p class="px-3 mb-2 text-xs font-bold text-red-600 uppercase tracking-wider flex items-center">
+        <svg class="mr-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clip-rule="evenodd"></path>
+        </svg>
+        Super Admin
+      </p>
 
-    <%= link_to admin_tenants_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('tenants') ? 'bg-red-50 text-red-900' : 'text-gray-600 hover:bg-red-50 hover:text-red-900'}" do %>
-      <svg class="mr-3 h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-      </svg>
-      All Tenants
-      <span class="ml-auto text-xs text-gray-400"><%= Tenant.count rescue 0 %></span>
-    <% end %>
+      <%= link_to admin_tenants_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('tenants') ? 'bg-red-100 text-red-900 border-l-4 border-red-500' : 'text-red-700 hover:bg-red-50 hover:text-red-900'}" do %>
+        <svg class="mr-3 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+        </svg>
+        All Tenants
+        <span class="ml-auto text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full"><%= Tenant.count rescue 0 %></span>
+      <% end %>
 
-    <%= link_to admin_users_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('users') ? 'bg-red-50 text-red-900' : 'text-gray-600 hover:bg-red-50 hover:text-red-900'}" do %>
-      <svg class="mr-3 h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-      </svg>
-      All Users
-      <span class="ml-auto text-xs text-gray-400"><%= User.count rescue 0 %></span>
-    <% end %>
-
-    <div class="my-3 border-t border-gray-200"></div>
+      <%= link_to admin_users_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('users') ? 'bg-red-100 text-red-900 border-l-4 border-red-500' : 'text-red-700 hover:bg-red-50 hover:text-red-900'}" do %>
+        <svg class="mr-3 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+        </svg>
+        All Users
+        <span class="ml-auto text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full"><%= User.count rescue 0 %></span>
+      <% end %>
+    </div>
   <% end %>
+
+  <%# ==================== TENANT ADMIN SECTION ==================== %>
+  <p class="px-3 mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Tenant Admin</p>
 
   <!-- Dashboard -->
   <%= link_to admin_root_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path == admin_root_path ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
@@ -98,8 +107,62 @@
     Sources
   <% end %>
 
+  <!-- Commerce Section (Collapsible) -->
+  <% commerce_active = request.path.include?('digital_products') || request.path.include?('affiliate_clicks') || request.path.include?('live_streams') %>
+  <div data-sidebar-target="section" data-section-name="commerce">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= commerce_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        Commerce
+      </span>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_digital_products_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('digital_products') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Digital Products
+      <% end %>
+      <%= link_to admin_affiliate_clicks_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('affiliate_clicks') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Affiliate Clicks
+      <% end %>
+      <%= link_to admin_live_streams_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('live_streams') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Live Streams
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Boosts / Network Section (Collapsible) -->
+  <% boosts_active = request.path.include?('network_boosts') || request.path.include?('boost_earnings') || request.path.include?('boost_payouts') %>
+  <div data-sidebar-target="section" data-section-name="boosts">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= boosts_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+        </svg>
+        Boosts / Network
+      </span>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_network_boosts_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('network_boosts') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Network Boosts
+      <% end %>
+      <%= link_to admin_boost_earnings_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('boost_earnings') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Boost Earnings
+      <% end %>
+      <%= link_to admin_boost_payouts_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('boost_payouts') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Boost Payouts
+      <% end %>
+    </div>
+  </div>
+
   <!-- Subscribers Section (Collapsible) -->
-  <% subscribers_active = request.path.include?('digest') || request.path.include?('email_sequences') || (request.path.include?('referrals') && !request.path.include?('tiers')) %>
+  <% subscribers_active = request.path.include?('digest') || request.path.include?('subscriber_tags') || request.path.include?('subscriber_segments') || request.path.include?('email_sequences') || (request.path.include?('referrals') && !request.path.include?('tiers')) || request.path.include?('referral_reward_tiers') %>
   <div data-sidebar-target="section" data-section-name="subscribers">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= subscribers_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
       <span class="flex items-center">
@@ -116,11 +179,20 @@
       <%= link_to admin_digest_subscriptions_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('digest') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Email Subscribers
       <% end %>
+      <%= link_to admin_subscriber_tags_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('subscriber_tags') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Subscriber Tags
+      <% end %>
+      <%= link_to admin_subscriber_segments_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('subscriber_segments') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Subscriber Segments
+      <% end %>
       <%= link_to admin_email_sequences_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('email_sequences') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Email Sequences
       <% end %>
       <%= link_to admin_referrals_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('referrals') && !request.path.include?('tiers') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Referrals
+      <% end %>
+      <%= link_to admin_referral_reward_tiers_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('referral_reward_tiers') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Referral Reward Tiers
       <% end %>
     </div>
   </div>
@@ -219,13 +291,12 @@
   </div>
 
   <!-- System Section (Collapsible) -->
-  <% system_active = request.path.include?('import_runs') || (request.path.include?('editorialisations') && !request.path.include?('observability')) || request.path.include?('jobs') || request.path.include?('observability') || request.path.include?('activity') %>
+  <% system_active = request.path.include?('observability') || request.path.include?('activity') || request.path.include?('import_runs') || (request.path.include?('editorialisations') && !request.path.include?('observability')) || request.path.include?('jobs') %>
   <div data-sidebar-target="section" data-section-name="system">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= system_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
       <span class="flex items-center">
         <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
         </svg>
         System
       </span>
@@ -235,10 +306,10 @@
     </button>
     <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
       <%= link_to admin_observability_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('observability') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
-        System Health
+        Observability
       <% end %>
       <%= link_to admin_activity_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('activity') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
-        Activity Log
+        Activity
       <% end %>
       <%= link_to admin_import_runs_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('import_runs') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Import Runs
@@ -246,26 +317,36 @@
       <%= link_to admin_editorialisations_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('editorialisations') && !request.path.include?('observability') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         AI Processing
       <% end %>
-      <%= link_to "/admin/jobs", class: "group flex items-center px-3 py-1.5 text-sm rounded-md text-gray-500 hover:bg-gray-50 hover:text-gray-900" do %>
+      <%= link_to "/admin/jobs", class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('jobs') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Background Jobs
       <% end %>
     </div>
   </div>
 
-  <!-- Settings (Top-level) -->
-  <%= link_to admin_sites_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('sites') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-    </svg>
-    Sites & Domains
-  <% end %>
-
-  <% unless current_user&.admin? %>
-    <%= link_to admin_users_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('users') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
-      <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+  <!-- Settings Section (Collapsible) -->
+  <% settings_active = request.path.include?('sites') || (!current_user&.admin? && request.path.include?('users')) %>
+  <div data-sidebar-target="section" data-section-name="settings">
+    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= settings_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+      <span class="flex items-center">
+        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        Settings
+      </span>
+      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
       </svg>
-      Users
-    <% end %>
-  <% end %>
+    </button>
+    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+      <%= link_to admin_sites_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('sites') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Sites & Domains
+      <% end %>
+      <% unless current_user&.admin? %>
+        <%= link_to admin_users_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('users') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+          Users
+        <% end %>
+      <% end %>
+    </div>
+  </div>
 </nav>

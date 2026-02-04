@@ -207,6 +207,10 @@ Rails.application.routes.draw do
     resources :digest_subscriptions, only: %i[index show] do
       member do
         patch :update_tags
+        post :send_test_digest
+      end
+      collection do
+        post :trigger_digest_send
       end
     end
   end

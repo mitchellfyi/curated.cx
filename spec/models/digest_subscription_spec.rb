@@ -4,20 +4,24 @@
 #
 # Table name: digest_subscriptions
 #
-#  id                :bigint           not null, primary key
-#  active            :boolean          default(TRUE), not null
-#  frequency         :integer          default("weekly"), not null
-#  last_sent_at      :datetime
-#  preferences       :jsonb            not null
-#  referral_code     :string           not null
-#  unsubscribe_token :string           not null
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
-#  site_id           :bigint           not null
-#  user_id           :bigint           not null
+#  id                    :bigint           not null, primary key
+#  active                :boolean          default(TRUE), not null
+#  confirmation_sent_at  :datetime
+#  confirmation_token    :string
+#  confirmed_at          :datetime
+#  frequency             :integer          default("weekly"), not null
+#  last_sent_at          :datetime
+#  preferences           :jsonb            not null
+#  referral_code         :string           not null
+#  unsubscribe_token     :string           not null
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  site_id               :bigint           not null
+#  user_id               :bigint           not null
 #
 # Indexes
 #
+#  index_digest_subscriptions_on_confirmation_token               (confirmation_token) UNIQUE
 #  index_digest_subscriptions_on_referral_code                     (referral_code) UNIQUE
 #  index_digest_subscriptions_on_site_id                           (site_id)
 #  index_digest_subscriptions_on_site_id_and_frequency_and_active  (site_id,frequency,active)
@@ -244,6 +248,164 @@ RSpec.describe DigestSubscription, type: :model do
         referral = create(:referral, referrer_subscription: referrer_sub, referee_subscription: subscription, site: site)
 
         expect(subscription.referral_as_referee).to eq(referral)
+      end
+    end
+  end
+
+  describe "confirmation (double opt-in)" do
+    describe "callbacks" do
+      it "generates confirmation_token on create" do
+        subscription = build(:digest_subscription, user: user, site: site, confirmation_token: nil)
+        subscription.save!
+
+        expect(subscription.confirmation_token).to be_present
+        expect(subscription.confirmation_token.length).to be >= 32
+      end
+
+      it "sends confirmation email on create", :perform_enqueued_jobs do
+        expect {
+          create(:digest_subscription, user: user, site: site)
+        }.to have_enqueued_mail(DigestMailer, :confirmation)
+      end
+
+      it "does not send confirmation email if already confirmed" do
+        expect {
+          create(:digest_subscription, :confirmed, user: user, site: site)
+        }.not_to have_enqueued_mail(DigestMailer, :confirmation)
+      end
+    end
+
+    describe "scopes" do
+      describe ".confirmed" do
+        it "returns only confirmed subscriptions" do
+          confirmed = create(:digest_subscription, :confirmed, user: user, site: site)
+          other_user = create(:user)
+          pending = create(:digest_subscription, user: other_user, site: site, confirmed_at: nil)
+
+          expect(described_class.confirmed).to include(confirmed)
+          expect(described_class.confirmed).not_to include(pending)
+        end
+      end
+
+      describe ".pending_confirmation" do
+        it "returns only unconfirmed subscriptions" do
+          pending = create(:digest_subscription, user: user, site: site, confirmed_at: nil)
+          other_user = create(:user)
+          confirmed = create(:digest_subscription, :confirmed, user: other_user, site: site)
+
+          expect(described_class.pending_confirmation).to include(pending)
+          expect(described_class.pending_confirmation).not_to include(confirmed)
+        end
+      end
+
+      describe ".due_for_weekly" do
+        it "excludes unconfirmed subscriptions" do
+          unconfirmed = create(:digest_subscription, :due, user: user, site: site, frequency: :weekly, confirmed_at: nil)
+
+          expect(described_class.due_for_weekly).not_to include(unconfirmed)
+        end
+      end
+
+      describe ".due_for_daily" do
+        it "excludes unconfirmed subscriptions" do
+          unconfirmed = create(:digest_subscription, user: user, site: site, frequency: :daily, last_sent_at: 2.days.ago, confirmed_at: nil)
+
+          expect(described_class.due_for_daily).not_to include(unconfirmed)
+        end
+      end
+    end
+
+    describe "#confirmed?" do
+      it "returns true when confirmed_at is present" do
+        subscription = build(:digest_subscription, confirmed_at: Time.current)
+        expect(subscription.confirmed?).to be true
+      end
+
+      it "returns false when confirmed_at is nil" do
+        subscription = build(:digest_subscription, confirmed_at: nil)
+        expect(subscription.confirmed?).to be false
+      end
+    end
+
+    describe "#pending_confirmation?" do
+      it "returns true when confirmed_at is nil" do
+        subscription = build(:digest_subscription, confirmed_at: nil)
+        expect(subscription.pending_confirmation?).to be true
+      end
+
+      it "returns false when confirmed_at is present" do
+        subscription = build(:digest_subscription, confirmed_at: Time.current)
+        expect(subscription.pending_confirmation?).to be false
+      end
+    end
+
+    describe "#confirm!" do
+      it "sets confirmed_at to current time" do
+        subscription = create(:digest_subscription, user: user, site: site, confirmed_at: nil)
+
+        freeze_time do
+          subscription.confirm!
+          expect(subscription.confirmed_at).to eq(Time.current)
+        end
+      end
+
+      it "clears the confirmation_token" do
+        subscription = create(:digest_subscription, user: user, site: site, confirmed_at: nil)
+        expect(subscription.confirmation_token).to be_present
+
+        subscription.confirm!
+        expect(subscription.confirmation_token).to be_nil
+      end
+
+      it "returns true if already confirmed" do
+        subscription = create(:digest_subscription, :confirmed, user: user, site: site)
+
+        expect(subscription.confirm!).to be true
+      end
+    end
+
+    describe "#resend_confirmation!" do
+      it "sends confirmation email for unconfirmed subscriptions" do
+        subscription = create(:digest_subscription, user: user, site: site, confirmed_at: nil)
+
+        expect {
+          subscription.resend_confirmation!
+        }.to have_enqueued_mail(DigestMailer, :confirmation)
+      end
+
+      it "updates confirmation_sent_at" do
+        subscription = create(:digest_subscription, user: user, site: site, confirmed_at: nil)
+
+        freeze_time do
+          subscription.resend_confirmation!
+          expect(subscription.confirmation_sent_at).to eq(Time.current)
+        end
+      end
+
+      it "returns false if already confirmed" do
+        subscription = create(:digest_subscription, :confirmed, user: user, site: site)
+
+        expect(subscription.resend_confirmation!).to be false
+      end
+    end
+
+    describe "#confirmation_link" do
+      let(:subscription) { create(:digest_subscription, user: user, site: site, confirmed_at: nil) }
+
+      it "returns a properly formatted confirmation URL" do
+        allow(site).to receive(:primary_hostname).and_return("example.com")
+
+        expect(subscription.confirmation_link).to eq("https://example.com/digest_subscription/confirm/#{subscription.confirmation_token}")
+      end
+
+      it "returns nil if already confirmed" do
+        subscription.update!(confirmed_at: Time.current, confirmation_token: nil)
+        expect(subscription.confirmation_link).to be_nil
+      end
+
+      it "returns nil if confirmation_token is blank" do
+        subscription.update_column(:confirmation_token, nil)
+        expect(subscription.confirmation_link).to be_nil
       end
     end
   end

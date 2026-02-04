@@ -1,10 +1,24 @@
 <div class="py-8">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="mb-8">
-      <%= link_to admin_digest_subscriptions_path, class: "text-sm text-gray-500 hover:text-gray-700" do %>
-        &larr; <%= t('admin.digest_subscriptions.back_to_list') %>
-      <% end %>
-      <h1 class="mt-2 text-3xl font-bold text-gray-900"><%= @digest_subscription.user.email %></h1>
+    <div class="mb-8 flex justify-between items-start">
+      <div>
+        <%= link_to admin_digest_subscriptions_path, class: "text-sm text-gray-500 hover:text-gray-700" do %>
+          &larr; <%= t('admin.digest_subscriptions.back_to_list') %>
+        <% end %>
+        <h1 class="mt-2 text-3xl font-bold text-gray-900"><%= @digest_subscription.user.email %></h1>
+      </div>
+      <div class="flex gap-2">
+        <%= button_to t('admin.digest_subscriptions.show.send_test_weekly'),
+            send_test_digest_admin_digest_subscription_path(@digest_subscription, frequency: 'weekly'),
+            method: :post,
+            class: "#{button_classes(variant: :secondary)} cursor-pointer",
+            data: { turbo_confirm: t('admin.digest_subscriptions.show.confirm_send_test') } %>
+        <%= button_to t('admin.digest_subscriptions.show.send_test_daily'),
+            send_test_digest_admin_digest_subscription_path(@digest_subscription, frequency: 'daily'),
+            method: :post,
+            class: "#{button_classes(variant: :secondary)} cursor-pointer",
+            data: { turbo_confirm: t('admin.digest_subscriptions.show.confirm_send_test') } %>
+      </div>
     </div>
 
     <div class="bg-white shadow sm:rounded-lg mb-6">
@@ -18,12 +32,30 @@
           <div>
             <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.status') %></dt>
             <dd class="mt-1">
-              <%= status_indicator(@digest_subscription.active? ? :active : :inactive) %>
+              <% if @digest_subscription.pending_confirmation? %>
+                <%= status_indicator(:pending, t('admin.digest_subscriptions.show.pending_confirmation')) %>
+              <% elsif @digest_subscription.active? %>
+                <%= status_indicator(:active) %>
+              <% else %>
+                <%= status_indicator(:inactive) %>
+              <% end %>
             </dd>
           </div>
           <div>
             <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.subscription_date') %></dt>
             <dd class="mt-1 text-sm text-gray-900"><%= @digest_subscription.created_at.strftime("%B %d, %Y at %I:%M %p") %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.confirmed_at') %></dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <%= @digest_subscription.confirmed_at&.strftime("%B %d, %Y at %I:%M %p") || "—" %>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.last_sent_at') %></dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <%= @digest_subscription.last_sent_at&.strftime("%B %d, %Y at %I:%M %p") || "—" %>
+            </dd>
           </div>
           <div>
             <dt class="text-sm font-medium text-gray-500"><%= t('admin.digest_subscriptions.show.referrals') %></dt>

@@ -112,16 +112,33 @@ en:
       view_all_listings: View all listings
     digest_subscriptions:
       back_to_list: Back to Subscribers
+      confirm_send_digest: Send %{frequency} digest to all due subscribers?
       description: View and manage your newsletter subscribers
+      digest_send_triggered: "%{frequency} digest emails are being sent in the background."
       empty: No subscribers yet.
+      send_daily_digest: Send Daily Digest
+      send_weekly_digest: Send Weekly Digest
       show:
+        confirm_send_test: Send a test digest email to this subscriber?
+        confirmed_at: Confirmed
         details: Subscriber Details
+        last_sent_at: Last Sent
         no_tags: No tags assigned
+        pending_confirmation: Pending Confirmation
         referrals: Referrals
         save_tags: Save Tags
+        send_test_daily: Send Test Daily
+        send_test_weekly: Send Test Weekly
         status: Status
         subscription_date: Subscribed
         tags_section: Tags
+      stats:
+        active: Active
+        daily: Daily
+        last_week: New (7d)
+        pending: Pending
+        total: Total
+        weekly: Weekly
       table:
         email: Email
         frequency: Frequency
@@ -130,6 +147,7 @@ en:
         subscribed: Subscribed
         tags: Tags
       tags_updated: Tags updated successfully.
+      test_digest_sent: Test %{frequency} digest sent to %{email}.
       title: Subscribers
     digital_products:
       back_to_list: Back to Digital Products
