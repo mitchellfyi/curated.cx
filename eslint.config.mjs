@@ -33,6 +33,8 @@ export default [
         MutationObserver: 'readonly',
         IntersectionObserver: 'readonly',
         requestAnimationFrame: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
         // Stimulus globals
         Stimulus: 'readonly',
         Application: 'readonly',

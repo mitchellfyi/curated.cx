@@ -18,7 +18,7 @@ RSpec.describe SendDigestEmailsJob, type: :job do
 
         described_class.perform_now(frequency: "invalid")
 
-        expect(Rails.logger).to have_received(:warn).with(/Unknown digest frequency: invalid/)
+        expect(Rails.logger).to have_received(:warn).with(/Invalid digest frequency/)
       end
     end
 
@@ -174,8 +174,8 @@ RSpec.describe SendDigestEmailsJob, type: :job do
   end
 
   describe "queue configuration" do
-    it "uses the default queue" do
-      expect(described_class.new.queue_name).to eq("default")
+    it "uses the mailers queue" do
+      expect(described_class.new.queue_name).to eq("mailers")
     end
 
     it "can be enqueued" do

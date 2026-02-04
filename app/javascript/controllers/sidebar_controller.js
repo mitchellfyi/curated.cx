@@ -5,7 +5,7 @@ import { Controller } from '@hotwired/stimulus';
 export default class extends Controller {
   static targets = ['section', 'content', 'icon'];
   static values = {
-    key: { type: String, default: 'admin-sidebar-state' }
+    key: { type: String, default: 'admin-sidebar-state' },
   };
 
   connect() {
@@ -14,7 +14,9 @@ export default class extends Controller {
   }
 
   toggle(event) {
-    const section = event.currentTarget.closest('[data-sidebar-target="section"]');
+    const section = event.currentTarget.closest(
+      '[data-sidebar-target="section"]'
+    );
     if (!section) return;
 
     const sectionName = section.dataset.sectionName;
@@ -65,7 +67,7 @@ export default class extends Controller {
   restoreState() {
     const state = this.getStoredState();
 
-    this.sectionTargets.forEach((section) => {
+    this.sectionTargets.forEach(section => {
       const sectionName = section.dataset.sectionName;
       const content = section.querySelector('[data-sidebar-target="content"]');
       const icon = section.querySelector('[data-sidebar-target="icon"]');
@@ -92,7 +94,9 @@ export default class extends Controller {
       const section = activeLink.closest('[data-sidebar-target="section"]');
       if (section) {
         const sectionName = section.dataset.sectionName;
-        const content = section.querySelector('[data-sidebar-target="content"]');
+        const content = section.querySelector(
+          '[data-sidebar-target="content"]'
+        );
         const icon = section.querySelector('[data-sidebar-target="icon"]');
 
         if (content && content.classList.contains('hidden')) {

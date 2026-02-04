@@ -1,4 +1,3 @@
-/* global localStorage */
 import { Controller } from '@hotwired/stimulus';
 
 // Cookie consent controller for GDPR compliance.
