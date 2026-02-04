@@ -26,7 +26,7 @@ class WorkflowPause < ApplicationRecord
   # Associations
   belongs_to :tenant, optional: true  # nil = global pause
   belongs_to :source, optional: true  # for source-specific pauses
-  belongs_to :paused_by, class_name: "User"
+  belongs_to :paused_by, class_name: "User", optional: true
   belongs_to :resumed_by, class_name: "User", optional: true
 
   # Validations

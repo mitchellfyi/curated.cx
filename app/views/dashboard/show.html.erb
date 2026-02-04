@@ -61,7 +61,7 @@
             <% next unless item %>
             <% url = item.respond_to?(:url_canonical) ? item.url_canonical : (item.respond_to?(:url) ? item.url : "#") %>
             <%= link_to url, target: "_blank", rel: "noopener noreferrer", class: "block px-6 py-4 hover:bg-gray-50" do %>
-              <p class="text-sm font-medium text-gray-900 truncate"><%= item.try(:title) || item.try(:name) || "Saved item" %></p>
+              <p class="text-sm font-medium text-gray-900 truncate"><%= item.try(:title) || item.try(:name) || t("dashboard.saved_item_fallback") %></p>
               <p class="text-xs text-gray-500 mt-1"><%= time_ago_in_words(bookmark.created_at) %> ago</p>
             <% end %>
           <% end %>
@@ -84,7 +84,7 @@
         <% if @recent_purchases.any? %>
           <% @recent_purchases.each do |purchase| %>
             <%= link_to my_purchase_path(purchase), class: "block px-6 py-4 hover:bg-gray-50" do %>
-              <p class="text-sm font-medium text-gray-900 truncate"><%= purchase.digital_product&.name || purchase.listing&.title || "Purchase ##{purchase.id}" %></p>
+              <p class="text-sm font-medium text-gray-900 truncate"><%= purchase.digital_product&.name || purchase.listing&.title || t("dashboard.purchase_fallback", id: purchase.id) %></p>
               <p class="text-xs text-gray-500 mt-1"><%= time_ago_in_words(purchase.created_at) %> ago</p>
             <% end %>
           <% end %>

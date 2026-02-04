@@ -1089,6 +1089,22 @@ en:
       long: "%B %d, %Y"
       month_year: "%B %Y"
       short: "%b %d"
+  dashboard:
+    account_settings: Account Settings
+    browse_content: Browse content
+    no_purchases: No purchases yet
+    no_saves: No saved items yet
+    purchase_fallback: "Purchase #%{id}"
+    purchases: Purchases
+    quick_actions: Quick Actions
+    recent_purchases: Recent Purchases
+    recent_saves: Recent Saves
+    saved_item_fallback: Saved item
+    saved_items: Saved Items
+    submissions: Submissions
+    submit_content: Submit Content
+    title: Dashboard
+    view_all: View all
   digest_mailer:
     confirmation:
       body: Please confirm your subscription to receive %{frequency} digest emails from %{site}.
