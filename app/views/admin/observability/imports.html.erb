@@ -112,14 +112,14 @@
                   <%= source.last_run_at ? time_ago_in_words(source.last_run_at) + " ago" : "Never" %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <% if source.last_run_status&.include?('success') %>
+                  <% if source.last_status&.include?('success') %>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Success</span>
-                  <% elsif source.last_run_status&.include?('error') %>
+                  <% elsif source.last_status&.include?('error') %>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Error</span>
-                  <% elsif source.last_run_status&.include?('rate_limited') %>
+                  <% elsif source.last_status&.include?('rate_limited') %>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Rate Limited</span>
                   <% else %>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"><%= source.last_run_status || "Pending" %></span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"><%= source.last_status || "Pending" %></span>
                   <% end %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">

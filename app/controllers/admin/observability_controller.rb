@@ -85,14 +85,16 @@ module Admin
                                   .where.not(completed_at: nil)
                                   .average("EXTRACT(EPOCH FROM (completed_at - started_at)) * 1000")
                                   &.round || 0,
-        sources_by_status: Source.group(:last_run_status).count
+        sources_by_status: Source.group(:last_status).count
       }
     end
 
     def build_editorialisation_stats
       {
         total_24h: Editorialisation.where("created_at > ?", 24.hours.ago).count,
-        by_status: Editorialisation.where("created_at > ?", 24.hours.ago).group(:status).count,
+        by_status: Editorialisation.where("created_at > ?", 24.hours.ago)
+                                   .group(:status).count
+                                   .transform_keys { |k| Editorialisation.statuses.key(k) },
         avg_tokens: Editorialisation.completed
                                     .where("created_at > ?", 24.hours.ago)
                                     .average(:tokens_used)&.round || 0,
