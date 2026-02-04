@@ -876,6 +876,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_100001) do
 
   create_table "workflow_pauses", force: :cascade do |t|
     t.string "workflow_type", null: false
+    t.string "workflow_subtype"
     t.bigint "tenant_id"
     t.bigint "source_id"
     t.bigint "paused_by_id", null: false

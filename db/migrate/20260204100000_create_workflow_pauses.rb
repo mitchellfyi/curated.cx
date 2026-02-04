@@ -6,6 +6,9 @@ class CreateWorkflowPauses < ActiveRecord::Migration[8.1]
       # Workflow type being paused (e.g., "rss_ingestion", "serp_api", "editorialisation")
       t.string :workflow_type, null: false
 
+      # Workflow subtype for finer-grained control (e.g., "rss", "serp_api_google_news")
+      t.string :workflow_subtype
+
       # Tenant scoping - nil means global pause (super admin only)
       t.references :tenant, foreign_key: true, null: true
 
