@@ -4,7 +4,7 @@ module Admin
   class WorkflowPausesController < ApplicationController
     include AdminAccess
 
-    before_action :require_admin_for_global, only: [ :create, :destroy ]
+    before_action :require_admin_for_global, only: [ :create, :destroy, :pause ]
 
     # GET /admin/workflow_pauses
     def index
@@ -59,6 +59,16 @@ module Admin
         format.html { redirect_to admin_workflow_pauses_path, notice: "Workflow resumed successfully" }
         format.json { render json: { success: true } }
       end
+    end
+
+    # POST /admin/workflow_pauses/pause (alias for create)
+    def pause
+      create
+    end
+
+    # POST /admin/workflow_pauses/:id/resume (alias for destroy)
+    def resume
+      destroy
     end
 
     private
