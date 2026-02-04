@@ -978,6 +978,7 @@ en:
   bookmarks:
     confirm_remove: Remove this item from your saves?
     created: Item saved
+    description: Your saved content and listings
     destroyed: Item removed from saves
     empty:
       browse: Browse Content
@@ -1186,12 +1187,14 @@ en:
       visibility: Visibility
       visibility_hint: Choose who can see and participate in this discussion
     index:
+      description: Join the conversation with the community
       title: Community Discussions
     last_activity: Last activity %{time} ago
     locked: This discussion is locked and no longer accepting new posts.
     locked_badge: Locked
     locked_message: This discussion has been locked.
     new: New Discussion
+    new_description: Start a conversation with the community
     new_title: Start a Discussion
     pinned: Pinned
     posts_count:
@@ -1249,7 +1252,7 @@ en:
       sort_by: Sort by
       tag: Topic
     index:
-      description: Latest curated content from %{site}
+      description: The latest content from across the network
       heading: Content Feed
       title: Feed - %{site}
     pagination:
@@ -1532,11 +1535,14 @@ en:
     confirm_delete: Are you sure you want to delete this note?
     confirm_repost: Repost this note to your followers?
     create: Post Note
+    create_description: Share a quick thought or update
     created: Note posted
     deleted: Note deleted
+    description: Quick thoughts and updates from the community
     draft: Draft
     edit: Update Note
     empty: No notes yet
+    empty_description: Be the first to share a note.
     form:
       cancel: Cancel
       characters_remaining: characters remaining
@@ -1659,7 +1665,7 @@ en:
     your_link: Your Referral Link
   search:
     button: Search
-    description: Search content and listings
+    description: Find content and listings
     empty:
       description: Enter a search term to find content and listings
       title: Start searching

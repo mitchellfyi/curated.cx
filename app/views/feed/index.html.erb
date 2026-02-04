@@ -7,7 +7,7 @@
         <h1 class="text-3xl font-bold text-gray-900">
           <%= t('feed.index.heading') %>
         </h1>
-        <p class="mt-2 text-gray-600"><%= t('feed.index.description', default: "The latest content from across the network") %></p>
+        <p class="mt-2 text-gray-600"><%= t('feed.index.description') %></p>
       </div>
       <%= link_to feed_rss_path(format: :rss), class: "inline-flex items-center gap-2 px-4 py-2 text-sm text-orange-600 hover:text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-50 transition-colors" do %>
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

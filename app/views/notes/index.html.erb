@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-3xl font-bold text-gray-900"><%= t('notes.title') %></h1>
-        <p class="mt-2 text-gray-600"><%= t('notes.description', default: "Quick thoughts and updates from the community") %></p>
+        <p class="mt-2 text-gray-600"><%= t('notes.description') %></p>
       </div>
       <% if policy(Note).create? %>
         <%= link_to new_note_path, class: button_classes(variant: :primary) do %>
@@ -27,12 +27,12 @@
             <svg class="mx-auto w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t('notes.empty', default: "No notes yet") %></h3>
-            <p class="mt-1 text-sm text-gray-500"><%= t('notes.empty_description', default: "Be the first to share a note.") %></p>
+            <h3 class="mt-2 text-sm font-medium text-gray-900"><%= t('notes.empty') %></h3>
+            <p class="mt-1 text-sm text-gray-500"><%= t('notes.empty_description') %></p>
             <% if policy(Note).create? %>
               <div class="mt-6">
                 <%= link_to new_note_path, class: button_classes(variant: :primary) do %>
-                  <%= t('notes.be_first', default: "Post a note") %>
+                  <%= t('notes.be_first') %>
                 <% end %>
               </div>
             <% end %>
