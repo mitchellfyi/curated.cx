@@ -185,8 +185,7 @@ else
     email: developer_email,
     password: developer_password,
     password_confirmation: developer_password,
-    admin: true,
-    confirmed_at: Time.current  # Skip email confirmation
+    admin: true
   )
   developer.save!
   puts "  ✓ Created/updated developer admin: #{developer.email}"
