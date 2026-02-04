@@ -72,6 +72,11 @@ class AiUsageTracker
       true
     end
 
+    # Estimate cost in cents for a given number of tokens
+    def estimate_cost(input_tokens:, output_tokens:, model: "default")
+      calculate_cost(input_tokens, output_tokens, model)
+    end
+
     # Usage stats (global or per-tenant)
     def usage_stats(tenant: nil)
       {
