@@ -77,6 +77,16 @@ class AiUsageTracker
       calculate_cost(input_tokens, output_tokens, model)
     end
 
+    # Monthly cost used in cents
+    def monthly_cost_used(tenant = nil)
+      monthly_cost(tenant)
+    end
+
+    # Daily cost used in cents
+    def daily_cost_used(tenant = nil)
+      daily_cost(tenant)
+    end
+
     # Usage stats (global or per-tenant)
     def usage_stats(tenant: nil)
       {
