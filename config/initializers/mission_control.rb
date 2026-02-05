@@ -5,10 +5,14 @@
 
 Rails.application.config.after_initialize do
   if defined?(MissionControl::Jobs)
-    # Configure the queue adapter that mission_control-jobs will use
-    MissionControl::Jobs.base_controller_class = "ApplicationController"
-
     # Set authentication - admins only (handled via routes.rb authenticate block)
     MissionControl::Jobs.http_basic_auth_enabled = false
+
+    # Configure the base controller class for styling and authentication inheritance
+    # Note: Authentication is handled by the `authenticate :user` block in routes.rb
+    MissionControl::Jobs.base_controller_class = "ApplicationController"
+
+    # Explicitly configure the delay value for showing job details
+    MissionControl::Jobs.delay_threshold_in_seconds = 60
   end
 end
