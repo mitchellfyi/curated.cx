@@ -2,6 +2,7 @@
 
 class DashboardController < ApplicationController
   before_action :authenticate_user!
+  skip_after_action :verify_authorized  # User dashboard shows current_user's own data
 
   def show
     @bookmarks_count = current_user.bookmarks.count
