@@ -37,6 +37,8 @@
 require "rails_helper"
 
 RSpec.describe DigestSubscription, type: :model do
+  include ActiveJob::TestHelper
+
   let(:tenant) { create(:tenant, :enabled) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:user) { create(:user) }
@@ -263,9 +265,16 @@ RSpec.describe DigestSubscription, type: :model do
       end
 
       it "sends confirmation email on create", :commit do
-        expect {
-          create(:digest_subscription, user: user, site: site)
-        }.to have_enqueued_mail(DigestMailer, :confirmation)
+        ActionMailer::Base.deliveries.clear
+
+        perform_enqueued_jobs do
+          subscription = create(:digest_subscription, user: user, site: site)
+          expect(subscription.confirmation_sent_at).to be_present
+        end
+
+        expect(ActionMailer::Base.deliveries.count).to eq(1)
+        email = ActionMailer::Base.deliveries.last
+        expect(email.to).to include(user.email)
       end
 
       it "does not send confirmation email if already confirmed" do
