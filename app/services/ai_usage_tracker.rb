@@ -100,48 +100,72 @@ class AiUsageTracker
 
     # Usage stats (global or per-tenant)
     def usage_stats(tenant: nil)
+      monthly_tokens = monthly_used(tenant)
+      daily_tokens = daily_used(tenant)
+      monthly_cost_cents = monthly_cost(tenant)
+      daily_cost_cents = daily_cost(tenant)
+      monthly_input = monthly_input_tokens(tenant)
+      monthly_output = monthly_output_tokens(tenant)
+      total_requests = editorialisation_scope(tenant).where("created_at >= ?", start_of_month).count
+      today_requests = editorialisation_scope(tenant).where("created_at >= ?", Time.current.beginning_of_day).count
+
       {
         monthly: {
-          used: monthly_used(tenant),
+          used: monthly_tokens,
           limit: MONTHLY_TOKEN_LIMIT,
           remaining: monthly_remaining(tenant),
-          percent_used: ((monthly_used(tenant).to_f / MONTHLY_TOKEN_LIMIT) * 100).round(1)
+          percent_used: ((monthly_tokens.to_f / MONTHLY_TOKEN_LIMIT) * 100).round(1)
         },
         daily: {
-          used: daily_used(tenant),
+          used: daily_tokens,
           soft_limit: DAILY_SOFT_LIMIT,
           remaining: daily_remaining(tenant)
         },
         tokens: {
           monthly: {
-            used: monthly_used(tenant),
-            limit: MONTHLY_TOKEN_LIMIT
+            used: monthly_tokens,
+            limit: MONTHLY_TOKEN_LIMIT,
+            percent_used: ((monthly_tokens.to_f / MONTHLY_TOKEN_LIMIT) * 100).round(1),
+            input: monthly_input,
+            output: monthly_output
           },
           daily: {
-            used: daily_used(tenant)
+            used: daily_tokens
           }
         },
         costs: {
-          monthly_cents: monthly_cost(tenant),
-          daily_cents: daily_cost(tenant),
-          monthly_dollars: (monthly_cost(tenant) / 100.0).round(2)
+          monthly_cents: monthly_cost_cents,
+          daily_cents: daily_cost_cents,
+          monthly_dollars: (monthly_cost_cents / 100.0).round(2)
         },
         cost: {
           monthly: {
-            used_cents: monthly_cost(tenant),
-            limit_cents: MONTHLY_COST_LIMIT_CENTS
+            used_cents: monthly_cost_cents,
+            limit_cents: MONTHLY_COST_LIMIT_CENTS,
+            percent_used: MONTHLY_COST_LIMIT_CENTS.positive? ? ((monthly_cost_cents.to_f / MONTHLY_COST_LIMIT_CENTS) * 100).round(1) : 0,
+            used_dollars: (monthly_cost_cents / 100.0).round(2),
+            limit_dollars: (MONTHLY_COST_LIMIT_CENTS / 100.0).round(2)
+          },
+          daily: {
+            used_cents: daily_cost_cents,
+            soft_limit_cents: DAILY_COST_SOFT_LIMIT_CENTS,
+            used_dollars: (daily_cost_cents / 100.0).round(2)
           }
         },
         projections: {
           days_remaining_in_month: days_remaining_in_month,
           projected_monthly_tokens: projected_monthly_usage(tenant),
           projected_monthly_cost_cents: projected_monthly_cost(tenant),
-          on_track: projected_monthly_usage(tenant) <= MONTHLY_TOKEN_LIMIT
+          projected_monthly_dollars: (projected_monthly_cost(tenant) / 100.0).round(2),
+          on_track: projected_monthly_cost(tenant) <= MONTHLY_COST_LIMIT_CENTS
         },
         breakdown: usage_breakdown(tenant),
         models: model_breakdown(tenant),
         requests: {
-          total_this_month: editorialisation_scope(tenant).where("created_at >= ?", start_of_month).count
+          total_this_month: total_requests,
+          total_today: today_requests,
+          avg_tokens_per_request: total_requests.positive? ? (monthly_tokens.to_f / total_requests).round : 0,
+          avg_cost_cents_per_request: total_requests.positive? ? (monthly_cost_cents.to_f / total_requests).round(2) : 0
         }
       }
     end
@@ -166,6 +190,14 @@ class AiUsageTracker
     def monthly_used(tenant = nil)
       scope = editorialisation_scope(tenant).where("created_at >= ?", start_of_month)
       (scope.sum(:input_tokens) || 0) + (scope.sum(:output_tokens) || 0)
+    end
+
+    def monthly_input_tokens(tenant = nil)
+      editorialisation_scope(tenant).where("created_at >= ?", start_of_month).sum(:input_tokens) || 0
+    end
+
+    def monthly_output_tokens(tenant = nil)
+      editorialisation_scope(tenant).where("created_at >= ?", start_of_month).sum(:output_tokens) || 0
     end
 
     def monthly_remaining(tenant = nil)
