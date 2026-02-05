@@ -2,11 +2,20 @@
 
 class AddConfirmationToDigestSubscriptions < ActiveRecord::Migration[8.0]
   def change
-    add_column :digest_subscriptions, :confirmation_token, :string
-    add_column :digest_subscriptions, :confirmed_at, :datetime
-    add_column :digest_subscriptions, :confirmation_sent_at, :datetime
+    # Make idempotent - only add columns if they don't exist
+    unless column_exists?(:digest_subscriptions, :confirmation_token)
+      add_column :digest_subscriptions, :confirmation_token, :string
+    end
+    unless column_exists?(:digest_subscriptions, :confirmed_at)
+      add_column :digest_subscriptions, :confirmed_at, :datetime
+    end
+    unless column_exists?(:digest_subscriptions, :confirmation_sent_at)
+      add_column :digest_subscriptions, :confirmation_sent_at, :datetime
+    end
 
-    add_index :digest_subscriptions, :confirmation_token, unique: true
+    unless index_exists?(:digest_subscriptions, :confirmation_token)
+      add_index :digest_subscriptions, :confirmation_token, unique: true
+    end
 
     # Existing subscriptions are considered confirmed
     reversible do |dir|
