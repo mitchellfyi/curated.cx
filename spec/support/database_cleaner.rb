@@ -4,18 +4,14 @@ RSpec.configure do |config|
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  config.before(:each) do
-    DatabaseCleaner.strategy = :transaction
+  config.before(:each) do |example|
+    # Use truncation for tests that need after_commit callbacks to fire
+    if example.metadata[:js] || example.metadata[:commit]
+      DatabaseCleaner.strategy = :truncation
+    else
+      DatabaseCleaner.strategy = :transaction
+    end
     DatabaseCleaner.start
-  end
-
-  # Use truncation for tests that need after_commit callbacks to fire
-  config.before(:each, js: true) do
-    DatabaseCleaner.strategy = :truncation
-  end
-
-  config.before(:each, commit: true) do
-    DatabaseCleaner.strategy = :truncation
   end
 
   config.after(:each) do
