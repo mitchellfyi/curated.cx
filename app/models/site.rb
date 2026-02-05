@@ -57,6 +57,9 @@ class Site < ApplicationRecord
   has_many :subscriber_tags, dependent: :destroy
   has_many :notes, dependent: :destroy
 
+  # Attachments
+  has_one_attached :logo
+
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }
 
