@@ -267,11 +267,15 @@ RSpec.describe DigestSubscription, type: :model do
       it "sends confirmation email on create", :commit do
         ActionMailer::Base.deliveries.clear
 
+        # The after_create_commit callback should fire immediately with truncation strategy
+        subscription = nil
         perform_enqueued_jobs do
-          subscription = create(:digest_subscription, user: user, site: site)
-          expect(subscription.confirmation_sent_at).to be_present
+          subscription = create(:digest_subscription, :pending_confirmation, user: user, site: site)
         end
 
+        # Reload to get the updated confirmation_sent_at from the callback
+        subscription.reload
+        expect(subscription.confirmation_sent_at).to be_present
         expect(ActionMailer::Base.deliveries.count).to eq(1)
         email = ActionMailer::Base.deliveries.last
         expect(email.to).to include(user.email)
