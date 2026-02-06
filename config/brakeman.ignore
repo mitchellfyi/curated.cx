@@ -15,8 +15,12 @@
     {
       "fingerprint": "51efa1bade83e0905fda8eeb044bfafee0a93da53b28f4903d1d243cb8417cf7",
       "note": "Intentional: Redirect to signed S3 URL for secure file downloads. Token validation ensures authorized access."
+    },
+    {
+      "fingerprint": "8dddb9413a799c52607edff5bfa864c964dc9381b617a2e3949bafd835cc07eb",
+      "note": "False positive: Consolidated dashboard stats query uses only hardcoded keys and .to_sql from model scopes, no user input"
     }
   ],
-  "updated": "2026-01-30",
-  "brakeman_version": "7.1.2"
+  "updated": "2026-02-06",
+  "brakeman_version": "8.0.2"
 }
