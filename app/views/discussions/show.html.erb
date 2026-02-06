@@ -30,7 +30,7 @@
 
       <%# Discussion actions %>
       <% if policy(@discussion).update? || policy(@discussion).destroy? %>
-        <div class="ml-4 flex items-center gap-2">
+        <div class="ml-4 flex flex-wrap items-center gap-2">
           <% if policy(@discussion).update? %>
             <button type="button"
                     class="text-gray-400 hover:text-gray-600"

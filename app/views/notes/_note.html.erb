@@ -53,7 +53,7 @@
         <% end %>
 
         <%# Actions bar %>
-        <div class="mt-3 flex items-center gap-4 text-sm text-gray-500">
+        <div class="mt-3 flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-gray-500">
           <%# Vote button %>
           <div id="note-vote-button-<%= note.id %>">
             <%= render 'note_votes/vote_button', note: note, voted: user_signed_in? && note.votes.exists?(user: current_user) %>
