@@ -121,7 +121,7 @@
     <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.job_settings") %></legend>
 
     <div class="space-y-4">
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <%= form.label :company, t("admin.listings.form.company"), class: "block text-sm font-medium text-gray-700" %>
           <%= form.text_field :company, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: t("admin.listings.form.company_name_placeholder") %>
@@ -155,7 +155,7 @@
     <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.featured_settings") %></legend>
 
     <div class="space-y-4">
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <%= form.label :featured_from, t("admin.listings.form.featured_from"), class: "block text-sm font-medium text-gray-700" %>
           <%= form.datetime_local_field :featured_from, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>

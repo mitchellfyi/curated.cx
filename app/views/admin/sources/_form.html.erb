@@ -58,7 +58,7 @@
         <%= form.text_field "config[query]", value: @source.config["query"], class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: t("admin.sources.form.query_placeholder") %>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <%= form.label "config[location]", t("admin.sources.form.location"), class: "block text-sm font-medium text-gray-700" %>
           <%= form.text_field "config[location]", value: @source.config["location"] || "United States", class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
@@ -70,7 +70,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <%= form.label "config[max_results]", t("admin.sources.form.max_results"), class: "block text-sm font-medium text-gray-700" %>
           <%= form.number_field "config[max_results]", value: @source.config["max_results"] || 50, min: 1, max: 100, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>

@@ -41,7 +41,7 @@
       <%# Subscription Age %>
       <fieldset class="border border-gray-200 rounded-md p-4">
         <legend class="text-sm font-medium text-gray-700 px-2"><%= t('admin.subscriber_segments.form.subscription_age') %></legend>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <%= form.label "rules[subscription_age][min_days]", t('admin.subscriber_segments.form.subscription_min_days'), class: "block text-sm text-gray-600" %>
             <%= form.number_field "rules[subscription_age][min_days]", value: subscriber_segment.rules.dig("subscription_age", "min_days"), min: 0, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
@@ -56,7 +56,7 @@
       <%# Engagement Level %>
       <fieldset class="border border-gray-200 rounded-md p-4">
         <legend class="text-sm font-medium text-gray-700 px-2"><%= t('admin.subscriber_segments.form.engagement_level') %></legend>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <%= form.label "rules[engagement_level][min_actions]", t('admin.subscriber_segments.form.engagement_min_actions'), class: "block text-sm text-gray-600" %>
             <%= form.number_field "rules[engagement_level][min_actions]", value: subscriber_segment.rules.dig("engagement_level", "min_actions"), min: 0, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
