@@ -8,9 +8,11 @@
 #  body             :text             not null
 #  commentable_type :string           not null
 #  edited_at        :datetime
+#  hidden_at        :datetime
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  commentable_id   :bigint           not null
+#  hidden_by_id     :bigint
 #  parent_id        :bigint
 #  site_id          :bigint           not null
 #  user_id          :bigint           not null
@@ -19,6 +21,7 @@
 #
 #  index_comments_on_commentable             (commentable_type,commentable_id)
 #  index_comments_on_commentable_and_parent  (commentable_type,commentable_id,parent_id)
+#  index_comments_on_hidden_at               (hidden_at)
 #  index_comments_on_parent_id               (parent_id)
 #  index_comments_on_site_and_user           (site_id,user_id)
 #  index_comments_on_site_id                 (site_id)
@@ -26,6 +29,7 @@
 #
 # Foreign Keys
 #
+#  fk_rails_...  (hidden_by_id => users.id)
 #  fk_rails_...  (parent_id => comments.id)
 #  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (user_id => users.id)

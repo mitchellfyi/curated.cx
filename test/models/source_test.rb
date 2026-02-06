@@ -1,5 +1,38 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: sources
+#
+#  id                       :bigint           not null, primary key
+#  config                   :jsonb            not null
+#  editorialisation_enabled :boolean          default(FALSE), not null
+#  enabled                  :boolean          default(TRUE), not null
+#  kind                     :integer          not null
+#  last_run_at              :datetime
+#  last_status              :string
+#  name                     :string           not null
+#  quality_weight           :decimal(3, 2)    default(1.0), not null
+#  schedule                 :jsonb            not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  site_id                  :bigint           not null
+#  tenant_id                :bigint           not null
+#
+# Indexes
+#
+#  index_sources_on_site_id                (site_id)
+#  index_sources_on_site_id_and_name       (site_id,name) UNIQUE
+#  index_sources_on_tenant_id              (tenant_id)
+#  index_sources_on_tenant_id_and_enabled  (tenant_id,enabled)
+#  index_sources_on_tenant_id_and_kind     (tenant_id,kind)
+#  index_sources_on_tenant_id_and_name     (tenant_id,name) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (tenant_id => tenants.id)
+#
 require "test_helper"
 
 class SourceTest < ActiveSupport::TestCase

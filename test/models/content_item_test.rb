@@ -1,5 +1,62 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: content_items
+#
+#  id                    :bigint           not null, primary key
+#  ai_suggested_tags     :jsonb            not null
+#  ai_summary            :text
+#  comments_count        :integer          default(0), not null
+#  comments_locked_at    :datetime
+#  content_type          :string
+#  description           :text
+#  editorialised_at      :datetime
+#  extracted_text        :text
+#  hidden_at             :datetime
+#  published_at          :datetime
+#  raw_payload           :jsonb            not null
+#  scheduled_for         :datetime
+#  summary               :text
+#  tagging_confidence    :decimal(3, 2)
+#  tagging_explanation   :jsonb            not null
+#  tags                  :jsonb            not null
+#  title                 :string
+#  topic_tags            :jsonb            not null
+#  upvotes_count         :integer          default(0), not null
+#  url_canonical         :string           not null
+#  url_raw               :text             not null
+#  why_it_matters        :text
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  comments_locked_by_id :bigint
+#  hidden_by_id          :bigint
+#  site_id               :bigint           not null
+#  source_id             :bigint           not null
+#
+# Indexes
+#
+#  index_content_items_on_comments_locked_by_id         (comments_locked_by_id)
+#  index_content_items_on_hidden_at                     (hidden_at)
+#  index_content_items_on_hidden_by_id                  (hidden_by_id)
+#  index_content_items_on_published_at                  (published_at)
+#  index_content_items_on_scheduled_for                 (scheduled_for) WHERE (scheduled_for IS NOT NULL)
+#  index_content_items_on_site_id                       (site_id)
+#  index_content_items_on_site_id_and_content_type      (site_id,content_type)
+#  index_content_items_on_site_id_and_editorialised_at  (site_id,editorialised_at)
+#  index_content_items_on_site_id_and_url_canonical     (site_id,url_canonical) UNIQUE
+#  index_content_items_on_site_id_published_at_desc     (site_id,published_at DESC)
+#  index_content_items_on_source_id                     (source_id)
+#  index_content_items_on_source_id_and_created_at      (source_id,created_at)
+#  index_content_items_on_topic_tags_gin                (topic_tags) USING gin
+#
+# Foreign Keys
+#
+#  fk_rails_...  (comments_locked_by_id => users.id)
+#  fk_rails_...  (hidden_by_id => users.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (source_id => sources.id)
+#
 require "test_helper"
 
 class ContentItemTest < ActiveSupport::TestCase

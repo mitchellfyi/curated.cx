@@ -15,12 +15,14 @@ class AddAiTrackingToEditorialisations < ActiveRecord::Migration[8.1]
     # Backfill existing records: assume tokens_used was total, split 70/30 as rough estimate
     reversible do |dir|
       dir.up do
-        execute <<~SQL
-          UPDATE editorialisations
-          SET input_tokens = COALESCE(tokens_used * 0.7, 0)::integer,
-              output_tokens = COALESCE(tokens_used * 0.3, 0)::integer
-          WHERE tokens_used IS NOT NULL
-        SQL
+        safety_assured do
+          execute <<~SQL
+            UPDATE editorialisations
+            SET input_tokens = COALESCE(tokens_used * 0.7, 0)::integer,
+                output_tokens = COALESCE(tokens_used * 0.3, 0)::integer
+            WHERE tokens_used IS NOT NULL
+          SQL
+        end
       end
     end
 

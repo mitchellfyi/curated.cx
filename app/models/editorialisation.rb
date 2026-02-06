@@ -29,6 +29,7 @@
 #
 # Indexes
 #
+#  index_editorialisations_cost_tracking              (site_id,created_at,estimated_cost_cents)
 #  index_editorialisations_on_content_item_id         (content_item_id) UNIQUE
 #  index_editorialisations_on_site_id                 (site_id)
 #  index_editorialisations_on_site_id_and_created_at  (site_id,created_at)

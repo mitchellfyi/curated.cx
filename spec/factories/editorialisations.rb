@@ -4,23 +4,27 @@
 #
 # Table name: editorialisations
 #
-#  id              :bigint           not null, primary key
-#  ai_model        :string
-#  duration_ms     :integer
-#  error_message   :text
-#  parsed_response :jsonb            not null
-#  prompt_text     :text             not null
-#  prompt_version  :string           not null
-#  raw_response    :text
-#  status          :integer          default("pending"), not null
-#  tokens_used     :integer
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  content_item_id :bigint           not null
-#  site_id         :bigint           not null
+#  id                   :bigint           not null, primary key
+#  ai_model             :string
+#  duration_ms          :integer
+#  error_message        :text
+#  estimated_cost_cents :integer
+#  input_tokens         :integer
+#  output_tokens        :integer
+#  parsed_response      :jsonb            not null
+#  prompt_text          :text             not null
+#  prompt_version       :string           not null
+#  raw_response         :text
+#  status               :integer          default("pending"), not null
+#  tokens_used          :integer
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  content_item_id      :bigint           not null
+#  site_id              :bigint           not null
 #
 # Indexes
 #
+#  index_editorialisations_cost_tracking              (site_id,created_at,estimated_cost_cents)
 #  index_editorialisations_on_content_item_id         (content_item_id) UNIQUE
 #  index_editorialisations_on_site_id                 (site_id)
 #  index_editorialisations_on_site_id_and_created_at  (site_id,created_at)

@@ -1,5 +1,33 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: domains
+#
+#  id              :bigint           not null, primary key
+#  hostname        :string           not null
+#  last_checked_at :datetime
+#  last_error      :text
+#  primary         :boolean          default(FALSE), not null
+#  status          :integer          default("pending_dns"), not null
+#  verified        :boolean          default(FALSE), not null
+#  verified_at     :datetime
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  site_id         :bigint           not null
+#
+# Indexes
+#
+#  index_domains_on_hostname               (hostname) UNIQUE
+#  index_domains_on_site_id                (site_id)
+#  index_domains_on_site_id_and_verified   (site_id,verified)
+#  index_domains_on_site_id_where_primary  (site_id) UNIQUE WHERE ("primary" = true)
+#  index_domains_on_status                 (status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#
 require "test_helper"
 
 class DomainTest < ActiveSupport::TestCase

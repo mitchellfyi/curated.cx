@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_04_190000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_06_190321) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -346,6 +346,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_190000) do
     t.integer "tokens_used"
     t.datetime "updated_at", null: false
     t.index ["content_item_id"], name: "index_editorialisations_on_content_item_id", unique: true
+    t.index ["site_id", "created_at", "estimated_cost_cents"], name: "index_editorialisations_cost_tracking"
     t.index ["site_id", "created_at"], name: "index_editorialisations_on_site_id_and_created_at"
     t.index ["site_id", "status"], name: "index_editorialisations_on_site_id_and_status"
     t.index ["site_id"], name: "index_editorialisations_on_site_id"
@@ -835,6 +836,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_190000) do
     t.index ["tenant_id"], name: "index_taxonomies_on_tenant_id"
   end
 
+  create_table "tenant_invitations", force: :cascade do |t|
+    t.datetime "accepted_at"
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.datetime "expires_at", null: false
+    t.bigint "invited_by_id", null: false
+    t.string "role", default: "viewer", null: false
+    t.bigint "tenant_id", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invited_by_id"], name: "index_tenant_invitations_on_invited_by_id"
+    t.index ["tenant_id", "email"], name: "index_tenant_invitations_on_tenant_id_and_email", unique: true, where: "(accepted_at IS NULL)"
+    t.index ["tenant_id"], name: "index_tenant_invitations_on_tenant_id"
+    t.index ["token"], name: "index_tenant_invitations_on_token", unique: true
+  end
+
   create_table "tenants", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -901,6 +918,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_190000) do
     t.datetime "updated_at", null: false
     t.string "workflow_subtype"
     t.string "workflow_type", null: false
+    t.index ["paused_by_id"], name: "index_workflow_pauses_on_paused_by_id"
+    t.index ["resumed_by_id"], name: "index_workflow_pauses_on_resumed_by_id"
+    t.index ["source_id"], name: "index_workflow_pauses_on_source_id"
+    t.index ["tenant_id"], name: "index_workflow_pauses_on_tenant_id"
     t.index ["workflow_type", "paused_at"], name: "index_workflow_pauses_history"
     t.index ["workflow_type", "tenant_id", "source_id"], name: "index_workflow_pauses_active_unique", unique: true, where: "(resumed_at IS NULL)"
     t.index ["workflow_type", "tenant_id"], name: "index_workflow_pauses_active_by_type_tenant", where: "(resumed_at IS NULL)"
@@ -1003,6 +1024,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_190000) do
   add_foreign_key "taxonomies", "sites"
   add_foreign_key "taxonomies", "taxonomies", column: "parent_id"
   add_foreign_key "taxonomies", "tenants"
+  add_foreign_key "tenant_invitations", "tenants"
+  add_foreign_key "tenant_invitations", "users", column: "invited_by_id"
   add_foreign_key "votes", "sites"
   add_foreign_key "votes", "users"
   add_foreign_key "workflow_pauses", "sources"

@@ -1,5 +1,45 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: submissions
+#
+#  id             :bigint           not null, primary key
+#  description    :text
+#  ip_address     :string
+#  listing_type   :integer          default("tool"), not null
+#  reviewed_at    :datetime
+#  reviewer_notes :text
+#  status         :integer          default("pending"), not null
+#  title          :string           not null
+#  url            :text             not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  category_id    :bigint           not null
+#  listing_id     :bigint
+#  reviewed_by_id :bigint
+#  site_id        :bigint           not null
+#  user_id        :bigint           not null
+#
+# Indexes
+#
+#  index_submissions_on_category_id         (category_id)
+#  index_submissions_on_listing_id          (listing_id)
+#  index_submissions_on_reviewed_by_id      (reviewed_by_id)
+#  index_submissions_on_site_id             (site_id)
+#  index_submissions_on_site_id_and_status  (site_id,status)
+#  index_submissions_on_status              (status)
+#  index_submissions_on_user_id             (user_id)
+#  index_submissions_on_user_id_and_status  (user_id,status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (category_id => categories.id)
+#  fk_rails_...  (listing_id => listings.id)
+#  fk_rails_...  (reviewed_by_id => users.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (user_id => users.id)
+#
 require "test_helper"
 
 class SubmissionTest < ActiveSupport::TestCase

@@ -1,5 +1,33 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: categories
+#
+#  id           :bigint           not null, primary key
+#  allow_paths  :boolean          default(TRUE), not null
+#  key          :string           not null
+#  name         :string           not null
+#  shown_fields :jsonb            not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  site_id      :bigint           not null
+#  tenant_id    :bigint           not null
+#
+# Indexes
+#
+#  index_categories_on_site_id            (site_id)
+#  index_categories_on_site_id_and_key    (site_id,key) UNIQUE
+#  index_categories_on_site_id_and_name   (site_id,name)
+#  index_categories_on_tenant_id          (tenant_id)
+#  index_categories_on_tenant_id_and_key  (tenant_id,key) UNIQUE
+#  index_categories_on_tenant_name        (tenant_id,name)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (tenant_id => tenants.id)
+#
 require "test_helper"
 
 class CategoryTest < ActiveSupport::TestCase

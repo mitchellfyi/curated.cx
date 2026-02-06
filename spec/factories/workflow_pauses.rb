@@ -4,23 +4,28 @@
 #
 # Table name: workflow_pauses
 #
-#  id            :bigint           not null, primary key
-#  paused_at     :datetime         not null
-#  reason        :text
-#  resumed_at    :datetime
-#  workflow_type :string           not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  paused_by_id  :bigint           not null
-#  resumed_by_id :bigint
-#  source_id     :bigint
-#  tenant_id     :bigint
+#  id               :bigint           not null, primary key
+#  paused_at        :datetime
+#  reason           :text
+#  resumed_at       :datetime
+#  workflow_subtype :string
+#  workflow_type    :string           not null
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  paused_by_id     :bigint
+#  resumed_by_id    :bigint
+#  source_id        :bigint
+#  tenant_id        :bigint
 #
 # Indexes
 #
 #  index_workflow_pauses_active_by_type_tenant  (workflow_type,tenant_id) WHERE (resumed_at IS NULL)
 #  index_workflow_pauses_active_unique          (workflow_type,tenant_id,source_id) UNIQUE WHERE (resumed_at IS NULL)
 #  index_workflow_pauses_history                (workflow_type,paused_at)
+#  index_workflow_pauses_on_paused_by_id        (paused_by_id)
+#  index_workflow_pauses_on_resumed_by_id       (resumed_by_id)
+#  index_workflow_pauses_on_source_id           (source_id)
+#  index_workflow_pauses_on_tenant_id           (tenant_id)
 #
 # Foreign Keys
 #

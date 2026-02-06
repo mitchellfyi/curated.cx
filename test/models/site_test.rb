@@ -1,5 +1,30 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: sites
+#
+#  id          :bigint           not null, primary key
+#  config      :jsonb            not null
+#  description :text
+#  name        :string           not null
+#  slug        :string           not null
+#  status      :integer          default("enabled"), not null
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#  tenant_id   :bigint           not null
+#
+# Indexes
+#
+#  index_sites_on_status                (status)
+#  index_sites_on_tenant_id             (tenant_id)
+#  index_sites_on_tenant_id_and_slug    (tenant_id,slug) UNIQUE
+#  index_sites_on_tenant_id_and_status  (tenant_id,status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (tenant_id => tenants.id)
+#
 require "test_helper"
 
 class SiteTest < ActiveSupport::TestCase

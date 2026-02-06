@@ -20,11 +20,13 @@ class AddConfirmationToDigestSubscriptions < ActiveRecord::Migration[8.0]
     # Existing subscriptions are considered confirmed
     reversible do |dir|
       dir.up do
-        execute <<-SQL
-          UPDATE digest_subscriptions
-          SET confirmed_at = created_at
-          WHERE confirmed_at IS NULL
-        SQL
+        safety_assured do
+          execute <<-SQL
+            UPDATE digest_subscriptions
+            SET confirmed_at = created_at
+            WHERE confirmed_at IS NULL
+          SQL
+        end
       end
     end
   end

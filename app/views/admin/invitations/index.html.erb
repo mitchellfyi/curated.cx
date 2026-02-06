@@ -1,0 +1,79 @@
+<div class="py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Invitations</h1>
+      <p class="mt-2 text-gray-600">Invite users to <%= Current.tenant&.title %></p>
+    </div>
+
+    <!-- Invite Form -->
+    <div class="bg-white shadow rounded-lg mb-8 p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Send Invitation</h2>
+      <%= form_with model: TenantInvitation.new, url: admin_invitations_path, class: "flex flex-wrap gap-4" do |f| %>
+        <div class="flex-1 min-w-[200px]">
+          <%= f.email_field :email, placeholder: "user@example.com", class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", autocomplete: "off", required: true %>
+        </div>
+        <div>
+          <%= f.select :role, options_for_select(Role::TENANT_ROLES.map { |r| [r.titleize, r] }, "editor"), {}, class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <%= f.submit "Send Invite", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer" %>
+      <% end %>
+
+      <% if defined?(@invitation) && @invitation&.errors&.any? %>
+        <div class="mt-3 text-sm text-red-600">
+          <% @invitation.errors.full_messages.each do |msg| %>
+            <p><%= msg %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Pending Invitations -->
+    <div class="bg-white shadow rounded-lg mb-8">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <h2 class="text-lg font-medium text-gray-900">Pending Invitations (<%= @pending.count %>)</h2>
+      </div>
+      <% if @pending.any? %>
+        <ul class="divide-y divide-gray-200">
+          <% @pending.each do |invitation| %>
+            <li class="px-4 py-4 sm:px-6 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-900"><%= invitation.email %></p>
+                <p class="text-xs text-gray-500">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"><%= invitation.role.titleize %></span>
+                  &middot; Invited by <%= invitation.invited_by.display_name.presence || invitation.invited_by.email %>
+                  &middot; Expires <%= time_ago_in_words(invitation.expires_at) %> from now
+                </p>
+              </div>
+              <div class="flex gap-2">
+                <%= button_to "Resend", resend_admin_invitation_path(invitation), method: :post, class: "text-sm text-blue-600 hover:underline" %>
+                <%= button_to "Cancel", admin_invitation_path(invitation), method: :delete, class: "text-sm text-red-600 hover:underline", data: { confirm: "Cancel this invitation?" } %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="px-4 py-5 sm:px-6 text-sm text-gray-500">No pending invitations.</p>
+      <% end %>
+    </div>
+
+    <!-- Recently Accepted -->
+    <% if @accepted.any? %>
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+          <h2 class="text-lg font-medium text-gray-900">Recently Accepted</h2>
+        </div>
+        <ul class="divide-y divide-gray-200">
+          <% @accepted.each do |invitation| %>
+            <li class="px-4 py-4 sm:px-6">
+              <p class="text-sm text-gray-900"><%= invitation.email %></p>
+              <p class="text-xs text-gray-500">
+                Accepted as <span class="font-medium"><%= invitation.role.titleize %></span>
+                &middot; <%= time_ago_in_words(invitation.accepted_at) %> ago
+              </p>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -52,6 +52,13 @@ Rails.application.routes.draw do
       end
     end
 
+    # Invitations management
+    resources :invitations, only: [ :index, :create, :destroy ] do
+      member do
+        post :resend
+      end
+    end
+
     # Users management
     resources :users do
       member do
@@ -231,6 +238,10 @@ Rails.application.routes.draw do
       end
     end
   end
+  # Invitation acceptance
+  get "invitations/:token", to: "invitation_acceptances#show", as: :accept_invitation
+  patch "invitations/:token", to: "invitation_acceptances#update"
+
   devise_for :users
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
