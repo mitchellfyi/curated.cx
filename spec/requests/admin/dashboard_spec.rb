@@ -242,6 +242,18 @@ RSpec.describe "Admin::Dashboards", type: :request do
         get admin_root_path
         expect(response.body).to include("Recent Listings")
       end
+
+      it "includes AI usage summary" do
+        get admin_root_path
+        expect(assigns(:ai_usage)).to be_a(Hash)
+        expect(response.body).to include("AI Usage")
+      end
+
+      it "includes SerpAPI usage summary" do
+        get admin_root_path
+        expect(assigns(:serp_api_usage)).to be_a(Hash)
+        expect(response.body).to include("SerpAPI Usage")
+      end
     end
   end
 end

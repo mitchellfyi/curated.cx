@@ -119,6 +119,87 @@
       </div>
     <% end %>
 
+    <%# ==================== API USAGE ==================== %>
+    <% if @ai_usage.present? || @serp_api_usage.present? %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <% if @ai_usage.present? %>
+          <%= link_to ai_usage_admin_observability_path, class: "block bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow" do %>
+            <div class="p-5">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">AI Usage</h3>
+                <% if @ai_usage[:is_paused] %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Paused</span>
+                <% elsif !@ai_usage[:on_track] %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Over budget</span>
+                <% end %>
+              </div>
+              <div class="flex items-baseline space-x-2 mb-2">
+                <span class="text-2xl font-bold <%= @ai_usage[:monthly_cost_percent].to_f > 90 ? 'text-red-600' : @ai_usage[:monthly_cost_percent].to_f > 70 ? 'text-yellow-600' : 'text-gray-900' %>">
+                  $<%= @ai_usage[:monthly_cost_dollars] %>
+                </span>
+                <span class="text-sm text-gray-500">/ $<%= @ai_usage[:monthly_cost_limit_dollars] %> this month</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                <div class="h-2 rounded-full <%= @ai_usage[:monthly_cost_percent].to_f > 90 ? 'bg-red-500' : @ai_usage[:monthly_cost_percent].to_f > 70 ? 'bg-yellow-500' : 'bg-green-500' %>" style="width: <%= [@ai_usage[:monthly_cost_percent].to_f, 100].min %>%"></div>
+              </div>
+              <dl class="space-y-1">
+                <div class="flex justify-between text-sm">
+                  <dt class="text-gray-500">Projected</dt>
+                  <dd class="font-medium <%= @ai_usage[:on_track] ? 'text-green-600' : 'text-red-600' %>">$<%= @ai_usage[:projected_monthly_dollars] %></dd>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <dt class="text-gray-500">Tokens used</dt>
+                  <dd class="font-medium text-gray-900"><%= number_with_delimiter(@ai_usage[:monthly_tokens]) %> (<%= @ai_usage[:monthly_token_percent] %>%)</dd>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <dt class="text-gray-500">Requests today</dt>
+                  <dd class="font-medium text-gray-900"><%= @ai_usage[:requests_today] %></dd>
+                </div>
+              </dl>
+            </div>
+            <div class="bg-gray-50 px-5 py-2">
+              <span class="text-xs font-medium text-blue-600">View AI usage details &rarr;</span>
+            </div>
+          <% end %>
+        <% end %>
+
+        <% if @serp_api_usage.present? %>
+          <%= link_to serp_api_admin_observability_path, class: "block bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow" do %>
+            <div class="p-5">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">SerpAPI Usage</h3>
+                <% unless @serp_api_usage[:on_track] %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Over budget</span>
+                <% end %>
+              </div>
+              <div class="flex items-baseline space-x-2 mb-2">
+                <span class="text-2xl font-bold <%= @serp_api_usage[:monthly_percent].to_f > 90 ? 'text-red-600' : @serp_api_usage[:monthly_percent].to_f > 70 ? 'text-yellow-600' : 'text-gray-900' %>">
+                  <%= @serp_api_usage[:monthly_used] %>
+                </span>
+                <span class="text-sm text-gray-500">/ <%= @serp_api_usage[:monthly_limit] %> requests this month</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                <div class="h-2 rounded-full <%= @serp_api_usage[:monthly_percent].to_f > 90 ? 'bg-red-500' : @serp_api_usage[:monthly_percent].to_f > 70 ? 'bg-yellow-500' : 'bg-green-500' %>" style="width: <%= [@serp_api_usage[:monthly_percent].to_f, 100].min %>%"></div>
+              </div>
+              <dl class="space-y-1">
+                <div class="flex justify-between text-sm">
+                  <dt class="text-gray-500">Projected monthly</dt>
+                  <dd class="font-medium <%= @serp_api_usage[:on_track] ? 'text-green-600' : 'text-red-600' %>"><%= @serp_api_usage[:projected_monthly] %></dd>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <dt class="text-gray-500">Used today</dt>
+                  <dd class="font-medium text-gray-900"><%= @serp_api_usage[:daily_used] %></dd>
+                </div>
+              </dl>
+            </div>
+            <div class="bg-gray-50 px-5 py-2">
+              <span class="text-xs font-medium text-blue-600">View SerpAPI details &rarr;</span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
     <%# ==================== SECTION CARDS ==================== %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <%# Content %>

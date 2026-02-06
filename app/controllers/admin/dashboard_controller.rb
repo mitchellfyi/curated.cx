@@ -38,6 +38,8 @@ class Admin::DashboardController < ApplicationController
     @stats = listing_stats_for_dashboard
     @system_stats = system_stats
     @recent_activity = recent_activity
+    @ai_usage = ai_usage_summary
+    @serp_api_usage = serp_api_usage_summary
 
     set_page_meta_tags(
       title: t("admin.dashboard.title"),
@@ -139,6 +141,38 @@ class Admin::DashboardController < ApplicationController
     }
   rescue
     { submissions: [], flags: [], import_runs: [] }
+  end
+
+  def ai_usage_summary
+    stats = AiUsageTracker.usage_stats
+    {
+      monthly_cost_dollars: stats.dig(:cost, :monthly, :used_dollars) || 0,
+      monthly_cost_limit_dollars: stats.dig(:cost, :monthly, :limit_dollars) || 0,
+      monthly_cost_percent: stats.dig(:cost, :monthly, :percent_used) || 0,
+      monthly_tokens: stats.dig(:tokens, :monthly, :used) || 0,
+      monthly_token_percent: stats.dig(:tokens, :monthly, :percent_used) || 0,
+      daily_cost_dollars: stats.dig(:cost, :daily, :used_dollars) || 0,
+      projected_monthly_dollars: stats.dig(:projections, :projected_monthly_dollars) || 0,
+      on_track: stats.dig(:projections, :on_track) != false,
+      requests_today: stats.dig(:requests, :total_today) || 0,
+      is_paused: WorkflowPauseService.paused?(:ai_processing)
+    }
+  rescue StandardError
+    {}
+  end
+
+  def serp_api_usage_summary
+    stats = SerpApiGlobalRateLimiter.usage_stats
+    {
+      monthly_used: stats.dig(:monthly, :used) || 0,
+      monthly_limit: stats.dig(:monthly, :limit) || 0,
+      monthly_percent: stats.dig(:monthly, :percent_used) || 0,
+      daily_used: stats.dig(:daily, :used) || 0,
+      projected_monthly: stats.dig(:projections, :projected_monthly_total) || 0,
+      on_track: stats.dig(:projections, :on_track) != false
+    }
+  rescue StandardError
+    {}
   end
 
   def categories_service
