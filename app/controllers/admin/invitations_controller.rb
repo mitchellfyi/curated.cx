@@ -16,6 +16,7 @@ module Admin
       @invitation = TenantInvitation.new(invitation_params)
       @invitation.tenant = Current.tenant
       @invitation.invited_by = current_user
+      @invitation.role = params.dig(:tenant_invitation, :role) if Role::TENANT_ROLES.include?(params.dig(:tenant_invitation, :role))
 
       if @invitation.save
         TenantInvitationMailer.invite(@invitation).deliver_later
@@ -55,7 +56,7 @@ module Admin
     end
 
     def invitation_params
-      params.require(:tenant_invitation).permit(:email, :role)
+      params.require(:tenant_invitation).permit(:email)
     end
   end
 end
