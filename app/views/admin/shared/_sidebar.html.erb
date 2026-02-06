@@ -1,4 +1,6 @@
 <%# Admin Sidebar Navigation - Organized with clear Super Admin / Tenant Admin separation %>
+<%# Role gating: editors see Content, Community, Moderation; admin/owner sees everything %>
+<% is_admin_or_owner = current_user&.admin? || (Current.tenant && %i[owner admin].any? { |r| current_user&.has_role?(r, Current.tenant) }) %>
 <nav class="space-y-1" data-controller="sidebar">
   <!-- Current Context -->
   <% if Current.tenant %>
@@ -99,15 +101,18 @@
     </div>
   </div>
 
-  <!-- Sources (Top-level) -->
+  <!-- Sources (Top-level) - Admin/Owner only -->
+  <% if is_admin_or_owner %>
   <%= link_to admin_sources_path, class: "group flex items-center px-3 py-2 text-sm font-medium rounded-md #{request.path.include?('sources') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}" do %>
     <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
     </svg>
     Sources
   <% end %>
+  <% end %>
 
-  <!-- Commerce Section (Collapsible) -->
+  <!-- Commerce Section (Collapsible) - Admin/Owner only -->
+  <% if is_admin_or_owner %>
   <% commerce_active = request.path.include?('digital_products') || request.path.include?('affiliate_clicks') || request.path.include?('live_streams') %>
   <div data-sidebar-target="section" data-section-name="commerce">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= commerce_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
@@ -133,8 +138,10 @@
       <% end %>
     </div>
   </div>
+  <% end %>
 
-  <!-- Boosts / Network Section (Collapsible) -->
+  <!-- Boosts / Network Section (Collapsible) - Admin/Owner only -->
+  <% if is_admin_or_owner %>
   <% boosts_active = request.path.include?('network_boosts') || request.path.include?('boost_earnings') || request.path.include?('boost_payouts') %>
   <div data-sidebar-target="section" data-section-name="boosts">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= boosts_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
@@ -160,8 +167,10 @@
       <% end %>
     </div>
   </div>
+  <% end %>
 
-  <!-- Subscribers Section (Collapsible) -->
+  <!-- Subscribers Section (Collapsible) - Admin/Owner only -->
+  <% if is_admin_or_owner %>
   <% subscribers_active = request.path.include?('digest') || request.path.include?('subscriber_tags') || request.path.include?('subscriber_segments') || request.path.include?('email_sequences') || (request.path.include?('referrals') && !request.path.include?('tiers')) || request.path.include?('referral_reward_tiers') %>
   <div data-sidebar-target="section" data-section-name="subscribers">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= subscribers_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
@@ -196,6 +205,7 @@
       <% end %>
     </div>
   </div>
+  <% end %>
 
   <!-- Community Section (Collapsible) -->
   <% community_active = request.path.include?('comments') || request.path.include?('discussions') %>
@@ -263,7 +273,8 @@
     </div>
   </div>
 
-  <!-- Taxonomy Section (Collapsible) -->
+  <!-- Taxonomy Section (Collapsible) - Admin/Owner only -->
+  <% if is_admin_or_owner %>
   <% taxonomy_active = request.path.include?('categories') || request.path.include?('taxonomies') || request.path.include?('tagging_rules') %>
   <div data-sidebar-target="section" data-section-name="taxonomy">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= taxonomy_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
@@ -289,9 +300,10 @@
       <% end %>
     </div>
   </div>
+  <% end %>
 
   <!-- System Section (Collapsible) - Admin/Owner only -->
-  <% if current_user&.admin? || (Current.tenant && %i[owner admin].any? { |r| current_user&.has_role?(r, Current.tenant) }) %>
+  <% if is_admin_or_owner %>
   <% system_active = request.path.include?('observability') || request.path.include?('activity') || request.path.include?('import_runs') || (request.path.include?('editorialisations') && !request.path.include?('observability')) || request.path.include?('jobs') %>
   <div data-sidebar-target="section" data-section-name="system">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= system_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
@@ -326,7 +338,7 @@
   <% end %>
 
   <!-- Settings Section (Collapsible) - Admin/Owner only -->
-  <% if current_user&.admin? || (Current.tenant && %i[owner admin].any? { |r| current_user&.has_role?(r, Current.tenant) }) %>
+  <% if is_admin_or_owner %>
     <% settings_active = request.path.include?('sites') || request.path.include?('tenant_settings') || (!current_user&.admin? && request.path.include?('users')) %>
     <div data-sidebar-target="section" data-section-name="settings">
       <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= settings_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
