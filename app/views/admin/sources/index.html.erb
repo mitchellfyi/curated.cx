@@ -39,37 +39,56 @@
       <div class="bg-white shadow overflow-hidden sm:rounded-md">
         <ul class="divide-y divide-gray-200">
           <% @sources.each do |source| %>
+            <% health = source.health_status %>
             <li>
               <%= link_to admin_source_path(source), class: "block hover:bg-gray-50" do %>
                 <div class="px-4 py-4 sm:px-6">
                   <div class="flex items-center justify-between">
-                    <div class="flex items-center">
+                    <div class="flex items-center space-x-2">
+                      <%# Health indicator dot %>
+                      <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full <%= case health
+                        when :healthy then 'bg-green-400'
+                        when :warning then 'bg-yellow-400'
+                        when :failing then 'bg-red-400'
+                        else 'bg-gray-300'
+                      end %>"></span>
                       <p class="text-sm font-medium text-blue-600 truncate">
                         <%= source.name %>
                       </p>
                       <%= status_indicator(source.enabled? ? :enabled : :disabled) %>
                       <%= badge(source.kind.humanize, :blue) %>
                     </div>
-                    <div class="ml-2 flex-shrink-0 flex">
+                    <div class="ml-2 flex-shrink-0 flex items-center space-x-3">
+                      <span class="text-xs text-gray-400"><%= source.schedule_interval_text %></span>
                       <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                       </svg>
                     </div>
                   </div>
                   <div class="mt-2 sm:flex sm:justify-between">
-                    <div class="sm:flex">
+                    <div class="sm:flex sm:space-x-4">
                       <p class="flex items-center text-sm text-gray-500">
-                        <%= source.site.name %>
+                        <%= source.site&.name || "Unknown" %>
+                      </p>
+                      <p class="flex items-center text-xs text-gray-400">
+                        <%= source.kind_description %>
                       </p>
                     </div>
-                    <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                    <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:space-x-4">
                       <% if source.last_run_at %>
-                        <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <%= t("admin.sources.last_run") %>: <%= time_ago_in_words(source.last_run_at) %> <%= t("time.ago", time: "") %>
+                        <span class="flex items-center">
+                          <svg class="flex-shrink-0 mr-1 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>
+                          <span class="text-xs"><%= time_ago_in_words(source.last_run_at) %> ago</span>
+                        </span>
                       <% else %>
-                        <span class="text-gray-400"><%= t("admin.sources.never_run") %></span>
+                        <span class="text-xs text-gray-400">Never run</span>
+                      <% end %>
+                      <% if source.next_run_at %>
+                        <span class="text-xs text-gray-400">
+                          Next: <%= source.next_run_at <= Time.current ? "due now" : "in #{distance_of_time_in_words(Time.current, source.next_run_at)}" %>
+                        </span>
                       <% end %>
                     </div>
                   </div>

@@ -87,11 +87,42 @@
   <fieldset class="border border-gray-200 rounded-md p-4">
     <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.sources.form.schedule") %></legend>
 
+    <div class="space-y-4">
+      <% current_interval = @source.schedule["interval_seconds"] || 3600 %>
+      <% preset_values = [900, 1800, 3600, 10800, 21600, 43200, 86400, 604800] %>
+      <% is_preset = preset_values.include?(current_interval) %>
+
+      <div>
+        <%= form.label "schedule_preset", "Frequency", class: "block text-sm font-medium text-gray-700" %>
+        <select name="schedule_preset" id="schedule_preset" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" data-custom-target="schedule_custom_interval">
+          <option value="900" <%= "selected" if current_interval == 900 %>>Every 15 minutes</option>
+          <option value="1800" <%= "selected" if current_interval == 1800 %>>Every 30 minutes</option>
+          <option value="3600" <%= "selected" if current_interval == 3600 %>>Hourly</option>
+          <option value="10800" <%= "selected" if current_interval == 10800 %>>Every 3 hours</option>
+          <option value="21600" <%= "selected" if current_interval == 21600 %>>Every 6 hours</option>
+          <option value="43200" <%= "selected" if current_interval == 43200 %>>Every 12 hours</option>
+          <option value="86400" <%= "selected" if current_interval == 86400 %>>Daily</option>
+          <option value="604800" <%= "selected" if current_interval == 604800 %>>Weekly</option>
+          <option value="custom" <%= "selected" unless is_preset %>>Custom interval...</option>
+        </select>
+      </div>
+
+      <div id="custom_interval_wrapper" class="<%= 'hidden' if is_preset %>">
+        <label for="schedule_custom_interval" class="block text-sm font-medium text-gray-700">Custom interval (minutes)</label>
+        <input type="number" id="schedule_custom_interval" value="<%= current_interval / 60 %>" min="5" step="5" autocomplete="off" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+      </div>
+
+      <%= form.hidden_field "schedule[interval_seconds]", value: current_interval, id: "schedule_interval_seconds" %>
+      <p class="text-xs text-gray-500">How often this source should be checked for new content. SerpAPI sources use API credits on each run.</p>
+    </div>
+  </fieldset>
+
+  <fieldset class="border border-gray-200 rounded-md p-4">
+    <legend class="text-sm font-medium text-gray-700 px-2">RSS Configuration</legend>
     <div>
-      <%= form.label "schedule[interval_seconds]", t("admin.sources.form.interval_minutes"), class: "block text-sm font-medium text-gray-700" %>
-      <% interval_minutes = (@source.schedule["interval_seconds"] || 3600) / 60 %>
-      <%= form.number_field "schedule[interval_seconds]", value: interval_minutes, min: 15, step: 15, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", data: { transform: "minutes_to_seconds" } %>
-      <p class="mt-1 text-xs text-gray-500"><%= t("admin.sources.form.interval_hint") %></p>
+      <%= form.label "config[url]", "Feed URL", class: "block text-sm font-medium text-gray-700" %>
+      <%= form.url_field "config[url]", value: @source.config["url"], class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://example.com/feed.xml" %>
+      <p class="mt-1 text-xs text-gray-500">The RSS or Atom feed URL to fetch content from. Only used for RSS source kind.</p>
     </div>
   </fieldset>
 
@@ -102,18 +133,27 @@
 <% end %>
 
 <script>
-  // Convert minutes input to seconds for the schedule field
   document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    const intervalField = form.querySelector('[data-transform="minutes_to_seconds"]');
+    const presetSelect = document.getElementById('schedule_preset');
+    const customWrapper = document.getElementById('custom_interval_wrapper');
+    const customInput = document.getElementById('schedule_custom_interval');
+    const hiddenField = document.getElementById('schedule_interval_seconds');
 
-    if (intervalField) {
-      form.addEventListener('submit', function(e) {
-        const minutes = parseInt(intervalField.value, 10);
-        if (!isNaN(minutes)) {
-          intervalField.value = minutes * 60;
-        }
-      });
+    function updateHiddenField() {
+      if (presetSelect.value === 'custom') {
+        customWrapper.classList.remove('hidden');
+        const minutes = parseInt(customInput.value, 10);
+        if (!isNaN(minutes)) hiddenField.value = minutes * 60;
+      } else {
+        customWrapper.classList.add('hidden');
+        hiddenField.value = presetSelect.value;
+      }
     }
+
+    presetSelect.addEventListener('change', updateHiddenField);
+    customInput.addEventListener('input', function() {
+      const minutes = parseInt(this.value, 10);
+      if (!isNaN(minutes)) hiddenField.value = minutes * 60;
+    });
   });
 </script>

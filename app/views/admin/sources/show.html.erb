@@ -3,8 +3,18 @@
     <div class="mb-8">
       <div class="flex justify-between items-center">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900"><%= @source.name %></h1>
-          <p class="mt-2 text-gray-600"><%= @source.kind.humanize %> - <%= @source.site.name %></p>
+          <div class="flex items-center space-x-3">
+            <% health = @source.health_status %>
+            <span class="flex-shrink-0 w-3 h-3 rounded-full <%= case health
+              when :healthy then 'bg-green-400'
+              when :warning then 'bg-yellow-400'
+              when :failing then 'bg-red-400'
+              else 'bg-gray-300'
+            end %>"></span>
+            <h1 class="text-3xl font-bold text-gray-900"><%= @source.name %></h1>
+          </div>
+          <p class="mt-2 text-gray-600"><%= @source.kind.humanize %> - <%= @source.site&.name %></p>
+          <p class="mt-1 text-sm text-gray-400"><%= @source.kind_description %></p>
         </div>
         <div class="flex space-x-3">
           <% if @source.enabled? %>
@@ -69,11 +79,16 @@
           <% end %>
           <div>
             <dt class="text-sm font-medium text-gray-500"><%= t("admin.sources.schedule_interval") %></dt>
-            <dd class="mt-1 text-sm text-gray-900">
-              <% interval = @source.schedule_interval_seconds %>
-              <%= interval ? "#{interval / 60} minutes" : "-" %>
-            </dd>
+            <dd class="mt-1 text-sm text-gray-900"><%= @source.schedule_interval_text %></dd>
           </div>
+          <% if @source.next_run_at %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Next Run</dt>
+              <dd class="mt-1 text-sm text-gray-900">
+                <%= @source.next_run_at <= Time.current ? "Due now" : "in #{distance_of_time_in_words(Time.current, @source.next_run_at)}" %>
+              </dd>
+            </div>
+          <% end %>
         </dl>
       </div>
     </div>

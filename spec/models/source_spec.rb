@@ -230,4 +230,81 @@ RSpec.describe Source, type: :model do
       end
     end
   end
+
+  describe '#next_run_at' do
+    it 'returns nil when disabled' do
+      source = create(:source, site: site, enabled: false, schedule: { "interval_seconds" => 3600 })
+      expect(source.next_run_at).to be_nil
+    end
+
+    it 'returns nil when no interval configured' do
+      source = create(:source, site: site, schedule: {})
+      expect(source.next_run_at).to be_nil
+    end
+
+    it 'returns current time when never run' do
+      source = create(:source, site: site, schedule: { "interval_seconds" => 3600 })
+      expect(source.next_run_at).to be_within(1.second).of(Time.current)
+    end
+
+    it 'calculates next run from last_run_at plus interval' do
+      source = create(:source, site: site, schedule: { "interval_seconds" => 3600 }, last_run_at: 30.minutes.ago)
+      expect(source.next_run_at).to be_within(1.second).of(30.minutes.from_now)
+    end
+  end
+
+  describe '#health_status' do
+    it 'returns :unknown when never run' do
+      source = create(:source, site: site)
+      expect(source.health_status).to eq(:unknown)
+    end
+
+    it 'returns :healthy when last run completed' do
+      source = create(:source, site: site, last_run_at: 1.hour.ago)
+      create(:import_run, :completed, source: source)
+      expect(source.health_status).to eq(:healthy)
+    end
+
+    it 'returns :failing when all recent runs failed' do
+      source = create(:source, site: site, last_run_at: 1.hour.ago)
+      3.times { create(:import_run, :failed, source: source) }
+      expect(source.health_status).to eq(:failing)
+    end
+
+    it 'returns :warning when there are mixed results' do
+      source = create(:source, site: site, last_run_at: 1.hour.ago)
+      create(:import_run, :completed, source: source, started_at: 3.hours.ago)
+      create(:import_run, :failed, source: source, started_at: 1.hour.ago)
+      expect(source.health_status).to eq(:warning)
+    end
+  end
+
+  describe '#schedule_interval_text' do
+    it 'returns human-readable text for known intervals' do
+      source = build(:source, site: site, schedule: { "interval_seconds" => 3600 })
+      expect(source.schedule_interval_text).to eq("Hourly")
+    end
+
+    it 'returns "Daily" for 86400 seconds' do
+      source = build(:source, site: site, schedule: { "interval_seconds" => 86400 })
+      expect(source.schedule_interval_text).to eq("Daily")
+    end
+
+    it 'returns "Not scheduled" when no interval' do
+      source = build(:source, site: site, schedule: {})
+      expect(source.schedule_interval_text).to eq("Not scheduled")
+    end
+  end
+
+  describe '#kind_description' do
+    it 'returns description for rss' do
+      source = build(:source, :rss, site: site)
+      expect(source.kind_description).to include("RSS")
+    end
+
+    it 'returns description for serp_api_google_news' do
+      source = build(:source, :serp_api_google_news, site: site)
+      expect(source.kind_description).to include("Google News")
+    end
+  end
 end

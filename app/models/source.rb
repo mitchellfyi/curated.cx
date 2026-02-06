@@ -116,6 +116,65 @@ class Source < ApplicationRecord
     config["editorialise"] == true || config[:editorialise] == true
   end
 
+  # Calculate when this source will next be processed
+  def next_run_at
+    return nil unless enabled?
+
+    interval = schedule_interval_seconds
+    return nil if interval.nil?
+    return Time.current if last_run_at.nil?
+
+    last_run_at + interval.seconds
+  end
+
+  # Health status based on recent import runs
+  # :healthy = last run succeeded, :warning = intermittent failures, :failing = consecutive failures, :unknown = never run
+  def health_status
+    return :unknown if last_run_at.nil?
+
+    recent = import_runs.order(started_at: :desc).limit(3).pluck(:status)
+    return :unknown if recent.empty?
+
+    if recent.first == "completed"
+      :healthy
+    elsif recent.all? { |s| s == "failed" }
+      :failing
+    else
+      :warning
+    end
+  end
+
+  # Human-readable description of what this source kind does
+  def kind_description
+    {
+      "serp_api_google_news" => "Searches Google News via SerpAPI",
+      "rss" => "Fetches and parses RSS/Atom feeds",
+      "api" => "Fetches data from a custom API endpoint",
+      "web_scraper" => "Scrapes content from web pages",
+      "serp_api_google_jobs" => "Searches Google Jobs via SerpAPI",
+      "serp_api_youtube" => "Searches YouTube via SerpAPI"
+    }[kind] || "Unknown source type"
+  end
+
+  # Human-readable schedule interval
+  def schedule_interval_text
+    interval = schedule_interval_seconds
+    return "Not scheduled" if interval.nil?
+
+    case interval
+    when 0..899 then "Every #{(interval / 60.0).ceil} minutes"
+    when 900 then "Every 15 minutes"
+    when 1800 then "Every 30 minutes"
+    when 3600 then "Hourly"
+    when 7200..10800 then "Every #{interval / 3600} hours"
+    when 21600 then "Every 6 hours"
+    when 43200 then "Every 12 hours"
+    when 86400 then "Daily"
+    when 604800 then "Weekly"
+    else "Every #{(interval / 3600.0).round(1)} hours"
+    end
+  end
+
   private
 
   def validate_config_structure
