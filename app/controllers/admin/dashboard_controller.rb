@@ -63,18 +63,70 @@ class Admin::DashboardController < ApplicationController
   end
 
   def system_stats
-    {
+    today = Time.current.beginning_of_day
+
+    stats = {
+      # Content
+      content_items: ContentItem.count,
+      listings_total: Current.tenant.listings.count,
+      submissions_pending: Submission.pending.count,
+      notes: Note.count,
+
+      # Sources
+      sources_enabled: Source.enabled.count,
+      sources_total: Source.count,
+      imports_today: ImportRun.where("started_at > ?", today).count,
+      imports_failed_today: ImportRun.failed.where("started_at > ?", today).count,
+
+      # Commerce
+      digital_products: DigitalProduct.count,
+      affiliate_clicks_today: AffiliateClick.where("clicked_at > ?", today).count,
+      live_streams: LiveStream.count,
+
+      # Boosts / Network
+      network_boosts_enabled: NetworkBoost.enabled.count,
+      boost_clicks_total: BoostClick.count,
+      boost_payouts_pending: BoostPayout.pending.count,
+
+      # Subscribers
+      digest_subscribers_active: DigestSubscription.active.count,
+      subscriber_tags: SubscriberTag.count,
+      email_sequences_enabled: EmailSequence.enabled.count,
+      referrals: Referral.count,
+
+      # Community
+      comments: Comment.count,
+      comments_hidden: (Comment.hidden.count rescue 0),
+      discussions: Discussion.count,
+
+      # Moderation
+      flags_open: Flag.open.count,
+      site_bans_active: SiteBan.active.count,
+
+      # Taxonomy
+      taxonomies: Taxonomy.count,
+      tagging_rules_enabled: TaggingRule.enabled.count,
+
+      # System
+      workflow_pauses_active: WorkflowPause.active.count,
+      editorialisations_pending: Editorialisation.pending.count,
+      editorialisations_failed_today: Editorialisation.failed.where("created_at > ?", today).count,
+
+      # Users
       users: User.count,
       users_this_week: User.where("created_at > ?", 1.week.ago).count,
-      content_items: ContentItem.count,
-      notes: Note.count,
-      comments: Comment.count,
-      submissions_pending: Submission.pending.count,
-      flags_open: Flag.open.count,
-      sources_enabled: Source.enabled.count,
-      imports_today: ImportRun.where("started_at > ?", Time.current.beginning_of_day).count,
-      imports_failed_today: ImportRun.failed.where("started_at > ?", Time.current.beginning_of_day).count
+
+      # Settings
+      sites: Site.count,
+      domains: Domain.count
     }
+
+    # Super admin stats
+    if current_user&.admin?
+      stats[:tenants_count] = Tenant.count
+    end
+
+    stats
   rescue
     {}
   end

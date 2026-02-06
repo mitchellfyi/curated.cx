@@ -1,0 +1,25 @@
+<%# Section card for dashboard - mirrors sidebar navigation sections %>
+<%# locals: (title:, link:, stats:, alert_count: 0, icon_color: "gray") %>
+<%= link_to link, class: "block bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow" do %>
+  <div class="p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide"><%= title %></h3>
+      <% if alert_count > 0 %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><%= alert_count %></span>
+      <% end %>
+    </div>
+    <dl class="space-y-2">
+      <% stats.each do |stat| %>
+        <div class="flex items-center justify-between">
+          <dt class="text-sm text-gray-500 truncate"><%= stat[:label] %></dt>
+          <dd class="text-sm font-semibold <%= stat[:color] == :red ? 'text-red-600' : stat[:color] == :green ? 'text-green-600' : stat[:color] == :yellow ? 'text-yellow-600' : stat[:color] == :blue ? 'text-blue-600' : stat[:color] == :purple ? 'text-purple-600' : 'text-gray-900' %>">
+            <%= stat[:value] %>
+          </dd>
+        </div>
+      <% end %>
+    </dl>
+  </div>
+  <div class="bg-gray-50 px-5 py-2">
+    <span class="text-xs font-medium text-blue-600">View details &rarr;</span>
+  </div>
+<% end %>

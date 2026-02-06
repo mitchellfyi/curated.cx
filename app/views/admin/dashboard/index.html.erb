@@ -6,93 +6,9 @@
       <span class="sr-only" id="tenant-title-raw"><%= Current.tenant.title.html_safe %></span>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">Categories</dt>
-                <dd class="text-lg font-medium text-gray-900"><%= @stats[:total_categories] %></dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">Total Listings</dt>
-                <dd class="text-lg font-medium text-gray-900"><%= @stats[:total_listings] %></dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">Published</dt>
-                <dd class="text-lg font-medium text-gray-900"><%= @stats[:published_listings] %></dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">Today</dt>
-                <dd class="text-lg font-medium text-gray-900"><%= @stats[:listings_today] %></dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Alerts Section -->
-    <% if @system_stats[:submissions_pending].to_i > 0 || @system_stats[:flags_open].to_i > 0 || @system_stats[:imports_failed_today].to_i > 0 %>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <%# ==================== ALERTS ==================== %>
+    <% if @system_stats[:submissions_pending].to_i > 0 || @system_stats[:flags_open].to_i > 0 || @system_stats[:imports_failed_today].to_i > 0 || @system_stats[:editorialisations_failed_today].to_i > 0 || @system_stats[:workflow_pauses_active].to_i > 0 %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <% if @system_stats[:submissions_pending].to_i > 0 %>
           <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
             <div class="flex">
@@ -144,37 +60,174 @@
             </div>
           </div>
         <% end %>
+        <% if @system_stats[:editorialisations_failed_today].to_i > 0 %>
+          <div class="bg-red-50 border-l-4 border-red-400 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-red-700">
+                  <strong><%= @system_stats[:editorialisations_failed_today] %></strong> failed AI processing today
+                  <%= link_to "View →", editorialisations_admin_observability_path, class: "font-medium underline" %>
+                </p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+        <% if @system_stats[:workflow_pauses_active].to_i > 0 %>
+          <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                  <strong><%= @system_stats[:workflow_pauses_active] %></strong> active workflow pauses
+                  <%= link_to "Manage →", admin_workflow_pauses_path, class: "font-medium underline" %>
+                </p>
+              </div>
+            </div>
+          </div>
+        <% end %>
       </div>
     <% end %>
 
-    <!-- System Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
-        <dt class="text-xs font-medium text-gray-500 truncate">Users</dt>
-        <dd class="mt-1 text-xl font-semibold text-gray-900"><%= number_with_delimiter(@system_stats[:users]) %></dd>
-        <% if @system_stats[:users_this_week].to_i > 0 %>
-          <dd class="text-xs text-green-600">+<%= @system_stats[:users_this_week] %> this week</dd>
-        <% end %>
+    <%# ==================== SUPER ADMIN SECTION ==================== %>
+    <% if current_user&.admin? %>
+      <div class="mb-8">
+        <h2 class="text-xs font-bold text-red-600 uppercase tracking-wider mb-3 flex items-center">
+          <svg class="mr-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clip-rule="evenodd"></path>
+          </svg>
+          Super Admin
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <%= render "admin/dashboard/section_card",
+            title: "Tenants",
+            link: admin_tenants_path,
+            stats: [
+              { label: "Total tenants", value: @system_stats[:tenants_count] || 0 },
+              { label: "Total users", value: number_with_delimiter(@system_stats[:users]) },
+              { label: "New this week", value: "+#{@system_stats[:users_this_week]}", color: @system_stats[:users_this_week].to_i > 0 ? :green : nil }
+            ] %>
+        </div>
       </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
-        <dt class="text-xs font-medium text-gray-500 truncate">Content Items</dt>
-        <dd class="mt-1 text-xl font-semibold text-gray-900"><%= number_with_delimiter(@system_stats[:content_items]) %></dd>
-      </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
-        <dt class="text-xs font-medium text-gray-500 truncate">Notes</dt>
-        <dd class="mt-1 text-xl font-semibold text-gray-900"><%= number_with_delimiter(@system_stats[:notes]) %></dd>
-      </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
-        <dt class="text-xs font-medium text-gray-500 truncate">Comments</dt>
-        <dd class="mt-1 text-xl font-semibold text-gray-900"><%= number_with_delimiter(@system_stats[:comments]) %></dd>
-      </div>
-      <div class="bg-white overflow-hidden shadow rounded-lg p-4">
-        <dt class="text-xs font-medium text-gray-500 truncate">Imports Today</dt>
-        <dd class="mt-1 text-xl font-semibold text-blue-600"><%= @system_stats[:imports_today] %></dd>
-      </div>
+    <% end %>
+
+    <%# ==================== SECTION CARDS ==================== %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <%# Content %>
+      <%= render "admin/dashboard/section_card",
+        title: "Content",
+        link: admin_content_items_path,
+        alert_count: @system_stats[:submissions_pending].to_i,
+        stats: [
+          { label: "Content items", value: number_with_delimiter(@system_stats[:content_items]) },
+          { label: "Published listings", value: number_with_delimiter(@stats[:published_listings]) },
+          { label: "Pending submissions", value: @system_stats[:submissions_pending], color: @system_stats[:submissions_pending].to_i > 0 ? :yellow : nil },
+          { label: "Notes", value: number_with_delimiter(@system_stats[:notes]) }
+        ] %>
+
+      <%# Sources %>
+      <%= render "admin/dashboard/section_card",
+        title: "Sources",
+        link: admin_sources_path,
+        alert_count: @system_stats[:imports_failed_today].to_i,
+        stats: [
+          { label: "Enabled sources", value: "#{@system_stats[:sources_enabled]} / #{@system_stats[:sources_total]}" },
+          { label: "Imports today", value: @system_stats[:imports_today], color: :blue },
+          { label: "Failed today", value: @system_stats[:imports_failed_today], color: @system_stats[:imports_failed_today].to_i > 0 ? :red : nil }
+        ] %>
+
+      <%# Commerce %>
+      <%= render "admin/dashboard/section_card",
+        title: "Commerce",
+        link: admin_digital_products_path,
+        stats: [
+          { label: "Digital products", value: @system_stats[:digital_products] },
+          { label: "Affiliate clicks today", value: @system_stats[:affiliate_clicks_today], color: @system_stats[:affiliate_clicks_today].to_i > 0 ? :green : nil },
+          { label: "Live streams", value: @system_stats[:live_streams] }
+        ] %>
+
+      <%# Boosts / Network %>
+      <%= render "admin/dashboard/section_card",
+        title: "Boosts / Network",
+        link: admin_network_boosts_path,
+        stats: [
+          { label: "Active boosts", value: @system_stats[:network_boosts_enabled] },
+          { label: "Total clicks", value: number_with_delimiter(@system_stats[:boost_clicks_total]) },
+          { label: "Pending payouts", value: @system_stats[:boost_payouts_pending], color: @system_stats[:boost_payouts_pending].to_i > 0 ? :yellow : nil }
+        ] %>
+
+      <%# Subscribers %>
+      <%= render "admin/dashboard/section_card",
+        title: "Subscribers",
+        link: admin_digest_subscriptions_path,
+        stats: [
+          { label: "Active subscribers", value: number_with_delimiter(@system_stats[:digest_subscribers_active]) },
+          { label: "Email sequences", value: @system_stats[:email_sequences_enabled] },
+          { label: "Tags", value: @system_stats[:subscriber_tags] },
+          { label: "Referrals", value: @system_stats[:referrals] }
+        ] %>
+
+      <%# Community %>
+      <%= render "admin/dashboard/section_card",
+        title: "Community",
+        link: admin_comments_path,
+        alert_count: @system_stats[:comments_hidden].to_i,
+        stats: [
+          { label: "Comments", value: number_with_delimiter(@system_stats[:comments]) },
+          { label: "Hidden comments", value: @system_stats[:comments_hidden], color: @system_stats[:comments_hidden].to_i > 0 ? :yellow : nil },
+          { label: "Discussions", value: @system_stats[:discussions] }
+        ] %>
+
+      <%# Moderation %>
+      <%= render "admin/dashboard/section_card",
+        title: "Moderation",
+        link: admin_flags_path,
+        alert_count: @system_stats[:flags_open].to_i,
+        stats: [
+          { label: "Open flags", value: @system_stats[:flags_open], color: @system_stats[:flags_open].to_i > 0 ? :red : nil },
+          { label: "Active site bans", value: @system_stats[:site_bans_active], color: @system_stats[:site_bans_active].to_i > 0 ? :red : nil }
+        ] %>
+
+      <%# Taxonomy %>
+      <%= render "admin/dashboard/section_card",
+        title: "Taxonomy",
+        link: admin_categories_path,
+        stats: [
+          { label: "Categories", value: @stats[:total_categories] },
+          { label: "Taxonomies", value: @system_stats[:taxonomies] },
+          { label: "Tagging rules", value: @system_stats[:tagging_rules_enabled] }
+        ] %>
+
+      <%# System %>
+      <%= render "admin/dashboard/section_card",
+        title: "System",
+        link: admin_observability_path,
+        alert_count: @system_stats[:editorialisations_failed_today].to_i + @system_stats[:workflow_pauses_active].to_i,
+        stats: [
+          { label: "AI processing pending", value: @system_stats[:editorialisations_pending], color: @system_stats[:editorialisations_pending].to_i > 0 ? :yellow : nil },
+          { label: "AI failed today", value: @system_stats[:editorialisations_failed_today], color: @system_stats[:editorialisations_failed_today].to_i > 0 ? :red : nil },
+          { label: "Workflow pauses", value: @system_stats[:workflow_pauses_active], color: @system_stats[:workflow_pauses_active].to_i > 0 ? :yellow : nil }
+        ] %>
+
+      <%# Settings %>
+      <%= render "admin/dashboard/section_card",
+        title: "Settings",
+        link: admin_sites_path,
+        stats: [
+          { label: "Sites", value: @system_stats[:sites] },
+          { label: "Domains", value: @system_stats[:domains] }
+        ] %>
     </div>
 
-    <!-- Quick Actions -->
+    <%# ==================== QUICK ACTIONS ==================== %>
     <div class="bg-white shadow rounded-lg mb-8">
       <div class="px-4 py-5 sm:p-6">
         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
@@ -193,18 +246,18 @@
             Manage Listings
           <% end %>
 
-          <%= link_to new_admin_category_path, class: button_classes(variant: :primary) do %>
-            <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          <%= link_to admin_sources_path, class: button_classes(variant: :secondary) do %>
+            <svg class="mr-2 -ml-1 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
             </svg>
-            New Category
+            Manage Sources
           <% end %>
 
-          <%= link_to new_admin_listing_path, class: button_classes(variant: :success) do %>
-            <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          <%= link_to admin_observability_path, class: button_classes(variant: :secondary) do %>
+            <svg class="mr-2 -ml-1 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
             </svg>
-            New Listing
+            Observability
           <% end %>
 
           <%= link_to admin_sites_path, class: button_classes(variant: :secondary) do %>
@@ -213,41 +266,103 @@
             </svg>
             Manage Sites
           <% end %>
+
+          <%= link_to new_admin_listing_path, class: button_classes(variant: :primary) do %>
+            <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            New Listing
+          <% end %>
+
+          <%= link_to new_admin_category_path, class: button_classes(variant: :primary) do %>
+            <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            New Category
+          <% end %>
+
+          <% if @system_stats[:submissions_pending].to_i > 0 %>
+            <%= link_to admin_submissions_path, class: button_classes(variant: :warning_outline) do %>
+              <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              Review Submissions (<%= @system_stats[:submissions_pending] %>)
+            <% end %>
+          <% end %>
         </div>
       </div>
     </div>
 
-    <!-- Recent Listings -->
-    <% if @recent_listings.any? %>
-      <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Listings</h3>
-          <div class="flow-root">
-            <ul class="-my-5 divide-y divide-gray-200">
-              <% @recent_listings.each do |listing| %>
-                <li class="py-4">
-                  <div class="flex items-center space-x-4">
-                    <div class="flex-shrink-0">
-                      <%= badge(listing.category&.name || t('admin.dashboard.uncategorized'), :blue) %>
+    <%# ==================== RECENT ACTIVITY ==================== %>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <%# Recent Listings %>
+      <% if @recent_listings.any? %>
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Listings</h3>
+            <div class="flow-root">
+              <ul class="-my-5 divide-y divide-gray-200">
+                <% @recent_listings.each do |listing| %>
+                  <li class="py-4">
+                    <div class="flex items-center space-x-4">
+                      <div class="flex-shrink-0">
+                        <%= badge(listing.category&.name || t('admin.dashboard.uncategorized'), :blue) %>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                          <%= link_to listing.title, admin_listing_path(listing), class: "hover:text-blue-600" %>
+                        </p>
+                        <p class="text-sm text-gray-500 truncate">
+                          <%= listing.domain %> &bull; <%= time_ago_in_words(listing.created_at) %> ago
+                        </p>
+                      </div>
                     </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 truncate">
-                        <%= link_to listing.title, admin_listing_path(listing), class: "hover:text-blue-600" %>
-                      </p>
-                      <p class="text-sm text-gray-500 truncate">
-                        <%= listing.domain %> • <%= time_ago_in_words(listing.created_at) %> ago
-                      </p>
-                    </div>
-                  </div>
-                </li>
-              <% end %>
-            </ul>
-          </div>
-          <div class="mt-6">
-            <%= link_to t('admin.dashboard.view_all_listings'), admin_listings_path, class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+            <div class="mt-6">
+              <%= link_to t('admin.dashboard.view_all_listings'), admin_listings_path, class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
+            </div>
           </div>
         </div>
-      </div>
-    <% end %>
+      <% end %>
+
+      <%# Recent Import Runs %>
+      <% if @recent_activity[:import_runs].present? %>
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Imports</h3>
+            <div class="flow-root">
+              <ul class="-my-5 divide-y divide-gray-200">
+                <% @recent_activity[:import_runs].each do |run| %>
+                  <li class="py-4">
+                    <div class="flex items-center space-x-4">
+                      <div class="flex-shrink-0">
+                        <%= admin_status_badge(run.status) %>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                          <%= run.source&.name || "Unknown source" %>
+                        </p>
+                        <p class="text-sm text-gray-500">
+                          <%= admin_time_ago(run.started_at) %>
+                          <% if run.items_created.to_i > 0 %>
+                            &bull; <span class="text-green-600"><%= run.items_created %> created</span>
+                          <% end %>
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+            <div class="mt-6">
+              <%= link_to "View all imports", admin_import_runs_path, class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>

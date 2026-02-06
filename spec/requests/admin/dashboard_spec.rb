@@ -136,4 +136,112 @@ RSpec.describe "Admin::Dashboards", type: :request do
       end
     end
   end
+
+  describe "dashboard section cards" do
+    before do
+      sign_in admin_user
+      host! tenant1.hostname
+      setup_tenant_context(tenant1)
+    end
+
+    describe "GET /admin" do
+      it "renders all navigation section cards" do
+        get admin_root_path
+        expect(response).to have_http_status(:success)
+
+        # Verify all section cards matching sidebar navigation
+        expect(response.body).to include("Content")
+        expect(response.body).to include("Sources")
+        expect(response.body).to include("Commerce")
+        expect(response.body).to include("Boosts / Network")
+        expect(response.body).to include("Subscribers")
+        expect(response.body).to include("Community")
+        expect(response.body).to include("Moderation")
+        expect(response.body).to include("Taxonomy")
+        expect(response.body).to include("System")
+        expect(response.body).to include("Settings")
+      end
+
+      it "includes system stats for all sections" do
+        get admin_root_path
+        stats = assigns(:system_stats)
+
+        # Content
+        expect(stats).to have_key(:content_items)
+        expect(stats).to have_key(:submissions_pending)
+        expect(stats).to have_key(:notes)
+
+        # Sources
+        expect(stats).to have_key(:sources_enabled)
+        expect(stats).to have_key(:sources_total)
+        expect(stats).to have_key(:imports_today)
+        expect(stats).to have_key(:imports_failed_today)
+
+        # Commerce
+        expect(stats).to have_key(:digital_products)
+        expect(stats).to have_key(:affiliate_clicks_today)
+        expect(stats).to have_key(:live_streams)
+
+        # Boosts
+        expect(stats).to have_key(:network_boosts_enabled)
+        expect(stats).to have_key(:boost_clicks_total)
+        expect(stats).to have_key(:boost_payouts_pending)
+
+        # Subscribers
+        expect(stats).to have_key(:digest_subscribers_active)
+        expect(stats).to have_key(:email_sequences_enabled)
+        expect(stats).to have_key(:referrals)
+
+        # Community
+        expect(stats).to have_key(:comments)
+        expect(stats).to have_key(:discussions)
+
+        # Moderation
+        expect(stats).to have_key(:flags_open)
+        expect(stats).to have_key(:site_bans_active)
+
+        # Taxonomy
+        expect(stats).to have_key(:taxonomies)
+        expect(stats).to have_key(:tagging_rules_enabled)
+
+        # System
+        expect(stats).to have_key(:workflow_pauses_active)
+        expect(stats).to have_key(:editorialisations_pending)
+        expect(stats).to have_key(:editorialisations_failed_today)
+
+        # Settings
+        expect(stats).to have_key(:sites)
+        expect(stats).to have_key(:domains)
+      end
+
+      it "includes super admin stats for admin users" do
+        get admin_root_path
+        stats = assigns(:system_stats)
+        expect(stats).to have_key(:tenants_count)
+        expect(response.body).to include("Super Admin")
+        expect(response.body).to include("Tenants")
+      end
+
+      it "excludes super admin section for tenant owners" do
+        sign_in tenant1_owner
+        get admin_root_path
+        stats = assigns(:system_stats)
+        expect(stats).not_to have_key(:tenants_count)
+        expect(response.body).not_to include("Super Admin")
+      end
+
+      it "renders quick actions" do
+        get admin_root_path
+        expect(response.body).to include("Quick Actions")
+        expect(response.body).to include("Manage Categories")
+        expect(response.body).to include("Manage Sources")
+        expect(response.body).to include("Observability")
+      end
+
+      it "renders recent activity sections" do
+        get admin_root_path
+        expect(response.body).to include("Recent Listings")
+      end
+    end
+  end
 end
