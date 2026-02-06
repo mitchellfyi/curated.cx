@@ -16,6 +16,7 @@ module Admin
       end
 
       @stats = build_stats
+      @tenant_metrics = build_tenant_metrics
     end
 
     # GET /admin/tenants/:id
@@ -68,11 +69,7 @@ module Admin
 
     def tenant_params
       params.require(:tenant).permit(
-        :title, :slug, :hostname, :logo_url, :favicon_url,
-        :primary_color, :secondary_color,
-        :meta_title, :meta_description,
-        :twitter_handle, :analytics_id,
-        :custom_css, :custom_head_html,
+        :title, :slug, :hostname, :logo_url, :description,
         settings: {}
       )
     end
@@ -82,8 +79,31 @@ module Admin
         total_tenants: Tenant.count,
         total_sites: Site.count,
         total_listings: Listing.count,
-        total_users: User.count
+        total_users: User.count,
+        active_sources: Source.enabled.count,
+        failed_imports_today: ImportRun.failed.where("started_at > ?", Time.current.beginning_of_day).count,
+        active_pauses: WorkflowPause.active.count
       }
+    end
+
+    def build_tenant_metrics
+      # Pre-load per-tenant counts for index display
+      site_counts = Site.group(:tenant_id).count
+      listing_counts = Listing.joins(:site).group("sites.tenant_id").count
+      source_counts = Source.enabled.joins(:site).group("sites.tenant_id").count
+      failed_import_counts = ImportRun.failed
+                                       .where("started_at > ?", Time.current.beginning_of_day)
+                                       .joins(source: :site)
+                                       .group("sites.tenant_id").count
+
+      @tenants.each_with_object({}) do |tenant, hash|
+        hash[tenant.id] = {
+          sites: site_counts[tenant.id] || 0,
+          listings: listing_counts[tenant.id] || 0,
+          sources: source_counts[tenant.id] || 0,
+          failed_imports: failed_import_counts[tenant.id] || 0
+        }
+      end
     end
   end
 end

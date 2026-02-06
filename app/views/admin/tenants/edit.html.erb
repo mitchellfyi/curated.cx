@@ -43,32 +43,8 @@
           </div>
 
           <div>
-            <%= f.label :twitter_handle, class: "block text-sm font-medium text-gray-700" %>
-            <div class="mt-1 flex rounded-md shadow-sm">
-              <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">@</span>
-              <%= f.text_field :twitter_handle, class: "flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-blue-500 focus:ring-blue-500" %>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SEO -->
-      <div class="bg-white shadow rounded-lg p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">SEO & Meta</h3>
-        <div class="space-y-6">
-          <div>
-            <%= f.label :meta_title, class: "block text-sm font-medium text-gray-700" %>
-            <%= f.text_field :meta_title, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
-          </div>
-
-          <div>
-            <%= f.label :meta_description, class: "block text-sm font-medium text-gray-700" %>
-            <%= f.text_area :meta_description, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
-          </div>
-
-          <div>
-            <%= f.label :analytics_id, "Google Analytics ID", class: "block text-sm font-medium text-gray-700" %>
-            <%= f.text_field :analytics_id, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "G-XXXXXXXXXX" %>
+            <%= f.label :description, class: "block text-sm font-medium text-gray-700" %>
+            <%= f.text_area :description, rows: 2, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
           </div>
         </div>
       </div>
@@ -79,39 +55,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <%= f.label :logo_url, class: "block text-sm font-medium text-gray-700" %>
-            <%= f.url_field :logo_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://example.com/logo.png" %>
-          </div>
-
-          <div>
-            <%= f.label :favicon_url, class: "block text-sm font-medium text-gray-700" %>
-            <%= f.url_field :favicon_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://example.com/favicon.ico" %>
-          </div>
-
-          <div>
-            <%= f.label :primary_color, class: "block text-sm font-medium text-gray-700" %>
-            <%= f.text_field :primary_color, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "blue or #3B82F6" %>
-          </div>
-
-          <div>
-            <%= f.label :secondary_color, class: "block text-sm font-medium text-gray-700" %>
-            <%= f.text_field :secondary_color, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "gray or #6B7280" %>
-          </div>
-        </div>
-      </div>
-
-      <!-- Custom Code -->
-      <div class="bg-white shadow rounded-lg p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Custom Code</h3>
-        <div class="space-y-6">
-          <div>
-            <%= f.label :custom_css, class: "block text-sm font-medium text-gray-700" %>
-            <%= f.text_area :custom_css, rows: 6, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm" %>
-          </div>
-
-          <div>
-            <%= f.label :custom_head_html, "Custom Head HTML", class: "block text-sm font-medium text-gray-700" %>
-            <%= f.text_area :custom_head_html, rows: 6, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm" %>
-            <p class="mt-1 text-xs text-gray-500">Scripts, meta tags, etc. Injected into &lt;head&gt;</p>
+            <%= f.url_field :logo_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://example.com/logo.png", autocomplete: "off" %>
           </div>
         </div>
       </div>

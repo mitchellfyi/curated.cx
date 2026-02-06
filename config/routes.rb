@@ -20,6 +20,9 @@ Rails.application.routes.draw do
     # Health/stats endpoint (JSON)
     get "health", to: "health#show"
 
+    # Tenant settings (for tenant owners)
+    resource :tenant_settings, only: [ :show, :update ], controller: "tenant_settings"
+
     # Observability dashboard
     resource :observability, only: [ :show ], controller: "observability" do
       get :imports
