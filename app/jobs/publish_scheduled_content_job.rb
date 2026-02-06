@@ -40,6 +40,12 @@ class PublishScheduledContentJob < ApplicationJob
   end
 
   def publish_item(item, stat_key)
+    unless item.site&.tenant
+      log_job_warning("Skipping item with missing site or tenant", type: item.class.name, id: item.id)
+      @stats[:failed] += 1
+      return
+    end
+
     ActsAsTenant.with_tenant(item.site.tenant) do
       item.update!(published_at: Time.current, scheduled_for: nil)
       @stats[stat_key] += 1

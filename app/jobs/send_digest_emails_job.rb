@@ -57,6 +57,12 @@ class SendDigestEmailsJob < ApplicationJob
   end
 
   def process_single_subscription(subscription)
+    unless subscription.site&.tenant
+      @stats[:skipped] += 1
+      log_job_warning("Subscription missing site or tenant", subscription_id: subscription.id)
+      return
+    end
+
     ActsAsTenant.with_tenant(subscription.site.tenant) do
       mailer = build_mailer(subscription)
 

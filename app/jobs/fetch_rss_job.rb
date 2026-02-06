@@ -76,7 +76,7 @@ class FetchRssJob < ApplicationJob
 
     Feedjira.parse(response.body)
   rescue Feedjira::NoParserAvailable => e
-    raise "Unable to parse feed: #{e.message}"
+    raise ContentExtractionError, "Unable to parse feed: #{e.message}"
   end
 
   def extract_urls_from_feed(feed)

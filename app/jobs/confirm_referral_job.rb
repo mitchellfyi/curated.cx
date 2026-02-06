@@ -17,6 +17,11 @@ class ConfirmReferralJob < ApplicationJob
 
     referee_subscription = referral.referee_subscription
 
+    unless referee_subscription
+      log_job_warning("Referral has no referee subscription", referral_id: referral_id)
+      return
+    end
+
     if referee_subscription.active?
       confirm_referral(referral)
     else

@@ -29,5 +29,7 @@ class HeartbeatJob < ApplicationJob
       environment: Rails.env,
       hostname: hostname
     )
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error("[HEARTBEAT] Failed to create HeartbeatLog: #{e.message}")
   end
 end
