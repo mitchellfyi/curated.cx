@@ -3,7 +3,7 @@
 <p><%= @invitation.invited_by.display_name.presence || @invitation.invited_by.email %> has invited you to join <strong><%= @tenant.title %></strong> as a <strong><%= @invitation.role.titleize %></strong>.</p>
 
 <p>
-  <%= link_to "Accept Invitation", @accept_url %>
+  <%= link_to t("invitations.accept_invitation"), @accept_url %>
 </p>
 
 <p>This invitation expires on <%= @invitation.expires_at.strftime("%B %d, %Y") %>.</p>

@@ -699,8 +699,6 @@ en:
         cancel: Cancel
         create: Create Source
         enabled: Enabled
-        interval_hint: Minimum 15 minutes
-        interval_minutes: Run interval (minutes)
         kind: Source Type
         language: Language
         location: Location
@@ -1364,6 +1362,8 @@ en:
   homepage:
     browse_by_category: Browse by Category
     for_you: For You
+  invitations:
+    accept_invitation: Accept Invitation
   landing_pages:
     sections:
       listings:
