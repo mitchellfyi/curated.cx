@@ -1,8 +1,10 @@
 ---
 en:
   a11y:
+    admin_navigation: Admin navigation
     footer: Site footer
     primary_content: Primary content
+    toggle_sidebar: Toggle sidebar
   about:
     description: Description
     page_title: Page title
