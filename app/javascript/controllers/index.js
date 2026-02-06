@@ -4,12 +4,14 @@
 
 import { application } from './application';
 
+import AdminSidebarController from './admin_sidebar_controller';
 import DropdownController from './dropdown_controller';
 import LiveStreamController from './live_stream_controller';
 import MobileMenuController from './mobile_menu_controller';
 import SidebarController from './sidebar_controller';
 import TrackViewController from './track_view_controller';
 
+application.register('admin-sidebar', AdminSidebarController);
 application.register('dropdown', DropdownController);
 application.register('live-stream', LiveStreamController);
 application.register('mobile-menu', MobileMenuController);

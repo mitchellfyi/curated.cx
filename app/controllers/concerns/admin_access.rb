@@ -4,6 +4,7 @@ module AdminAccess
   extend ActiveSupport::Concern
 
   included do
+    layout "admin"
     before_action :require_admin_access
     skip_after_action :verify_authorized
     skip_after_action :verify_policy_scoped
