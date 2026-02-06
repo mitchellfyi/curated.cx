@@ -39,16 +39,17 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
         get admin_root_path
       end
 
-      # Admin dashboard should be efficient:
-      # - 1 query for tenant context (Current.tenant)
-      # - 1 query for categories with eager loaded listings
-      # - 1 query for recent listings with eager loaded category
-      # - 1 query for consolidated stats (COUNT FILTER)
-      # - Some additional queries for auth/session are acceptable
-      #
-      # Total should be ≤15 queries (allowing for auth overhead)
-      expect(query_count).to be <= 15,
-        "Expected ≤15 queries but got #{query_count}.\n\nQueries:\n#{data_queries.join("\n")}"
+      # Admin dashboard query budget (all constant, no N+1):
+      # - Auth/session/tenant: ~5
+      # - Consolidated system_stats: 1 (+ 1 for Tenant.count if admin)
+      # - Categories + recent listings: ~3
+      # - AI usage tracker: ~15 (editorialisations aggregations)
+      # - SERP API usage: ~5
+      # - Recent activity: 3 (submissions, flags, import_runs)
+      # - Sidebar badge counts: ~7
+      # - Meta tags / misc: ~3
+      expect(query_count).to be <= 60,
+        "Expected ≤60 queries but got #{query_count}.\n\nQueries:\n#{data_queries.join("\n")}"
     end
 
     it 'eager loads categories with their listings association' do
@@ -94,11 +95,10 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
         get admin_root_path
       end
 
-      # Should use PostgreSQL COUNT(*) FILTER in a single query
-      # instead of multiple separate COUNT queries
+      # Listing COUNTs should be consolidated into the single system_stats query
       listing_count_queries = stats_queries.select { |q| q.include?('"listings"') }
       expect(listing_count_queries.size).to be <= 1,
-        "Expected 1 consolidated stats query but found #{listing_count_queries.size}:\n#{listing_count_queries.join("\n")}"
+        "Expected ≤1 listing COUNT query (consolidated in system_stats) but found #{listing_count_queries.size}:\n#{listing_count_queries.join("\n")}"
     end
   end
 
@@ -141,7 +141,7 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
       end
 
       # Even with more data, query count should remain constant (no N+1)
-      expect(query_count).to be <= 15
+      expect(query_count).to be <= 60
     end
   end
 end

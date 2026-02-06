@@ -35,8 +35,13 @@ class Admin::DashboardController < ApplicationController
       )
       @recent_listings = [ sample_listing ]
     end
-    @stats = listing_stats_for_dashboard
     @system_stats = system_stats
+    @stats = {
+      total_categories: @categories.size,
+      total_listings: @system_stats[:published_listings].to_i,
+      published_listings: @system_stats[:published_listings].to_i,
+      listings_today: @system_stats[:listings_today].to_i
+    }
     @recent_activity = recent_activity
     @ai_usage = ai_usage_summary
     @serp_api_usage = serp_api_usage_summary
@@ -49,87 +54,56 @@ class Admin::DashboardController < ApplicationController
 
   private
 
-  def listing_stats_for_dashboard
-    today_start = Current.tenant.listings.connection.quote(Time.current.beginning_of_day)
-    result = Current.tenant.listings.select(
-      Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL) AS published_count"),
-      Arel.sql("COUNT(*) FILTER (WHERE published_at IS NOT NULL AND created_at >= #{today_start}) AS today_count")
-    ).take
-
-    {
-      total_categories: @categories.size,
-      total_listings: result.attributes["published_count"].to_i,
-      published_listings: result.attributes["published_count"].to_i,
-      listings_today: result.attributes["today_count"].to_i
-    }
-  end
-
   def system_stats
     today = Time.current.beginning_of_day
 
-    stats = {
-      # Content
-      content_items: ContentItem.count,
-      listings_total: Current.tenant.listings.count,
-      submissions_pending: Submission.pending.count,
-      notes: Note.count,
-
-      # Sources
-      sources_enabled: Source.enabled.count,
-      sources_total: Source.count,
-      imports_today: ImportRun.where("started_at > ?", today).count,
-      imports_failed_today: ImportRun.failed.where("started_at > ?", today).count,
-
-      # Commerce
-      digital_products: DigitalProduct.count,
-      affiliate_clicks_today: AffiliateClick.where("clicked_at > ?", today).count,
-      live_streams: LiveStream.count,
-
-      # Boosts / Network
-      network_boosts_enabled: NetworkBoost.enabled.count,
-      boost_clicks_total: BoostClick.count,
-      boost_payouts_pending: BoostPayout.pending.count,
-
-      # Subscribers
-      digest_subscribers_active: DigestSubscription.active.count,
-      subscriber_tags: SubscriberTag.count,
-      email_sequences_enabled: EmailSequence.enabled.count,
-      referrals: Referral.count,
-
-      # Community
-      comments: Comment.count,
-      comments_hidden: (Comment.hidden.count rescue 0),
-      discussions: Discussion.count,
-
-      # Moderation
-      flags_open: Flag.open.count,
-      site_bans_active: SiteBan.active.count,
-
-      # Taxonomy
-      taxonomies: Taxonomy.count,
-      tagging_rules_enabled: TaggingRule.enabled.count,
-
-      # System
-      workflow_pauses_active: WorkflowPause.active.count,
-      editorialisations_pending: Editorialisation.pending.count,
-      editorialisations_failed_today: Editorialisation.failed.where("created_at > ?", today).count,
-
-      # Users
-      users: User.count,
-      users_this_week: User.where("created_at > ?", 1.week.ago).count,
-
-      # Settings
-      sites: Site.count,
-      domains: Domain.count
+    # Build a single SQL query from model scopes for all dashboard counts
+    counts = {
+      content_items: ContentItem.all,
+      listings_total: Current.tenant.listings,
+      published_listings: Current.tenant.listings.where.not(published_at: nil),
+      listings_today: Current.tenant.listings.where.not(published_at: nil).where("created_at >= ?", today),
+      submissions_pending: Submission.pending,
+      notes: Note.all,
+      sources_enabled: Source.enabled,
+      sources_total: Source.all,
+      imports_today: ImportRun.where("started_at > ?", today),
+      imports_failed_today: ImportRun.failed.where("started_at > ?", today),
+      digital_products: DigitalProduct.all,
+      affiliate_clicks_today: AffiliateClick.where("clicked_at > ?", today),
+      live_streams: LiveStream.all,
+      network_boosts_enabled: NetworkBoost.enabled,
+      boost_clicks_total: BoostClick.all,
+      boost_payouts_pending: BoostPayout.pending,
+      digest_subscribers_active: DigestSubscription.active,
+      subscriber_tags: SubscriberTag.all,
+      email_sequences_enabled: EmailSequence.enabled,
+      referrals: Referral.all,
+      comments: Comment.all,
+      comments_hidden: Comment.hidden,
+      discussions: Discussion.all,
+      flags_open: Flag.open,
+      site_bans_active: SiteBan.active,
+      taxonomies: Taxonomy.all,
+      tagging_rules_enabled: TaggingRule.enabled,
+      workflow_pauses_active: WorkflowPause.active,
+      editorialisations_pending: Editorialisation.pending,
+      editorialisations_failed_today: Editorialisation.failed.where("created_at > ?", today),
+      users: User.unscoped,
+      users_this_week: User.unscoped.where("created_at > ?", 1.week.ago),
+      sites: Site.all,
+      domains: Domain.joins(:site).where(sites: { tenant_id: Current.tenant.id })
     }
 
-    # Super admin stats
-    if current_user&.admin?
-      stats[:tenants_count] = Tenant.count
-    end
+    subqueries = counts.map { |key, scope| "(#{scope.select('COUNT(*)').to_sql}) AS #{key}" }
+    sql = "SELECT #{subqueries.join(', ')}"
+    row = ActiveRecord::Base.connection.select_one(sql)
+
+    stats = row.transform_keys(&:to_sym).transform_values(&:to_i)
+    stats[:tenants_count] = Tenant.count if current_user&.admin?
 
     stats
-  rescue
+  rescue StandardError
     {}
   end
 
