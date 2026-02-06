@@ -22,6 +22,4 @@ module AdminAccess
       raise Pundit::NotAuthorizedError, "Admin access required"
     end
   end
-
-  alias_method :ensure_admin_access, :require_admin_access
 end

@@ -6,39 +6,10 @@ class Admin::DashboardController < ApplicationController
   def index
     @tenant = Current.tenant.decorate
     @categories = categories_service.all_categories.to_a
-    if @categories.empty?
-      @categories = [
-        Category.create!(
-          tenant: Current.tenant,
-          site: Current.site || Current.tenant&.sites&.first,
-          key: "default",
-          name: "Default",
-          allow_paths: true,
-          shown_fields: {}
-        )
-      ]
-    end
     @recent_listings = listings_service.all_listings(limit: 10)
-    if @recent_listings.empty? && @categories.any?
-      sample_category = @categories.first
-      sample_url = "https://example.com/#{SecureRandom.hex(4)}"
-      sample_listing = Listing.create!(
-        tenant: Current.tenant,
-        site: sample_category.site,
-        category: sample_category,
-        url_raw: sample_url,
-        url_canonical: sample_url,
-        title: "Sample Listing",
-        domain: URI.parse(sample_url).host,
-        published_at: nil,
-        description: "Placeholder listing for dashboard"
-      )
-      @recent_listings = [ sample_listing ]
-    end
     @system_stats = system_stats
     @stats = {
       total_categories: @categories.size,
-      total_listings: @system_stats[:published_listings].to_i,
       published_listings: @system_stats[:published_listings].to_i,
       listings_today: @system_stats[:listings_today].to_i
     }
@@ -103,7 +74,8 @@ class Admin::DashboardController < ApplicationController
     stats[:tenants_count] = Tenant.count if current_user&.admin?
 
     stats
-  rescue StandardError
+  rescue StandardError => e
+    Rails.logger.error("[Dashboard] system_stats failed: #{e.message}")
     {}
   end
 
@@ -113,7 +85,8 @@ class Admin::DashboardController < ApplicationController
       flags: Flag.open.order(created_at: :desc).limit(5),
       import_runs: ImportRun.recent.limit(5)
     }
-  rescue
+  rescue StandardError => e
+    Rails.logger.error("[Dashboard] recent_activity failed: #{e.message}")
     { submissions: [], flags: [], import_runs: [] }
   end
 
@@ -131,7 +104,8 @@ class Admin::DashboardController < ApplicationController
       requests_today: stats.dig(:requests, :total_today) || 0,
       is_paused: WorkflowPauseService.paused?(:ai_processing)
     }
-  rescue StandardError
+  rescue StandardError => e
+    Rails.logger.error("[Dashboard] ai_usage_summary failed: #{e.message}")
     {}
   end
 
@@ -145,7 +119,8 @@ class Admin::DashboardController < ApplicationController
       projected_monthly: stats.dig(:projections, :projected_monthly_total) || 0,
       on_track: stats.dig(:projections, :on_track) != false
     }
-  rescue StandardError
+  rescue StandardError => e
+    Rails.logger.error("[Dashboard] serp_api_usage_summary failed: #{e.message}")
     {}
   end
 
