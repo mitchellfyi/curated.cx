@@ -17,6 +17,9 @@
 #  index_roles_on_resource                                (resource_type,resource_id)
 #
 class Role < ApplicationRecord
+  TENANT_ROLES = %w[owner admin editor viewer].freeze
+  HIERARCHY = { "owner" => 4, "admin" => 3, "editor" => 2, "viewer" => 1 }.freeze
+
   has_and_belongs_to_many :users, join_table: :users_roles
 
   belongs_to :resource,
@@ -36,7 +39,7 @@ class Role < ApplicationRecord
   end
 
   def self.role_names
-    %w[owner admin editor viewer]
+    TENANT_ROLES
   end
 
   # Instance methods
@@ -45,7 +48,6 @@ class Role < ApplicationRecord
   end
 
   def role_level
-    role_hierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 }
-    role_hierarchy[name.to_sym] || 0
+    HIERARCHY[name] || 0
   end
 end

@@ -4,7 +4,7 @@ module Admin
   class UsersController < ApplicationController
     include AdminAccess
 
-    before_action :set_user, only: [ :show, :edit, :update, :destroy, :ban, :unban, :make_admin, :remove_admin ]
+    before_action :set_user, only: [ :show, :edit, :update, :destroy, :ban, :unban, :make_admin, :remove_admin, :assign_role, :remove_role ]
 
     # GET /admin/users
     def index
@@ -109,6 +109,45 @@ module Admin
       redirect_to admin_user_path(@user), notice: "Admin status removed."
     end
 
+    # POST /admin/users/:id/assign_role
+    def assign_role
+      role_name = params[:role_name]
+      tenant = Current.tenant
+
+      unless tenant
+        redirect_to admin_user_path(@user), alert: "No tenant context."
+        return
+      end
+
+      unless Role::TENANT_ROLES.include?(role_name)
+        redirect_to admin_user_path(@user), alert: "Invalid role."
+        return
+      end
+
+      unless can_assign_role?(role_name)
+        redirect_to admin_user_path(@user), alert: "You cannot assign a role equal to or higher than your own."
+        return
+      end
+
+      # Remove existing tenant roles first, then assign the new one
+      Role::TENANT_ROLES.each { |r| @user.remove_role(r, tenant) }
+      @user.add_role(role_name.to_sym, tenant)
+      redirect_to admin_user_path(@user), notice: "Role updated to #{role_name.titleize}."
+    end
+
+    # DELETE /admin/users/:id/remove_role
+    def remove_role
+      tenant = Current.tenant
+
+      unless tenant
+        redirect_to admin_user_path(@user), alert: "No tenant context."
+        return
+      end
+
+      @user.roles.where(resource: tenant).destroy_all
+      redirect_to admin_user_path(@user), notice: "Tenant access removed."
+    end
+
     private
 
     def set_user
@@ -126,6 +165,14 @@ module Admin
         this_week: User.where("created_at > ?", 1.week.ago).count,
         this_month: User.where("created_at > ?", 1.month.ago).count
       }
+    end
+
+    def can_assign_role?(role_name)
+      return true if current_user.admin?
+
+      my_level = current_user.highest_tenant_role(Current.tenant)&.then { |r| Role::HIERARCHY[r.name] } || 0
+      target_level = Role::HIERARCHY[role_name] || 0
+      my_level > target_level
     end
 
     def build_recent_activity

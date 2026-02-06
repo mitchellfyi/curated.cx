@@ -39,6 +39,20 @@ RSpec.describe Role, type: :model do
     end
   end
 
+  describe 'constants' do
+    it 'defines TENANT_ROLES' do
+      expect(Role::TENANT_ROLES).to eq(%w[owner admin editor viewer])
+    end
+
+    it 'defines HIERARCHY' do
+      expect(Role::HIERARCHY).to eq({ "owner" => 4, "admin" => 3, "editor" => 2, "viewer" => 1 })
+    end
+
+    it 'freezes TENANT_ROLES' do
+      expect(Role::TENANT_ROLES).to be_frozen
+    end
+  end
+
   describe '.role_names' do
     it 'returns the expected role names' do
       expect(Role.role_names).to eq(%w[owner admin editor viewer])

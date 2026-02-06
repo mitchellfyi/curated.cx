@@ -59,6 +59,8 @@ Rails.application.routes.draw do
         post :unban
         post :make_admin
         post :remove_admin
+        post :assign_role
+        delete :remove_role
       end
     end
 

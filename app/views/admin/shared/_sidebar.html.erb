@@ -290,7 +290,8 @@
     </div>
   </div>
 
-  <!-- System Section (Collapsible) -->
+  <!-- System Section (Collapsible) - Admin/Owner only -->
+  <% if current_user&.admin? || (Current.tenant && %i[owner admin].any? { |r| current_user&.has_role?(r, Current.tenant) }) %>
   <% system_active = request.path.include?('observability') || request.path.include?('activity') || request.path.include?('import_runs') || (request.path.include?('editorialisations') && !request.path.include?('observability')) || request.path.include?('jobs') %>
   <div data-sidebar-target="section" data-section-name="system">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= system_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
@@ -322,31 +323,37 @@
       <% end %>
     </div>
   </div>
+  <% end %>
 
-  <!-- Settings Section (Collapsible) -->
-  <% settings_active = request.path.include?('sites') || (!current_user&.admin? && request.path.include?('users')) %>
-  <div data-sidebar-target="section" data-section-name="settings">
-    <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= settings_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
-      <span class="flex items-center">
-        <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+  <!-- Settings Section (Collapsible) - Admin/Owner only -->
+  <% if current_user&.admin? || (Current.tenant && %i[owner admin].any? { |r| current_user&.has_role?(r, Current.tenant) }) %>
+    <% settings_active = request.path.include?('sites') || request.path.include?('tenant_settings') || (!current_user&.admin? && request.path.include?('users')) %>
+    <div data-sidebar-target="section" data-section-name="settings">
+      <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= settings_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
+        <span class="flex items-center">
+          <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          Settings
+        </span>
+        <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
-        Settings
-      </span>
-      <svg data-sidebar-target="icon" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-      </svg>
-    </button>
-    <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
-      <%= link_to admin_sites_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('sites') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
-        Sites & Domains
-      <% end %>
-      <% unless current_user&.admin? %>
-        <%= link_to admin_users_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('users') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
-          Users
+      </button>
+      <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
+        <%= link_to admin_tenant_settings_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('tenant_settings') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+          Tenant Settings
         <% end %>
-      <% end %>
+        <%= link_to admin_sites_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('sites') && !request.path.include?('tenant_settings') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+          Sites & Domains
+        <% end %>
+        <% unless current_user&.admin? %>
+          <%= link_to admin_users_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('users') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+            Users
+          <% end %>
+        <% end %>
+      </div>
     </div>
-  </div>
+  <% end %>
 </nav>
