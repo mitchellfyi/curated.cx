@@ -108,7 +108,7 @@
                         </span>
                       <% elsif pause.tenant %>
                         <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          <%= pause.tenant.name %>
+                          <%= pause.tenant.title %>
                         </span>
                       <% end %>
                       <% if pause.source %>
@@ -161,8 +161,8 @@
               <label for="tenant_id" class="block text-sm font-medium text-gray-700">Tenant (optional)</label>
               <select name="tenant_id" id="tenant_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                 <option value="">Global (all tenants)</option>
-                <% Tenant.order(:name).each do |tenant| %>
-                  <option value="<%= tenant.id %>"><%= tenant.name %></option>
+                <% Tenant.order(:title).each do |tenant| %>
+                  <option value="<%= tenant.id %>"><%= tenant.title %></option>
                 <% end %>
               </select>
             </div>
@@ -208,7 +208,7 @@
                     <% if pause.global? %>
                       <span class="text-red-600">Global</span>
                     <% elsif pause.tenant %>
-                      <%= pause.tenant.name %>
+                      <%= pause.tenant.title %>
                     <% end %>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

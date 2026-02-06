@@ -8,11 +8,16 @@ module Admin
 
     # GET /admin/workflow_pauses
     def index
-      @pauses = WorkflowPause.active.order(created_at: :desc)
+      @active_pauses = WorkflowPause.active.order(created_at: :desc)
+      @pauses = @active_pauses
       @recent_history = WorkflowPause.resolved.order(resumed_at: :desc).limit(10)
-      @status = WorkflowPauseService.status_summary(tenant: current_tenant_for_pause)
-      @import_backlog = WorkflowPauseService.backlog_size(:imports, tenant: current_tenant_for_pause)
-      @ai_backlog = WorkflowPauseService.backlog_size(:ai_processing, tenant: current_tenant_for_pause)
+      import_backlog = WorkflowPauseService.backlog_size(:imports, tenant: current_tenant_for_pause)
+      ai_backlog = WorkflowPauseService.backlog_size(:ai_processing, tenant: current_tenant_for_pause)
+      @status_summary = {
+        total_active: @pauses.size,
+        by_workflow: WorkflowPause.active.group(:workflow_type).count,
+        backlogs: { "imports" => import_backlog, "ai_processing" => ai_backlog }
+      }
     end
 
     # POST /admin/workflow_pauses
