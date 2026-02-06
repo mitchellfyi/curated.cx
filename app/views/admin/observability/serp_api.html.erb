@@ -162,7 +162,7 @@
                   <div class="text-xs text-gray-500"><%= source.config["query"] %></div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <%= source.site.name %>
+                  <%= source.site&.name || "Unknown" %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -220,11 +220,11 @@
             <% @recent_runs.each do |run| %>
               <tr>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900"><%= run.source.name %></div>
+                  <div class="text-sm font-medium text-gray-900"><%= run.source&.name || "Unknown" %></div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                    <%= run.source.kind.gsub('serp_api_', '').titleize %>
+                    <%= run.source&.kind&.gsub('serp_api_', '')&.titleize || "Unknown" %>
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

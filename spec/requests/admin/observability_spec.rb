@@ -337,6 +337,74 @@ RSpec.describe "Admin::Observability", type: :request do
     end
   end
 
+  describe "GET /admin/observability/ai_usage" do
+    context "as admin user" do
+      before { sign_in admin_user }
+
+      context "with tenant context" do
+        let!(:source) { create(:source, :rss, site: tenant1.sites.first) }
+        let!(:content_item) { create(:content_item, source: source, site: source.site) }
+        let!(:editorialisation) do
+          create(:editorialisation, :completed, content_item: content_item, site: source.site)
+        end
+
+        before do
+          host! tenant1.hostname
+          setup_tenant_context(tenant1)
+        end
+
+        it "renders the ai_usage page successfully" do
+          get ai_usage_admin_observability_path
+          expect(response).to have_http_status(:success)
+        end
+
+        it "assigns AI usage stats" do
+          get ai_usage_admin_observability_path
+          expect(assigns(:stats)).to be_present
+          expect(assigns(:stats)).to include(:cost, :tokens, :projections, :requests, :models)
+        end
+
+        it "assigns daily usage chart data" do
+          get ai_usage_admin_observability_path
+          expect(assigns(:daily_usage)).to be_an(Array)
+        end
+
+        it "assigns recent editorialisations" do
+          get ai_usage_admin_observability_path
+          expect(assigns(:recent_editorialisations)).to be_present
+        end
+
+        it "assigns pause status" do
+          get ai_usage_admin_observability_path
+          expect(assigns(:is_paused)).to eq(false).or eq(true)
+        end
+
+        it "includes expected content" do
+          get ai_usage_admin_observability_path
+          expect(response.body).to include("AI Usage Monitoring")
+          expect(response.body).to include("Monthly Cost")
+          expect(response.body).to include("AI Processing Control")
+        end
+      end
+    end
+
+    context "as tenant owner" do
+      before { sign_in tenant_owner }
+
+      context "with tenant context" do
+        before do
+          host! tenant1.hostname
+          setup_tenant_context(tenant1)
+        end
+
+        it "allows access" do
+          get ai_usage_admin_observability_path
+          expect(response).to have_http_status(:success)
+        end
+      end
+    end
+  end
+
   describe "tenant scoping" do
     let!(:tenant1_source) { create(:source, :rss, site: tenant1.sites.first) }
     let!(:tenant2_source) { create(:source, :rss, site: tenant2.sites.first) }
@@ -405,6 +473,12 @@ RSpec.describe "Admin::Observability", type: :request do
         get serp_api_admin_observability_path
         expect(response).to have_http_status(:success)
         expect(assigns(:sources)).to be_empty
+      end
+
+      it "renders ai_usage page without errors when no editorialisations exist" do
+        get ai_usage_admin_observability_path
+        expect(response).to have_http_status(:success)
+        expect(assigns(:daily_usage)).to be_empty
       end
     end
 

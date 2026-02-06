@@ -176,12 +176,14 @@ class AiUsageTracker
       scope.group(:ai_model).select(
         "ai_model as model",
         "COUNT(*) as count",
-        "COALESCE(SUM(input_tokens), 0) + COALESCE(SUM(output_tokens), 0) as total_tokens"
+        "COALESCE(SUM(input_tokens), 0) + COALESCE(SUM(output_tokens), 0) as total_tokens",
+        "COALESCE(SUM(estimated_cost_cents), 0) as total_cost_cents"
       ).map do |row|
         {
           model: row.model,
           count: row.count,
-          total_tokens: row.total_tokens
+          total_tokens: row.total_tokens,
+          total_cost_dollars: (row.total_cost_cents.to_f / 100).round(2)
         }
       end
     end

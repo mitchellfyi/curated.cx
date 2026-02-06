@@ -235,7 +235,7 @@
                     <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
                   <% end %>
                   <p class="ml-3 text-sm font-medium text-gray-900 truncate">
-                    <%= run.source.name %>
+                    <%= run.source&.name || "Unknown" %>
                   </p>
                 </div>
                 <div class="ml-2 flex-shrink-0 flex">
@@ -252,7 +252,7 @@
               </div>
               <div class="mt-1 text-xs text-gray-400">
                 <%= time_ago_in_words(run.started_at) %> ago
-                <% if run.source.kind.start_with?("serp_api") %>
+                <% if run.source&.kind&.start_with?("serp_api") %>
                   · <span class="text-purple-600"><%= run.source.kind.gsub("serp_api_", "").titleize %></span>
                 <% end %>
               </div>

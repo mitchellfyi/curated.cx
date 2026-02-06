@@ -47,6 +47,7 @@ module Admin
       @stats = AiUsageTracker.usage_stats
       @is_paused = WorkflowPauseService.paused?(:ai_processing)
       @active_pauses = WorkflowPause.active.for_workflow("ai_processing")
+      @active_pause = @active_pauses.first
       @daily_usage = build_ai_daily_usage_chart
       @recent_editorialisations = Editorialisation.completed
                                                   .recent
