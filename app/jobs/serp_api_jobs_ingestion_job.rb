@@ -47,6 +47,15 @@ class SerpApiJobsIngestionJob < ApplicationJob
       return
     end
 
+    # Check hourly limit (to spread usage throughout the day)
+    unless SerpApiGlobalRateLimiter.allow_this_hour?
+      @source.update_run_status("hourly_rate_limited")
+      log_job_info("Hourly SerpAPI limit reached, will retry next hour",
+                   source_id: source_id,
+                   stats: SerpApiGlobalRateLimiter.usage_stats)
+      return
+    end
+
     # Check per-source rate limit
     rate_limiter = SerpApiRateLimiter.new(@source)
     unless rate_limiter.allow?

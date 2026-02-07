@@ -13,8 +13,13 @@ class SerpApiGlobalRateLimiter
   MONTHLY_LIMIT = ENV.fetch("SERP_API_MONTHLY_LIMIT", 1000).to_i
 
   # Daily soft limit (to spread usage across the month)
-  # Default: monthly_limit / 31 ≈ 32/day
+  # Default: monthly_limit / 31 ≈ 32/day, but configurable via ENV
   DAILY_SOFT_LIMIT = ENV.fetch("SERP_API_DAILY_LIMIT", (MONTHLY_LIMIT / 31.0).ceil).to_i
+
+  # Hourly limit to spread requests throughout the day
+  # Default: ceil(daily_limit / 24) to allow at least 1 per hour when possible
+  # With 10/day, this is 1/hour max
+  HOURLY_LIMIT = ENV.fetch("SERP_API_HOURLY_LIMIT", [ (DAILY_SOFT_LIMIT / 24.0).ceil, 1 ].max).to_i
 
   class RateLimitExceeded < StandardError; end
 
@@ -29,9 +34,14 @@ class SerpApiGlobalRateLimiter
       daily_remaining.positive?
     end
 
-    # Check both limits
+    # Check hourly limit to spread requests throughout the day
+    def allow_this_hour?
+      hourly_remaining.positive?
+    end
+
+    # Check all limits
     def can_make_request?
-      allow? && allow_today?
+      allow? && allow_today? && allow_this_hour?
     end
 
     # Raise error if request would exceed limits
@@ -41,7 +51,11 @@ class SerpApiGlobalRateLimiter
       end
 
       unless allow_today?
-        Rails.logger.warn("SerpAPI daily soft limit reached: #{daily_used}/#{DAILY_SOFT_LIMIT}. Consider spreading requests.")
+        Rails.logger.warn("SerpAPI daily soft limit reached: #{daily_used}/#{DAILY_SOFT_LIMIT}.")
+      end
+
+      unless allow_this_hour?
+        Rails.logger.info("SerpAPI hourly limit reached: #{hourly_used}/#{HOURLY_LIMIT}. Will retry next hour.")
       end
 
       true
@@ -73,6 +87,15 @@ class SerpApiGlobalRateLimiter
       [ DAILY_SOFT_LIMIT - daily_used, 0 ].max
     end
 
+    # Hourly usage stats (to spread requests throughout the day)
+    def hourly_used
+      count_serp_api_runs(Time.current.beginning_of_hour)
+    end
+
+    def hourly_remaining
+      [ HOURLY_LIMIT - hourly_used, 0 ].max
+    end
+
     # Get full usage stats for monitoring/display
     def usage_stats
       {
@@ -86,6 +109,11 @@ class SerpApiGlobalRateLimiter
           used: daily_used,
           soft_limit: DAILY_SOFT_LIMIT,
           remaining: daily_remaining
+        },
+        hourly: {
+          used: hourly_used,
+          limit: HOURLY_LIMIT,
+          remaining: hourly_remaining
         },
         projections: {
           days_remaining_in_month: days_remaining_in_month,
