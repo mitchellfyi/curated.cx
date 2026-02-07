@@ -8,8 +8,9 @@ Rails.application.config.after_initialize do
     # Set authentication - admins only (handled via routes.rb authenticate block)
     MissionControl::Jobs.http_basic_auth_enabled = false
 
-    # Configure the base controller class for styling and authentication inheritance
-    # Note: Authentication is handled by the `authenticate :user` block in routes.rb
-    MissionControl::Jobs.base_controller_class = "ApplicationController"
+    # Use custom base controller that skips Pundit verification
+    # MissionControl's controllers don't use Pundit, so we need to bypass the
+    # after_action :verify_authorized and :verify_policy_scoped callbacks
+    MissionControl::Jobs.base_controller_class = "MissionControlBaseController"
   end
 end
