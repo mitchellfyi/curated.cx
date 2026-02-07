@@ -19,13 +19,19 @@ class ApplicationController < ActionController::Base
   before_action :set_default_meta_tags
 
   # Pundit authorization callbacks
-  after_action :verify_authorized, unless: -> { devise_controller? }
-  after_action :verify_policy_scoped, if: -> { !devise_controller? && action_name == "index" }
+  # Skip for Devise controllers and MissionControl::Jobs engine (which handles its own auth)
+  after_action :verify_authorized, unless: -> { devise_controller? || mission_control_controller? }
+  after_action :verify_policy_scoped, if: -> { !devise_controller? && !mission_control_controller? && action_name == "index" }
 
   # Handle Pundit authorization errors
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   private
+
+  # Check if current controller is part of MissionControl::Jobs engine
+  def mission_control_controller?
+    self.class.module_parent_name&.start_with?("MissionControl::Jobs")
+  end
 
   def setup_draper_context
     # Make current_user available in decorators
