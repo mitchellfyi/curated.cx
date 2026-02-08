@@ -1293,6 +1293,9 @@ en:
     user_banned: You are banned from this site.
   feed:
     content:
+      key_takeaways: Key Takeaways
+      quality_score_label: "★ %{score}"
+      quality_score_title: Quality Score
       untitled: Untitled
       why_it_matters: 'Why it matters: '
     empty:

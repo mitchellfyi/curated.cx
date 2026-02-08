@@ -131,6 +131,18 @@ class Editorialisation < ApplicationRecord
     parsed_response["suggested_tags"] || []
   end
 
+  def key_takeaways
+    parsed_response["key_takeaways"] || []
+  end
+
+  def audience_tags
+    parsed_response["audience_tags"] || []
+  end
+
+  def quality_score
+    parsed_response["quality_score"]
+  end
+
   # Default parsed_response to empty hash
   def parsed_response
     super || {}

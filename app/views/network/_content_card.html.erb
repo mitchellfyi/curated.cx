@@ -44,6 +44,20 @@
       </p>
     <% end %>
 
+    <%# Key takeaways (if available) %>
+    <% if content_item.respond_to?(:key_takeaways) && content_item.key_takeaways.present? %>
+      <details class="mb-3 group">
+        <summary class="text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600 transition-colors">
+          <%= t('feed.content.key_takeaways') %>
+        </summary>
+        <ul class="mt-2 space-y-1 text-sm text-gray-600 list-disc list-inside">
+          <% content_item.key_takeaways.each do |takeaway| %>
+            <li><%= takeaway %></li>
+          <% end %>
+        </ul>
+      </details>
+    <% end %>
+
     <%# Topic tags %>
     <% if content_item.topic_tags.any? %>
       <div class="flex flex-wrap gap-1 mb-3">

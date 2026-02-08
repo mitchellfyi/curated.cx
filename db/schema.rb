@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_08_131015) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_08_132233) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -162,6 +162,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_131015) do
   create_table "content_items", force: :cascade do |t|
     t.jsonb "ai_suggested_tags", default: [], null: false
     t.text "ai_summary"
+    t.string "audience_tags", default: [], array: true
     t.string "author_name"
     t.integer "comments_count", default: 0, null: false
     t.datetime "comments_locked_at"
@@ -174,8 +175,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_131015) do
     t.string "favicon_url"
     t.datetime "hidden_at"
     t.bigint "hidden_by_id"
+    t.jsonb "key_takeaways", default: []
     t.string "og_image_url"
     t.datetime "published_at"
+    t.decimal "quality_score", precision: 3, scale: 1
     t.jsonb "raw_payload", default: {}, null: false
     t.integer "read_time_minutes"
     t.datetime "scheduled_for"

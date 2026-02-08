@@ -78,7 +78,7 @@ RSpec.describe EditorialisationService, type: :service do
       it "stores the prompt version" do
         result = described_class.editorialise(content_item)
 
-        expect(result.prompt_version).to eq("v1.0.0")
+        expect(result.prompt_version).to eq("v2.0.0")
       end
 
       it "stores the prompt text" do
@@ -95,6 +95,93 @@ RSpec.describe EditorialisationService, type: :service do
         expect(content_item.why_it_matters).to eq("This matters because it demonstrates important concepts.")
         expect(content_item.ai_suggested_tags).to eq([ "technology", "innovation" ])
         expect(content_item.editorialised_at).to be_present
+      end
+    end
+
+    context "enhanced editorial fields (v2.0.0)" do
+      let(:ai_response) do
+        {
+          content: {
+            "summary" => "This is a test summary of the article.",
+            "why_it_matters" => "This matters because it demonstrates important concepts.",
+            "suggested_tags" => [ "technology", "innovation" ],
+            "key_takeaways" => [ "First insight", "Second insight", "Third insight" ],
+            "audience_tags" => [ "developers", "tech leads" ],
+            "quality_score" => 8.5
+          }.to_json,
+          tokens_used: 200,
+          model: "gpt-4o-mini",
+          duration_ms: 2000
+        }
+      end
+
+      it "stores key takeaways on content item" do
+        described_class.editorialise(content_item)
+        content_item.reload
+
+        expect(content_item.key_takeaways).to eq([ "First insight", "Second insight", "Third insight" ])
+      end
+
+      it "stores audience tags on content item" do
+        described_class.editorialise(content_item)
+        content_item.reload
+
+        expect(content_item.audience_tags).to eq([ "developers", "tech leads" ])
+      end
+
+      it "stores quality score on content item" do
+        described_class.editorialise(content_item)
+        content_item.reload
+
+        expect(content_item.quality_score).to eq(8.5)
+      end
+
+      it "stores enhanced fields in parsed response" do
+        result = described_class.editorialise(content_item)
+
+        expect(result.parsed_response["key_takeaways"]).to eq([ "First insight", "Second insight", "Third insight" ])
+        expect(result.parsed_response["audience_tags"]).to eq([ "developers", "tech leads" ])
+        expect(result.parsed_response["quality_score"]).to eq(8.5)
+      end
+
+      it "clamps quality score to 0-10 range" do
+        ai_response_with_high_score = {
+          content: {
+            "summary" => "Summary",
+            "why_it_matters" => "Matters",
+            "suggested_tags" => [],
+            "key_takeaways" => [],
+            "audience_tags" => [],
+            "quality_score" => 15.0
+          }.to_json,
+          tokens_used: 100,
+          model: "gpt-4o-mini",
+          duration_ms: 1000
+        }
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response_with_high_score)
+
+        result = described_class.editorialise(content_item)
+        expect(result.parsed_response["quality_score"]).to eq(10.0)
+      end
+
+      it "limits key_takeaways to max configured count" do
+        ai_response_with_many = {
+          content: {
+            "summary" => "Summary",
+            "why_it_matters" => "Matters",
+            "suggested_tags" => [],
+            "key_takeaways" => (1..10).map { |i| "Takeaway #{i}" },
+            "audience_tags" => [],
+            "quality_score" => 7.0
+          }.to_json,
+          tokens_used: 100,
+          model: "gpt-4o-mini",
+          duration_ms: 1000
+        }
+        allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response_with_many)
+
+        result = described_class.editorialise(content_item)
+        expect(result.parsed_response["key_takeaways"].length).to be <= 5
       end
     end
 

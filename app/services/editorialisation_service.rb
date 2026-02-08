@@ -170,12 +170,30 @@ class EditorialisationService
     max_summary = constraints["max_summary_length"] || 280
     max_why = constraints["max_why_it_matters_length"] || 500
     max_tags = constraints["max_suggested_tags"] || 5
+    max_takeaways = constraints["max_key_takeaways"] || 5
+    max_audience = constraints["max_audience_tags"] || 3
 
-    {
+    result = {
       "summary" => truncate_field(parsed["summary"], max_summary),
       "why_it_matters" => truncate_field(parsed["why_it_matters"], max_why),
       "suggested_tags" => Array(parsed["suggested_tags"]).first(max_tags)
     }
+
+    # Enhanced editorial fields (v2.0.0+)
+    if parsed.key?("key_takeaways")
+      result["key_takeaways"] = Array(parsed["key_takeaways"]).first(max_takeaways)
+    end
+
+    if parsed.key?("audience_tags")
+      result["audience_tags"] = Array(parsed["audience_tags"]).first(max_audience)
+    end
+
+    if parsed.key?("quality_score")
+      score = parsed["quality_score"].to_f
+      result["quality_score"] = score.clamp(0.0, 10.0).round(1)
+    end
+
+    result
   end
 
   def truncate_field(text, max_length)
@@ -184,11 +202,18 @@ class EditorialisationService
   end
 
   def update_content_item(parsed)
-    content_item.update_columns(
+    attrs = {
       ai_summary: parsed["summary"],
       why_it_matters: parsed["why_it_matters"],
       ai_suggested_tags: parsed["suggested_tags"],
       editorialised_at: Time.current
-    )
+    }
+
+    # Enhanced editorial fields (v2.0.0+)
+    attrs[:key_takeaways] = parsed["key_takeaways"] if parsed.key?("key_takeaways")
+    attrs[:audience_tags] = parsed["audience_tags"] if parsed.key?("audience_tags")
+    attrs[:quality_score] = parsed["quality_score"] if parsed.key?("quality_score")
+
+    content_item.update_columns(attrs)
   end
 end
