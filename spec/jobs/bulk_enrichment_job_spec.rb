@@ -25,14 +25,14 @@ RSpec.describe BulkEnrichmentJob, type: :job do
 
       it "enqueues EnrichContentItemJob for each specified item" do
         expect {
-          described_class.perform_now(content_item_ids: [item1.id, item2.id])
+          described_class.perform_now(content_item_ids: [ item1.id, item2.id ])
         }.to have_enqueued_job(EnrichContentItemJob).exactly(2).times
       end
 
       it "resets enrichment status" do
         item1.update_columns(enrichment_status: "complete", enriched_at: Time.current)
 
-        described_class.perform_now(content_item_ids: [item1.id])
+        described_class.perform_now(content_item_ids: [ item1.id ])
 
         expect(item1.reload.enrichment_status).to eq("pending")
       end

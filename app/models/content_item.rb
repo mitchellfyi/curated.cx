@@ -223,7 +223,7 @@ class ContentItem < ApplicationRecord
   end
 
   def mark_enrichment_failed!(error_message)
-    errors_list = (enrichment_errors || []) + [{ error: error_message, at: Time.current.iso8601 }]
+    errors_list = (enrichment_errors || []) + [ { error: error_message, at: Time.current.iso8601 } ]
     update_columns(enrichment_status: "failed", enrichment_errors: errors_list.to_json)
   end
 

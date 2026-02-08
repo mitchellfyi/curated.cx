@@ -21,7 +21,7 @@ RSpec.describe AiEditorialJob, type: :job do
       content: {
         "summary" => "Test summary",
         "why_it_matters" => "Test context",
-        "suggested_tags" => ["tag1"]
+        "suggested_tags" => [ "tag1" ]
       }.to_json,
       tokens_used: 100,
       model: "gpt-4o-mini",

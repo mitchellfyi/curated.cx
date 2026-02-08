@@ -271,5 +271,4 @@ class ProductHuntIngestionJob < ApplicationJob
 
     tags
   end
-
 end

@@ -223,7 +223,7 @@ FactoryBot.define do
       after(:create) do |item|
         item.update_columns(
           enrichment_status: "failed",
-          enrichment_errors: [{ error: "Test error", at: Time.current.iso8601 }].to_json
+          enrichment_errors: [ { error: "Test error", at: Time.current.iso8601 } ].to_json
         )
       end
     end
