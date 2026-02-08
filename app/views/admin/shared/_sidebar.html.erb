@@ -340,6 +340,11 @@
       <%= link_to "/admin/jobs", class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('jobs') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Background Jobs
       <% end %>
+      <% if current_user&.admin? %>
+        <%= link_to "/admin/pghero", class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('pghero') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+          Database (PgHero)
+        <% end %>
+      <% end %>
     </div>
   </div>
   <% end %>

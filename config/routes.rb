@@ -6,6 +6,11 @@ Rails.application.routes.draw do
     mount MissionControl::Jobs::Engine, at: "/admin/jobs"
   end
 
+  # PgHero database performance monitoring (super admin only)
+  authenticate :user, ->(user) { user.admin? } do
+    mount PgHero::Engine, at: "/admin/pghero"
+  end
+
   # Admin routes with proper RESTful routing
   namespace :admin do
     get "dashboard/index"

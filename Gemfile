@@ -151,6 +151,9 @@ gem "chartkick", "~> 5.1"
 gem "groupdate", "~> 6.5"
 gem "csv"
 
+# Database performance monitoring
+gem "pghero"
+
 # AI/LLM integration
 gem "ruby-openai", "~> 8.3"
 
