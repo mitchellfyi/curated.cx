@@ -45,6 +45,13 @@ module JobTestHelpers
       .to_return(status: status, body: body, headers: { "Content-Type" => "application/json" })
   end
 
+  # Stub a Product Hunt GraphQL API response
+  def stub_product_hunt_response(status: 200, fixture: "product_hunt_posts.json")
+    body = fixture_file(fixture)
+    stub_request(:post, "https://api.producthunt.com/v2/api/graphql")
+      .to_return(status: status, body: body, headers: { "Content-Type" => "application/json" })
+  end
+
   # Stub an HTML page response for MetaInspector
   def stub_html_page(url, body: nil, status: 200)
     body ||= fixture_file("sample_page.html")
