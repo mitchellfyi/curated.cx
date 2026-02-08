@@ -15,7 +15,8 @@ class ProcessDueSourcesJob < ApplicationJob
     "product_hunt" => ProductHuntIngestionJob,
     "google_scholar" => SerpApiGoogleScholarIngestionJob,
     "reddit_search" => SerpApiRedditIngestionJob,
-    "amazon_search" => SerpApiAmazonIngestionJob
+    "amazon_search" => SerpApiAmazonIngestionJob,
+    "google_shopping" => SerpApiGoogleShoppingIngestionJob
   }.freeze
 
   def perform

@@ -152,6 +152,18 @@ FactoryBot.define do
       end
     end
 
+    trait :google_shopping do
+      kind { :google_shopping }
+      name { "Google Shopping Search" }
+      config do
+        {
+          api_key: "test_api_key",
+          query: "wireless headphones",
+          max_results: 20
+        }
+      end
+    end
+
     trait :disabled do
       enabled { false }
     end

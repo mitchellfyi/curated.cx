@@ -55,7 +55,8 @@ class Source < ApplicationRecord
     product_hunt: 7,
     google_scholar: 8,
     reddit_search: 9,
-    amazon_search: 10
+    amazon_search: 10,
+    google_shopping: 11
   }
 
   # Validations
@@ -163,7 +164,8 @@ class Source < ApplicationRecord
       "product_hunt" => "Fetches products from Product Hunt via GraphQL API",
       "google_scholar" => "Searches Google Scholar via SerpAPI",
       "reddit_search" => "Searches Reddit via SerpAPI",
-      "amazon_search" => "Searches Amazon Products via SerpAPI"
+      "amazon_search" => "Searches Amazon Products via SerpAPI",
+      "google_shopping" => "Searches Google Shopping via SerpAPI"
     }[kind] || "Unknown source type"
   end
 

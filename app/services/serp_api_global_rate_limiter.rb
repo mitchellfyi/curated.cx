@@ -153,7 +153,7 @@ class SerpApiGlobalRateLimiter
     end
 
     def serp_api_kinds
-      Source.kinds.slice(:serp_api_google_news, :serp_api_google_jobs, :serp_api_youtube, :amazon_search).values
+      Source.kinds.slice(:serp_api_google_news, :serp_api_google_jobs, :serp_api_youtube, :amazon_search, :google_shopping).values
     end
   end
 end
