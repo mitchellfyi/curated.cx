@@ -31,8 +31,8 @@ class LinkEnrichmentService
       word_count: word_count,
       read_time_minutes: calculate_read_time(word_count),
       domain: page.host,
-      favicon_url: page.meta_tags.dig("name", "msapplication-TileImage")&.first.presence ||
-                   extract_favicon(page)
+      favicon_url: extract_favicon(page) ||
+                   page.meta_tags.dig("name", "msapplication-TileImage")&.first.presence
     }.compact
   rescue MetaInspector::TimeoutError, MetaInspector::RequestError => e
     raise EnrichmentError, "Failed to fetch URL: #{e.message}"
@@ -61,7 +61,7 @@ class LinkEnrichmentService
     words = text.split(/\s+/).reject(&:blank?)
     words.size
   rescue StandardError
-    nil
+    0
   end
 
   def calculate_read_time(word_count)
