@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_08_184746) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -175,6 +175,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_184746) do
     t.datetime "created_at", null: false
     t.text "description"
     t.datetime "editorialised_at"
+    t.datetime "enriched_at"
+    t.jsonb "enrichment_errors", default: [], null: false
+    t.string "enrichment_status", default: "pending", null: false
     t.text "extracted_text"
     t.string "favicon_url"
     t.datetime "hidden_at"
@@ -203,6 +206,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_184746) do
     t.text "why_it_matters"
     t.integer "word_count"
     t.index ["comments_locked_by_id"], name: "index_content_items_on_comments_locked_by_id"
+    t.index ["enrichment_status"], name: "index_content_items_on_enrichment_status"
     t.index ["hidden_at"], name: "index_content_items_on_hidden_at"
     t.index ["hidden_by_id"], name: "index_content_items_on_hidden_by_id"
     t.index ["published_at"], name: "index_content_items_on_published_at"

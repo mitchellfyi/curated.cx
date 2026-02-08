@@ -335,49 +335,19 @@ RSpec.describe ContentItem, type: :model do
       end
     end
 
-    describe "after_create :enqueue_editorialisation" do
-      context "when source has editorialisation enabled" do
-        let(:source) { create(:source, site: site, config: { "editorialise" => true }) }
+    describe "after_create :enqueue_enrichment_pipeline" do
+      let(:source) { create(:source, site: site) }
 
-        it "enqueues EditorialiseContentItemJob" do
-          expect {
-            create(:content_item, site: site, source: source)
-          }.to have_enqueued_job(EditorialiseContentItemJob)
-        end
-
-        it "passes the content item id to the job" do
-          content_item = create(:content_item, site: site, source: source)
-
-          expect(EditorialiseContentItemJob).to have_been_enqueued.with(content_item.id)
-        end
+      it "enqueues EnrichContentItemJob" do
+        expect {
+          create(:content_item, site: site, source: source)
+        }.to have_enqueued_job(EnrichContentItemJob)
       end
 
-      context "when source has editorialisation disabled" do
-        let(:source) { create(:source, site: site, config: { "editorialise" => false }) }
+      it "passes the content item id to the job" do
+        content_item = create(:content_item, site: site, source: source)
 
-        it "does not enqueue EditorialiseContentItemJob" do
-          expect {
-            create(:content_item, site: site, source: source)
-          }.not_to have_enqueued_job(EditorialiseContentItemJob)
-        end
-      end
-
-      context "when source has no editorialise config" do
-        let(:source) { create(:source, site: site, config: {}) }
-
-        it "does not enqueue EditorialiseContentItemJob" do
-          expect {
-            create(:content_item, site: site, source: source)
-          }.not_to have_enqueued_job(EditorialiseContentItemJob)
-        end
-      end
-
-      context "when source is nil" do
-        it "does not raise error" do
-          expect {
-            build(:content_item, site: site, source: nil)
-          }.not_to raise_error
-        end
+        expect(EnrichContentItemJob).to have_been_enqueued.with(content_item.id)
       end
     end
   end
