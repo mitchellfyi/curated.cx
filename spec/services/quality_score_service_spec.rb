@@ -8,7 +8,7 @@ RSpec.describe QualityScoreService, type: :service do
   let(:source) { create(:source, site: site) }
 
   before do
-    allow_any_instance_of(ContentItem).to receive(:enqueue_editorialisation)
+    allow_any_instance_of(ContentItem).to receive(:enqueue_enrichment_pipeline)
   end
 
   describe ".score" do

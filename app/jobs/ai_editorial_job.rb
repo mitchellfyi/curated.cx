@@ -11,7 +11,7 @@
 #   - Discards on AiInvalidResponseError, AiConfigurationError
 #   - Records errors in enrichment_errors on failure
 #
-class AIEditorialJob < ApplicationJob
+class AiEditorialJob < ApplicationJob
   include JobLogging
   include WorkflowPausable
 

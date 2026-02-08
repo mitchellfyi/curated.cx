@@ -2,11 +2,11 @@
 
 # Job to orchestrate the content enrichment pipeline for a ContentItem.
 # Runs MetaInspector metadata extraction via LinkEnrichmentService,
-# then chains to AIEditorialJob and CaptureScreenshotJob.
+# then chains to AiEditorialJob and CaptureScreenshotJob.
 #
 # Pipeline:
 #   1. EnrichContentItemJob (metadata extraction)
-#   2. AIEditorialJob (AI summary, quality scoring)
+#   2. AiEditorialJob (AI summary, quality scoring)
 #   3. CaptureScreenshotJob (optional screenshot capture)
 #
 # Error Handling:
@@ -35,7 +35,7 @@ class EnrichContentItemJob < ApplicationJob
 
     # Step 2: Chain to AI editorial job
     if content_item.source&.editorialisation_enabled?
-      AIEditorialJob.perform_later(content_item_id)
+      AiEditorialJob.perform_later(content_item_id)
     else
       # No AI step needed - chain directly to screenshot
       CaptureScreenshotJob.perform_later(content_item_id)
