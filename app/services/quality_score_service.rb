@@ -98,7 +98,7 @@ class QualityScoreService
     fields += 1 if content_item.og_image_url.present?
     fields += 1 if content_item.author_name.present?
     fields += 1 if content_item.read_time_minutes.present?
-    fields += 1 if content_item.key_takeaways.any?
+    fields += 1 if content_item.key_takeaways&.any?
     fields += 1 if content_item.topic_tags.any?
 
     (fields / 10.0 * MAX_SCORE).round(1)
