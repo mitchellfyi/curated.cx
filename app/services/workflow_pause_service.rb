@@ -10,7 +10,7 @@
 #
 class WorkflowPauseService
   WORKFLOW_TYPES = %w[imports ai_processing rss_ingestion serp_api_ingestion hacker_news_ingestion product_hunt_ingestion editorialisation all_ingestion].freeze
-  IMPORT_SUBTYPES = %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube hacker_news product_hunt google_scholar all].freeze
+  IMPORT_SUBTYPES = %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube hacker_news product_hunt google_scholar reddit_search all].freeze
 
   class << self
     # Check if a workflow is paused
