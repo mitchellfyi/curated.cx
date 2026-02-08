@@ -52,7 +52,8 @@ class Source < ApplicationRecord
     serp_api_google_jobs: 4,
     serp_api_youtube: 5,
     hacker_news: 6,
-    product_hunt: 7
+    product_hunt: 7,
+    google_scholar: 8
   }
 
   # Validations
@@ -157,7 +158,8 @@ class Source < ApplicationRecord
       "serp_api_google_jobs" => "Searches Google Jobs via SerpAPI",
       "serp_api_youtube" => "Searches YouTube via SerpAPI",
       "hacker_news" => "Fetches stories from Hacker News via Algolia API",
-      "product_hunt" => "Fetches products from Product Hunt via GraphQL API"
+      "product_hunt" => "Fetches products from Product Hunt via GraphQL API",
+      "google_scholar" => "Searches Google Scholar via SerpAPI"
     }[kind] || "Unknown source type"
   end
 

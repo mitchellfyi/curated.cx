@@ -52,6 +52,14 @@ module JobTestHelpers
       .to_return(status: status, body: body, headers: { "Content-Type" => "application/json" })
   end
 
+  # Stub a SerpAPI Google Scholar response
+  def stub_google_scholar_response(status: 200)
+    body = fixture_file("serp_api_google_scholar.json")
+    stub_request(:get, /serpapi\.com\/search\.json/)
+      .with(query: hash_including("engine" => "google_scholar"))
+      .to_return(status: status, body: body, headers: { "Content-Type" => "application/json" })
+  end
+
   # Stub an HTML page response for MetaInspector
   def stub_html_page(url, body: nil, status: 200)
     body ||= fixture_file("sample_page.html")
