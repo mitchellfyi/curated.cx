@@ -485,6 +485,8 @@ GEM
     pg_search (2.3.7)
       activerecord (>= 6.1)
       activesupport (>= 6.1)
+    pghero (3.7.0)
+      activerecord (>= 7.1)
     pluginator (1.5.0)
     pp (0.6.3)
       prettyprint
@@ -836,6 +838,7 @@ DEPENDENCIES
   overcommit (~> 0.62)
   pg (~> 1.6)
   pg_search (~> 2.3)
+  pghero
   pre-commit
   propshaft
   prosopite (~> 2.1)
