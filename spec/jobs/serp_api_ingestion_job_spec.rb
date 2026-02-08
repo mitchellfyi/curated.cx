@@ -144,7 +144,12 @@ RSpec.describe SerpApiIngestionJob, type: :job do
 
     context "rate limiting" do
       before do
-        # Create 10 import runs in the last hour to hit the rate limit
+        # Stub global rate limits to pass, so we can test per-source rate limiting
+        allow(SerpApiGlobalRateLimiter).to receive(:allow?).and_return(true)
+        allow(SerpApiGlobalRateLimiter).to receive(:allow_today?).and_return(true)
+        allow(SerpApiGlobalRateLimiter).to receive(:allow_this_hour?).and_return(true)
+
+        # Create 10 import runs in the last hour to hit the per-source rate limit
         10.times do
           create(:import_run, source: source, started_at: 30.minutes.ago)
         end
@@ -166,6 +171,29 @@ RSpec.describe SerpApiIngestionJob, type: :job do
         described_class.perform_now(source.id)
         source.reload
         expect(source.last_status).to eq("rate_limited")
+      end
+    end
+
+    context "hourly rate limiting" do
+      before do
+        # Stub monthly and daily limits to pass
+        allow(SerpApiGlobalRateLimiter).to receive(:allow?).and_return(true)
+        allow(SerpApiGlobalRateLimiter).to receive(:allow_today?).and_return(true)
+        # Fail hourly limit
+        allow(SerpApiGlobalRateLimiter).to receive(:allow_this_hour?).and_return(false)
+        allow(SerpApiGlobalRateLimiter).to receive(:usage_stats).and_return({})
+      end
+
+      it "skips processing when hourly rate limited" do
+        expect {
+          described_class.perform_now(source.id)
+        }.not_to change(ContentItem, :count)
+      end
+
+      it "updates source status to hourly_rate_limited" do
+        described_class.perform_now(source.id)
+        source.reload
+        expect(source.last_status).to eq("hourly_rate_limited")
       end
     end
 
