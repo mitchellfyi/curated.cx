@@ -272,10 +272,4 @@ class ProductHuntIngestionJob < ApplicationJob
     tags
   end
 
-  def build_description(node)
-    parts = []
-    parts << node["tagline"] if node["tagline"].present?
-    parts << "#{node['votesCount']} votes" if node["votesCount"]
-    parts.any? ? parts.join(" | ") : nil
-  end
 end
