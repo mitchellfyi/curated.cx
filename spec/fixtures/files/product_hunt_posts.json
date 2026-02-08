@@ -1,0 +1,74 @@
+{
+  "data": {
+    "posts": {
+      "edges": [
+        {
+          "node": {
+            "id": "ph_001",
+            "name": "LaunchPad AI",
+            "url": "https://www.producthunt.com/posts/launchpad-ai",
+            "tagline": "AI-powered startup launch assistant",
+            "description": "LaunchPad AI helps you plan and execute your product launch with AI.",
+            "votesCount": 523,
+            "createdAt": "2026-01-22T10:00:00Z",
+            "thumbnail": {
+              "url": "https://ph-files.imgix.net/launchpad-ai-thumb.png"
+            },
+            "topics": {
+              "edges": [
+                { "node": { "name": "Artificial Intelligence" } },
+                { "node": { "name": "SaaS" } }
+              ]
+            },
+            "makers": [
+              { "id": "m001", "name": "Jane Smith", "username": "janesmith" }
+            ]
+          }
+        },
+        {
+          "node": {
+            "id": "ph_002",
+            "name": "DevFlow",
+            "url": "https://www.producthunt.com/posts/devflow",
+            "tagline": "Streamline your development workflow",
+            "description": "DevFlow brings all your dev tools into one unified dashboard.",
+            "votesCount": 312,
+            "createdAt": "2026-01-22T08:30:00Z",
+            "thumbnail": {
+              "url": "https://ph-files.imgix.net/devflow-thumb.png"
+            },
+            "topics": {
+              "edges": [
+                { "node": { "name": "Developer Tools" } }
+              ]
+            },
+            "makers": [
+              { "id": "m002", "name": "Bob Lee", "username": "boblee" },
+              { "id": "m003", "name": "Alice Chen", "username": "alicechen" }
+            ]
+          }
+        },
+        {
+          "node": {
+            "id": "ph_003",
+            "name": "NoteSync",
+            "url": "https://www.producthunt.com/posts/notesync",
+            "tagline": "Real-time collaborative note-taking",
+            "description": "NoteSync keeps your team notes perfectly synchronized.",
+            "votesCount": 187,
+            "createdAt": "2026-01-22T06:15:00Z",
+            "thumbnail": {
+              "url": null
+            },
+            "topics": {
+              "edges": [
+                { "node": { "name": "Productivity" } }
+              ]
+            },
+            "makers": []
+          }
+        }
+      ]
+    }
+  }
+}

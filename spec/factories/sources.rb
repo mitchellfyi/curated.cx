@@ -103,6 +103,18 @@ FactoryBot.define do
       end
     end
 
+    trait :product_hunt do
+      kind { :product_hunt }
+      name { "Product Hunt" }
+      config do
+        {
+          access_token: "test_ph_token",
+          feed_type: "featured",
+          max_results: 50
+        }
+      end
+    end
+
     trait :disabled do
       enabled { false }
     end
