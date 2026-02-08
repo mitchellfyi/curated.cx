@@ -1,0 +1,45 @@
+{
+  "search_metadata": {
+    "id": "test-reddit-search-id",
+    "status": "Success",
+    "created_at": "2026-01-22 10:00:00 UTC"
+  },
+  "organic_results": [
+    {
+      "position": 0,
+      "title": "Best practices for building a SaaS startup?",
+      "link": "https://www.reddit.com/r/startups/comments/abc123/best_practices_for_building_a_saas_startup/",
+      "snippet": "I've been working on a SaaS product for the past 6 months and wanted to share some lessons learned.",
+      "thumbnail": "https://preview.redd.it/abc123.jpg",
+      "subreddit": "r/startups",
+      "author": "startup_founder",
+      "upvotes": 342,
+      "comments": 87,
+      "date": "2 days ago"
+    },
+    {
+      "position": 1,
+      "title": "How I grew my newsletter to 10k subscribers",
+      "link": "https://www.reddit.com/r/Entrepreneur/comments/def456/how_i_grew_my_newsletter_to_10k_subscribers/",
+      "snippet": "After a year of consistent effort, I finally hit 10k subscribers on my newsletter. Here's what worked.",
+      "subreddit": "r/Entrepreneur",
+      "author": "newsletter_guru",
+      "upvotes": 1205,
+      "comments": 234,
+      "date": "5 hours ago"
+    },
+    {
+      "position": 2,
+      "title": "Comparison of no-code tools for MVPs",
+      "link": "https://nocode-tools.example.com/comparison",
+      "redirect_link": "https://nocode-tools.example.com/comparison",
+      "snippet": "I created a comprehensive comparison of the top no-code tools for building MVPs quickly.",
+      "thumbnail": "https://preview.redd.it/ghi789.jpg",
+      "subreddit": "r/nocode",
+      "author": "nocode_enthusiast",
+      "upvotes": 567,
+      "comments": 45,
+      "date": "1 week ago"
+    }
+  ]
+}
