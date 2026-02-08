@@ -45,6 +45,22 @@ RSpec.describe ScreenshotService do
         end
       end
 
+      context "when API returns non-JSON response without Location header" do
+        before do
+          stub_request(:get, /screenshotapi\.net/)
+            .to_return(status: 200, body: "image data", headers: {
+              "Content-Type" => "image/png"
+            })
+        end
+
+        it "raises ScreenshotError" do
+          expect { described_class.capture(url) }.to raise_error(
+            ScreenshotService::ScreenshotError,
+            /No screenshot URL in response/
+          )
+        end
+      end
+
       context "when API returns non-JSON response with Location header" do
         before do
           stub_request(:get, /screenshotapi\.net/)

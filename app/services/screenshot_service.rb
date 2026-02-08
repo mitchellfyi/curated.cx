@@ -127,7 +127,7 @@ class ScreenshotService
       data["screenshot"] || data["url"] || data["image"]
     else
       # Some APIs return the image directly via redirect or as image URL in Location header
-      response["Location"] || @url
+      response["Location"] || raise(ScreenshotError, "No screenshot URL in response")
     end
   rescue JSON::ParserError
     raise ScreenshotError, "Invalid JSON response from screenshot API"
