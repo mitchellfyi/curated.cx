@@ -1,0 +1,46 @@
+{
+  "search_metadata": {
+    "id": "test-google-shopping-search-id",
+    "status": "Success",
+    "created_at": "2026-02-08 10:00:00 UTC"
+  },
+  "shopping_results": [
+    {
+      "position": 1,
+      "title": "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
+      "link": "https://www.example.com/product/sony-wh1000xm5",
+      "product_link": "https://www.google.com/shopping/product/123456",
+      "product_id": "123456",
+      "source": "Amazon",
+      "price": "£279.00",
+      "extracted_price": 279.0,
+      "rating": 4.6,
+      "reviews": 12543,
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:sony_xm5"
+    },
+    {
+      "position": 2,
+      "title": "Bose QuietComfort 45 Wireless Bluetooth Headphones",
+      "link": "https://www.example.com/product/bose-qc45",
+      "product_link": "https://www.google.com/shopping/product/789012",
+      "product_id": "789012",
+      "source": "John Lewis",
+      "price": "£249.00",
+      "extracted_price": 249.0,
+      "rating": 4.5,
+      "reviews": 8921,
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:bose_qc45"
+    },
+    {
+      "position": 3,
+      "title": "JBL Tune 510BT On-Ear Wireless Headphones",
+      "link": "https://www.example.com/product/jbl-tune-510bt",
+      "product_link": "https://www.google.com/shopping/product/345678",
+      "product_id": "345678",
+      "source": "Currys",
+      "price": "£29.99",
+      "extracted_price": 29.99,
+      "reviews": 45678
+    }
+  ]
+}
