@@ -185,6 +185,20 @@ class ContentItem < ApplicationRecord
     editorialised_at.present?
   end
 
+  # Screenshot methods
+  def screenshot_captured?
+    screenshot_captured_at.present?
+  end
+
+  def screenshot_stale?(interval = 7.days)
+    screenshot_captured_at.present? && screenshot_captured_at < interval.ago
+  end
+
+  # Returns screenshot_url with fallback to og_image_url
+  def preview_image_url
+    screenshot_url.presence || og_image_url.presence
+  end
+
   # Moderation methods
   def hidden?
     hidden_at.present?
