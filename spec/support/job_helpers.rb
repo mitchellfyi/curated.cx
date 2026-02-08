@@ -38,6 +38,13 @@ module JobTestHelpers
       .to_return(status: status, body: body, headers: { "Content-Type" => "application/json" })
   end
 
+  # Stub a Hacker News Algolia API response
+  def stub_hacker_news_response(status: 200)
+    body = fixture_file("hacker_news_search.json")
+    stub_request(:get, /hn\.algolia\.com\/api\/v1\/search/)
+      .to_return(status: status, body: body, headers: { "Content-Type" => "application/json" })
+  end
+
   # Stub an HTML page response for MetaInspector
   def stub_html_page(url, body: nil, status: 200)
     body ||= fixture_file("sample_page.html")
