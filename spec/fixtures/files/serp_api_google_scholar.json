@@ -1,0 +1,72 @@
+{
+  "search_metadata": {
+    "id": "test-scholar-search-id",
+    "status": "Success",
+    "created_at": "2026-01-22 10:00:00 UTC"
+  },
+  "organic_results": [
+    {
+      "position": 0,
+      "title": "Attention Is All You Need",
+      "result_id": "CS1_RESULT_1",
+      "link": "https://arxiv.org/abs/1706.03762",
+      "snippet": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.",
+      "publication_info": {
+        "summary": "A Vaswani, N Shazeer, N Parmar - Advances in neural information processing systems, 2017"
+      },
+      "inline_links": {
+        "cited_by": {
+          "total": 95000,
+          "link": "https://scholar.google.com/scholar?cites=..."
+        }
+      },
+      "resources": [
+        {
+          "title": "[PDF] arxiv.org",
+          "file_format": "PDF",
+          "link": "https://arxiv.org/pdf/1706.03762"
+        }
+      ]
+    },
+    {
+      "position": 1,
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers",
+      "result_id": "CS1_RESULT_2",
+      "link": "https://arxiv.org/abs/1810.04805",
+      "snippet": "We introduce a new language representation model called BERT.",
+      "publication_info": {
+        "summary": "J Devlin, MW Chang, K Lee - arXiv preprint arXiv:1810.04805, 2018"
+      },
+      "inline_links": {
+        "cited_by": {
+          "total": 65000,
+          "link": "https://scholar.google.com/scholar?cites=..."
+        }
+      },
+      "resources": []
+    },
+    {
+      "position": 2,
+      "title": "Deep Residual Learning for Image Recognition",
+      "result_id": "CS1_RESULT_3",
+      "link": "https://arxiv.org/abs/1512.03385",
+      "snippet": "Deeper neural networks are more difficult to train. We present a residual learning framework.",
+      "publication_info": {
+        "summary": "K He, X Zhang, S Ren - Proceedings of the IEEE conference, 2016"
+      },
+      "inline_links": {
+        "cited_by": {
+          "total": 120000,
+          "link": "https://scholar.google.com/scholar?cites=..."
+        }
+      },
+      "resources": [
+        {
+          "title": "[PDF] arxiv.org",
+          "file_format": "PDF",
+          "link": "https://arxiv.org/pdf/1512.03385"
+        }
+      ]
+    }
+  ]
+}

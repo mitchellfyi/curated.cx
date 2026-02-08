@@ -115,6 +115,18 @@ FactoryBot.define do
       end
     end
 
+    trait :google_scholar do
+      kind { :google_scholar }
+      name { "Google Scholar" }
+      config do
+        {
+          api_key: "test_api_key",
+          query: "machine learning",
+          max_results: 20
+        }
+      end
+    end
+
     trait :disabled do
       enabled { false }
     end
