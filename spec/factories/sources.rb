@@ -91,6 +91,18 @@ FactoryBot.define do
       end
     end
 
+    trait :hacker_news do
+      kind { :hacker_news }
+      name { "Hacker News" }
+      config do
+        {
+          query: "startup",
+          tags: "story",
+          max_results: 50
+        }
+      end
+    end
+
     trait :disabled do
       enabled { false }
     end

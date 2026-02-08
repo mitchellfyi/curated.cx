@@ -1,0 +1,38 @@
+{
+  "hits": [
+    {
+      "objectID": "12345",
+      "title": "Show HN: A New Startup Framework",
+      "url": "https://example.com/startup-framework",
+      "author": "techfounder",
+      "points": 150,
+      "num_comments": 42,
+      "created_at": "2026-01-22T10:00:00.000Z",
+      "_tags": ["story", "show_hn"]
+    },
+    {
+      "objectID": "12346",
+      "title": "Why Rust Is Taking Over Systems Programming",
+      "url": "https://blog.example.com/rust-systems",
+      "author": "rustdev",
+      "points": 280,
+      "num_comments": 95,
+      "created_at": "2026-01-22T08:30:00.000Z",
+      "_tags": ["story"]
+    },
+    {
+      "objectID": "12347",
+      "title": "Ask HN: Best Practices for Remote Teams",
+      "url": null,
+      "author": "remoteworker",
+      "points": 75,
+      "num_comments": 120,
+      "created_at": "2026-01-22T06:15:00.000Z",
+      "_tags": ["story", "ask_hn"]
+    }
+  ],
+  "nbHits": 3,
+  "page": 0,
+  "nbPages": 1,
+  "hitsPerPage": 20
+}
