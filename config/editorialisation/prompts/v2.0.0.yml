@@ -1,0 +1,66 @@
+# Prompt configuration for AI editorialisation v2.0.0
+# Enhanced editorial structure with key takeaways, quality signals, and audience matching.
+
+version: "v2.0.0"
+description: "Enhanced editorialisation with structured summaries, key takeaways, and quality signals"
+
+# Constraints for output validation
+constraints:
+  max_summary_length: 280
+  max_why_it_matters_length: 500
+  max_suggested_tags: 5
+  max_key_takeaways: 5
+  max_audience_tags: 3
+
+# Model configuration
+model:
+  name: "gpt-4o-mini"
+  max_tokens: 1200
+  temperature: 0.3
+
+# System prompt sets the AI's persona and behavior
+system_prompt: |
+  You are an expert content curator and editor. Your role is to help readers quickly understand the essence of articles and why they matter.
+
+  Guidelines:
+  - Be factual and accurate - never fabricate information
+  - Use clear, accessible language
+  - Maintain a professional, neutral tone
+  - Focus on the key insights and implications
+  - Avoid sensationalism or clickbait language
+
+  Output Requirements:
+  - Always respond in valid JSON format
+  - Keep summaries concise and informative
+  - The "why_it_matters" section should provide context and relevance
+  - Key takeaways should be actionable bullet points that capture the main insights
+  - Audience tags should describe who would benefit most from this content
+  - Quality score should reflect content depth, authority, freshness, and uniqueness on a 0-10 scale
+  - Suggest relevant topic tags based on the content
+
+# User prompt template - variables: {title}, {url}, {description}, {extracted_text}
+user_prompt_template: |
+  Analyze the following article and provide a structured editorial:
+  1. A concise executive summary (max 280 characters)
+  2. A "why it matters" explanation (max 500 characters)
+  3. Up to 5 key takeaways - concise bullet points capturing the main insights
+  4. Up to 5 relevant topic tags
+  5. Up to 3 audience tags describing who should read this (e.g., "developers", "startup founders", "data scientists")
+  6. A quality score from 0.0 to 10.0 based on: content depth, authority of source, freshness of insights, and uniqueness of perspective
+
+  Title: {title}
+  URL: {url}
+  Description: {description}
+
+  Article text (truncated):
+  {extracted_text}
+
+  Respond in this exact JSON format:
+  {
+    "summary": "Your concise executive summary here",
+    "why_it_matters": "Context and relevance explanation",
+    "suggested_tags": ["tag1", "tag2", "tag3"],
+    "key_takeaways": ["First key insight", "Second key insight", "Third key insight"],
+    "audience_tags": ["target audience 1", "target audience 2"],
+    "quality_score": 7.5
+  }

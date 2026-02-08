@@ -60,7 +60,21 @@
       </div>
     <% end %>
 
-    <%# Source, read time, and engagement %>
+    <%# Key takeaways (if available) %>
+    <% if content_item.respond_to?(:key_takeaways) && content_item.key_takeaways.present? %>
+      <details class="mb-3 group">
+        <summary class="text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600 transition-colors">
+          <%= t('feed.content.key_takeaways') %>
+        </summary>
+        <ul class="mt-2 space-y-1 text-sm text-gray-600 list-disc list-inside">
+          <% content_item.key_takeaways.each do |takeaway| %>
+            <li><%= takeaway %></li>
+          <% end %>
+        </ul>
+      </details>
+    <% end %>
+
+    <%# Source, read time, quality score, and engagement %>
     <div class="flex items-center justify-between text-sm text-gray-500">
       <div class="flex items-center gap-2 truncate max-w-[60%]">
         <% if content_item.source_name.present? %>
@@ -70,6 +84,11 @@
         <% end %>
         <% if content_item.read_time_minutes.present? %>
           <span class="whitespace-nowrap">&middot; <%= content_item.read_time_minutes %> min read</span>
+        <% end %>
+        <% if content_item.respond_to?(:quality_score) && content_item.quality_score.present? %>
+          <span class="whitespace-nowrap" title="<%= t('feed.content.quality_score_title') %>">
+            &middot; <%= t('feed.content.quality_score_label', score: content_item.quality_score) %>
+          </span>
         <% end %>
       </div>
 

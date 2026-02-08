@@ -119,6 +119,7 @@ class ContentItem < ApplicationRecord
   scope :published_since, ->(time) { published.where("published_at >= ?", time) }
   scope :top_this_week, -> { published_since(1.week.ago).order(Arel.sql("(upvotes_count + comments_count) DESC, published_at DESC")) }
   scope :by_engagement, -> { order(Arel.sql("(upvotes_count + comments_count) DESC")) }
+  scope :by_quality_score, ->(min_score) { where("quality_score >= ?", min_score) }
 
   # Class methods
   # Find or initialize by canonical URL (for deduplication)
@@ -168,6 +169,14 @@ class ContentItem < ApplicationRecord
   end
 
   def ai_suggested_tags
+    super || []
+  end
+
+  def key_takeaways
+    super || []
+  end
+
+  def audience_tags
     super || []
   end
 

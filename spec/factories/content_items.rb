@@ -129,6 +129,19 @@ FactoryBot.define do
       end
     end
 
+    trait :with_enhanced_editorial do
+      after(:create) do |item|
+        item.update_columns(
+          ai_summary: Faker::Lorem.paragraph,
+          why_it_matters: Faker::Lorem.paragraph,
+          key_takeaways: [ "First key insight", "Second key insight", "Third key insight" ],
+          audience_tags: [ "developers", "tech leads" ],
+          quality_score: 7.5,
+          editorialised_at: Time.current
+        )
+      end
+    end
+
     trait :article do
       after(:create) do |item|
         item.update_columns(content_type: "article")
