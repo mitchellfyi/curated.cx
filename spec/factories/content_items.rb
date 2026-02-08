@@ -191,5 +191,23 @@ FactoryBot.define do
       published_at { nil }
       scheduled_for { 1.hour.ago }
     end
+
+    trait :with_screenshot do
+      after(:create) do |item|
+        item.update_columns(
+          screenshot_url: "https://screenshots.example.com/#{item.id}.png",
+          screenshot_captured_at: Time.current
+        )
+      end
+    end
+
+    trait :with_stale_screenshot do
+      after(:create) do |item|
+        item.update_columns(
+          screenshot_url: "https://screenshots.example.com/#{item.id}.png",
+          screenshot_captured_at: 8.days.ago
+        )
+      end
+    end
   end
 end
