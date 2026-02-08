@@ -53,7 +53,7 @@ class WorkflowPause < ApplicationRecord
   validates :paused_at, presence: true, if: :active_pause_record?
   validates :paused_by, presence: true, if: :active_pause_record?
   validates :workflow_subtype, inclusion: {
-    in: %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube google_scholar reddit_search all],
+    in: %w[rss serp_api_google_news serp_api_google_jobs serp_api_youtube google_scholar reddit_search amazon_search all],
     allow_nil: true
   }
   validate :source_belongs_to_tenant
