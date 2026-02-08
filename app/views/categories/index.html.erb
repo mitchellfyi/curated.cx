@@ -12,10 +12,16 @@
             <div class="p-6">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-lg font-medium text-gray-900">
+                  <span class="mr-1"><%= category.type_icon %></span>
                   <%= link_to category.name, category_path(category), class: "hover:text-blue-600" %>
                 </h3>
                 <span class="text-sm text-gray-500">
                   <%= t('counts.item', count: category.listings.size) %>
+                </span>
+              </div>
+              <div class="mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                  <%= category.category_type.humanize %>
                 </span>
               </div>
               <% if category.respond_to?(:description) && category.description.present? %>

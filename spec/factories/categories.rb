@@ -33,6 +33,7 @@ FactoryBot.define do
     sequence(:key) { |n| "category_#{n}" }
     sequence(:name) { |n| "Category #{n}" }
     allow_paths { true }
+    category_type { "article" }
     shown_fields do
       {
         title: true,
@@ -48,22 +49,53 @@ FactoryBot.define do
       key { 'news' }
       name { 'News' }
       allow_paths { true }
+      category_type { "article" }
     end
 
     trait :apps do
       key { 'apps' }
       name { 'Apps & Tools' }
       allow_paths { false }
+      category_type { "resource" }
     end
 
     trait :services do
       key { 'services' }
       name { 'Services' }
       allow_paths { false }
+      category_type { "service" }
     end
 
     trait :root_domain_only do
       allow_paths { false }
+    end
+
+    trait :product do
+      category_type { "product" }
+      display_template { "grid" }
+    end
+
+    trait :event do
+      category_type { "event" }
+      display_template { "calendar" }
+    end
+
+    trait :job do
+      category_type { "job" }
+    end
+
+    trait :media do
+      category_type { "media" }
+      display_template { "grid" }
+    end
+
+    trait :discussion do
+      category_type { "discussion" }
+    end
+
+    trait :resource do
+      category_type { "resource" }
+      display_template { "grid" }
     end
   end
 end
