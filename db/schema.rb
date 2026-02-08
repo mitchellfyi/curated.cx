@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_06_190321) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_08_131015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -162,6 +162,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_06_190321) do
   create_table "content_items", force: :cascade do |t|
     t.jsonb "ai_suggested_tags", default: [], null: false
     t.text "ai_summary"
+    t.string "author_name"
     t.integer "comments_count", default: 0, null: false
     t.datetime "comments_locked_at"
     t.bigint "comments_locked_by_id"
@@ -170,10 +171,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_06_190321) do
     t.text "description"
     t.datetime "editorialised_at"
     t.text "extracted_text"
+    t.string "favicon_url"
     t.datetime "hidden_at"
     t.bigint "hidden_by_id"
+    t.string "og_image_url"
     t.datetime "published_at"
     t.jsonb "raw_payload", default: {}, null: false
+    t.integer "read_time_minutes"
     t.datetime "scheduled_for"
     t.bigint "site_id", null: false
     t.bigint "source_id", null: false
@@ -188,6 +192,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_06_190321) do
     t.string "url_canonical", null: false
     t.text "url_raw", null: false
     t.text "why_it_matters"
+    t.integer "word_count"
     t.index ["comments_locked_by_id"], name: "index_content_items_on_comments_locked_by_id"
     t.index ["hidden_at"], name: "index_content_items_on_hidden_at"
     t.index ["hidden_by_id"], name: "index_content_items_on_hidden_by_id"

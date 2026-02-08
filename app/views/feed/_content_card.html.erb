@@ -1,4 +1,9 @@
 <article class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+  <% if content_item.og_image_url.present? %>
+    <div class="aspect-video overflow-hidden">
+      <img src="<%= content_item.og_image_url %>" alt="" class="w-full h-full object-cover" loading="lazy">
+    </div>
+  <% end %>
   <div class="p-6">
     <div class="flex items-center justify-between mb-3">
       <%# Topic tags as pills %>
@@ -55,13 +60,18 @@
       </div>
     <% end %>
 
-    <%# Source and engagement %>
+    <%# Source, read time, and engagement %>
     <div class="flex items-center justify-between text-sm text-gray-500">
-      <% if content_item.source_name.present? %>
-        <span class="truncate max-w-[60%]" title="<%= content_item.source_name %>">
-          <%= content_item.source_name %>
-        </span>
-      <% end %>
+      <div class="flex items-center gap-2 truncate max-w-[60%]">
+        <% if content_item.source_name.present? %>
+          <span class="truncate" title="<%= content_item.source_name %>">
+            <%= content_item.source_name %>
+          </span>
+        <% end %>
+        <% if content_item.read_time_minutes.present? %>
+          <span class="whitespace-nowrap">&middot; <%= content_item.read_time_minutes %> min read</span>
+        <% end %>
+      </div>
 
       <%# Engagement indicators and actions %>
       <div class="flex items-center gap-2 sm:gap-3">

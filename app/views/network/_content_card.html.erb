@@ -1,5 +1,10 @@
 <%# Content card for cross-network feed with site attribution %>
 <article class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+  <% if content_item.og_image_url.present? %>
+    <div class="aspect-video overflow-hidden">
+      <img src="<%= content_item.og_image_url %>" alt="" class="w-full h-full object-cover" loading="lazy">
+    </div>
+  <% end %>
   <div class="p-6">
     <div class="flex items-center justify-between mb-3">
       <%# Site badge with link %>
@@ -48,15 +53,20 @@
       </div>
     <% end %>
 
-    <%# Source and engagement %>
+    <%# Source, read time, and engagement %>
     <div class="flex items-center justify-between text-sm text-gray-500">
-      <% if content_item.source_name.present? %>
-        <span class="truncate max-w-[50%]" title="<%= content_item.source_name %>">
-          <%= content_item.source_name %>
-        </span>
-      <% else %>
-        <span></span>
-      <% end %>
+      <div class="flex items-center gap-2 truncate max-w-[50%]">
+        <% if content_item.source_name.present? %>
+          <span class="truncate" title="<%= content_item.source_name %>">
+            <%= content_item.source_name %>
+          </span>
+        <% else %>
+          <span></span>
+        <% end %>
+        <% if content_item.read_time_minutes.present? %>
+          <span class="whitespace-nowrap">&middot; <%= content_item.read_time_minutes %> min read</span>
+        <% end %>
+      </div>
 
       <div class="flex items-center gap-3">
         <% if content_item.upvotes_count.to_i > 0 %>
