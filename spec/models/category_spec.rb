@@ -43,11 +43,31 @@ RSpec.describe Category, type: :model do
     it { should validate_presence_of(:key) }
     it { should validate_presence_of(:name) }
     it { should validate_uniqueness_of(:key).scoped_to(:site_id) }
+    it { should validate_presence_of(:category_type) }
 
     it 'validates shown_fields is a hash' do
       category = build(:category, tenant: tenant, shown_fields: 'not a hash')
       expect(category).not_to be_valid
       expect(category.errors[:shown_fields]).to include('must be a valid JSON object')
+    end
+
+    it 'validates metadata_schema is a hash' do
+      category = build(:category, tenant: tenant, metadata_schema: 'not a hash')
+      expect(category).not_to be_valid
+      expect(category.errors[:metadata_schema]).to include('must be a valid JSON object')
+    end
+
+    it 'validates category_type is included in CATEGORY_TYPES' do
+      category = build(:category, tenant: tenant, category_type: 'invalid_type')
+      expect(category).not_to be_valid
+      expect(category.errors[:category_type]).to include('is not included in the list')
+    end
+
+    it 'accepts all valid category types' do
+      Category::CATEGORY_TYPES.each do |type|
+        category = build(:category, tenant: tenant, category_type: type)
+        expect(category).to be_valid, "Expected category_type '#{type}' to be valid"
+      end
     end
   end
 
@@ -136,6 +156,77 @@ RSpec.describe Category, type: :model do
     it 'returns empty hash as default from factory' do
       category = create(:category, tenant: tenant)
       expect(category.shown_fields).to be_a(Hash)
+    end
+  end
+
+  describe '#category_type' do
+    it 'defaults to article' do
+      category = create(:category, tenant: tenant)
+      expect(category.category_type).to eq('article')
+    end
+
+    it 'can be set to each valid type' do
+      %w[article product service event job media discussion resource].each do |type|
+        category = create(:category, tenant: tenant, category_type: type)
+        expect(category.category_type).to eq(type)
+      end
+    end
+  end
+
+  describe '#effective_display_template' do
+    it 'returns custom display_template when set' do
+      category = create(:category, tenant: tenant, category_type: 'article', display_template: 'compact')
+      expect(category.effective_display_template).to eq('compact')
+    end
+
+    it 'falls back to type default when display_template is nil' do
+      category = create(:category, tenant: tenant, category_type: 'product')
+      expect(category.effective_display_template).to eq('grid')
+    end
+
+    it 'falls back to type default when display_template is blank' do
+      category = create(:category, tenant: tenant, category_type: 'event', display_template: '')
+      expect(category.effective_display_template).to eq('calendar')
+    end
+  end
+
+  describe '#type_icon' do
+    it 'returns the correct icon for each type' do
+      expect(create(:category, tenant: tenant, category_type: 'article').type_icon).to eq('📰')
+      expect(create(:category, tenant: tenant, category_type: 'product').type_icon).to eq('📦')
+      expect(create(:category, tenant: tenant, category_type: 'service').type_icon).to eq('🏢')
+      expect(create(:category, tenant: tenant, category_type: 'event').type_icon).to eq('📅')
+      expect(create(:category, tenant: tenant, category_type: 'job').type_icon).to eq('💼')
+      expect(create(:category, tenant: tenant, category_type: 'media').type_icon).to eq('🎬')
+      expect(create(:category, tenant: tenant, category_type: 'discussion').type_icon).to eq('💬')
+      expect(create(:category, tenant: tenant, category_type: 'resource').type_icon).to eq('📚')
+    end
+  end
+
+  describe '#metadata_schema' do
+    it 'returns empty hash by default' do
+      category = create(:category, tenant: tenant)
+      expect(category.metadata_schema).to eq({})
+    end
+
+    it 'stores and retrieves custom metadata schema' do
+      schema = { 'price' => 'number', 'currency' => 'string' }
+      category = create(:category, tenant: tenant, metadata_schema: schema)
+      expect(category.reload.metadata_schema).to eq(schema)
+    end
+  end
+
+  describe '.by_type' do
+    it 'filters categories by type' do
+      article = create(:category, tenant: tenant, category_type: 'article')
+      product = create(:category, tenant: tenant, category_type: 'product')
+
+      ActsAsTenant.with_tenant(tenant) do
+        expect(Category.by_type('article')).to include(article)
+        expect(Category.by_type('article')).not_to include(product)
+        expect(Category.by_type('product')).to include(product)
+        expect(Category.by_type('product')).not_to include(article)
+      end
     end
   end
 end

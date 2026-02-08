@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_08_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_08_184746) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -123,13 +123,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_170000) do
 
   create_table "categories", force: :cascade do |t|
     t.boolean "allow_paths", default: true, null: false
+    t.string "category_type", default: "article", null: false
     t.datetime "created_at", null: false
+    t.string "display_template"
     t.string "key", null: false
+    t.jsonb "metadata_schema", default: {}, null: false
     t.string "name", null: false
     t.jsonb "shown_fields", default: {}, null: false
     t.bigint "site_id", null: false
     t.bigint "tenant_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["site_id", "category_type"], name: "index_categories_on_site_id_and_category_type"
     t.index ["site_id", "key"], name: "index_categories_on_site_id_and_key", unique: true
     t.index ["site_id", "name"], name: "index_categories_on_site_id_and_name"
     t.index ["site_id"], name: "index_categories_on_site_id"

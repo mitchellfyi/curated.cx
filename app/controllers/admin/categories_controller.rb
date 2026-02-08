@@ -56,6 +56,6 @@ class Admin::CategoriesController < ApplicationController
   end
 
   def category_params
-    params.require(:category).permit(:key, :name, :allow_paths, shown_fields: {})
+    params.require(:category).permit(:key, :name, :allow_paths, :category_type, :display_template, shown_fields: {}, metadata_schema: {})
   end
 end
