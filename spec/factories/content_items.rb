@@ -209,5 +209,32 @@ FactoryBot.define do
         )
       end
     end
+
+    trait :enrichment_complete do
+      after(:create) do |item|
+        item.update_columns(
+          enrichment_status: "complete",
+          enriched_at: Time.current
+        )
+      end
+    end
+
+    trait :enrichment_failed do
+      after(:create) do |item|
+        item.update_columns(
+          enrichment_status: "failed",
+          enrichment_errors: [{ error: "Test error", at: Time.current.iso8601 }].to_json
+        )
+      end
+    end
+
+    trait :enrichment_stale do
+      after(:create) do |item|
+        item.update_columns(
+          enrichment_status: "complete",
+          enriched_at: 31.days.ago
+        )
+      end
+    end
   end
 end

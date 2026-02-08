@@ -4,7 +4,7 @@ module Admin
   class ContentItemsController < ApplicationController
     include AdminAccess
 
-    before_action :set_content_item, only: [ :show, :edit, :update, :destroy, :publish, :unpublish, :editorialise ]
+    before_action :set_content_item, only: [ :show, :edit, :update, :destroy, :publish, :unpublish, :editorialise, :enrich ]
 
     # GET /admin/content_items
     def index
@@ -31,6 +31,12 @@ module Admin
         @content_items = @content_items.where.not(editorialised_at: nil)
       when "not_editorialised"
         @content_items = @content_items.where(editorialised_at: nil)
+      when "enrichment_pending"
+        @content_items = @content_items.enrichment_pending
+      when "enrichment_complete"
+        @content_items = @content_items.enrichment_complete
+      when "enrichment_failed"
+        @content_items = @content_items.enrichment_failed
       end
 
       # Filter by tag
@@ -85,6 +91,13 @@ module Admin
       redirect_to admin_content_item_path(@content_item), notice: "Editorialisation job queued."
     end
 
+    # POST /admin/content_items/:id/enrich
+    def enrich
+      @content_item.reset_enrichment!
+      EnrichContentItemJob.perform_later(@content_item.id)
+      redirect_to admin_content_item_path(@content_item), notice: "Content enrichment pipeline queued."
+    end
+
     # POST /admin/content_items/bulk_action
     def bulk_action
       ids = params[:content_item_ids].to_s.split(",").map(&:to_i).reject(&:zero?)
@@ -109,6 +122,9 @@ module Admin
           EditorialisationJob.perform_later(item.id)
         end
         redirect_to admin_content_items_path, notice: "#{count} items queued for editorialisation."
+      when "enrich"
+        BulkEnrichmentJob.perform_later(content_item_ids: ids)
+        redirect_to admin_content_items_path, notice: "#{count} items queued for enrichment."
       when "delete"
         items.destroy_all
         redirect_to admin_content_items_path, notice: "#{count} items deleted."
@@ -142,7 +158,10 @@ module Admin
         published: base.published.count,
         unpublished: base.where(published_at: nil).count,
         editorialised: base.where.not(editorialised_at: nil).count,
-        this_week: base.where("created_at > ?", 1.week.ago).count
+        this_week: base.where("created_at > ?", 1.week.ago).count,
+        enrichment_pending: base.enrichment_pending.count,
+        enrichment_complete: base.enrichment_complete.count,
+        enrichment_failed: base.enrichment_failed.count
       }
     end
   end

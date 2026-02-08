@@ -85,6 +85,7 @@ Rails.application.routes.draw do
         post :publish
         post :unpublish
         post :editorialise
+        post :enrich
       end
     end
 

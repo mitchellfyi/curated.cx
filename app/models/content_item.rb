@@ -94,11 +94,16 @@ class ContentItem < ApplicationRecord
   validates :raw_payload, presence: true
   validates :tags, presence: true
 
+  # Enrichment status constants
+  ENRICHMENT_STATUSES = %w[pending enriching complete failed].freeze
+
+  validates :enrichment_status, inclusion: { in: ENRICHMENT_STATUSES }
+
   # Callbacks
   before_validation :normalize_url_canonical
   before_validation :ensure_tags_is_array
   after_create :apply_tagging_rules
-  after_create :enqueue_editorialisation
+  after_create :enqueue_enrichment_pipeline
 
   # Scopes
   scope :recent, -> { order(created_at: :desc) }
@@ -120,6 +125,13 @@ class ContentItem < ApplicationRecord
   scope :top_this_week, -> { published_since(1.week.ago).order(Arel.sql("(upvotes_count + comments_count) DESC, published_at DESC")) }
   scope :by_engagement, -> { order(Arel.sql("(upvotes_count + comments_count) DESC")) }
   scope :by_quality_score, ->(min_score) { where("quality_score >= ?", min_score) }
+
+  # Enrichment scopes
+  scope :enrichment_pending, -> { where(enrichment_status: "pending") }
+  scope :enrichment_enriching, -> { where(enrichment_status: "enriching") }
+  scope :enrichment_complete, -> { where(enrichment_status: "complete") }
+  scope :enrichment_failed, -> { where(enrichment_status: "failed") }
+  scope :enrichment_stale, ->(interval = 30.days) { enrichment_complete.where("enriched_at < ?", interval.ago) }
 
   # Class methods
   # Find or initialize by canonical URL (for deduplication)
@@ -183,6 +195,40 @@ class ContentItem < ApplicationRecord
   # Check if this item has been editorialised
   def editorialised?
     editorialised_at.present?
+  end
+
+  # Enrichment status methods
+  def enrichment_pending?
+    enrichment_status == "pending"
+  end
+
+  def enrichment_complete?
+    enrichment_status == "complete"
+  end
+
+  def enrichment_failed?
+    enrichment_status == "failed"
+  end
+
+  def enriched?
+    enriched_at.present?
+  end
+
+  def mark_enrichment_started!
+    update_columns(enrichment_status: "enriching", enrichment_errors: [])
+  end
+
+  def mark_enrichment_complete!
+    update_columns(enrichment_status: "complete", enriched_at: Time.current)
+  end
+
+  def mark_enrichment_failed!(error_message)
+    errors_list = (enrichment_errors || []) + [{ error: error_message, at: Time.current.iso8601 }]
+    update_columns(enrichment_status: "failed", enrichment_errors: errors_list.to_json)
+  end
+
+  def reset_enrichment!
+    update_columns(enrichment_status: "pending", enriched_at: nil, enrichment_errors: [].to_json)
   end
 
   # Screenshot methods
@@ -253,9 +299,7 @@ class ContentItem < ApplicationRecord
     self.tags = [] unless tags.is_a?(Array)
   end
 
-  def enqueue_editorialisation
-    return unless source&.editorialisation_enabled?
-
-    EditorialiseContentItemJob.perform_later(id)
+  def enqueue_enrichment_pipeline
+    EnrichContentItemJob.perform_later(id)
   end
 end
