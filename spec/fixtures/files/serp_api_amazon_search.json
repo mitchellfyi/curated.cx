@@ -1,0 +1,53 @@
+{
+  "search_metadata": {
+    "id": "test-amazon-search-id",
+    "status": "Success",
+    "created_at": "2026-02-08 10:00:00 UTC"
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
+      "asin": "B09XS7JWHH",
+      "link": "https://www.amazon.co.uk/dp/B09XS7JWHH",
+      "thumbnail": "https://m.media-amazon.com/images/I/51aXvjzcukL._AC_SL1500_.jpg",
+      "rating": 4.6,
+      "reviews_count": 12543,
+      "price": {
+        "raw": "£279.00",
+        "value": 279.0,
+        "currency": "£"
+      },
+      "is_prime": true
+    },
+    {
+      "position": 2,
+      "title": "Bose QuietComfort 45 Wireless Bluetooth Headphones",
+      "asin": "B098FKXT8L",
+      "link": "https://www.amazon.co.uk/dp/B098FKXT8L",
+      "thumbnail": "https://m.media-amazon.com/images/I/51JbsHSktkL._AC_SL1500_.jpg",
+      "rating": 4.5,
+      "reviews_count": 8921,
+      "price": {
+        "raw": "£249.00",
+        "value": 249.0,
+        "currency": "£"
+      },
+      "is_prime": true
+    },
+    {
+      "position": 3,
+      "title": "JBL Tune 510BT On-Ear Wireless Headphones",
+      "asin": "B08WM3GFMF",
+      "link": "https://www.amazon.co.uk/dp/B08WM3GFMF",
+      "rating": 4.3,
+      "reviews_count": 45678,
+      "price": {
+        "raw": "£29.99",
+        "value": 29.99,
+        "currency": "£"
+      },
+      "is_prime": false
+    }
+  ]
+}

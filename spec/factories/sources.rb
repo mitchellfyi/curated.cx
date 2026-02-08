@@ -139,6 +139,19 @@ FactoryBot.define do
       end
     end
 
+    trait :amazon_search do
+      kind { :amazon_search }
+      name { "Amazon Products Search" }
+      config do
+        {
+          api_key: "test_api_key",
+          query: "wireless headphones",
+          amazon_domain: "amazon.co.uk",
+          max_results: 20
+        }
+      end
+    end
+
     trait :disabled do
       enabled { false }
     end

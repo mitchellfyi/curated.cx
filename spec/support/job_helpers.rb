@@ -68,6 +68,14 @@ module JobTestHelpers
       .to_return(status: status, body: body, headers: { "Content-Type" => "application/json" })
   end
 
+  # Stub a SerpAPI Amazon Search response
+  def stub_amazon_search_response(status: 200)
+    body = fixture_file("serp_api_amazon_search.json")
+    stub_request(:get, /serpapi\.com\/search\.json/)
+      .with(query: hash_including("engine" => "amazon_search"))
+      .to_return(status: status, body: body, headers: { "Content-Type" => "application/json" })
+  end
+
   # Stub an HTML page response for MetaInspector
   def stub_html_page(url, body: nil, status: 200)
     body ||= fixture_file("sample_page.html")
