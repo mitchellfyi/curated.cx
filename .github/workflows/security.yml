@@ -32,19 +32,22 @@ jobs:
   sast:
     name: SAST Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd # v1.288.0
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true
 
       # Deep code security analysis with Semgrep
       - name: Run Semgrep
-        uses: returntocorp/semgrep-action@v1
+        uses: returntocorp/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
         with:
           config: >-
             p/security-audit
@@ -57,15 +60,17 @@ jobs:
   secrets-scan:
     name: Secrets Detection
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       # TruffleHog for verified secrets
       - name: Run TruffleHog
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@4158734f234bd8770128deae2e2975cfab4b66a6 # main 2026-02-09
         with:
           path: ./
           base: ${{ github.event.pull_request.base.sha || 'HEAD~10' }}
@@ -75,7 +80,7 @@ jobs:
 
       # GitLeaks for pattern-based secrets
       - name: Run GitLeaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
@@ -85,15 +90,18 @@ jobs:
     name: Container Security
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Build Docker image
         run: docker build -t curated-app:scan .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@22438a435773de8c97dc0958cc0b823c45b064ac # master 2025-12-11
         with:
           image-ref: 'curated-app:scan'
           format: 'sarif'
@@ -102,14 +110,14 @@ jobs:
         continue-on-error: true
 
       - name: Upload Trivy SARIF results
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2 # v4.32.2
         if: hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
         continue-on-error: true
 
       - name: Upload Trivy results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           name: trivy-results
@@ -122,6 +130,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sast, secrets-scan]
     if: always()
+    permissions:
+      contents: read
     steps:
       - name: Security Summary
         run: |
