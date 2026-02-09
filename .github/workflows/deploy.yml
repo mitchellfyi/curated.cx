@@ -15,10 +15,15 @@ on:
         required: false
         default: 'false'
         type: boolean
+      rollback_sha:
+        description: 'Deploy a specific commit SHA (for rollback). Leave empty for HEAD.'
+        required: false
+        default: ''
+        type: string
 
 concurrency:
-  group: production-deploy
-  cancel-in-progress: false
+  group: deploy-production
+  cancel-in-progress: true
 
 env:
   APP_NAME: curated
@@ -30,21 +35,37 @@ jobs:
   ci:
     name: Run CI
     uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      actions: read
 
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: [ci]
     timeout-minutes: 30
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0  # Full history for better git push
 
+      - name: Resolve deploy ref
+        id: resolve_ref
+        run: |
+          if [ -n "${{ inputs.rollback_sha }}" ]; then
+            echo "deploy_sha=${{ inputs.rollback_sha }}" >> $GITHUB_OUTPUT
+            echo "🔄 Rolling back to commit: ${{ inputs.rollback_sha }}"
+          else
+            echo "deploy_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+            echo "🚀 Deploying HEAD: ${{ github.sha }}"
+          fi
+
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
           ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
 
@@ -78,11 +99,12 @@ jobs:
       - name: Deploy to Dokku
         id: deploy
         run: |
-          echo "🚀 Deploying to Dokku..."
+          DEPLOY_SHA="${{ steps.resolve_ref.outputs.deploy_sha }}"
+          echo "🚀 Deploying commit $DEPLOY_SHA to Dokku..."
           git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:${{ env.APP_NAME }} 2>/dev/null || git remote set-url dokku dokku@${{ secrets.DOKKU_HOST }}:${{ env.APP_NAME }}
 
           # Push with force to handle any divergent histories
-          if git push dokku HEAD:main --force 2>&1 | tee /tmp/deploy.log; then
+          if git push dokku ${DEPLOY_SHA}:refs/heads/main --force 2>&1 | tee /tmp/deploy.log; then
             echo "deploy_success=true" >> $GITHUB_OUTPUT
             echo "✅ Code pushed successfully"
           else
@@ -160,14 +182,25 @@ jobs:
             echo "No previous release found, cannot rollback"
           fi
 
-      - name: Get deployment info
-        if: success()
+      - name: Deploy summary
+        if: always()
         run: |
-          echo "📊 Deployment Summary"
-          echo "===================="
-          ssh -o StrictHostKeyChecking=no dokku@${{ secrets.DOKKU_HOST }} ps:report ${{ env.APP_NAME }}
-          echo ""
-          echo "🔗 App URL: ${{ env.APP_URL }}"
+          DEPLOY_SHA="${{ steps.resolve_ref.outputs.deploy_sha }}"
+          TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          STATUS="${{ job.status }}"
+
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ${STATUS} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${DEPLOY_SHA}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | production |" >> $GITHUB_STEP_SUMMARY
+          echo "| **App** | ${{ env.APP_NAME }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **URL** | ${{ env.APP_URL }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Timestamp** | ${TIMESTAMP} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Triggered by** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Rollback SHA** | ${{ inputs.rollback_sha || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify on success
         if: success()
@@ -175,7 +208,7 @@ jobs:
           echo "✅ Deployment successful!"
           echo "App: ${{ env.APP_NAME }}"
           echo "URL: ${{ env.APP_URL }}"
-          echo "Commit: ${{ github.sha }}"
+          echo "Commit: ${{ steps.resolve_ref.outputs.deploy_sha }}"
           echo "Deployed by: ${{ github.actor }}"
 
       - name: Notify on failure
@@ -183,19 +216,5 @@ jobs:
         run: |
           echo "❌ Deployment failed!"
           echo "App: ${{ env.APP_NAME }}"
-          echo "Commit: ${{ github.sha }}"
+          echo "Commit: ${{ steps.resolve_ref.outputs.deploy_sha }}"
           echo "Check the logs above for details."
-
-  # Optional: Slack notification job
-  # notify-slack:
-  #   needs: [deploy]
-  #   if: always()
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Send Slack notification
-  #       uses: 8398a7/action-slack@v3
-  #       with:
-  #         status: ${{ needs.deploy.result }}
-  #         fields: repo,message,commit,author,action,eventName,ref,workflow
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
