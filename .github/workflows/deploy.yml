@@ -8,12 +8,12 @@ on:
       skip_migrations:
         description: 'Skip database migrations'
         required: false
-        default: 'false'
+        default: false
         type: boolean
       force_deploy:
         description: 'Force deploy even if health check fails'
         required: false
-        default: 'false'
+        default: false
         type: boolean
       rollback_sha:
         description: 'Deploy a specific commit SHA (for rollback). Leave empty for HEAD.'
@@ -88,7 +88,7 @@ jobs:
           fi
 
       - name: Backup database before deploy
-        if: inputs.skip_migrations != 'true'
+        if: ${{ !inputs.skip_migrations }}
         continue-on-error: true
         run: |
           echo "Creating database backup before deployment..."
@@ -122,7 +122,7 @@ jobs:
           sleep 10
 
       - name: Run database migrations
-        if: inputs.skip_migrations != 'true'
+        if: ${{ !inputs.skip_migrations }}
         id: migrations
         run: |
           echo "Running database migrations..."
@@ -162,7 +162,7 @@ jobs:
           echo "health_check=failed" >> $GITHUB_OUTPUT
           echo "❌ Health check failed after $MAX_RETRIES attempts"
 
-          if [ "${{ inputs.force_deploy }}" = "true" ]; then
+          if [ "${{ inputs.force_deploy }}" = "true" ] || [ "${{ inputs.force_deploy }}" = "True" ]; then
             echo "⚠️ Force deploy enabled, continuing despite health check failure"
             exit 0
           fi
