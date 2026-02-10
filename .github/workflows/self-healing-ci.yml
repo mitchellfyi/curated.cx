@@ -1,0 +1,315 @@
+# Self-Healing CI Workflow
+# Automatically creates GitHub issues for CI failures on main branch
+# and assigns them to Copilot's coding agent for autonomous fixing
+#
+# Safety features:
+# - Only runs for main branch failures
+# - Checks for duplicate issues before creating new ones
+# - Rate limits to 3 retry attempts before requiring human intervention
+# - Never self-heals failures in this workflow itself
+
+name: Self-Healing CI
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  issues: write
+  actions: read
+  checks: read
+  contents: read
+
+jobs:
+  create-fix-issue:
+    name: Create CI Fix Issue
+    runs-on: ubuntu-latest
+    # Only run when CI workflow failed (not cancelled or skipped)
+    if: github.event.workflow_run.conclusion == 'failure'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Fetch failed jobs
+        id: fetch_jobs
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const workflowRunId = context.payload.workflow_run.id;
+            const repo = context.repo;
+            
+            // Fetch all jobs for this workflow run
+            const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: repo.owner,
+              repo: repo.repo,
+              run_id: workflowRunId,
+            });
+            
+            // Filter for failed jobs only
+            const failedJobs = jobs.jobs.filter(job => job.conclusion === 'failure');
+            
+            if (failedJobs.length === 0) {
+              core.setOutput('has_failures', 'false');
+              return { failedJobs: [] };
+            }
+            
+            core.setOutput('has_failures', 'true');
+            core.setOutput('failed_job_count', failedJobs.length);
+            
+            // Collect job information
+            const jobDetails = failedJobs.map(job => ({
+              name: job.name,
+              id: job.id,
+              html_url: job.html_url,
+            }));
+            
+            return { failedJobs: jobDetails };
+
+      - name: Download and process logs
+        id: process_logs
+        if: steps.fetch_jobs.outputs.has_failures == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const workflowRunId = context.payload.workflow_run.id;
+            const repo = context.repo;
+            const failedJobsData = ${{ steps.fetch_jobs.outputs.result }};
+            const failedJobs = failedJobsData.failedJobs;
+            
+            let logsMarkdown = '';
+            const maxLinesPerJob = 200;
+            
+            for (const job of failedJobs) {
+              logsMarkdown += `\n### Job: ${job.name}\n\n`;
+              logsMarkdown += `[View full job logs](${job.html_url})\n\n`;
+              
+              try {
+                // Download job logs
+                const logResponse = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  job_id: job.id,
+                });
+                
+                // Process the log data
+                const logText = logResponse.data;
+                const logLines = logText.split('\n');
+                
+                // Take last N lines to show most recent/relevant failures
+                const truncatedLines = logLines.slice(-maxLinesPerJob);
+                const truncatedLog = truncatedLines.join('\n');
+                
+                logsMarkdown += '```\n';
+                logsMarkdown += truncatedLog;
+                logsMarkdown += '\n```\n';
+              } catch (error) {
+                core.warning(`Failed to download logs for job ${job.name}: ${error.message}`);
+                logsMarkdown += `*Failed to retrieve logs for this job. Please check the [workflow run](${job.html_url}) directly.*\n\n`;
+              }
+            }
+            
+            core.setOutput('logs_markdown', logsMarkdown);
+            return logsMarkdown;
+
+      - name: Check for existing issues
+        id: check_existing
+        if: steps.fetch_jobs.outputs.has_failures == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const repo = context.repo;
+            
+            // Search for open issues with ci-fix and automated labels
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: repo.owner,
+              repo: repo.repo,
+              state: 'open',
+              labels: 'ci-fix,automated',
+              per_page: 100,
+            });
+            
+            if (issues.length > 0) {
+              const existingIssue = issues[0];
+              core.setOutput('has_existing', 'true');
+              core.setOutput('issue_number', existingIssue.number);
+              core.setOutput('issue_url', existingIssue.html_url);
+              
+              // Count existing comments from this workflow
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: existingIssue.number,
+              });
+              
+              // Count comments from github-actions bot
+              const botComments = comments.filter(c => 
+                c.user.login === 'github-actions[bot]' || 
+                c.user.type === 'Bot'
+              );
+              
+              core.setOutput('retry_count', botComments.length);
+              return { existingIssue: existingIssue.number, retryCount: botComments.length };
+            } else {
+              core.setOutput('has_existing', 'false');
+              core.setOutput('retry_count', 0);
+              return { existingIssue: null, retryCount: 0 };
+            }
+
+      - name: Create or update issue
+        if: steps.fetch_jobs.outputs.has_failures == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const repo = context.repo;
+            const workflowRun = context.payload.workflow_run;
+            const sha = workflowRun.head_sha;
+            const shortSha = sha.substring(0, 7);
+            const branch = workflowRun.head_branch;
+            const runUrl = workflowRun.html_url;
+            
+            const hasExisting = '${{ steps.check_existing.outputs.has_existing }}' === 'true';
+            const retryCount = parseInt('${{ steps.check_existing.outputs.retry_count }}');
+            const maxRetries = 3;
+            
+            const logsMarkdown = `${{ steps.process_logs.outputs.logs_markdown }}`;
+            
+            // Build issue body
+            const issueBody = `## CI Failure — Auto-generated
+            
+            The CI workflow failed on branch \`${branch}\` at commit \`${sha}\`.
+            
+            **Failed run:** ${runUrl}
+            
+            ## Task
+            
+            Analyze the failure logs below and fix the code that is causing CI to fail.
+            
+            **Rules:**
+            - Fix the root cause in the source code, tests, or configuration
+            - Do NOT skip, disable, or mark any tests as expected failures
+            - Do NOT add \`continue-on-error\` or any other workaround that masks the failure
+            - Run the full test suite locally before submitting your PR
+            - Keep your changes minimal and focused on the fix
+            
+            ## Failure Logs
+            
+            ${logsMarkdown}
+            
+            ---
+            *This issue was automatically created by the self-healing CI workflow.*
+            `;
+            
+            if (hasExisting) {
+              const issueNumber = parseInt('${{ steps.check_existing.outputs.issue_number }}');
+              
+              if (retryCount >= maxRetries) {
+                // Add needs-human label after max retries
+                await github.rest.issues.addLabels({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  labels: ['needs-human'],
+                });
+                
+                await github.rest.issues.createComment({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  body: `## ⚠️ Maximum retry limit reached
+                  
+                  CI has failed ${maxRetries} times. This issue now requires human intervention.
+                  
+                  **Latest failure:** ${runUrl}
+                  **Commit:** \`${sha}\`
+                  
+                  Please review the issue and fix manually.`,
+                });
+                
+                core.warning(`Maximum retry limit (${maxRetries}) reached for issue #${issueNumber}. Added needs-human label.`);
+              } else {
+                // Add comment with new failure information
+                await github.rest.issues.createComment({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  body: `## New CI Failure (Attempt ${retryCount + 1}/${maxRetries})
+                  
+                  CI failed again on branch \`${branch}\` at commit \`${sha}\`.
+                  
+                  **Failed run:** ${runUrl}
+                  
+                  ## Failure Logs
+                  
+                  ${logsMarkdown}`,
+                });
+                
+                core.info(`Added comment to existing issue #${issueNumber} (attempt ${retryCount + 1}/${maxRetries})`);
+              }
+            } else {
+              // Create new issue
+              const title = `[CI Fix] Build failure on \`${branch}\` (${shortSha})`;
+              
+              // Ensure labels exist first
+              const labelsToCreate = [
+                { name: 'ci-fix', color: 'd73a4a', description: 'Automated CI failure fix request' },
+                { name: 'automated', color: '0e8a16', description: 'Created by automation' },
+                { name: 'needs-human', color: 'fbca04', description: 'Requires human intervention' },
+              ];
+              
+              for (const label of labelsToCreate) {
+                try {
+                  await github.rest.issues.getLabel({
+                    owner: repo.owner,
+                    repo: repo.repo,
+                    name: label.name,
+                  });
+                } catch (error) {
+                  if (error.status === 404) {
+                    // Label doesn't exist, create it
+                    await github.rest.issues.createLabel({
+                      owner: repo.owner,
+                      repo: repo.repo,
+                      name: label.name,
+                      color: label.color,
+                      description: label.description,
+                    });
+                    core.info(`Created label: ${label.name}`);
+                  }
+                }
+              }
+              
+              // Create the issue
+              const { data: issue } = await github.rest.issues.create({
+                owner: repo.owner,
+                repo: repo.repo,
+                title: title,
+                body: issueBody,
+                labels: ['ci-fix', 'automated'],
+                assignees: ['copilot'],
+              });
+              
+              core.info(`Created new issue: ${issue.html_url}`);
+            }
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Self-Healing CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.fetch_jobs.outputs.has_failures }}" = "true" ]; then
+            echo "✅ Processed CI failure" >> $GITHUB_STEP_SUMMARY
+            echo "- Failed jobs: ${{ steps.fetch_jobs.outputs.failed_job_count }}" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${{ steps.check_existing.outputs.has_existing }}" = "true" ]; then
+              echo "- Action: Updated existing issue #${{ steps.check_existing.outputs.issue_number }}" >> $GITHUB_STEP_SUMMARY
+              echo "- Retry count: ${{ steps.check_existing.outputs.retry_count }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- Action: Created new issue" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "ℹ️ No failed jobs found" >> $GITHUB_STEP_SUMMARY
+          fi
