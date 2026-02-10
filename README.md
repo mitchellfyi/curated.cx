@@ -270,6 +270,9 @@ See `docs/deploy-dokku.md` for detailed instructions.
 - **Tests**: RSpec with coverage
 - **Build**: Asset compilation verification
 - **Deploy**: Automatic on main branch
+- **Self-Healing**: Automatic issue creation and Copilot assignment on CI failures
+
+See [docs/self-healing-ci.md](docs/self-healing-ci.md) for details on the self-healing CI workflow.
 
 ---
 
@@ -282,6 +285,7 @@ See `docs/deploy-dokku.md` for detailed instructions.
 | [docs/deploy-dokku.md](docs/deploy-dokku.md) | Deployment guide |
 | [docs/quality-enforcement.md](docs/quality-enforcement.md) | Quality system details |
 | [docs/safe-migrations.md](docs/safe-migrations.md) | Migration best practices |
+| [docs/self-healing-ci.md](docs/self-healing-ci.md) | Self-healing CI workflow documentation |
 
 ---
 
