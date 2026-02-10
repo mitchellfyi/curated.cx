@@ -2,39 +2,53 @@
 
 require "rails_helper"
 
-RSpec.describe "Workflow Pause Behavior", skip: "Pending full implementation" do
+RSpec.describe "Workflow Pause Behavior" do
+  include ActiveJob::TestHelper
+
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
-  let(:source) { create(:source, :rss, site: site, tenant: tenant) }
   let(:admin_user) { create(:user, :admin) }
 
   describe FetchRssJob do
+    let(:source) { create(:source, :rss, site: site, config: { "url" => "https://example.com/feed.xml" }) }
+
     context "when workflow is paused" do
       before do
         WorkflowPauseService.pause!(:rss_ingestion, by: admin_user, tenant: nil)
       end
 
       it "skips execution" do
-        expect(source).not_to receive(:update_run_status).with("success")
-        expect(source).to receive(:update_run_status).with("workflow_paused")
-
         FetchRssJob.perform_now(source.id)
+
+        source.reload
+        expect(source.last_status).to eq("workflow_paused")
       end
 
       it "logs the pause reason" do
-        expect(Rails.logger).to receive(:info).with(/Workflow paused/)
+        allow(Rails.logger).to receive(:info).and_call_original
 
         FetchRssJob.perform_now(source.id)
+
+        expect(Rails.logger).to have_received(:info).with(/Workflow paused/)
       end
     end
 
     context "when workflow is not paused" do
-      it "executes normally" do
-        # Allow the job to fail on HTTP/config - we're testing it actually runs (not skipped)
-        # ConfigurationError inherits from StandardError, so this catches both
-        expect {
+      before do
+        # Stub HTTP so the job can proceed past the pause check
+        stub_request(:get, "https://example.com/feed.xml")
+          .to_return(status: 200, body: "<rss><channel></channel></rss>", headers: { "Content-Type" => "application/xml" })
+      end
+
+      it "executes normally (not skipped as paused)" do
+        begin
           FetchRssJob.perform_now(source.id)
-        }.to raise_error(StandardError)
+        rescue StandardError
+          # May fail on feed parsing, but that's fine
+        end
+
+        source.reload
+        expect(source.last_status).not_to eq("workflow_paused")
       end
     end
 
@@ -43,20 +57,25 @@ RSpec.describe "Workflow Pause Behavior", skip: "Pending full implementation" do
 
       before do
         WorkflowPauseService.pause!(:rss_ingestion, by: admin_user, tenant: other_tenant)
+        stub_request(:get, "https://example.com/feed.xml")
+          .to_return(status: 200, body: "<rss><channel></channel></rss>", headers: { "Content-Type" => "application/xml" })
       end
 
       it "executes for unpaused tenant" do
-        expect(source).not_to receive(:update_run_status).with("workflow_paused")
-
-        expect {
+        begin
           FetchRssJob.perform_now(source.id)
-        }.to raise_error(StandardError)
+        rescue StandardError
+          # May fail on feed parsing, but that's fine
+        end
+
+        source.reload
+        expect(source.last_status).not_to eq("workflow_paused")
       end
     end
   end
 
   describe SerpApiIngestionJob do
-    let(:serp_source) { create(:source, :serp_api_google_news, site: site, tenant: tenant) }
+    let(:serp_source) { create(:source, :serp_api_google_news, site: site) }
 
     context "when serp_api_ingestion is paused" do
       before do
@@ -64,9 +83,10 @@ RSpec.describe "Workflow Pause Behavior", skip: "Pending full implementation" do
       end
 
       it "skips execution" do
-        expect(serp_source).to receive(:update_run_status).with("workflow_paused")
-
         SerpApiIngestionJob.perform_now(serp_source.id)
+
+        serp_source.reload
+        expect(serp_source.last_status).to eq("workflow_paused")
       end
     end
 
@@ -76,14 +96,16 @@ RSpec.describe "Workflow Pause Behavior", skip: "Pending full implementation" do
       end
 
       it "also pauses serp_api jobs" do
-        expect(serp_source).to receive(:update_run_status).with("workflow_paused")
-
         SerpApiIngestionJob.perform_now(serp_source.id)
+
+        serp_source.reload
+        expect(serp_source.last_status).to eq("workflow_paused")
       end
     end
   end
 
   describe EditorialiseContentItemJob do
+    let(:source) { create(:source, :rss, site: site) }
     let(:content_item) { create(:content_item, :published, site: site, source: source) }
 
     context "when editorialisation is paused" do
@@ -110,9 +132,11 @@ RSpec.describe "Workflow Pause Behavior", skip: "Pending full implementation" do
       end
 
       it "logs the limit exceeded" do
-        expect(Rails.logger).to receive(:warn).with(/AI usage limit/)
+        allow(Rails.logger).to receive(:warn).and_call_original
 
         EditorialiseContentItemJob.perform_now(content_item.id)
+
+        expect(Rails.logger).to have_received(:warn).with(/AI usage limit/)
       end
     end
 
@@ -122,7 +146,16 @@ RSpec.describe "Workflow Pause Behavior", skip: "Pending full implementation" do
       end
 
       it "executes editorialisation" do
-        mock_result = instance_double(Editorialisation, completed?: true, input_tokens: 100, output_tokens: 50, tokens_used: 150, status: "completed", error_message: nil, duration_ms: 1000)
+        mock_result = instance_double(
+          Editorialisation,
+          completed?: true,
+          input_tokens: 100,
+          output_tokens: 50,
+          tokens_used: 150,
+          status: "completed",
+          error_message: nil,
+          duration_ms: 1000
+        )
         allow(EditorialisationService).to receive(:editorialise).and_return(mock_result)
         allow(AiUsageTracker).to receive(:track!)
 
@@ -134,14 +167,15 @@ RSpec.describe "Workflow Pause Behavior", skip: "Pending full implementation" do
       it "tracks AI usage after successful completion" do
         editorialisation = create(:editorialisation, :completed, content_item: content_item, site: site)
         allow(EditorialisationService).to receive(:editorialise).and_return(editorialisation)
+        allow(AiUsageTracker).to receive(:track!)
 
-        expect(AiUsageTracker).to receive(:track!).with(
+        EditorialiseContentItemJob.perform_now(content_item.id)
+
+        expect(AiUsageTracker).to have_received(:track!).with(
           input_tokens: 100,
           output_tokens: 50,
           editorialisation: editorialisation
         )
-
-        EditorialiseContentItemJob.perform_now(content_item.id)
       end
     end
   end

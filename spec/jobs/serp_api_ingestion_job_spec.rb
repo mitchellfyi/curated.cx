@@ -76,7 +76,8 @@ RSpec.describe SerpApiIngestionJob, type: :job do
 
         # The fixture has source names like "Tech Daily"
         item = ContentItem.find_by(title: "Tech News Article 1")
-        expect(item.tags).to include("source:tech-daily")
+        expect(item.tags).to include("source:google_news")
+        expect(item.tags).to include("publisher:tech-daily")
       end
     end
 

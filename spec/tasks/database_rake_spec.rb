@@ -11,31 +11,38 @@ RSpec.describe 'Database Rake Tasks' do
   end
 
   describe 'db:connections task' do
+    before { Rake::Task['db:connections'].reenable }
+
     it 'should show database connection status' do
       expect { Rake::Task['db:connections'].invoke }.not_to raise_error
     end
   end
 
   describe 'db:close_connections task' do
+    before { Rake::Task['db:close_connections'].reenable }
+
     it 'should close database connections' do
       expect { Rake::Task['db:close_connections'].invoke }.not_to raise_error
+    end
+
+    after do
+      # Re-establish connection closed by the task so subsequent tests work
+      ActiveRecord::Base.establish_connection
     end
   end
 
   describe 'db:create_safe task' do
-    it 'should create database safely' do
-      # Skip if database already exists
-      skip "Database already exists" if ActiveRecord::Base.connection.active?
+    before { Rake::Task['db:create_safe'].reenable }
 
+    it 'should not error when database already exists' do
       expect { Rake::Task['db:create_safe'].invoke }.not_to raise_error
     end
   end
 
   describe 'db:migrate_safe task' do
-    it 'should migrate database safely' do
-      # Skip if no database
-      skip "No database to migrate" unless ActiveRecord::Base.connection.active?
+    before { Rake::Task['db:migrate_safe'].reenable }
 
+    it 'should migrate database safely' do
       expect { Rake::Task['db:migrate_safe'].invoke }.not_to raise_error
     end
   end
