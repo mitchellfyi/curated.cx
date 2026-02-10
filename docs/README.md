@@ -44,6 +44,7 @@ Technical documentation for the Curated.cx multi-tenant content platform.
 | [Security](security.md) | Tenant and site isolation guarantees |
 | [Quality Enforcement](quality-enforcement.md) | Quality standards and gates |
 | [CI/CD Quality](ci-cd-quality.md) | Continuous integration workflows |
+| [Self-Healing CI](self-healing-ci.md) | Automated CI failure detection and fixing |
 | [Safe Migrations](safe-migrations.md) | Database migration best practices |
 | [Anti-Pattern Prevention](anti-pattern-prevention.md) | Code patterns to avoid |
 | [Error Handling](error-handling.md) | Error handling patterns |
