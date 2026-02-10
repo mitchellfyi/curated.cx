@@ -76,7 +76,8 @@ jobs:
           script: |
             const workflowRunId = context.payload.workflow_run.id;
             const repo = context.repo;
-            const failedJobsData = ${{ steps.fetch_jobs.outputs.result }};
+            // Parse the JSON result from the previous step
+            const failedJobsData = JSON.parse(`${{ toJSON(steps.fetch_jobs.outputs.result) }}`);
             const failedJobs = failedJobsData.failedJobs;
             
             let logsMarkdown = '';
@@ -111,8 +112,9 @@ jobs:
               }
             }
             
-            core.setOutput('logs_markdown', logsMarkdown);
-            return logsMarkdown;
+            // Use base64 encoding to safely pass logs to next step
+            const logsBase64 = Buffer.from(logsMarkdown).toString('base64');
+            core.setOutput('logs_base64', logsBase64);
 
       - name: Check for existing issues
         id: check_existing
@@ -174,7 +176,9 @@ jobs:
             const retryCount = parseInt('${{ steps.check_existing.outputs.retry_count }}');
             const maxRetries = 3;
             
-            const logsMarkdown = `${{ steps.process_logs.outputs.logs_markdown }}`;
+            // Decode base64 logs
+            const logsBase64 = '${{ steps.process_logs.outputs.logs_base64 }}';
+            const logsMarkdown = Buffer.from(logsBase64, 'base64').toString('utf8');
             
             // Build issue body
             const issueBody = `## CI Failure — Auto-generated
