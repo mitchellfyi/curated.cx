@@ -297,19 +297,19 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          echo "## Self-Healing CI Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Self-Healing CI Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
           
           if [ "${{ steps.fetch_jobs.outputs.has_failures }}" = "true" ]; then
-            echo "✅ Processed CI failure" >> $GITHUB_STEP_SUMMARY
-            echo "- Failed jobs: ${{ steps.fetch_jobs.outputs.failed_job_count }}" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Processed CI failure" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Failed jobs: ${{ steps.fetch_jobs.outputs.failed_job_count }}" >> "$GITHUB_STEP_SUMMARY"
             
             if [ "${{ steps.check_existing.outputs.has_existing }}" = "true" ]; then
-              echo "- Action: Updated existing issue #${{ steps.check_existing.outputs.issue_number }}" >> $GITHUB_STEP_SUMMARY
-              echo "- Retry count: ${{ steps.check_existing.outputs.retry_count }}" >> $GITHUB_STEP_SUMMARY
+              echo "- Action: Updated existing issue #${{ steps.check_existing.outputs.issue_number }}" >> "$GITHUB_STEP_SUMMARY"
+              echo "- Retry count: ${{ steps.check_existing.outputs.retry_count }}" >> "$GITHUB_STEP_SUMMARY"
             else
-              echo "- Action: Created new issue" >> $GITHUB_STEP_SUMMARY
+              echo "- Action: Created new issue" >> "$GITHUB_STEP_SUMMARY"
             fi
           else
-            echo "ℹ️ No failed jobs found" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ No failed jobs found" >> "$GITHUB_STEP_SUMMARY"
           fi
