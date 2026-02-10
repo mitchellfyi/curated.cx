@@ -137,7 +137,7 @@ class EditorialisationService
     )
 
     # Parse the response
-    parsed = parse_ai_response(result[:content], prompt_manager.constraints)
+    parsed = parse_ai_response(result[:content], prompt_manager.constraints, prompt_manager.config)
 
     # Update editorialisation record
     editorialisation.mark_completed!(
@@ -154,7 +154,7 @@ class EditorialisationService
     editorialisation
   end
 
-  def parse_ai_response(raw_content, constraints)
+  def parse_ai_response(raw_content, constraints, config = {})
     begin
       parsed = JSON.parse(raw_content)
     rescue JSON::ParserError => e
@@ -173,11 +173,22 @@ class EditorialisationService
     max_takeaways = constraints["max_key_takeaways"] || 5
     max_audience = constraints["max_audience_tags"] || 3
 
+    # Valid content types for format classification
+    valid_content_types = constraints["content_types"] ||
+      config&.dig("content_types") ||
+      %w[article tutorial opinion research announcement review guide interview case-study roundup]
+
     result = {
       "summary" => truncate_field(parsed["summary"], max_summary),
       "why_it_matters" => truncate_field(parsed["why_it_matters"], max_why),
       "suggested_tags" => Array(parsed["suggested_tags"]).first(max_tags)
     }
+
+    # Content type (format classification) - validate against allowed values
+    if parsed.key?("content_type")
+      ct = parsed["content_type"].to_s.strip.downcase
+      result["content_type"] = ct if valid_content_types.include?(ct)
+    end
 
     # Enhanced editorial fields (v2.0.0+)
     if parsed.key?("key_takeaways")
@@ -209,11 +220,35 @@ class EditorialisationService
       editorialised_at: Time.current
     }
 
+    # Set content_type (format classification) from AI
+    if parsed["content_type"].present?
+      attrs[:content_type] = parsed["content_type"]
+    end
+
     # Enhanced editorial fields (v2.0.0+)
     attrs[:key_takeaways] = parsed["key_takeaways"] if parsed.key?("key_takeaways")
     attrs[:audience_tags] = parsed["audience_tags"] if parsed.key?("audience_tags")
     attrs[:quality_score] = parsed["quality_score"] if parsed.key?("quality_score")
 
+    # Merge AI-suggested tags into topic_tags where they match existing taxonomy slugs.
+    # This enhances rule-based tagging with AI intelligence.
+    if parsed["suggested_tags"].present?
+      attrs[:topic_tags] = merge_ai_tags_into_topic_tags(parsed["suggested_tags"])
+    end
+
     content_item.update_columns(attrs)
+  end
+
+  # Merge AI-suggested tags with existing topic_tags, keeping only those
+  # that match known taxonomy slugs for this site.
+  def merge_ai_tags_into_topic_tags(suggested_tags)
+    existing_tags = content_item.topic_tags || []
+    site_taxonomy_slugs = Taxonomy.where(site_id: content_item.site_id).pluck(:slug)
+
+    # Only keep AI suggestions that match known taxonomy slugs
+    matched_suggestions = Array(suggested_tags).select { |tag| site_taxonomy_slugs.include?(tag) }
+
+    # Merge: existing rule-based tags + matched AI suggestions, deduplicated
+    (existing_tags + matched_suggestions).uniq
   end
 end

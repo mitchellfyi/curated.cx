@@ -62,8 +62,8 @@ class TaggingService
       { rule_id: m[:rule].id, taxonomy_slug: m[:taxonomy].slug, reason: m[:reason] }
     end
 
-    # Content type is not determined by rules in this implementation
-    # It could be extended later with rule_type-specific content_type assignments
+    # Content type (format: article, tutorial, opinion, etc.) is set by AI
+    # editorialisation, not by tagging rules. Rules only assign topic tags.
     {
       topic_tags: topic_tags,
       content_type: nil,

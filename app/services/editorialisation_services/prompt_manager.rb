@@ -54,12 +54,16 @@ module EditorialisationServices
       extracted_text = content_item.extracted_text || ""
       truncated_text = truncate_text(extracted_text, MAX_TEXT_LENGTH)
 
+      # Build taxonomy list for the site so AI can suggest from known topics
+      taxonomy_list = build_taxonomy_list(content_item.site_id)
+
       # Interpolate template variables
       prompt = template
         .gsub("{title}", content_item.title || "")
         .gsub("{url}", content_item.url_canonical || "")
         .gsub("{description}", content_item.description || "")
         .gsub("{extracted_text}", truncated_text)
+        .gsub("{taxonomy_list}", taxonomy_list)
 
       {
         system_prompt: config["system_prompt"],
@@ -100,6 +104,15 @@ module EditorialisationServices
       truncated = truncated[0, last_space] if last_space && last_space > max_length - 100
 
       "#{truncated}..."
+    end
+
+    # Build a comma-separated list of taxonomy slugs for the site
+    # so the AI can suggest from known topics
+    def build_taxonomy_list(site_id)
+      taxonomies = Taxonomy.where(site_id: site_id).order(:position).pluck(:slug)
+      return "(none defined)" if taxonomies.empty?
+
+      taxonomies.join(", ")
     end
   end
 end

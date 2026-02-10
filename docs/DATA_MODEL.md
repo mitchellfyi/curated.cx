@@ -1418,4 +1418,70 @@ site.update_setting("digest.include_notes", false)
 
 ---
 
-*Last Updated: 2026-02-01* (Added Note model, Site Configuration section)
+---
+
+## Content Classification System
+
+The project uses three distinct, non-overlapping classification concepts:
+
+### 1. Category (Listing Directory Sections)
+
+**Applies to:** Listings only
+**Purpose:** Defines the type of listing in the directory (tools, jobs, services, etc.)
+
+- Each `Listing` belongs to exactly one `Category`
+- Categories have a `category_type` that determines display template and behavior
+- Categories are seeded per tenant with industry-specific sections
+
+**Examples:** "Apps & Tools" (product), "Jobs" (job), "Services" (service), "AI Models" (product)
+
+### 2. Taxonomy → topic_tags (Content Topics)
+
+**Applies to:** ContentItems only
+**Purpose:** Defines what SUBJECT the content is about. Industry-specific per tenant.
+
+- `Taxonomy` records define available topics for a site
+- `TaggingRule` records auto-assign taxonomy slugs when content matches patterns
+- `ContentItem.topic_tags` stores matched taxonomy slugs (JSONB array)
+- AI editorialisation also suggests tags from the taxonomy list
+- Users filter the feed by topic via `/feed?tag=slug`
+
+**Examples (ainews.cx):** machine-learning, llms, generative-ai, ai-safety, ai-agents
+**Examples (construction.cx):** safety, sustainability, materials, project-management
+**Examples (dayz.cx):** survival, base-building, pvp, modding, updates
+
+### 3. content_type (Content Format)
+
+**Applies to:** ContentItems only
+**Purpose:** Defines the FORMAT of the content, orthogonal to topic.
+
+- Set by AI editorialisation (not by tagging rules)
+- Stored in `ContentItem.content_type` (string)
+- Users filter the feed by format via `/feed?content_type=tutorial`
+
+**Valid values:** article, tutorial, opinion, research, announcement, review, guide, interview, case-study, roundup
+
+### How They Work Together
+
+A content item can be filtered on two dimensions simultaneously:
+- **Topic** (taxonomy): "Show me AI Safety content" → `?tag=ai-safety`
+- **Format** (content_type): "Show me just tutorials" → `?content_type=tutorial`
+
+The tagging pipeline:
+1. Content is ingested → `TaggingService` applies rule-based topic tags (after_create)
+2. AI editorialisation runs → sets `content_type`, suggests additional topic tags
+3. Matched AI suggestions are merged into `topic_tags`
+
+### Tag Fields on ContentItem
+
+| Field | Set By | Purpose |
+|-------|--------|---------|
+| `topic_tags` | TaggingService + AI merge | Active topic labels (taxonomy slugs) |
+| `content_type` | AI editorialisation | Format classification (article, tutorial, etc.) |
+| `ai_suggested_tags` | AI editorialisation | Raw AI suggestions (for audit/review) |
+| `tags` | Source ingestion | Raw source tags (preserved from original) |
+| `audience_tags` | AI editorialisation | Who should read this (developers, etc.) |
+
+---
+
+*Last Updated: 2026-02-10* (Cleaned up content classification system: industry-specific taxonomies, content_type format detection, AI tag merging)
