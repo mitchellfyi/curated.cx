@@ -4,7 +4,7 @@
 # Generates AI summary, key takeaways, and quality scoring.
 #
 # This job wraps EditorialisationService and chains to CaptureScreenshotJob
-# upon completion. Updates the enrichment_status on the content item.
+# upon completion. Updates the enrichment_status on the entry.
 #
 # Error Handling:
 #   - Retries on AiApiError, AiTimeoutError, AiRateLimitError
@@ -26,40 +26,35 @@ class AiEditorialJob < ApplicationJob
   discard_on AiInvalidResponseError
   discard_on AiConfigurationError
 
-  def perform(content_item_id)
-    @content_item = ContentItem.find(content_item_id)
-    @site = @content_item.site
-    @tenant = @site.tenant
+  def perform(entry_id)
+    @entry = Entry.find(entry_id)
+    @site = @entry.site
+    @tenant = @site&.tenant
 
     Current.tenant = @tenant
     Current.site = @site
 
-    # Check if workflow is paused
-    return if workflow_paused?(source: @content_item.source, tenant: @tenant)
+    return if workflow_paused?(source: @entry.source, tenant: @tenant)
 
-    # Check AI usage limits
     unless AiUsageTracker.can_make_request?
-      log_job_warning("AI usage limit reached - skipping", content_item_id: content_item_id)
-      chain_to_screenshot(content_item_id)
-      @content_item.mark_enrichment_complete!
+      log_job_warning("AI usage limit reached - skipping", entry_id: entry_id)
+      chain_to_screenshot(entry_id)
+      @entry.mark_enrichment_complete!
       return
     end
 
-    result = EditorialisationService.editorialise(@content_item)
+    result = EditorialisationService.editorialise(@entry)
 
     track_ai_usage(result) if result.completed?
     log_result(result)
 
-    # Chain to screenshot capture
-    chain_to_screenshot(content_item_id)
-
-    # Mark enrichment complete
-    @content_item.mark_enrichment_complete!
+    chain_to_screenshot(entry_id)
+    @entry.mark_enrichment_complete!
   rescue AiApiError, AiTimeoutError, AiRateLimitError => e
-    @content_item&.mark_enrichment_failed!(e.message)
+    @entry&.mark_enrichment_failed!(e.message)
     raise
   rescue AiInvalidResponseError, AiConfigurationError => e
-    @content_item&.mark_enrichment_failed!(e.message)
+    @entry&.mark_enrichment_failed!(e.message)
     raise
   ensure
     Current.tenant = nil
@@ -68,8 +63,8 @@ class AiEditorialJob < ApplicationJob
 
   private
 
-  def chain_to_screenshot(content_item_id)
-    CaptureScreenshotJob.perform_later(content_item_id)
+  def chain_to_screenshot(entry_id)
+    CaptureScreenshotJob.perform_later(entry_id)
   end
 
   def track_ai_usage(editorialisation)
@@ -85,26 +80,26 @@ class AiEditorialJob < ApplicationJob
     Rails.logger.error("Failed to track AI usage: #{e.message}")
   end
 
-  def log_result(editorialisation)
-    case editorialisation.status
+  def log_result(result)
+    case result.status
     when "completed"
       log_job_info(
         "AI editorial complete",
-        content_item_id: @content_item.id,
-        tokens: editorialisation.tokens_used,
-        duration_ms: editorialisation.duration_ms
+        entry_id: @entry.id,
+        tokens: result.tokens_used,
+        duration_ms: result.duration_ms
       )
     when "skipped"
       log_job_info(
         "AI editorial skipped",
-        content_item_id: @content_item.id,
-        reason: editorialisation.error_message
+        entry_id: @entry.id,
+        reason: result.error_message
       )
     when "failed"
       log_job_warning(
         "AI editorial failed",
-        content_item_id: @content_item.id,
-        error: editorialisation.error_message
+        entry_id: @entry.id,
+        error: result.error_message
       )
     end
   end

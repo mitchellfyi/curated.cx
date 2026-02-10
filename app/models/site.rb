@@ -36,7 +36,7 @@ class Site < ApplicationRecord
   has_one :primary_domain, -> { where(primary: true) }, class_name: "Domain"
   has_many :sources, dependent: :destroy
   has_many :import_runs, dependent: :destroy
-  has_many :content_items, dependent: :destroy
+  has_many :entries, dependent: :destroy
   has_many :votes, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :site_bans, dependent: :destroy

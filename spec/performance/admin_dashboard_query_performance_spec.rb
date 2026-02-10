@@ -6,7 +6,7 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
   let(:tenant) { create(:tenant, :enabled) }
   let!(:site) { tenant.sites.first }
   let!(:category) { create(:category, tenant: tenant, site: site) }
-  let!(:listings) { create_list(:listing, 10, :published, tenant: tenant, category: category) }
+  let!(:entries) { create_list(:entry, :directory, 10, :published, tenant: tenant, category: category) }
   let(:admin_user) { create(:user, :admin) }
 
   before do
@@ -42,7 +42,7 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
       # Admin dashboard query budget (all constant, no N+1):
       # - Auth/session/tenant: ~5
       # - Consolidated system_stats: 1 (+ 1 for Tenant.count if admin)
-      # - Categories + recent listings: ~3
+      # - Categories + recent entries: ~3
       # - AI usage tracker: ~15 (editorialisations aggregations)
       # - SERP API usage: ~5
       # - Recent activity: 3 (submissions, flags, import_runs)
@@ -52,34 +52,34 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
         "Expected ≤60 queries but got #{query_count}.\n\nQueries:\n#{data_queries.join("\n")}"
     end
 
-    it 'eager loads categories with their listings association' do
+    it 'eager loads categories with their entries association' do
       get admin_root_path
 
       categories = assigns(:categories)
       expect(categories).to be_present
 
-      # Verify listings association is already loaded (no N+1)
+      # Verify entries association is already loaded (no N+1)
       categories.each do |cat|
-        expect(cat.association(:listings)).to be_loaded
+        expect(cat.association(:entries)).to be_loaded
       end
     end
 
-    it 'eager loads recent listings with their category association' do
+    it 'eager loads recent entries with their category association' do
       get admin_root_path
 
-      recent_listings = assigns(:recent_listings)
-      expect(recent_listings).to be_present
+      recent_entries = assigns(:recent_entries)
+      expect(recent_entries).to be_present
 
       # Verify category association is already loaded (no N+1)
-      recent_listings.each do |listing|
-        expect(listing.association(:category)).to be_loaded
+      recent_entries.each do |entry|
+        expect(entry.association(:category)).to be_loaded
       end
     end
 
     it 'calculates stats in a single consolidated query' do
       # Create test data
-      create(:listing, :published, tenant: tenant, category: category, created_at: Time.current)
-      create(:listing, :unpublished, tenant: tenant, category: category)
+      create(:entry, :directory, :published, tenant: tenant, category: category, created_at: Time.current)
+      create(:entry, :directory, :unpublished, tenant: tenant, category: category)
 
       # Count stat-related queries
       stats_queries = []
@@ -95,10 +95,10 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
         get admin_root_path
       end
 
-      # Listing COUNTs should be consolidated into the single system_stats query
-      listing_count_queries = stats_queries.select { |q| q.include?('"listings"') }
-      expect(listing_count_queries.size).to be <= 1,
-        "Expected ≤1 listing COUNT query (consolidated in system_stats) but found #{listing_count_queries.size}:\n#{listing_count_queries.join("\n")}"
+      # Entry COUNTs should be consolidated into the single system_stats query
+      entry_count_queries = stats_queries.select { |q| q.include?('"entries"') }
+      expect(entry_count_queries.size).to be <= 1,
+        "Expected ≤1 entry COUNT query (consolidated in system_stats) but found #{entry_count_queries.size}:\n#{entry_count_queries.join("\n")}"
     end
   end
 
@@ -117,7 +117,7 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
     before do
       # Create additional data to stress test
       create_list(:category, 5, tenant: tenant, site: site)
-      create_list(:listing, 20, :published, tenant: tenant, category: category)
+      create_list(:entry, :directory, 20, :published, tenant: tenant, category: category)
     end
 
     it 'query count does not increase with data volume' do

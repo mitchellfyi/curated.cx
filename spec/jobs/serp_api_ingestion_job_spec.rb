@@ -23,10 +23,10 @@ RSpec.describe SerpApiIngestionJob, type: :job do
         })
       end
 
-      it "creates ContentItems from SerpAPI results" do
+      it "creates Entrys from SerpAPI results" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
       end
 
       it "creates an ImportRun record" do
@@ -60,10 +60,10 @@ RSpec.describe SerpApiIngestionJob, type: :job do
         expect(source.last_run_at).to be_within(1.second).of(Time.current)
       end
 
-      it "stores correct ContentItem attributes" do
+      it "stores correct Entry attributes" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Tech News Article 1")
+        item = Entry.find_by(title: "Tech News Article 1")
         expect(item).to be_present
         expect(item.url_raw).to eq("https://news.example.com/tech-1")
         expect(item.description).to eq("Breaking news about technology innovations.")
@@ -75,7 +75,7 @@ RSpec.describe SerpApiIngestionJob, type: :job do
         described_class.perform_now(source.id)
 
         # The fixture has source names like "Tech Daily"
-        item = ContentItem.find_by(title: "Tech News Article 1")
+        item = Entry.find_by(title: "Tech News Article 1")
         expect(item.tags).to include("source:google_news")
         expect(item.tags).to include("publisher:tech-daily")
       end
@@ -92,17 +92,17 @@ RSpec.describe SerpApiIngestionJob, type: :job do
         })
       end
 
-      it "does not create duplicate ContentItems on subsequent runs" do
+      it "does not create duplicate Entrys on subsequent runs" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
 
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(0)
+        }.to change(Entry, :count).by(0)
       end
 
-      it "updates existing ContentItems on subsequent runs" do
+      it "updates existing Entrys on subsequent runs" do
         described_class.perform_now(source.id)
         first_run = ImportRun.order(:created_at).last
 
@@ -139,7 +139,7 @@ RSpec.describe SerpApiIngestionJob, type: :job do
       it "respects max_results limit" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(2)
+        }.to change(Entry, :count).by(2)
       end
     end
 
@@ -159,7 +159,7 @@ RSpec.describe SerpApiIngestionJob, type: :job do
       it "skips processing when rate limited" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
       end
 
       it "does not create an ImportRun when rate limited" do
@@ -188,7 +188,7 @@ RSpec.describe SerpApiIngestionJob, type: :job do
       it "skips processing when hourly rate limited" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
       end
 
       it "updates source status to hourly_rate_limited" do
@@ -204,7 +204,7 @@ RSpec.describe SerpApiIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -223,7 +223,7 @@ RSpec.describe SerpApiIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -303,7 +303,7 @@ RSpec.describe SerpApiIngestionJob, type: :job do
       it "handles empty results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")
@@ -331,7 +331,7 @@ RSpec.describe SerpApiIngestionJob, type: :job do
       it "handles missing news_results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")

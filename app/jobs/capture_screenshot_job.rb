@@ -1,15 +1,7 @@
 # frozen_string_literal: true
 
-# Job to capture a screenshot for a ContentItem.
+# Job to capture a screenshot for an Entry.
 # Uses ScreenshotService to capture and store the screenshot URL.
-#
-# Enqueued when new content is ingested and needs a visual preview.
-# Falls back to OG image if screenshot capture fails.
-#
-# Error Handling:
-#   - Retries on ScreenshotError (network/API issues)
-#   - Discards on ConfigurationError (missing API key)
-#   - Discards on record not found
 #
 class CaptureScreenshotJob < ApplicationJob
   include JobLogging
@@ -20,20 +12,20 @@ class CaptureScreenshotJob < ApplicationJob
   discard_on ScreenshotService::ConfigurationError
   discard_on ActiveRecord::RecordNotFound
 
-  def perform(content_item_id)
-    content_item = ContentItem.find(content_item_id)
+  def perform(entry_id)
+    entry = Entry.find(entry_id)
 
-    if content_item.screenshot_url.present?
-      log_job_info("Screenshot already exists", content_item_id: content_item_id)
+    if entry.screenshot_url.present?
+      log_job_info("Screenshot already exists", entry_id: entry_id)
       return
     end
 
-    result = ScreenshotService.capture_for_content_item(content_item)
+    result = ScreenshotService.capture_for_entry(entry)
 
     if result
-      log_job_info("Screenshot captured", content_item_id: content_item_id, screenshot_url: result[:screenshot_url])
+      log_job_info("Screenshot captured", entry_id: entry_id, screenshot_url: result[:screenshot_url])
     else
-      log_job_warning("Screenshot capture failed, used fallback", content_item_id: content_item_id)
+      log_job_warning("Screenshot capture failed, used fallback", entry_id: entry_id)
     end
   end
 end

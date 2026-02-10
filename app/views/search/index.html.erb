@@ -125,7 +125,7 @@
                   <%= badge_warning(t('monetisation.badges.featured')) if listing.featured? %>
                 </div>
                 <div class="flex items-center gap-4 text-xs text-gray-500 mt-2">
-                  <span class="capitalize"><%= listing.listing_type %></span>
+                  <span class="capitalize"><%= listing.category&.category_type %></span>
                   <span><%= listing.category_name %></span>
                   <% if listing.location.present? %>
                     <span><%= listing.location %></span>

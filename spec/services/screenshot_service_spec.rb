@@ -119,8 +119,8 @@ RSpec.describe ScreenshotService do
     end
   end
 
-  describe ".capture_for_content_item" do
-    let(:content_item) { create(:content_item) }
+  describe ".capture_for_entry" do
+    let(:entry) { create(:entry, :feed) }
 
     before do
       allow(ENV).to receive(:fetch).and_call_original
@@ -136,26 +136,26 @@ RSpec.describe ScreenshotService do
       end
 
       it "updates the content item with screenshot data" do
-        described_class.capture_for_content_item(content_item)
+        described_class.capture_for_entry(entry)
 
-        content_item.reload
-        expect(content_item.screenshot_url).to eq("https://screenshots.example.com/result.png")
-        expect(content_item.screenshot_captured_at).to be_within(1.second).of(Time.current)
+        entry.reload
+        expect(entry.screenshot_url).to eq("https://screenshots.example.com/result.png")
+        expect(entry.screenshot_captured_at).to be_within(1.second).of(Time.current)
       end
     end
 
     context "when capture fails and OG image is available" do
       before do
-        content_item.update_columns(og_image_url: "https://example.com/og-image.jpg")
+        entry.update_columns(og_image_url: "https://example.com/og-image.jpg")
         stub_request(:get, /screenshotapi\.net/).to_timeout
       end
 
       it "falls back to OG image" do
-        described_class.capture_for_content_item(content_item)
+        described_class.capture_for_entry(entry)
 
-        content_item.reload
-        expect(content_item.screenshot_url).to eq("https://example.com/og-image.jpg")
-        expect(content_item.screenshot_captured_at).to be_within(1.second).of(Time.current)
+        entry.reload
+        expect(entry.screenshot_url).to eq("https://example.com/og-image.jpg")
+        expect(entry.screenshot_captured_at).to be_within(1.second).of(Time.current)
       end
     end
 
@@ -165,11 +165,11 @@ RSpec.describe ScreenshotService do
       end
 
       it "returns nil and does not update content item" do
-        result = described_class.capture_for_content_item(content_item)
+        result = described_class.capture_for_entry(entry)
 
         expect(result).to be_nil
-        content_item.reload
-        expect(content_item.screenshot_url).to be_nil
+        entry.reload
+        expect(entry.screenshot_url).to be_nil
       end
     end
   end

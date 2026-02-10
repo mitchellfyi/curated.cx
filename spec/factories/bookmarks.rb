@@ -24,10 +24,10 @@
 FactoryBot.define do
   factory :bookmark do
     user
-    bookmarkable { association :content_item, :published }
+    bookmarkable { association :entry, :published }
 
-    trait :for_listing do
-      bookmarkable { association :listing }
+    trait :for_directory do
+      bookmarkable { association :entry, :directory }
     end
   end
 end

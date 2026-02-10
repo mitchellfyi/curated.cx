@@ -6,8 +6,8 @@ RSpec.describe StripeWebhookHandler do
   let(:tenant) { create(:tenant, :enabled) }
   let(:site) { create(:site, tenant: tenant) }
   let(:category) { create(:category, tenant: tenant, site: site) }
-  let!(:listing) do
-    create(:listing, :job, site: site, tenant: tenant, category: category,
+  let!(:entry) do
+    create(:entry, :directory, :job, site: site, tenant: tenant, category: category,
            stripe_checkout_session_id: "cs_test_123",
            payment_status: :pending_payment)
   end
@@ -28,7 +28,7 @@ RSpec.describe StripeWebhookHandler do
           metadata: {
             "checkout_type" => "job_post_30",
             "duration_days" => "30",
-            "listing_id" => listing.id.to_s
+            "entry_id" => entry.id.to_s
           },
           amount_total: 99_00,
           currency: "usd")
@@ -44,27 +44,27 @@ RSpec.describe StripeWebhookHandler do
         allow(PaymentReceiptMailer).to receive_message_chain(:receipt, :deliver_later)
       end
 
-      it "marks the listing as paid" do
+      it "marks the entry as paid" do
         described_class.new(event).process
 
-        listing.reload
-        expect(listing.payment_status).to eq("paid")
-        expect(listing.paid).to be true
-        expect(listing.stripe_payment_intent_id).to eq("pi_test_456")
+        entry.reload
+        expect(entry.payment_status).to eq("paid")
+        expect(entry.paid).to be true
+        expect(entry.stripe_payment_intent_id).to eq("pi_test_456")
       end
 
       it "sets expiry date for job posts" do
         freeze_time do
           described_class.new(event).process
 
-          listing.reload
-          expect(listing.expires_at).to be_within(1.second).of(30.days.from_now)
-          expect(listing.published_at).to be_present
+          entry.reload
+          expect(entry.expires_at).to be_within(1.second).of(30.days.from_now)
+          expect(entry.published_at).to be_present
         end
       end
 
       it "sends payment receipt email" do
-        expect(PaymentReceiptMailer).to receive(:receipt).with(listing, session_object)
+        expect(PaymentReceiptMailer).to receive(:receipt).with(entry, session_object)
 
         described_class.new(event).process
       end
@@ -80,7 +80,7 @@ RSpec.describe StripeWebhookHandler do
           metadata: {
             "checkout_type" => "featured_14",
             "duration_days" => "14",
-            "listing_id" => listing.id.to_s
+            "entry_id" => entry.id.to_s
           },
           amount_total: 89_00,
           currency: "usd")
@@ -100,9 +100,9 @@ RSpec.describe StripeWebhookHandler do
         freeze_time do
           described_class.new(event).process
 
-          listing.reload
-          expect(listing.featured_from).to be_within(1.second).of(Time.current)
-          expect(listing.featured_until).to be_within(1.second).of(14.days.from_now)
+          entry.reload
+          expect(entry.featured_from).to be_within(1.second).of(Time.current)
+          expect(entry.featured_until).to be_within(1.second).of(14.days.from_now)
         end
       end
     end
@@ -121,14 +121,14 @@ RSpec.describe StripeWebhookHandler do
       it "resets payment status to unpaid" do
         described_class.new(event).process
 
-        listing.reload
-        expect(listing.payment_status).to eq("unpaid")
+        entry.reload
+        expect(entry.payment_status).to eq("unpaid")
       end
     end
 
     describe "charge.refunded" do
-      let!(:paid_listing) do
-        create(:listing, :job, site: site, tenant: tenant, category: category,
+      let!(:paid_entry) do
+        create(:entry, :directory, :job, site: site, tenant: tenant, category: category,
                stripe_payment_intent_id: "pi_test_456",
                payment_status: :paid,
                paid: true,
@@ -146,20 +146,20 @@ RSpec.describe StripeWebhookHandler do
           data: double(object: charge_object))
       end
 
-      it "marks listing as refunded" do
+      it "marks entry as refunded" do
         described_class.new(event).process
 
-        paid_listing.reload
-        expect(paid_listing.payment_status).to eq("refunded")
-        expect(paid_listing.paid).to be false
+        paid_entry.reload
+        expect(paid_entry.payment_status).to eq("refunded")
+        expect(paid_entry.paid).to be false
       end
 
       it "removes featured benefits" do
         described_class.new(event).process
 
-        paid_listing.reload
-        expect(paid_listing.featured_from).to be_nil
-        expect(paid_listing.featured_until).to be_nil
+        paid_entry.reload
+        expect(paid_entry.featured_from).to be_nil
+        expect(paid_entry.featured_until).to be_nil
       end
     end
 

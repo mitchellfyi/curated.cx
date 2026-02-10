@@ -79,10 +79,10 @@ class SegmentationService
           AND votes.created_at >= :since_date
       ) + (
         SELECT COUNT(*) FROM bookmarks
-        INNER JOIN content_items ON bookmarks.bookmarkable_id = content_items.id
-          AND bookmarks.bookmarkable_type = 'ContentItem'
+        INNER JOIN entries ON bookmarks.bookmarkable_id = entries.id
+          AND bookmarks.bookmarkable_type = 'Entry'
         WHERE bookmarks.user_id = digest_subscriptions.user_id
-          AND content_items.site_id = digest_subscriptions.site_id
+          AND entries.site_id = digest_subscriptions.site_id
           AND bookmarks.created_at >= :since_date
       ) + (
         SELECT COUNT(*) FROM content_views

@@ -61,7 +61,8 @@ class DigestMailer < ApplicationMailer
   private
 
   def fetch_top_content(since:, limit:)
-    ContentItem
+    Entry
+      .feed_items
       .where(site: @site)
       .published
       .not_hidden
@@ -71,7 +72,8 @@ class DigestMailer < ApplicationMailer
   end
 
   def fetch_new_listings(since:, limit:)
-    Listing
+    Entry
+      .directory_items
       .where(site: @site)
       .published
       .where("published_at >= ?", since)

@@ -161,9 +161,9 @@ RSpec.describe "Admin::TaggingRules", type: :request do
         end
 
         describe "POST /admin/tagging_rules/:id/test" do
-          let!(:content_item) do
+          let!(:entry) do
             source = create(:source, site: site1, tenant: tenant1)
-            create(:content_item, site: site1, source: source,
+            create(:entry, :feed, site: site1, source: source,
               url_canonical: "https://example.com/news/article",
               title: "Test Article")
           end
@@ -171,14 +171,14 @@ RSpec.describe "Admin::TaggingRules", type: :request do
           it "tests rule against content items" do
             get test_admin_tagging_rule_path(@tenant1_rule)
             expect(response).to have_http_status(:success)
-            expect(assigns(:content_items)).to include(content_item)
+            expect(assigns(:entries)).to include(entry)
             expect(assigns(:results)).to be_present
           end
 
           it "includes match results for each content item" do
             get test_admin_tagging_rule_path(@tenant1_rule)
             result = assigns(:results).first
-            expect(result).to have_key(:content_item)
+            expect(result).to have_key(:entry)
             expect(result).to have_key(:match_result)
           end
         end

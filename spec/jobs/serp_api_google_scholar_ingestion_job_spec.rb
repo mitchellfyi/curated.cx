@@ -21,10 +21,10 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
         })
       end
 
-      it "creates ContentItems from Google Scholar results" do
+      it "creates Entrys from Google Scholar results" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
       end
 
       it "creates an ImportRun record" do
@@ -58,10 +58,10 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
         expect(source.last_run_at).to be_within(1.second).of(Time.current)
       end
 
-      it "stores correct ContentItem attributes" do
+      it "stores correct Entry attributes" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Attention Is All You Need")
+        item = Entry.find_by(title: "Attention Is All You Need")
         expect(item).to be_present
         expect(item.url_raw).to eq("https://arxiv.org/abs/1706.03762")
         expect(item.description).to include("dominant sequence transduction")
@@ -72,35 +72,35 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
       it "stores citation count in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Attention Is All You Need")
+        item = Entry.find_by(title: "Attention Is All You Need")
         expect(item.raw_payload.dig("_scholar_metadata", "citations")).to eq(95000)
       end
 
       it "stores PDF URL in raw_payload when available" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Attention Is All You Need")
+        item = Entry.find_by(title: "Attention Is All You Need")
         expect(item.raw_payload.dig("_scholar_metadata", "pdf_url")).to eq("https://arxiv.org/pdf/1706.03762")
       end
 
       it "stores publication info in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Attention Is All You Need")
+        item = Entry.find_by(title: "Attention Is All You Need")
         expect(item.raw_payload.dig("_scholar_metadata", "publication")).to include("Advances in neural information processing systems")
       end
 
       it "handles papers without PDF links" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "BERT: Pre-training of Deep Bidirectional Transformers")
+        item = Entry.find_by(title: "BERT: Pre-training of Deep Bidirectional Transformers")
         expect(item.raw_payload.dig("_scholar_metadata", "pdf_url")).to be_nil
       end
 
       it "extracts academic paper tags" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Attention Is All You Need")
+        item = Entry.find_by(title: "Attention Is All You Need")
         expect(item.tags).to include("content_type:academic_paper")
         expect(item.tags).to include("year:2017")
       end
@@ -147,14 +147,14 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
         })
       end
 
-      it "does not create duplicate ContentItems on subsequent runs" do
+      it "does not create duplicate Entrys on subsequent runs" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
 
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(0)
+        }.to change(Entry, :count).by(0)
       end
     end
 
@@ -180,7 +180,7 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
       it "respects max_results limit" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(2)
+        }.to change(Entry, :count).by(2)
       end
     end
 
@@ -190,7 +190,7 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -203,7 +203,7 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -278,7 +278,7 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
       it "handles empty results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")

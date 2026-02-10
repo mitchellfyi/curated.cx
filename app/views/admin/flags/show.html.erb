@@ -40,16 +40,16 @@
         <h2 class="text-lg font-semibold mb-4"><%= t("admin.flags.show.flagged_content") %></h2>
         <div class="bg-gray-50 p-4 rounded-lg">
           <div class="flex items-center mb-3">
-            <%= badge(@flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), @flag.content_item? ? :blue : :green) %>
+            <%= badge(@flag.entry? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), @flag.entry? ? :blue : :green) %>
           </div>
-          <% if @flag.content_item? %>
-            <% content_item = @flag.flaggable %>
-            <h3 class="font-medium text-gray-900 mb-2"><%= content_item.title %></h3>
-            <p class="text-sm text-gray-600 mb-2"><%= truncate(content_item.description, length: 200) %></p>
+          <% if @flag.entry? %>
+            <% entry = @flag.flaggable %>
+            <h3 class="font-medium text-gray-900 mb-2"><%= entry.title %></h3>
+            <p class="text-sm text-gray-600 mb-2"><%= truncate(entry.description, length: 200) %></p>
             <p class="text-sm text-gray-500">
-              <%= t("admin.flags.show.url") %>: <%= link_to content_item.url_canonical, content_item.url_canonical, target: "_blank", class: "text-blue-600 hover:text-blue-900" %>
+              <%= t("admin.flags.show.url") %>: <%= link_to entry.url_canonical, entry.url_canonical, target: "_blank", class: "text-blue-600 hover:text-blue-900" %>
             </p>
-            <% if content_item.hidden? %>
+            <% if entry.hidden? %>
               <p class="text-sm text-red-600 mt-2"><%= t("admin.flags.show.content_hidden") %></p>
             <% end %>
           <% elsif @flag.comment? %>
@@ -88,8 +88,8 @@
           <div class="flex gap-3">
             <%= button_to t("admin.flags.resolve"), resolve_admin_flag_path(@flag), method: :post, class: "px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors" %>
             <%= button_to t("admin.flags.dismiss"), dismiss_admin_flag_path(@flag), method: :post, class: "px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors" %>
-            <% if @flag.content_item? && !@flag.flaggable.hidden? %>
-              <%= button_to t("admin.flags.hide_content"), hide_admin_content_item_path(@flag.flaggable), method: :post, class: "px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors" %>
+            <% if @flag.entry? && !@flag.flaggable.hidden? %>
+              <%= button_to t("admin.flags.hide_content"), hide_admin_entry_path(@flag.flaggable), method: :post, class: "px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors" %>
             <% end %>
           </div>
         </div>

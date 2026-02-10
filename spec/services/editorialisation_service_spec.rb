@@ -6,8 +6,8 @@ RSpec.describe EditorialisationService, type: :service do
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site, config: { "editorialise" => true }) }
-  let(:content_item) do
-    create(:content_item,
+  let(:entry) do
+    create(:entry, :feed,
       site: site,
       source: source,
       extracted_text: "A" * 500, # Meets minimum length
@@ -34,14 +34,14 @@ RSpec.describe EditorialisationService, type: :service do
     # Stub AiClient to avoid real API calls (including API key validation)
     allow_any_instance_of(EditorialisationServices::AiClient).to receive(:validate_api_key!)
     allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response)
-    # Prevent editorialisation job from running on content_item creation
-    allow_any_instance_of(ContentItem).to receive(:enqueue_enrichment_pipeline)
+    # Prevent editorialisation job from running on entry creation
+    allow_any_instance_of(Entry).to receive(:enqueue_enrichment_pipeline)
   end
 
   describe ".editorialise" do
     it "delegates to instance call" do
       expect_any_instance_of(described_class).to receive(:call)
-      described_class.editorialise(content_item)
+      described_class.editorialise(entry)
     end
   end
 
@@ -49,18 +49,18 @@ RSpec.describe EditorialisationService, type: :service do
     context "happy path" do
       it "creates an Editorialisation record" do
         expect {
-          described_class.editorialise(content_item)
+          described_class.editorialise(entry)
         }.to change(Editorialisation, :count).by(1)
       end
 
       it "marks the editorialisation as completed" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("completed")
       end
 
       it "stores the AI response" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.parsed_response["summary"]).to eq("This is a test summary of the article.")
         expect(result.parsed_response["why_it_matters"]).to eq("This matters because it demonstrates important concepts.")
@@ -68,7 +68,7 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "stores token usage and duration" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.tokens_used).to eq(150)
         expect(result.duration_ms).to eq(1500)
@@ -76,25 +76,25 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "stores the prompt version" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.prompt_version).to eq("v2.0.0")
       end
 
       it "stores the prompt text" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.prompt_text).to include("Test Article")
       end
 
       it "updates the content item with AI results" do
-        described_class.editorialise(content_item)
-        content_item.reload
+        described_class.editorialise(entry)
+        entry.reload
 
-        expect(content_item.ai_summary).to eq("This is a test summary of the article.")
-        expect(content_item.why_it_matters).to eq("This matters because it demonstrates important concepts.")
-        expect(content_item.ai_suggested_tags).to eq([ "technology", "innovation" ])
-        expect(content_item.editorialised_at).to be_present
+        expect(entry.ai_summary).to eq("This is a test summary of the article.")
+        expect(entry.why_it_matters).to eq("This matters because it demonstrates important concepts.")
+        expect(entry.ai_suggested_tags).to eq([ "technology", "innovation" ])
+        expect(entry.editorialised_at).to be_present
       end
     end
 
@@ -116,28 +116,28 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "stores key takeaways on content item" do
-        described_class.editorialise(content_item)
-        content_item.reload
+        described_class.editorialise(entry)
+        entry.reload
 
-        expect(content_item.key_takeaways).to eq([ "First insight", "Second insight", "Third insight" ])
+        expect(entry.key_takeaways).to eq([ "First insight", "Second insight", "Third insight" ])
       end
 
       it "stores audience tags on content item" do
-        described_class.editorialise(content_item)
-        content_item.reload
+        described_class.editorialise(entry)
+        entry.reload
 
-        expect(content_item.audience_tags).to eq([ "developers", "tech leads" ])
+        expect(entry.audience_tags).to eq([ "developers", "tech leads" ])
       end
 
       it "stores quality score on content item" do
-        described_class.editorialise(content_item)
-        content_item.reload
+        described_class.editorialise(entry)
+        entry.reload
 
-        expect(content_item.quality_score).to eq(8.5)
+        expect(entry.quality_score).to eq(8.5)
       end
 
       it "stores enhanced fields in parsed response" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.parsed_response["key_takeaways"]).to eq([ "First insight", "Second insight", "Third insight" ])
         expect(result.parsed_response["audience_tags"]).to eq([ "developers", "tech leads" ])
@@ -160,7 +160,7 @@ RSpec.describe EditorialisationService, type: :service do
         }
         allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response_with_high_score)
 
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
         expect(result.parsed_response["quality_score"]).to eq(10.0)
       end
 
@@ -180,14 +180,14 @@ RSpec.describe EditorialisationService, type: :service do
         }
         allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response_with_many)
 
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
         expect(result.parsed_response["key_takeaways"].length).to be <= 5
       end
     end
 
     context "eligibility: text too short" do
-      let(:content_item) do
-        create(:content_item,
+      let(:entry) do
+        create(:entry, :feed,
           site: site,
           source: source,
           extracted_text: "Short text" # Only 10 chars, minimum is 200
@@ -195,7 +195,7 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "creates a skipped Editorialisation record" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("skipped")
         expect(result.error_message).to include("Insufficient text")
@@ -205,24 +205,24 @@ RSpec.describe EditorialisationService, type: :service do
 
       it "does not call the AI API" do
         expect_any_instance_of(EditorialisationServices::AiClient).not_to receive(:complete)
-        described_class.editorialise(content_item)
+        described_class.editorialise(entry)
       end
 
       it "does not update the content item" do
-        described_class.editorialise(content_item)
-        content_item.reload
+        described_class.editorialise(entry)
+        entry.reload
 
-        expect(content_item.editorialised_at).to be_nil
+        expect(entry.editorialised_at).to be_nil
       end
     end
 
     context "eligibility: already editorialised" do
       before do
-        content_item.update_columns(editorialised_at: 1.hour.ago)
+        entry.update_columns(editorialised_at: 1.hour.ago)
       end
 
       it "creates a skipped record" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("skipped")
         expect(result.error_message).to eq("Already editorialised")
@@ -231,11 +231,11 @@ RSpec.describe EditorialisationService, type: :service do
 
     context "eligibility: existing completed editorialisation" do
       let!(:existing_editorialisation) do
-        create(:editorialisation, :completed, content_item: content_item)
+        create(:editorialisation, :completed, entry: entry)
       end
 
       it "returns the existing editorialisation" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         # Returns the existing record rather than creating a duplicate
         expect(result.id).to eq(existing_editorialisation.id)
@@ -247,7 +247,7 @@ RSpec.describe EditorialisationService, type: :service do
       let(:source) { create(:source, site: site, config: { "editorialise" => false }) }
 
       it "creates a skipped record" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("skipped")
         expect(result.error_message).to eq("Source editorialisation disabled")
@@ -258,7 +258,7 @@ RSpec.describe EditorialisationService, type: :service do
       let(:source) { create(:source, site: site, config: {}) }
 
       it "creates a skipped record" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("skipped")
         expect(result.error_message).to eq("Source editorialisation disabled")
@@ -266,8 +266,8 @@ RSpec.describe EditorialisationService, type: :service do
     end
 
     context "eligibility: nil extracted_text" do
-      let(:content_item) do
-        create(:content_item,
+      let(:entry) do
+        create(:entry, :feed,
           site: site,
           source: source,
           extracted_text: nil
@@ -275,7 +275,7 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "creates a skipped record for insufficient text" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("skipped")
         expect(result.error_message).to include("Insufficient text")
@@ -302,19 +302,19 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "truncates summary to 280 characters" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.parsed_response["summary"].length).to be <= 280
       end
 
       it "truncates why_it_matters to 500 characters" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.parsed_response["why_it_matters"].length).to be <= 500
       end
 
       it "limits suggested_tags to 5 items" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.parsed_response["suggested_tags"].length).to eq(5)
       end
@@ -328,7 +328,7 @@ RSpec.describe EditorialisationService, type: :service do
 
       it "marks the editorialisation as failed" do
         expect {
-          described_class.editorialise(content_item)
+          described_class.editorialise(entry)
         }.to raise_error(AiApiError)
 
         editorialisation = Editorialisation.last
@@ -345,7 +345,7 @@ RSpec.describe EditorialisationService, type: :service do
 
       it "marks the editorialisation as failed and re-raises" do
         expect {
-          described_class.editorialise(content_item)
+          described_class.editorialise(entry)
         }.to raise_error(AiRateLimitError)
 
         editorialisation = Editorialisation.last
@@ -361,7 +361,7 @@ RSpec.describe EditorialisationService, type: :service do
 
       it "marks the editorialisation as failed and re-raises" do
         expect {
-          described_class.editorialise(content_item)
+          described_class.editorialise(entry)
         }.to raise_error(AiTimeoutError)
 
         editorialisation = Editorialisation.last
@@ -376,7 +376,7 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "marks the editorialisation as failed but does not re-raise" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("failed")
         expect(result.error_message).to include("Failed to parse AI response")
@@ -390,7 +390,7 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "marks the editorialisation as failed" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("failed")
         expect(result.error_message).to include("missing required fields")
@@ -404,7 +404,7 @@ RSpec.describe EditorialisationService, type: :service do
       end
 
       it "marks the editorialisation as failed but does not re-raise" do
-        result = described_class.editorialise(content_item)
+        result = described_class.editorialise(entry)
 
         expect(result.status).to eq("failed")
         expect(result.error_message).to eq("API key not configured")
@@ -419,7 +419,7 @@ RSpec.describe EditorialisationService, type: :service do
 
       it "marks the editorialisation as failed and re-raises" do
         expect {
-          described_class.editorialise(content_item)
+          described_class.editorialise(entry)
         }.to raise_error(StandardError, "Something went wrong")
 
         editorialisation = Editorialisation.last

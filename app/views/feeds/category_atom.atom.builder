@@ -32,7 +32,7 @@ xml.feed xmlns: "http://www.w3.org/2005/Atom" do
 
       # Categories
       xml.category term: @category.name, label: @category.name
-      xml.category term: listing.listing_type, label: listing.listing_type.titleize if listing.listing_type.present?
+      xml.category term: listing.category&.category_type, label: listing.category&.category_type&.titleize if listing.category&.category_type.present?
       xml.category term: "featured", label: "Featured" if listing.featured?
     end
   end

@@ -29,7 +29,7 @@ class Tenant < ApplicationRecord
   # Associations
   has_many :sites, dependent: :destroy
   has_many :categories, dependent: :destroy
-  has_many :listings, dependent: :destroy
+  has_many :entries, dependent: :destroy
 
   # Enums
   enum :status, { enabled: 0, disabled: 1, private_access: 2 }

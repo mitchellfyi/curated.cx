@@ -44,8 +44,8 @@ class FlagsController < ApplicationController
   end
 
   def find_flaggable
-    if params[:flaggable_type] == "ContentItem"
-      ContentItem.find_by(id: params[:flaggable_id])
+    if params[:flaggable_type] == "Entry"
+      Entry.find_by(id: params[:flaggable_id])
     elsif params[:flaggable_type] == "Comment"
       Comment.find_by(id: params[:flaggable_id])
     end

@@ -111,10 +111,10 @@ RSpec.describe SegmentationService, type: :service do
         inactive_sub = create(:digest_subscription, user: inactive_user, site: site)
 
         # Create engagement for the engaged user (votes on different content items)
-        content1 = create(:content_item, source: source)
-        content2 = create(:content_item, source: source)
-        create(:vote, user: engaged_user, content_item: content1, site: site, created_at: 5.days.ago)
-        create(:vote, user: engaged_user, content_item: content2, site: site, created_at: 10.days.ago)
+        content1 = create(:entry, :feed, source: source)
+        content2 = create(:entry, :feed, source: source)
+        create(:vote, user: engaged_user, entry: content1, site: site, created_at: 5.days.ago)
+        create(:vote, user: engaged_user, entry: content2, site: site, created_at: 10.days.ago)
 
         result = described_class.subscribers_for(segment)
 
@@ -130,10 +130,10 @@ RSpec.describe SegmentationService, type: :service do
         sub = create(:digest_subscription, user: user, site: site)
 
         # Create engagement outside the time window (votes on different content items)
-        content1 = create(:content_item, source: source)
-        content2 = create(:content_item, source: source)
-        create(:vote, user: user, content_item: content1, site: site, created_at: 35.days.ago)
-        create(:vote, user: user, content_item: content2, site: site, created_at: 40.days.ago)
+        content1 = create(:entry, :feed, source: source)
+        content2 = create(:entry, :feed, source: source)
+        create(:vote, user: user, entry: content1, site: site, created_at: 35.days.ago)
+        create(:vote, user: user, entry: content2, site: site, created_at: 40.days.ago)
 
         result = described_class.subscribers_for(segment)
 
@@ -148,7 +148,7 @@ RSpec.describe SegmentationService, type: :service do
         sub = create(:digest_subscription, user: user, site: site)
 
         # Create a bookmark
-        content = create(:content_item, source: source)
+        content = create(:entry, :feed, source: source)
         create(:bookmark, user: user, bookmarkable: content, created_at: 5.days.ago)
 
         result = described_class.subscribers_for(segment)
@@ -164,8 +164,8 @@ RSpec.describe SegmentationService, type: :service do
         sub = create(:digest_subscription, user: user, site: site)
 
         # Create a content view
-        content = create(:content_item, source: source)
-        create(:content_view, user: user, content_item: content, site: site, created_at: 5.days.ago)
+        content = create(:entry, :feed, source: source)
+        create(:content_view, user: user, entry: content, site: site, created_at: 5.days.ago)
 
         result = described_class.subscribers_for(segment)
 
@@ -179,10 +179,10 @@ RSpec.describe SegmentationService, type: :service do
         user = create(:user)
         sub = create(:digest_subscription, user: user, site: site)
 
-        content = create(:content_item, source: source)
-        create(:vote, user: user, content_item: content, site: site, created_at: 5.days.ago)
+        content = create(:entry, :feed, source: source)
+        create(:vote, user: user, entry: content, site: site, created_at: 5.days.ago)
         create(:bookmark, user: user, bookmarkable: content, created_at: 5.days.ago)
-        create(:content_view, user: user, content_item: content, site: site, created_at: 5.days.ago)
+        create(:content_view, user: user, entry: content, site: site, created_at: 5.days.ago)
 
         result = described_class.subscribers_for(segment)
 

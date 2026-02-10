@@ -89,7 +89,7 @@ class FetchRssJob < ApplicationJob
     category = find_or_create_category("news")
 
     urls.each do |url|
-      UpsertListingsJob.perform_later(@tenant.id, category.id, url, source_id: @source.id)
+      UpsertEntriesJob.perform_later(@tenant.id, category.id, url, source_id: @source.id)
     end
   end
 

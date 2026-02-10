@@ -39,8 +39,8 @@ module Admin
 
       {
         users: safe_count { User.count },
-        content_items: safe_count { ContentItem.count },
-        content_items_today: safe_count { ContentItem.where("created_at > ?", today_start).count },
+        content_items: safe_count { Entry.feed_items.count },
+        content_items_today: safe_count { Entry.feed_items.where("created_at > ?", today_start).count },
         notes: safe_count { Note.count },
         sources_enabled: safe_count { Source.enabled.count },
         imports_running: safe_count { ImportRun.running.count },

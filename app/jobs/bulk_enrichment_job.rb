@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-# Job for batch processing enrichment on multiple content items.
-# Useful for backfilling enrichment on existing content or
-# re-processing items that failed enrichment.
-#
-# Accepts an array of content item IDs and enqueues EnrichContentItemJob
-# for each one, with a small delay between batches to avoid overloading.
+# Job for batch processing enrichment on multiple feed entries.
+# Accepts an array of entry IDs (feed) and enqueues EnrichEntryJob for each.
 #
 class BulkEnrichmentJob < ApplicationJob
   include JobLogging
@@ -14,13 +10,13 @@ class BulkEnrichmentJob < ApplicationJob
 
   MAX_BATCH_SIZE = 500
 
-  def perform(content_item_ids: nil, scope: "pending")
-    items = resolve_items(content_item_ids, scope)
+  def perform(entry_ids: nil, scope: "pending")
+    items = resolve_items(entry_ids, scope)
     count = 0
 
-    items.find_each do |item|
-      item.reset_enrichment!
-      EnrichContentItemJob.perform_later(item.id)
+    items.find_each do |entry|
+      entry.reset_enrichment!
+      EnrichEntryJob.perform_later(entry.id)
       count += 1
       break if count >= MAX_BATCH_SIZE
     end
@@ -30,19 +26,20 @@ class BulkEnrichmentJob < ApplicationJob
 
   private
 
-  def resolve_items(content_item_ids, scope)
-    if content_item_ids.present?
-      ContentItem.where(id: content_item_ids)
+  def resolve_items(entry_ids, scope)
+    base = Entry.feed_items
+    if entry_ids.present?
+      base.where(id: entry_ids)
     else
       case scope
       when "pending"
-        ContentItem.enrichment_pending
+        base.enrichment_pending
       when "failed"
-        ContentItem.enrichment_failed
+        base.enrichment_failed
       when "all"
-        ContentItem.where.not(enrichment_status: "enriching")
+        base.where.not(enrichment_status: "enriching")
       else
-        ContentItem.enrichment_pending
+        base.enrichment_pending
       end
     end
   end

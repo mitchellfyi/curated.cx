@@ -6,7 +6,7 @@ RSpec.describe StripeCheckoutService do
   let(:tenant) { create(:tenant, :enabled) }
   let(:site) { create(:site, tenant: tenant) }
   let(:category) { create(:category, tenant: tenant, site: site) }
-  let(:listing) { create(:listing, :job, site: site, tenant: tenant, category: category) }
+  let(:entry) { create(:entry, :directory, :job, site: site, tenant: tenant, category: category) }
 
   before do
     Current.tenant = tenant
@@ -17,13 +17,13 @@ RSpec.describe StripeCheckoutService do
   describe "#initialize" do
     it "accepts valid checkout types" do
       expect {
-        described_class.new(listing, checkout_type: :job_post_30)
+        described_class.new(entry, checkout_type: :job_post_30)
       }.not_to raise_error
     end
 
     it "raises error for invalid checkout types" do
       expect {
-        described_class.new(listing, checkout_type: :invalid_type)
+        described_class.new(entry, checkout_type: :invalid_type)
       }.to raise_error(StripeCheckoutService::InvalidCheckoutTypeError)
     end
 
@@ -32,7 +32,7 @@ RSpec.describe StripeCheckoutService do
 
       it "raises StripeNotConfiguredError" do
         expect {
-          described_class.new(listing, checkout_type: :job_post_30)
+          described_class.new(entry, checkout_type: :job_post_30)
         }.to raise_error(StripeCheckoutService::StripeNotConfiguredError)
       end
     end
@@ -40,30 +40,30 @@ RSpec.describe StripeCheckoutService do
 
   describe "#price_amount" do
     it "returns the correct price for job_post_30" do
-      service = described_class.new(listing, checkout_type: :job_post_30)
+      service = described_class.new(entry, checkout_type: :job_post_30)
       expect(service.price_amount).to eq(99_00)
     end
 
     it "returns the correct price for featured_7" do
-      service = described_class.new(listing, checkout_type: :featured_7)
+      service = described_class.new(entry, checkout_type: :featured_7)
       expect(service.price_amount).to eq(49_00)
     end
   end
 
   describe "#duration_days" do
     it "returns the correct duration for job_post_60" do
-      service = described_class.new(listing, checkout_type: :job_post_60)
+      service = described_class.new(entry, checkout_type: :job_post_60)
       expect(service.duration_days).to eq(60)
     end
 
     it "returns the correct duration for featured_14" do
-      service = described_class.new(listing, checkout_type: :featured_14)
+      service = described_class.new(entry, checkout_type: :featured_14)
       expect(service.duration_days).to eq(14)
     end
   end
 
   describe "#create_session" do
-    let(:service) { described_class.new(listing, checkout_type: :job_post_30) }
+    let(:service) { described_class.new(entry, checkout_type: :job_post_30) }
     let(:mock_session) do
       double("Stripe::Checkout::Session",
         id: "cs_test_123",
@@ -77,7 +77,7 @@ RSpec.describe StripeCheckoutService do
     it "creates a Stripe checkout session" do
       expect(Stripe::Checkout::Session).to receive(:create).with(hash_including(
         mode: "payment",
-        client_reference_id: listing.id.to_s
+        client_reference_id: entry.id.to_s
       ))
 
       service.create_session(
@@ -86,15 +86,15 @@ RSpec.describe StripeCheckoutService do
       )
     end
 
-    it "updates the listing with session ID" do
+    it "updates the entry with session ID" do
       service.create_session(
         success_url: "https://example.com/success",
         cancel_url: "https://example.com/cancel"
       )
 
-      listing.reload
-      expect(listing.stripe_checkout_session_id).to eq("cs_test_123")
-      expect(listing.payment_status).to eq("pending_payment")
+      entry.reload
+      expect(entry.stripe_checkout_session_id).to eq("cs_test_123")
+      expect(entry.payment_status).to eq("pending_payment")
     end
 
     it "returns the session" do

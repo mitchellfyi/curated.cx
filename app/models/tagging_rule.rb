@@ -51,20 +51,20 @@ class TaggingRule < ApplicationRecord
   scope :by_priority, -> { order(priority: :asc) }
   scope :for_type, ->(type) { where(rule_type: type) }
 
-  # Instance method: evaluate rule against a content item
+  # Instance method: evaluate rule against an entry (feed item)
   # Returns: { match: bool, confidence: float, reason: string }
-  def matches?(content_item)
+  def matches?(entry)
     return no_match unless enabled?
 
     case rule_type
     when "url_pattern"
-      evaluate_url_pattern(content_item)
+      evaluate_url_pattern(entry)
     when "source"
-      evaluate_source(content_item)
+      evaluate_source(entry)
     when "keyword"
-      evaluate_keyword(content_item)
+      evaluate_keyword(entry)
     when "domain"
-      evaluate_domain(content_item)
+      evaluate_domain(entry)
     else
       no_match
     end
@@ -76,11 +76,11 @@ class TaggingRule < ApplicationRecord
     { match: false, confidence: 0.0, reason: nil }
   end
 
-  def evaluate_url_pattern(content_item)
-    return no_match if content_item.url_canonical.blank?
+  def evaluate_url_pattern(entry)
+    return no_match if entry.url_canonical.blank?
 
     regex = Regexp.new(pattern, Regexp::IGNORECASE)
-    if regex.match?(content_item.url_canonical)
+    if regex.match?(entry.url_canonical)
       { match: true, confidence: 1.0, reason: "URL matched pattern '#{pattern}'" }
     else
       no_match
@@ -89,22 +89,22 @@ class TaggingRule < ApplicationRecord
     no_match
   end
 
-  def evaluate_source(content_item)
-    return no_match if content_item.source_id.blank?
+  def evaluate_source(entry)
+    return no_match if entry.source_id.blank?
 
     source_id = pattern.to_i
-    if content_item.source_id == source_id
+    if entry.source_id == source_id
       { match: true, confidence: 0.9, reason: "Content from source ##{source_id}" }
     else
       no_match
     end
   end
 
-  def evaluate_keyword(content_item)
+  def evaluate_keyword(entry)
     text = [
-      content_item.title,
-      content_item.extracted_text,
-      content_item.description
+      entry.title,
+      entry.extracted_text,
+      entry.description
     ].compact.join(" ")
     return no_match if text.blank?
 
@@ -124,11 +124,11 @@ class TaggingRule < ApplicationRecord
     end
   end
 
-  def evaluate_domain(content_item)
-    return no_match if content_item.url_canonical.blank?
+  def evaluate_domain(entry)
+    return no_match if entry.url_canonical.blank?
 
     begin
-      uri = URI.parse(content_item.url_canonical)
+      uri = URI.parse(entry.url_canonical)
       host = uri.host&.downcase
       return no_match if host.blank?
 

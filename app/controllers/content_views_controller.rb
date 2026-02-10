@@ -2,13 +2,13 @@
 
 class ContentViewsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_content_item
+  before_action :set_entry
 
-  # POST /content_items/:content_item_id/views
+  # POST /entries/:entry_id/views
   def create
     authorize ContentView
 
-    @content_view = @content_item.content_views.find_or_initialize_by(
+    @content_view = @entry.content_views.find_or_initialize_by(
       user: current_user,
       site: Current.site
     )
@@ -28,7 +28,7 @@ class ContentViewsController < ApplicationController
 
   private
 
-  def set_content_item
-    @content_item = ContentItem.find(params[:content_item_id])
+  def set_entry
+    @entry = Entry.find(params[:entry_id])
   end
 end

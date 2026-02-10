@@ -9,8 +9,8 @@ RSpec.describe CommentPolicy, type: :policy do
   let(:tenant) { create(:tenant) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) { create(:content_item, site: site, source: source) }
-  let(:comment) { build(:comment, content_item: content_item, user: user, site: site) }
+  let(:entry) { create(:entry, :feed, site: site, source: source) }
+  let(:comment) { build(:comment, entry: entry, user: user, site: site) }
 
   before do
     allow(Current).to receive(:site).and_return(site)
@@ -63,8 +63,8 @@ RSpec.describe CommentPolicy, type: :policy do
     end
 
     context "when comments are locked on content item" do
-      let(:locked_content_item) { create(:content_item, :comments_locked, site: site, source: source) }
-      let(:comment_on_locked) { build(:comment, content_item: locked_content_item, user: user, site: site) }
+      let(:locked_content_item) { create(:entry, :feed, :comments_locked, site: site, source: source) }
+      let(:comment_on_locked) { build(:comment, entry: locked_content_item, user: user, site: site) }
 
       it "denies creating a comment" do
         policy = described_class.new(user, comment_on_locked)
@@ -85,7 +85,7 @@ RSpec.describe CommentPolicy, type: :policy do
   end
 
   describe "#update?" do
-    let!(:existing_comment) { create(:comment, content_item: content_item, user: user, site: site) }
+    let!(:existing_comment) { create(:comment, entry: entry, user: user, site: site) }
 
     context "when user is the comment author and not banned" do
       it "allows updating the comment" do
@@ -128,7 +128,7 @@ RSpec.describe CommentPolicy, type: :policy do
   end
 
   describe "#destroy?" do
-    let!(:existing_comment) { create(:comment, content_item: content_item, user: user, site: site) }
+    let!(:existing_comment) { create(:comment, entry: entry, user: user, site: site) }
 
     context "when user is global admin" do
       it "allows destroying the comment" do
@@ -181,7 +181,7 @@ RSpec.describe CommentPolicy, type: :policy do
 
   describe "Scope" do
     let(:policy_scope) { described_class::Scope.new(user, Comment.unscoped) }
-    let!(:our_comment) { create(:comment, content_item: content_item, user: user, site: site) }
+    let!(:our_comment) { create(:comment, entry: entry, user: user, site: site) }
 
     context "when Current.site is present" do
       before do
@@ -190,8 +190,8 @@ RSpec.describe CommentPolicy, type: :policy do
           other_tenant = create(:tenant)
           other_site = other_tenant.sites.first
           other_source = create(:source, site: other_site, tenant: other_tenant)
-          other_content_item = create(:content_item, site: other_site, source: other_source)
-          create(:comment, content_item: other_content_item, user: create(:user), site: other_site)
+          other_content_item = create(:entry, :feed, site: other_site, source: other_source)
+          create(:comment, entry: other_content_item, user: create(:user), site: other_site)
         end
         allow(Current).to receive(:site).and_return(site)
       end

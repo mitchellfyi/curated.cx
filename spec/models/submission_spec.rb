@@ -16,7 +16,7 @@
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
 #  category_id    :bigint           not null
-#  listing_id     :bigint
+#  entry_id       :bigint
 #  reviewed_by_id :bigint
 #  site_id        :bigint           not null
 #  user_id        :bigint           not null
@@ -24,7 +24,7 @@
 # Indexes
 #
 #  index_submissions_on_category_id         (category_id)
-#  index_submissions_on_listing_id          (listing_id)
+#  index_submissions_on_entry_id            (entry_id)
 #  index_submissions_on_reviewed_by_id      (reviewed_by_id)
 #  index_submissions_on_site_id             (site_id)
 #  index_submissions_on_site_id_and_status  (site_id,status)
@@ -35,7 +35,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (category_id => categories.id)
-#  fk_rails_...  (listing_id => listings.id)
+#  fk_rails_...  (entry_id => entries.id)
 #  fk_rails_...  (reviewed_by_id => users.id)
 #  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (user_id => users.id)
@@ -52,7 +52,7 @@ RSpec.describe Submission, type: :model do
     it { is_expected.to belong_to(:user) }
     it { is_expected.to belong_to(:site) }
     it { is_expected.to belong_to(:category) }
-    it { is_expected.to belong_to(:listing).optional }
+    it { is_expected.to belong_to(:entry).optional }
     it { is_expected.to belong_to(:reviewer).class_name("User").optional }
   end
 
@@ -111,13 +111,13 @@ RSpec.describe Submission, type: :model do
       expect(submission.reload.reviewed_at).to be_present
     end
 
-    it "creates a listing" do
-      expect { submission.approve!(reviewer: reviewer) }.to change(Listing, :count).by(1)
+    it "creates an entry" do
+      expect { submission.approve!(reviewer: reviewer) }.to change(Entry, :count).by(1)
     end
 
-    it "links the listing" do
-      listing = submission.approve!(reviewer: reviewer)
-      expect(submission.reload.listing).to eq(listing)
+    it "links the entry" do
+      entry = submission.approve!(reviewer: reviewer)
+      expect(submission.reload.entry).to eq(entry)
     end
 
     it "sets reviewer notes" do

@@ -15,9 +15,9 @@ RSpec.describe "Feeds", type: :request do
   end
 
   describe "GET /feeds/content" do
-    let!(:content_items) do
+    let!(:entries) do
       # Factory defaults have published_at set and hidden_at nil
-      create_list(:content_item, 3, source: source)
+      create_list(:entry, :feed, 3, source: source)
     end
 
     context "with RSS format" do
@@ -32,7 +32,7 @@ RSpec.describe "Feeds", type: :request do
         get feeds_content_path(format: :rss)
 
         expect(response.body).to include("<rss")
-        expect(response.body).to include(content_items.first.title)
+        expect(response.body).to include(entries.first.title)
       end
 
       it "includes channel metadata" do
@@ -57,15 +57,15 @@ RSpec.describe "Feeds", type: :request do
 
         expect(response.body).to include("<feed")
         expect(response.body).to include("<entry>")
-        expect(response.body).to include(content_items.first.title)
+        expect(response.body).to include(entries.first.title)
       end
     end
   end
 
-  describe "GET /feeds/listings" do
-    let!(:listings) do
-      # Factory defaults create published listings (published_at is set)
-      create_list(:listing, 3, site: site, category: category)
+  describe "GET /feeds/entries" do
+    let!(:entries) do
+      # Factory defaults create published entries (published_at is set)
+      create_list(:entry, :directory, 3, site: site, category: category)
     end
 
     context "with RSS format" do
@@ -76,11 +76,11 @@ RSpec.describe "Feeds", type: :request do
         expect(response.content_type).to include("application/rss+xml")
       end
 
-      it "includes listings in the feed" do
+      it "includes entries in the feed" do
         get feeds_listings_path(format: :rss)
 
         expect(response.body).to include("<rss")
-        expect(response.body).to include(listings.first.title)
+        expect(response.body).to include(entries.first.title)
       end
 
       it "includes category information" do
@@ -98,7 +98,7 @@ RSpec.describe "Feeds", type: :request do
         expect(response.content_type).to include("application/atom+xml")
       end
 
-      it "includes listings as entries" do
+      it "includes entries as entries" do
         get feeds_listings_path(format: :atom)
 
         expect(response.body).to include("<feed")
@@ -109,7 +109,7 @@ RSpec.describe "Feeds", type: :request do
 
   describe "GET /feeds/categories/:id" do
     let!(:category_listings) do
-      create_list(:listing, 3, site: site, category: category)
+      create_list(:entry, :directory, 3, site: site, category: category)
     end
 
     context "with RSS format" do
@@ -120,14 +120,14 @@ RSpec.describe "Feeds", type: :request do
         expect(response.content_type).to include("application/rss+xml")
       end
 
-      it "includes only category listings" do
+      it "includes only category entries" do
         other_category = create(:category, site: site, tenant: tenant, name: "Other")
-        create(:listing, site: site, category: other_category, title: "Other Listing")
+        create(:entry, :directory, site: site, category: other_category, title: "Other Entry")
 
         get feeds_category_path(category, format: :rss)
 
         expect(response.body).to include(category_listings.first.title)
-        expect(response.body).not_to include("Other Listing")
+        expect(response.body).not_to include("Other Entry")
       end
 
       it "includes category name in title" do

@@ -8,10 +8,10 @@ RSpec.describe FlagPolicy, type: :policy do
   let(:tenant) { create(:tenant) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) { create(:content_item, site: site, source: source) }
+  let(:entry) { create(:entry, :feed, site: site, source: source) }
   let(:content_owner) { create(:user) }
-  let(:comment) { create(:comment, content_item: content_item, user: content_owner, site: site) }
-  let(:flag) { build(:flag, flaggable: content_item, user: user, site: site) }
+  let(:comment) { create(:comment, entry: entry, user: content_owner, site: site) }
+  let(:flag) { build(:flag, flaggable: entry, user: user, site: site) }
 
   before do
     allow(Current).to receive(:site).and_return(site)
@@ -56,7 +56,7 @@ RSpec.describe FlagPolicy, type: :policy do
     end
 
     context "when flagging own content" do
-      let(:own_comment) { create(:comment, content_item: content_item, user: user, site: site) }
+      let(:own_comment) { create(:comment, entry: entry, user: user, site: site) }
       let(:flag_own) { build(:flag, flaggable: own_comment, user: user, site: site) }
 
       it "denies flagging own comment" do
@@ -121,7 +121,7 @@ RSpec.describe FlagPolicy, type: :policy do
   end
 
   describe "#show?" do
-    let!(:existing_flag) { create(:flag, flaggable: content_item, user: user, site: site) }
+    let!(:existing_flag) { create(:flag, flaggable: entry, user: user, site: site) }
 
     context "when user is global admin" do
       it "allows access" do
@@ -150,7 +150,7 @@ RSpec.describe FlagPolicy, type: :policy do
   end
 
   describe "#resolve?" do
-    let!(:existing_flag) { create(:flag, flaggable: content_item, user: user, site: site) }
+    let!(:existing_flag) { create(:flag, flaggable: entry, user: user, site: site) }
 
     context "when user is global admin" do
       it "allows resolving" do
@@ -177,7 +177,7 @@ RSpec.describe FlagPolicy, type: :policy do
   end
 
   describe "#dismiss?" do
-    let!(:existing_flag) { create(:flag, flaggable: content_item, user: user, site: site) }
+    let!(:existing_flag) { create(:flag, flaggable: entry, user: user, site: site) }
 
     context "when user is global admin" do
       it "allows dismissing" do
@@ -205,7 +205,7 @@ RSpec.describe FlagPolicy, type: :policy do
 
   describe "Scope" do
     let(:policy_scope) { described_class::Scope.new(admin, Flag.unscoped) }
-    let!(:our_flag) { create(:flag, flaggable: content_item, user: user, site: site) }
+    let!(:our_flag) { create(:flag, flaggable: entry, user: user, site: site) }
 
     context "when user is admin" do
       context "when Current.site is present" do
@@ -215,7 +215,7 @@ RSpec.describe FlagPolicy, type: :policy do
             other_tenant = create(:tenant)
             other_site = other_tenant.sites.first
             other_source = create(:source, site: other_site, tenant: other_tenant)
-            other_content_item = create(:content_item, site: other_site, source: other_source)
+            other_content_item = create(:entry, :feed, site: other_site, source: other_source)
             create(:flag, flaggable: other_content_item, user: create(:user), site: other_site)
           end
           allow(Current).to receive(:site).and_return(site)

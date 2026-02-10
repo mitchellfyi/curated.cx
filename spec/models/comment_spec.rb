@@ -40,7 +40,7 @@ RSpec.describe Comment, type: :model do
   let(:tenant) { create(:tenant) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) { create(:content_item, site: site, source: source) }
+  let(:entry) { create(:entry, :feed, site: site, source: source) }
   let(:user) { create(:user) }
 
   before do
@@ -60,31 +60,31 @@ RSpec.describe Comment, type: :model do
     it { should validate_length_of(:body).is_at_most(Comment::BODY_MAX_LENGTH) }
 
     context "parent validation" do
-      it "allows parent from same content item" do
-        parent = create(:comment, commentable: content_item, user: user, site: site)
-        reply = build(:comment, commentable: content_item, user: user, site: site, parent: parent)
+      it "allows parent from same entry" do
+        parent = create(:comment, commentable: entry, user: user, site: site)
+        reply = build(:comment, commentable: entry, user: user, site: site, parent: parent)
 
         expect(reply).to be_valid
       end
 
       it "rejects parent from different commentable" do
-        other_content_item = create(:content_item, site: site, source: source)
-        parent = create(:comment, commentable: other_content_item, user: user, site: site)
-        reply = build(:comment, commentable: content_item, user: user, site: site, parent: parent)
+        other_entry = create(:entry, :feed, site: site, source: source)
+        parent = create(:comment, commentable: other_entry, user: user, site: site)
+        reply = build(:comment, commentable: entry, user: user, site: site, parent: parent)
 
         expect(reply).not_to be_valid
-        expect(reply.errors[:parent]).to include("must belong to the same content item")
+        expect(reply.errors[:parent]).to include("must belong to the same entry")
       end
     end
 
     context "body length" do
       it "allows body up to max length" do
-        comment = build(:comment, commentable: content_item, user: user, site: site, body: "a" * Comment::BODY_MAX_LENGTH)
+        comment = build(:comment, commentable: entry, user: user, site: site, body: "a" * Comment::BODY_MAX_LENGTH)
         expect(comment).to be_valid
       end
 
       it "rejects body exceeding max length" do
-        comment = build(:comment, commentable: content_item, user: user, site: site, body: "a" * (Comment::BODY_MAX_LENGTH + 1))
+        comment = build(:comment, commentable: entry, user: user, site: site, body: "a" * (Comment::BODY_MAX_LENGTH + 1))
         expect(comment).not_to be_valid
         expect(comment.errors[:body]).to be_present
       end
@@ -92,8 +92,8 @@ RSpec.describe Comment, type: :model do
   end
 
   describe "scopes" do
-    let!(:root_comment) { create(:comment, commentable: content_item, user: user, site: site) }
-    let!(:reply) { create(:comment, commentable: content_item, user: create(:user), site: site, parent: root_comment) }
+    let!(:root_comment) { create(:comment, commentable: entry, user: user, site: site) }
+    let!(:reply) { create(:comment, commentable: entry, user: create(:user), site: site, parent: root_comment) }
 
     describe ".root_comments" do
       it "returns only root comments" do
@@ -112,8 +112,8 @@ RSpec.describe Comment, type: :model do
     describe ".recent" do
       it "orders by created_at desc" do
         # Use future timestamps to ensure these are the most recent comments
-        old_comment = create(:comment, commentable: content_item, user: create(:user), site: site, created_at: 1.hour.from_now)
-        new_comment = create(:comment, commentable: content_item, user: create(:user), site: site, created_at: 2.hours.from_now)
+        old_comment = create(:comment, commentable: entry, user: create(:user), site: site, created_at: 1.hour.from_now)
+        new_comment = create(:comment, commentable: entry, user: create(:user), site: site, created_at: 2.hours.from_now)
 
         expect(Comment.recent.first).to eq(new_comment)
       end
@@ -121,20 +121,20 @@ RSpec.describe Comment, type: :model do
 
     describe ".oldest_first" do
       it "orders by created_at asc" do
-        old_comment = create(:comment, commentable: content_item, user: create(:user), site: site, created_at: 1.day.ago)
-        new_comment = create(:comment, commentable: content_item, user: create(:user), site: site, created_at: 1.hour.ago)
+        old_comment = create(:comment, commentable: entry, user: create(:user), site: site, created_at: 1.day.ago)
+        new_comment = create(:comment, commentable: entry, user: create(:user), site: site, created_at: 1.hour.ago)
 
         expect(Comment.oldest_first.first).to eq(old_comment)
       end
     end
 
-    describe ".for_content_item" do
-      it "returns comments for the specified content item" do
-        other_content_item = create(:content_item, site: site, source: source)
-        other_comment = create(:comment, commentable: other_content_item, user: create(:user), site: site)
+    describe ".for_entry" do
+      it "returns comments for the specified entry" do
+        other_entry = create(:entry, :feed, site: site, source: source)
+        other_comment = create(:comment, commentable: other_entry, user: create(:user), site: site)
 
-        expect(Comment.for_content_item(content_item)).to include(root_comment, reply)
-        expect(Comment.for_content_item(content_item)).not_to include(other_comment)
+        expect(Comment.for_entry(entry)).to include(root_comment, reply)
+        expect(Comment.for_entry(entry)).not_to include(other_comment)
       end
     end
 
@@ -148,13 +148,13 @@ RSpec.describe Comment, type: :model do
       end
     end
 
-    describe ".content_items" do
-      it "returns only comments on content items" do
+    describe ".for_entries" do
+      it "returns only comments on entries" do
         note = create(:note, :published, site: site, user: user)
         note_comment = create(:comment, commentable: note, user: user, site: site)
 
-        expect(Comment.content_items).to include(root_comment, reply)
-        expect(Comment.content_items).not_to include(note_comment)
+        expect(Comment.for_entries).to include(root_comment, reply)
+        expect(Comment.for_entries).not_to include(note_comment)
       end
     end
 
@@ -189,16 +189,16 @@ RSpec.describe Comment, type: :model do
       end
 
       it "returns false for replies" do
-        parent = create(:comment, commentable: content_item, user: user, site: site)
-        reply = build(:comment, commentable: content_item, parent: parent)
+        parent = create(:comment, commentable: entry, user: user, site: site)
+        reply = build(:comment, commentable: entry, parent: parent)
         expect(reply.root?).to be false
       end
     end
 
     describe "#reply?" do
       it "returns true for replies" do
-        parent = create(:comment, commentable: content_item, user: user, site: site)
-        reply = build(:comment, commentable: content_item, parent: parent)
+        parent = create(:comment, commentable: entry, user: user, site: site)
+        reply = build(:comment, commentable: entry, parent: parent)
         expect(reply.reply?).to be true
       end
 
@@ -210,7 +210,7 @@ RSpec.describe Comment, type: :model do
 
     describe "#mark_as_edited!" do
       it "sets edited_at to current time" do
-        comment = create(:comment, commentable: content_item, user: user, site: site)
+        comment = create(:comment, commentable: entry, user: user, site: site)
         expect(comment.edited_at).to be_nil
 
         freeze_time do
@@ -222,9 +222,9 @@ RSpec.describe Comment, type: :model do
   end
 
   describe "threading" do
-    let!(:root) { create(:comment, commentable: content_item, user: user, site: site) }
-    let!(:reply1) { create(:comment, commentable: content_item, user: create(:user), site: site, parent: root) }
-    let!(:reply2) { create(:comment, commentable: content_item, user: create(:user), site: site, parent: root) }
+    let!(:root) { create(:comment, commentable: entry, user: user, site: site) }
+    let!(:reply1) { create(:comment, commentable: entry, user: create(:user), site: site, parent: root) }
+    let!(:reply2) { create(:comment, commentable: entry, user: create(:user), site: site, parent: root) }
 
     it "has_many replies" do
       expect(root.replies).to include(reply1, reply2)
@@ -241,13 +241,13 @@ RSpec.describe Comment, type: :model do
     let(:other_tenant) { create(:tenant) }
     let(:other_site) { create(:site, tenant: other_tenant) }
     let(:other_source) { create(:source, site: other_site) }
-    let(:other_content_item) { create(:content_item, site: other_site, source: other_source) }
+    let(:other_entry) { create(:entry, :feed, site: other_site, source: other_source) }
 
     it "scopes queries to current site" do
-      comment1 = create(:comment, commentable: content_item, user: user, site: site)
+      comment1 = create(:comment, commentable: entry, user: user, site: site)
 
       Current.site = other_site
-      comment2 = create(:comment, commentable: other_content_item, user: create(:user), site: other_site)
+      comment2 = create(:comment, commentable: other_entry, user: create(:user), site: other_site)
 
       Current.site = site
       expect(Comment.all).to include(comment1)
@@ -255,7 +255,7 @@ RSpec.describe Comment, type: :model do
     end
 
     it "prevents accessing comments from other sites" do
-      comment = create(:comment, commentable: content_item, user: user, site: site)
+      comment = create(:comment, commentable: entry, user: user, site: site)
 
       Current.site = other_site
       expect {
@@ -265,20 +265,20 @@ RSpec.describe Comment, type: :model do
   end
 
   describe "counter cache" do
-    context "on ContentItem" do
-      it "increments comments_count on content_item when comment is created" do
+    context "on Entry" do
+      it "increments comments_count on entry when comment is created" do
         expect {
-          create(:comment, commentable: content_item, user: user, site: site)
-        }.to change { content_item.reload.comments_count }.by(1)
+          create(:comment, commentable: entry, user: user, site: site)
+        }.to change { entry.reload.comments_count }.by(1)
       end
 
-      it "decrements comments_count on content_item when comment is destroyed" do
-        comment = create(:comment, commentable: content_item, user: user, site: site)
-        content_item.reload
+      it "decrements comments_count on entry when comment is destroyed" do
+        comment = create(:comment, commentable: entry, user: user, site: site)
+        entry.reload
 
         expect {
           comment.destroy
-        }.to change { content_item.reload.comments_count }.by(-1)
+        }.to change { entry.reload.comments_count }.by(-1)
       end
     end
 
@@ -305,10 +305,10 @@ RSpec.describe Comment, type: :model do
   describe "polymorphic commenting" do
     let(:note) { create(:note, :published, site: site, user: user) }
 
-    it "allows commenting on ContentItem" do
-      comment = build(:comment, commentable: content_item, user: user, site: site)
+    it "allows commenting on Entry" do
+      comment = build(:comment, commentable: entry, user: user, site: site)
       expect(comment).to be_valid
-      expect(comment.commentable_type).to eq("ContentItem")
+      expect(comment.commentable_type).to eq("Entry")
     end
 
     it "allows commenting on Note" do
@@ -340,7 +340,7 @@ RSpec.describe Comment, type: :model do
     end
 
     it "supports reply trait" do
-      comment = create(:comment, :reply, commentable: content_item, site: site, user: user)
+      comment = create(:comment, :reply, commentable: entry, site: site, user: user)
       expect(comment.parent).to be_present
       expect(comment.reply?).to be true
     end

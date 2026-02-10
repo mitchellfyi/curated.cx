@@ -35,14 +35,14 @@
 FactoryBot.define do
   factory :flag do
     association :user
-    association :flaggable, factory: :content_item
+    association :flaggable, factory: :entry
     site { flaggable.site }
     reason { :spam }
     status { :pending }
     details { nil }
 
-    trait :for_content_item do
-      association :flaggable, factory: :content_item
+    trait :for_entry do
+      association :flaggable, factory: :entry
     end
 
     trait :for_comment do

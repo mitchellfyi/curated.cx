@@ -21,10 +21,10 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
         })
       end
 
-      it "creates ContentItems from HN results" do
+      it "creates Entrys from HN results" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
       end
 
       it "creates an ImportRun record" do
@@ -58,10 +58,10 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
         expect(source.last_run_at).to be_within(1.second).of(Time.current)
       end
 
-      it "stores correct ContentItem attributes for stories with URLs" do
+      it "stores correct Entry attributes for stories with URLs" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Show HN: A New Startup Framework")
+        item = Entry.find_by(title: "Show HN: A New Startup Framework")
         expect(item).to be_present
         expect(item.url_raw).to eq("https://example.com/startup-framework")
         expect(item.description).to include("150 points")
@@ -74,7 +74,7 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
       it "uses HN discussion URL for stories without external URLs" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Ask HN: Best Practices for Remote Teams")
+        item = Entry.find_by(title: "Ask HN: Best Practices for Remote Teams")
         expect(item).to be_present
         expect(item.url_raw).to eq("https://news.ycombinator.com/item?id=12347")
       end
@@ -82,7 +82,7 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
       it "extracts HN-specific tags" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Show HN: A New Startup Framework")
+        item = Entry.find_by(title: "Show HN: A New Startup Framework")
         expect(item.tags).to include("source:hacker-news")
         expect(item.tags).to include("hn:story")
         expect(item.tags).to include("hn:show_hn")
@@ -91,7 +91,7 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
       it "stores raw payload from the API" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Show HN: A New Startup Framework")
+        item = Entry.find_by(title: "Show HN: A New Startup Framework")
         expect(item.raw_payload["objectID"]).to eq("12345")
         expect(item.raw_payload["points"]).to eq(150)
         expect(item.raw_payload["num_comments"]).to eq(42)
@@ -110,17 +110,17 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
         })
       end
 
-      it "does not create duplicate ContentItems on subsequent runs" do
+      it "does not create duplicate Entrys on subsequent runs" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
 
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(0)
+        }.to change(Entry, :count).by(0)
       end
 
-      it "updates existing ContentItems on subsequent runs" do
+      it "updates existing Entrys on subsequent runs" do
         described_class.perform_now(source.id)
         first_run = ImportRun.order(:created_at).last
 
@@ -157,7 +157,7 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
       it "respects max_results limit" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(2)
+        }.to change(Entry, :count).by(2)
       end
     end
 
@@ -167,7 +167,7 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -186,7 +186,7 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -235,7 +235,7 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
       it "handles empty results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")
@@ -263,7 +263,7 @@ RSpec.describe HackerNewsIngestionJob, type: :job do
       it "handles missing hits gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")

@@ -19,20 +19,20 @@
 #  tokens_used          :integer
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
-#  content_item_id      :bigint           not null
+#  entry_id             :bigint           not null
 #  site_id              :bigint           not null
 #
 # Indexes
 #
 #  index_editorialisations_cost_tracking              (site_id,created_at,estimated_cost_cents)
-#  index_editorialisations_on_content_item_id         (content_item_id) UNIQUE
+#  index_editorialisations_on_entry_id                (entry_id)
 #  index_editorialisations_on_site_id                 (site_id)
 #  index_editorialisations_on_site_id_and_created_at  (site_id,created_at)
 #  index_editorialisations_on_site_id_and_status      (site_id,status)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (content_item_id => content_items.id)
+#  fk_rails_...  (entry_id => entries.id)
 #  fk_rails_...  (site_id => sites.id)
 #
 require "rails_helper"
@@ -40,11 +40,11 @@ require "rails_helper"
 RSpec.describe Editorialisation, type: :model do
   describe "associations" do
     it { should belong_to(:site) }
-    it { should belong_to(:content_item) }
+    it { should belong_to(:entry) }
   end
 
   describe "validations" do
-    it { should validate_presence_of(:content_item) }
+    it { should validate_presence_of(:entry) }
     it { should validate_presence_of(:prompt_version) }
     it { should validate_presence_of(:prompt_text) }
     it { should validate_presence_of(:status) }
@@ -67,12 +67,12 @@ RSpec.describe Editorialisation, type: :model do
   describe "scopes" do
     let(:site) { create(:site) }
     let(:source) { create(:source, site: site) }
-    let(:content_item) { create(:content_item, site: site, source: source) }
+    let(:entry) { create(:entry, :feed, site: site, source: source) }
 
     describe ".recent" do
       it "orders by created_at descending" do
-        old = create(:editorialisation, content_item: content_item, created_at: 2.hours.ago)
-        recent = create(:editorialisation, content_item: create(:content_item, site: site, source: source), created_at: 1.hour.ago)
+        old = create(:editorialisation, entry: entry, created_at: 2.hours.ago)
+        recent = create(:editorialisation, entry: create(:entry, :feed, site: site, source: source), created_at: 1.hour.ago)
 
         expect(Editorialisation.recent.first).to eq(recent)
       end
@@ -80,8 +80,8 @@ RSpec.describe Editorialisation, type: :model do
 
     describe ".by_status" do
       it "filters by status" do
-        pending_ed = create(:editorialisation, :pending, content_item: content_item)
-        completed_ed = create(:editorialisation, :completed, content_item: create(:content_item, site: site, source: source))
+        pending_ed = create(:editorialisation, :pending, entry: entry)
+        completed_ed = create(:editorialisation, :completed, entry: create(:entry, :feed, site: site, source: source))
 
         expect(Editorialisation.by_status(:pending)).to include(pending_ed)
         expect(Editorialisation.by_status(:pending)).not_to include(completed_ed)
@@ -89,11 +89,11 @@ RSpec.describe Editorialisation, type: :model do
     end
 
     describe "status scopes" do
-      let!(:pending_ed) { create(:editorialisation, :pending, content_item: content_item) }
-      let!(:processing_ed) { create(:editorialisation, :processing, content_item: create(:content_item, site: site, source: source)) }
-      let!(:completed_ed) { create(:editorialisation, :completed, content_item: create(:content_item, site: site, source: source)) }
-      let!(:failed_ed) { create(:editorialisation, :failed, content_item: create(:content_item, site: site, source: source)) }
-      let!(:skipped_ed) { create(:editorialisation, :skipped, content_item: create(:content_item, site: site, source: source)) }
+      let!(:pending_ed) { create(:editorialisation, :pending, entry: entry) }
+      let!(:processing_ed) { create(:editorialisation, :processing, entry: create(:entry, :feed, site: site, source: source)) }
+      let!(:completed_ed) { create(:editorialisation, :completed, entry: create(:entry, :feed, site: site, source: source)) }
+      let!(:failed_ed) { create(:editorialisation, :failed, entry: create(:entry, :feed, site: site, source: source)) }
+      let!(:skipped_ed) { create(:editorialisation, :skipped, entry: create(:entry, :feed, site: site, source: source)) }
 
       it ".pending returns only pending" do
         expect(Editorialisation.pending).to eq([ pending_ed ])
@@ -117,20 +117,20 @@ RSpec.describe Editorialisation, type: :model do
     end
   end
 
-  describe ".latest_for_content_item" do
+  describe ".latest_for_entry" do
     let(:site) { create(:site) }
     let(:source) { create(:source, site: site) }
-    let(:content_item) { create(:content_item, site: site, source: source) }
+    let(:entry) { create(:entry, :feed, site: site, source: source) }
 
-    it "returns the editorialisation for a content item" do
-      # There's a unique constraint on content_item_id, so only one editorialisation per item
-      editorialisation = create(:editorialisation, content_item: content_item)
+    it "returns the editorialisation for an entry" do
+      # There's a unique constraint on entry_id, so only one editorialisation per item
+      editorialisation = create(:editorialisation, entry: entry)
 
-      expect(Editorialisation.latest_for_content_item(content_item.id)).to eq(editorialisation)
+      expect(Editorialisation.latest_for_entry(entry.id)).to eq(editorialisation)
     end
 
     it "returns nil if no editorialisation exists" do
-      expect(Editorialisation.latest_for_content_item(0)).to be_nil
+      expect(Editorialisation.latest_for_entry(0)).to be_nil
     end
   end
 
@@ -140,16 +140,16 @@ RSpec.describe Editorialisation, type: :model do
     let(:site2) { create(:site, tenant: tenant) }
     let(:source1) { create(:source, site: site1) }
     let(:source2) { create(:source, site: site2) }
-    let(:content_item1) { create(:content_item, site: site1, source: source1) }
-    let(:content_item2) { create(:content_item, site: site2, source: source2) }
+    let(:entry1) { create(:entry, :feed, site: site1, source: source1) }
+    let(:entry2) { create(:entry, :feed, site: site2, source: source2) }
 
     before do
       Current.site = site1
     end
 
     it "scopes queries to current site" do
-      ed1 = create(:editorialisation, content_item: content_item1)
-      ed2 = create(:editorialisation, content_item: content_item2)
+      ed1 = create(:editorialisation, entry: entry1)
+      ed2 = create(:editorialisation, entry: entry2)
 
       editorialisations = Editorialisation.all
       expect(editorialisations).to include(ed1)

@@ -8,9 +8,9 @@ RSpec.describe CategoriesController, type: :controller do
   let!(:category1) { create(:category, :news, tenant: tenant, name: 'News') }
   let!(:category2) { create(:category, :apps, tenant: tenant, name: 'Apps & Tools') }
   let!(:other_tenant_category) { create(:category, name: 'Other Category') }
-  let!(:listing1) { create(:listing, :published, tenant: tenant, category: category1) }
-  let!(:listing2) { create(:listing, :published, tenant: tenant, category: category2) }
-  let!(:unpublished_listing) { create(:listing, :unpublished, tenant: tenant, category: category1) }
+  let!(:entry1) { create(:entry, :directory, :published, tenant: tenant, category: category1) }
+  let!(:entry2) { create(:entry, :directory, :published, tenant: tenant, category: category2) }
+  let!(:unpublished_entry) { create(:entry, :directory, :unpublished, tenant: tenant, category: category1) }
 
   before do
     setup_tenant_context(tenant)
@@ -29,9 +29,9 @@ RSpec.describe CategoriesController, type: :controller do
       expect(assigns(:categories)).not_to include(other_tenant_category)
     end
 
-    it 'includes listings association' do
+    it 'includes entries association' do
       get :index
-      expect(assigns(:categories).first.association(:listings)).to be_loaded
+      expect(assigns(:categories).first.association(:entries)).to be_loaded
     end
 
     it 'orders categories by name' do
@@ -56,32 +56,32 @@ RSpec.describe CategoriesController, type: :controller do
       expect(assigns(:category)).to eq(category1)
     end
 
-    it 'assigns published listings for the category' do
+    it 'assigns published entries for the category' do
       get :show, params: { id: category1.id }
-      expect(assigns(:listings)).to include(listing1)
-      expect(assigns(:listings)).not_to include(unpublished_listing)
-      expect(assigns(:listings)).not_to include(listing2) # Different category
+      expect(assigns(:entries)).to include(entry1)
+      expect(assigns(:entries)).not_to include(unpublished_entry)
+      expect(assigns(:entries)).not_to include(entry2) # Different category
     end
 
-    it 'limits listings to 20' do
-      # Create more than 20 listings
-      25.times { create(:listing, :published, tenant: tenant, category: category1) }
+    it 'limits entries to 20' do
+      # Create more than 20 entries
+      25.times { create(:entry, :directory, :published, tenant: tenant, category: category1) }
 
       get :show, params: { id: category1.id }
-      expect(assigns(:listings).count).to eq(20)
+      expect(assigns(:entries).count).to eq(20)
     end
 
-    it 'includes category association in listings' do
+    it 'includes category association in entries' do
       get :show, params: { id: category1.id }
-      expect(assigns(:listings).first.association(:category)).to be_loaded
+      expect(assigns(:entries).first.association(:category)).to be_loaded
     end
 
-    it 'orders listings by recent' do
-      older_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 1.week.ago)
-      newer_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 1.day.ago)
+    it 'orders entries by recent' do
+      older_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 1.week.ago)
+      newer_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 1.day.ago)
 
       get :show, params: { id: category1.id }
-      expect(assigns(:listings).first).to eq(newer_listing)
+      expect(assigns(:entries).first).to eq(newer_entry)
     end
 
     it 'raises not found for category from other tenant' do
@@ -138,7 +138,7 @@ RSpec.describe CategoriesController, type: :controller do
       get :index
     end
 
-    it 'uses policy scope for listings' do
+    it 'uses policy scope for entries' do
       expect(controller).to receive(:policy_scope).and_call_original.at_least(:once)
       get :show, params: { id: category1.id }
     end

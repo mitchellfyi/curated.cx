@@ -40,7 +40,7 @@ class FeedRankingService
   private
 
   def build_base_scope
-    scope = ContentItem.where(site: @site).published
+    scope = Entry.feed_items.where(site: @site).published
 
     # Filter by tag
     if @filters[:tag].present?
@@ -88,20 +88,20 @@ class FeedRankingService
     # Exponential decay: score = 1 / (1 + hours_ago / half_life)
     # This gives 1.0 for brand new, 0.5 after 24 hours, etc.
     <<~SQL.squish
-      (1.0 / (1.0 + EXTRACT(EPOCH FROM (NOW() - content_items.published_at)) / 3600.0 / #{DECAY_HALF_LIFE_HOURS}))
+      (1.0 / (1.0 + EXTRACT(EPOCH FROM (NOW() - entries.published_at)) / 3600.0 / #{DECAY_HALF_LIFE_HOURS}))
     SQL
   end
 
   def engagement_score_sql
     # Raw engagement: upvotes + comments * 0.5
-    "(content_items.upvotes_count + content_items.comments_count * 0.5)"
+    "(entries.upvotes_count + entries.comments_count * 0.5)"
   end
 
   def normalized_engagement_sql
     # Normalized engagement: divide by max to get 0-1 range
     # Uses subquery to find max engagement in the site
     # Falls back to 1 if max is 0 to avoid division by zero
-    max_engagement_subquery = ContentItem.where(site: @site)
+    max_engagement_subquery = Entry.feed_items.where(site: @site)
                                          .select("MAX(upvotes_count + comments_count * 0.5)")
                                          .to_sql
 

@@ -68,7 +68,7 @@
   <% end %>
 
   <!-- Content Section (Collapsible) -->
-  <% content_active = request.path.include?('content_items') || (request.path.include?('listings') && !request.path.include?('content')) || request.path.include?('submissions') || (request.path.include?('notes') && !request.path.include?('content')) %>
+  <% content_active = request.path.include?('entries') || request.path.include?('submissions') || (request.path.include?('notes') && !request.path.include?('content')) %>
   <div data-sidebar-target="section" data-section-name="content">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= content_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
       <span class="flex items-center">
@@ -82,11 +82,8 @@
       </svg>
     </button>
     <div data-sidebar-target="content" class="hidden ml-6 mt-1 space-y-1">
-      <%= link_to admin_content_items_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('content_items') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
-        Content Items
-      <% end %>
-      <%= link_to admin_listings_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('listings') && !request.path.include?('content') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
-        Listings
+      <%= link_to admin_entries_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('entries') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Entries
       <% end %>
       <%= link_to admin_submissions_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('submissions') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Submissions

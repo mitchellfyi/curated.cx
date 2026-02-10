@@ -9,12 +9,12 @@ RSpec.describe PublishScheduledContentJob, type: :job do
   let(:category) { create(:category, tenant: tenant, site: site) }
 
   describe "#perform" do
-    context "with due ContentItems" do
+    context "with due feed entries" do
       let!(:due_item) do
-        create(:content_item, :due_for_publishing, site: site, source: source, title: "Due Content")
+        create(:entry, :feed, :due_for_publishing, site: site, source: source, title: "Due Content")
       end
 
-      it "publishes content items that are due for publishing" do
+      it "publishes entries that are due for publishing" do
         freeze_time do
           described_class.perform_now
 
@@ -29,22 +29,22 @@ RSpec.describe PublishScheduledContentJob, type: :job do
 
         described_class.perform_now
 
-        expect(Rails.logger).to have_received(:info).with(/Published scheduled content.*"type":"ContentItem".*"id":#{due_item.id}/)
+        expect(Rails.logger).to have_received(:info).with(/Published scheduled content.*"type":"Entry".*"id":#{due_item.id}/)
       end
     end
 
-    context "with due Listings" do
-      let!(:due_listing) do
-        create(:listing, :due_for_publishing, tenant: tenant, category: category, title: "Due Listing")
+    context "with due directory entries" do
+      let!(:due_entry) do
+        create(:entry, :directory, :due_for_publishing, tenant: tenant, category: category, title: "Due Listing")
       end
 
-      it "publishes listings that are due for publishing" do
+      it "publishes directory entries that are due for publishing" do
         freeze_time do
           described_class.perform_now
 
-          due_listing.reload
-          expect(due_listing.published_at).to be_within(1.second).of(Time.current)
-          expect(due_listing.scheduled_for).to be_nil
+          due_entry.reload
+          expect(due_entry.published_at).to be_within(1.second).of(Time.current)
+          expect(due_entry.scheduled_for).to be_nil
         end
       end
 
@@ -53,61 +53,61 @@ RSpec.describe PublishScheduledContentJob, type: :job do
 
         described_class.perform_now
 
-        expect(Rails.logger).to have_received(:info).with(/Published scheduled content.*"type":"Listing".*"id":#{due_listing.id}/)
+        expect(Rails.logger).to have_received(:info).with(/Published scheduled content.*"type":"Entry".*"id":#{due_entry.id}/)
       end
     end
 
     context "with future scheduled items" do
-      let!(:scheduled_content) { create(:content_item, :scheduled, site: site, source: source) }
-      let!(:scheduled_listing) { create(:listing, :scheduled, tenant: tenant, category: category) }
+      let!(:scheduled_feed) { create(:entry, :feed, :scheduled, site: site, source: source) }
+      let!(:scheduled_directory) { create(:entry, :directory, :scheduled, tenant: tenant, category: category) }
 
-      it "does not publish future scheduled content items" do
+      it "does not publish future scheduled feed entries" do
         described_class.perform_now
 
-        scheduled_content.reload
-        expect(scheduled_content.published_at).to be_nil
-        expect(scheduled_content.scheduled_for).to be_present
+        scheduled_feed.reload
+        expect(scheduled_feed.published_at).to be_nil
+        expect(scheduled_feed.scheduled_for).to be_present
       end
 
-      it "does not publish future scheduled listings" do
+      it "does not publish future scheduled directory entries" do
         described_class.perform_now
 
-        scheduled_listing.reload
-        expect(scheduled_listing.published_at).to be_nil
-        expect(scheduled_listing.scheduled_for).to be_present
+        scheduled_directory.reload
+        expect(scheduled_directory.published_at).to be_nil
+        expect(scheduled_directory.scheduled_for).to be_present
       end
     end
 
     context "with already published items" do
-      let!(:published_content) { create(:content_item, :published, site: site, source: source) }
-      let!(:published_listing) { create(:listing, :published, tenant: tenant, category: category) }
+      let!(:published_feed) { create(:entry, :feed, :published, site: site, source: source) }
+      let!(:published_directory) { create(:entry, :directory, :published, tenant: tenant, category: category) }
 
-      it "does not modify already published content items" do
-        original_published_at = published_content.published_at
+      it "does not modify already published feed entries" do
+        original_published_at = published_feed.published_at
 
         described_class.perform_now
 
-        published_content.reload
-        expect(published_content.published_at).to eq(original_published_at)
+        published_feed.reload
+        expect(published_feed.published_at).to eq(original_published_at)
       end
 
-      it "does not modify already published listings" do
-        original_published_at = published_listing.published_at
+      it "does not modify already published directory entries" do
+        original_published_at = published_directory.published_at
 
         described_class.perform_now
 
-        published_listing.reload
-        expect(published_listing.published_at).to eq(original_published_at)
+        published_directory.reload
+        expect(published_directory.published_at).to eq(original_published_at)
       end
     end
 
-    context "when an error occurs during ContentItem publishing" do
+    context "when an error occurs during feed entry publishing" do
       let!(:due_item) do
-        create(:content_item, :due_for_publishing, site: site, source: source, title: "Problematic Content")
+        create(:entry, :feed, :due_for_publishing, site: site, source: source, title: "Problematic Content")
       end
 
       before do
-        allow_any_instance_of(ContentItem).to receive(:update!).and_raise(StandardError, "Test error")
+        allow_any_instance_of(Entry).to receive(:update!).and_raise(StandardError, "Test error")
       end
 
       it "logs the error" do
@@ -115,28 +115,28 @@ RSpec.describe PublishScheduledContentJob, type: :job do
 
         described_class.perform_now
 
-        expect(Rails.logger).to have_received(:warn).with(/Failed to publish scheduled content.*"type":"ContentItem".*"id":#{due_item.id}/)
+        expect(Rails.logger).to have_received(:warn).with(/Failed to publish scheduled content.*"type":"Entry".*"id":#{due_item.id}/)
       end
 
       it "continues processing other items" do
         # Create another due item after the problematic one
-        due_listing = create(:listing, :due_for_publishing, tenant: tenant, category: category)
+        due_entry = create(:entry, :directory, :due_for_publishing, tenant: tenant, category: category)
 
         described_class.perform_now
 
-        # The listing should still be processed
-        due_listing.reload
-        expect(due_listing.published_at).to be_present
+        # The directory entry should still be processed
+        due_entry.reload
+        expect(due_entry.published_at).to be_present
       end
     end
 
-    context "when an error occurs during Listing publishing" do
-      let!(:due_listing) do
-        create(:listing, :due_for_publishing, tenant: tenant, category: category, title: "Problematic Listing")
+    context "when an error occurs during directory entry publishing" do
+      let!(:due_entry) do
+        create(:entry, :directory, :due_for_publishing, tenant: tenant, category: category, title: "Problematic Listing")
       end
 
       before do
-        allow_any_instance_of(Listing).to receive(:update!).and_raise(StandardError, "Test error")
+        allow_any_instance_of(Entry).to receive(:update!).and_raise(StandardError, "Test error")
       end
 
       it "logs the error" do
@@ -144,13 +144,13 @@ RSpec.describe PublishScheduledContentJob, type: :job do
 
         described_class.perform_now
 
-        expect(Rails.logger).to have_received(:warn).with(/Failed to publish scheduled content.*"type":"Listing".*"id":#{due_listing.id}/)
+        expect(Rails.logger).to have_received(:warn).with(/Failed to publish scheduled content.*"type":"Entry".*"id":#{due_entry.id}/)
       end
     end
 
     context "tenant context" do
       let!(:due_item) do
-        create(:content_item, :due_for_publishing, site: site, source: source, title: "Tenant Test Content")
+        create(:entry, :feed, :due_for_publishing, site: site, source: source, title: "Tenant Test Content")
       end
 
       it "wraps processing in correct tenant context" do
@@ -170,12 +170,12 @@ RSpec.describe PublishScheduledContentJob, type: :job do
       it "processes items in batches" do
         # Create more items than the batch size
         5.times do
-          create(:content_item, :due_for_publishing, site: site, source: source)
+          create(:entry, :feed, :due_for_publishing, site: site, source: source)
         end
 
         expect { described_class.perform_now }.not_to raise_error
 
-        expect(ContentItem.where.not(published_at: nil).count).to eq(5)
+        expect(Entry.where.not(published_at: nil).count).to eq(5)
       end
     end
   end

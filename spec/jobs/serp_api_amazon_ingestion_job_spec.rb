@@ -21,10 +21,10 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
         })
       end
 
-      it "creates ContentItems from Amazon results" do
+      it "creates Entrys from Amazon results" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
       end
 
       it "creates an ImportRun record" do
@@ -58,10 +58,10 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
         expect(source.last_run_at).to be_within(1.second).of(Time.current)
       end
 
-      it "stores correct ContentItem attributes" do
+      it "stores correct Entry attributes" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item).to be_present
         expect(item.url_raw).to include("amazon.co.uk/dp/B09XS7JWHH")
         expect(item.og_image_url).to eq("https://m.media-amazon.com/images/I/51aXvjzcukL._AC_SL1500_.jpg")
@@ -72,35 +72,35 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
       it "stores ASIN in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_amazon_metadata", "asin")).to eq("B09XS7JWHH")
       end
 
       it "stores price in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_amazon_metadata", "price")).to eq("£279.00")
       end
 
       it "stores rating in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_amazon_metadata", "rating")).to eq(4.6)
       end
 
       it "stores review count in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_amazon_metadata", "review_count")).to eq(12543)
       end
 
       it "tags products correctly with source and ASIN" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.tags).to include("source:amazon")
         expect(item.tags).to include("asin:B09XS7JWHH")
         expect(item.tags).to include("amazon:prime")
@@ -109,7 +109,7 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
       it "tags non-prime products correctly" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "JBL Tune 510BT On-Ear Wireless Headphones")
+        item = Entry.find_by(title: "JBL Tune 510BT On-Ear Wireless Headphones")
         expect(item.tags).to include("source:amazon")
         expect(item.tags).not_to include("amazon:prime")
       end
@@ -117,7 +117,7 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
       it "handles products without thumbnails" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "JBL Tune 510BT On-Ear Wireless Headphones")
+        item = Entry.find_by(title: "JBL Tune 510BT On-Ear Wireless Headphones")
         expect(item.og_image_url).to be_nil
       end
     end
@@ -163,14 +163,14 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
         })
       end
 
-      it "does not create duplicate ContentItems on subsequent runs" do
+      it "does not create duplicate Entrys on subsequent runs" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
 
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(0)
+        }.to change(Entry, :count).by(0)
       end
     end
 
@@ -196,7 +196,7 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
       it "respects max_results limit" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(2)
+        }.to change(Entry, :count).by(2)
       end
     end
 
@@ -206,7 +206,7 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -219,7 +219,7 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -294,7 +294,7 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
       it "handles empty results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")

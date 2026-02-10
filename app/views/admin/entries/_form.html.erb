@@ -1,0 +1,218 @@
+<%= form_with model: [:admin, entry], local: true, class: "space-y-6" do |form| %>
+  <% if entry.errors.any? %>
+    <div class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800"><%= t("errors.form_errors", count: entry.errors.count) %></h3>
+          <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+            <% entry.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%= form.hidden_field :entry_kind if entry.new_record? %>
+
+  <fieldset class="border border-gray-200 rounded-md p-4">
+    <legend class="text-sm font-medium text-gray-700 px-2">Basic Information</legend>
+    <div class="space-y-4">
+      <% if entry.directory? %>
+        <div>
+          <%= form.label :listing_type, t("admin.listings.form.listing_type"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.select :listing_type, options_for_select([["Tool", 0], ["Job", 1], ["Service", 2]], entry.listing_type), {}, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+
+      <div>
+        <%= form.label :title, class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_field :title, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: entry.directory? ? t("admin.listings.form.title_placeholder") : nil %>
+      </div>
+
+      <% if entry.directory? %>
+        <div>
+          <%= form.label :category_id, t("admin.listings.form.category"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.collection_select :category_id, @categories, :id, :name, { prompt: t("admin.listings.form.select_category") }, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+
+      <div>
+        <%= form.label :url_raw, "URL", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.url_field :url_raw, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "https://example.com" %>
+      </div>
+
+      <% if entry.feed? %>
+        <div>
+          <%= form.label :url_canonical, "Canonical URL", class: "block text-sm font-medium text-gray-700" %>
+          <%= form.url_field :url_canonical, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+
+      <div>
+        <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_area :description, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+
+      <% if entry.feed? %>
+        <div>
+          <%= form.label :content_type, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.select :content_type, options_for_select([["", ""], ["Article", "article"], ["Video", "video"], ["Podcast", "podcast"], ["Tool", "tool"], ["News", "news"]], entry.content_type), {}, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+
+      <% if entry.directory? %>
+        <div>
+          <%= form.label :image_url, t("admin.listings.form.image_url"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.url_field :image_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <fieldset class="border border-gray-200 rounded-md p-4">
+    <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.scheduling.publishing") %></legend>
+    <div class="space-y-4">
+      <% publish_status = entry.scheduled? ? "schedule" : (entry.published? ? "publish" : "draft") %>
+      <div class="space-y-2">
+        <div class="flex items-center">
+          <%= form.radio_button :publish_action, "publish", checked: publish_status == "publish", class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" %>
+          <%= form.label :publish_action_publish, t("admin.listings.scheduling.publish_now"), class: "ml-2 block text-sm text-gray-900" %>
+        </div>
+        <div class="flex items-center">
+          <%= form.radio_button :publish_action, "schedule", checked: publish_status == "schedule", class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" %>
+          <%= form.label :publish_action_schedule, t("admin.listings.scheduling.schedule_for_later"), class: "ml-2 block text-sm text-gray-900" %>
+        </div>
+        <div class="flex items-center">
+          <%= form.radio_button :publish_action, "draft", checked: publish_status == "draft", class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" %>
+          <%= form.label :publish_action_draft, t("admin.listings.scheduling.save_as_draft"), class: "ml-2 block text-sm text-gray-900" %>
+        </div>
+      </div>
+      <div id="scheduled-for-field" class="<%= 'hidden' unless publish_status == 'schedule' %>">
+        <%= form.label :scheduled_for, t("admin.listings.scheduling.scheduled_for"), class: "block text-sm font-medium text-gray-700" %>
+        <%= form.datetime_local_field :scheduled_for, value: entry.scheduled_for&.strftime("%Y-%m-%dT%H:%M"), class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+    </div>
+  </fieldset>
+
+  <% if entry.directory? %>
+    <fieldset class="border border-gray-200 rounded-md p-4">
+      <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.job_settings") %></legend>
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <%= form.label :company, t("admin.listings.form.company"), class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :company, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+          </div>
+          <div>
+            <%= form.label :location, t("admin.listings.form.location"), class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :location, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+          </div>
+        </div>
+        <div>
+          <%= form.label :salary_range, t("admin.listings.form.salary_range"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_field :salary_range, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <div>
+          <%= form.label :apply_url, t("admin.listings.form.apply_url"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.url_field :apply_url, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <div>
+          <%= form.label :expires_at, t("admin.listings.form.expires_at"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.datetime_local_field :expires_at, value: entry.expires_at&.strftime("%Y-%m-%dT%H:%M"), class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-gray-200 rounded-md p-4">
+      <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.featured_settings") %></legend>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <%= form.label :featured_from, t("admin.listings.form.featured_from"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.datetime_local_field :featured_from, value: entry.featured_from&.strftime("%Y-%m-%dT%H:%M"), class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <div>
+          <%= form.label :featured_until, t("admin.listings.form.featured_until"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.datetime_local_field :featured_until, value: entry.featured_until&.strftime("%Y-%m-%dT%H:%M"), class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-gray-200 rounded-md p-4">
+      <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.affiliate_settings") %></legend>
+      <div>
+        <%= form.label :affiliate_url_template, t("admin.listings.form.affiliate_url_template"), class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_field :affiliate_url_template, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-gray-200 rounded-md p-4">
+      <legend class="text-sm font-medium text-gray-700 px-2"><%= t("admin.listings.form.payment_settings") %></legend>
+      <div class="space-y-4">
+        <div class="flex items-center">
+          <%= form.check_box :paid, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+          <%= form.label :paid, t("admin.listings.form.paid"), class: "ml-2 block text-sm text-gray-900" %>
+        </div>
+        <div>
+          <%= form.label :payment_reference, t("admin.listings.form.payment_reference"), class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_field :payment_reference, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-gray-200 rounded-md p-4">
+      <legend class="text-sm font-medium text-gray-700 px-2">Content</legend>
+      <div class="space-y-4">
+        <div>
+          <%= form.label :body_html, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_area :body_html, rows: 6, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm" %>
+        </div>
+        <div>
+          <%= form.label :body_text, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_area :body_text, rows: 4, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      </div>
+    </fieldset>
+  <% end %>
+
+  <% if entry.feed? %>
+    <fieldset class="border border-gray-200 rounded-md p-4">
+      <legend class="text-sm font-medium text-gray-700 px-2">Publishing</legend>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <%= form.label :published_at, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.datetime_local_field :published_at, value: entry.published_at&.strftime("%Y-%m-%dT%H:%M"), class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+        <div>
+          <%= form.label :scheduled_for, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.datetime_local_field :scheduled_for, value: entry.scheduled_for&.strftime("%Y-%m-%dT%H:%M"), class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-purple-200 rounded-md p-4 bg-purple-50">
+      <legend class="text-sm font-medium text-purple-900 px-2">AI Editorialisation</legend>
+      <div class="space-y-4">
+        <div>
+          <%= form.label :ai_summary, "AI Summary", class: "block text-sm font-medium text-purple-700" %>
+          <%= form.text_area :ai_summary, rows: 3, class: "mt-1 block w-full rounded-md border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500" %>
+        </div>
+        <div>
+          <%= form.label :why_it_matters, class: "block text-sm font-medium text-purple-700" %>
+          <%= form.text_area :why_it_matters, rows: 4, class: "mt-1 block w-full rounded-md border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500" %>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-gray-200 rounded-md p-4">
+      <legend class="text-sm font-medium text-gray-700 px-2">Topic Tags</legend>
+      <%= text_field_tag "entry[topic_tags_string]", entry.topic_tags&.join(", "), class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", autocomplete: "off" %>
+    </fieldset>
+  <% end %>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to t("actions.cancel"), entry.persisted? ? admin_entry_path(entry) : admin_entries_path, class: button_classes(variant: :secondary) %>
+    <%= form.submit entry.persisted? ? t("actions.update") : t("admin.listings.form.create"), class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 cursor-pointer" %>
+  </div>
+<% end %>

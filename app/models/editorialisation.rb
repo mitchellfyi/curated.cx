@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Tracks AI editorialisation attempts for audit and reproducibility.
-# Each ContentItem may have at most one editorialisation record (unique constraint).
+# Each Entry (feed) may have at most one editorialisation record (unique constraint).
 #
 # The model stores the full prompt text and raw response for debugging
 # and prompt version tracking.
@@ -24,27 +24,27 @@
 #  tokens_used          :integer
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
-#  content_item_id      :bigint           not null
+#  entry_id             :bigint           not null
 #  site_id              :bigint           not null
 #
 # Indexes
 #
 #  index_editorialisations_cost_tracking              (site_id,created_at,estimated_cost_cents)
-#  index_editorialisations_on_content_item_id         (content_item_id) UNIQUE
+#  index_editorialisations_on_entry_id                (entry_id)
 #  index_editorialisations_on_site_id                 (site_id)
 #  index_editorialisations_on_site_id_and_created_at  (site_id,created_at)
 #  index_editorialisations_on_site_id_and_status      (site_id,status)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (content_item_id => content_items.id)
+#  fk_rails_...  (entry_id => entries.id)
 #  fk_rails_...  (site_id => sites.id)
 #
 class Editorialisation < ApplicationRecord
   include SiteScoped
 
   # Associations
-  belongs_to :content_item
+  belongs_to :entry
 
   # Enums
   enum :status, {
@@ -56,7 +56,7 @@ class Editorialisation < ApplicationRecord
   }
 
   # Validations
-  validates :content_item, presence: true
+  validates :entry, presence: true
   validates :prompt_version, presence: true
   validates :prompt_text, presence: true
   validates :status, presence: true
@@ -73,8 +73,8 @@ class Editorialisation < ApplicationRecord
   scope :skipped, -> { where(status: :skipped) }
 
   # Class methods
-  def self.latest_for_content_item(content_item_id)
-    where(content_item_id: content_item_id).order(created_at: :desc).first
+  def self.latest_for_entry(entry_id)
+    where(entry_id: entry_id).order(created_at: :desc).first
   end
 
   # Instance methods

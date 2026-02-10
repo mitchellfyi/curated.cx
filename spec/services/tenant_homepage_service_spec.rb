@@ -39,67 +39,67 @@ RSpec.describe TenantHomepageService do
   end
 
   describe "#tenant_data" do
-    it "returns content_items from FeedRankingService" do
+    it "returns entries from FeedRankingService" do
       result = service.tenant_data
 
-      expect(result[:content_items]).not_to be_nil
+      expect(result[:entries]).not_to be_nil
     end
 
-    it "returns categories_with_listings as an array" do
+    it "returns categories_with_entries as an array" do
       result = service.tenant_data
 
-      expect(result[:categories_with_listings]).to be_an(Array)
+      expect(result[:categories_with_entries]).to be_an(Array)
     end
 
-    context "with categories and listings" do
+    context "with categories and entries" do
       let!(:category) { create(:category, tenant: tenant, site: site) }
-      let!(:listing) { create(:listing, tenant: tenant, site: site, category: category, published_at: 1.day.ago) }
+      let!(:entry) { create(:entry, :directory, tenant: tenant, site: site, category: category, published_at: 1.day.ago) }
 
-      it "includes categories with their listings" do
+      it "includes categories with their entries" do
         result = service.tenant_data
 
-        expect(result[:categories_with_listings]).not_to be_empty
-        cat, listings = result[:categories_with_listings].first
+        expect(result[:categories_with_entries]).not_to be_empty
+        cat, entries = result[:categories_with_entries].first
         expect(cat).to eq(category)
-        expect(listings).to include(listing)
+        expect(entries).to include(entry)
       end
 
-      it "limits listings per category to 4" do
-        create_list(:listing, 5, tenant: tenant, site: site, category: category, published_at: 1.day.ago)
+      it "limits entries per category to 4" do
+        create_list(:entry, :directory, 5, tenant: tenant, site: site, category: category, published_at: 1.day.ago)
 
         result = service.tenant_data
 
-        _cat, listings = result[:categories_with_listings].first
-        expect(listings.count).to be <= 4
+        _cat, entries = result[:categories_with_entries].first
+        expect(entries.count).to be <= 4
       end
 
-      it "orders listings by published_at descending" do
-        old_listing = create(:listing, tenant: tenant, site: site, category: category, published_at: 1.week.ago)
-        new_listing = create(:listing, tenant: tenant, site: site, category: category, published_at: 1.hour.ago)
+      it "orders entries by published_at descending" do
+        old_entry = create(:entry, :directory, tenant: tenant, site: site, category: category, published_at: 1.week.ago)
+        new_entry = create(:entry, :directory, tenant: tenant, site: site, category: category, published_at: 1.hour.ago)
 
         result = service.tenant_data
 
-        _cat, listings = result[:categories_with_listings].first
-        expect(listings.first).to eq(new_listing)
+        _cat, entries = result[:categories_with_entries].first
+        expect(entries.first).to eq(new_entry)
       end
 
-      it "excludes unpublished listings" do
-        unpublished = create(:listing, tenant: tenant, site: site, category: category, published_at: nil)
+      it "excludes unpublished entries" do
+        unpublished = create(:entry, :directory, tenant: tenant, site: site, category: category, published_at: nil)
 
         result = service.tenant_data
 
-        _cat, listings = result[:categories_with_listings].first
-        expect(listings).not_to include(unpublished)
+        _cat, entries = result[:categories_with_entries].first
+        expect(entries).not_to include(unpublished)
       end
     end
 
     context "with empty categories" do
       let!(:empty_category) { create(:category, tenant: tenant, site: site) }
 
-      it "excludes categories with no published listings" do
+      it "excludes categories with no published entries" do
         result = service.tenant_data
 
-        categories = result[:categories_with_listings].map(&:first)
+        categories = result[:categories_with_entries].map(&:first)
         expect(categories).not_to include(empty_category)
       end
     end

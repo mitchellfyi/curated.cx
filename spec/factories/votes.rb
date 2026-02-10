@@ -30,13 +30,13 @@ FactoryBot.define do
     association :user
     value { 1 }
 
-    # Backward compatibility: allow content_item: as alias for votable:
+    # Backward compatibility: allow entry: as alias for votable:
     transient do
-      content_item { nil }
+      entry { nil }
     end
 
-    # Use lazy evaluation so votable isn't created when content_item is passed
-    votable { content_item || association(:content_item) }
+    # Use lazy evaluation so votable isn't created when entry is passed
+    votable { entry || association(:entry) }
     site { votable.site }
 
     trait :downvote do

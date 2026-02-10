@@ -5,7 +5,7 @@
 #
 # Usage:
 #   ContentRecommendationService.for_user(user, site:, limit: 6)
-#   ContentRecommendationService.similar_to(content_item, limit: 4)
+#   ContentRecommendationService.similar_to(entry, limit: 4)
 #   ContentRecommendationService.for_digest(subscription, limit: 5)
 #
 class ContentRecommendationService
@@ -33,8 +33,8 @@ class ContentRecommendationService
     new(site: site).for_user(user, limit: limit)
   end
 
-  def self.similar_to(content_item, limit: 4)
-    new(site: content_item.site).similar_to(content_item, limit: limit)
+  def self.similar_to(entry, limit: 4)
+    new(site: entry.site).similar_to(entry, limit: limit)
   end
 
   def self.for_digest(subscription, limit: 5)
@@ -57,14 +57,14 @@ class ContentRecommendationService
   end
 
   # Find content similar to a given content item based on topic_tags.
-  def similar_to(content_item, limit: 4)
-    return [] if content_item.topic_tags.blank?
+  def similar_to(entry, limit: 4)
+    return [] if entry.topic_tags.blank?
 
-    ContentItem
+    Entry
       .where(site: @site)
       .published
-      .where.not(id: content_item.id)
-      .where("topic_tags ?| array[:tags]", tags: content_item.topic_tags)
+      .where.not(id: entry.id)
+      .where("topic_tags ?| array[:tags]", tags: entry.topic_tags)
       .order(published_at: :desc)
       .limit(limit)
   end
@@ -103,16 +103,16 @@ class ContentRecommendationService
     cutoff_date = LOOKBACK_DAYS.days.ago
     content_ids = Set.new
 
-    # Gather votes (highest signal) - only for ContentItems
+    # Gather votes (highest signal) - only for Entries
     votes = Vote.without_site_scope
-               .where(site: @site, user: user, votable_type: "ContentItem")
+               .where(site: @site, user: user, votable_type: "Entry")
                .where("created_at >= ?", cutoff_date)
                .order(created_at: :desc)
                .limit(MAX_INTERACTIONS)
                .includes(:votable)
 
     # Gather bookmarks
-    bookmarks = Bookmark.where(user: user, bookmarkable_type: "ContentItem")
+    bookmarks = Bookmark.where(user: user, bookmarkable_type: "Entry")
                        .where("created_at >= ?", cutoff_date)
                        .order(created_at: :desc)
                        .limit(MAX_INTERACTIONS)
@@ -127,11 +127,11 @@ class ContentRecommendationService
                       .where("viewed_at >= ?", cutoff_date)
                       .order(viewed_at: :desc)
                       .limit(MAX_INTERACTIONS)
-                      .includes(:content_item)
+                      .includes(:entry)
 
     votes.each { |v| content_ids << v.votable_id }
     bookmarks.each { |b| content_ids << b.bookmarkable_id }
-    views.each { |v| content_ids << v.content_item_id }
+    views.each { |v| content_ids << v.entry_id }
 
     {
       votes: votes,
@@ -164,7 +164,7 @@ class ContentRecommendationService
     # Process views
     interactions[:views].each do |view|
       weight = apply_time_decay(view.viewed_at, VIEW_WEIGHT)
-      view.content_item.topic_tags.each do |tag|
+      view.entry.topic_tags.each do |tag|
         topic_scores[tag] += weight
       end
     end
@@ -184,7 +184,7 @@ class ContentRecommendationService
 
     top_tags = topic_scores.keys
 
-    ContentItem
+    Entry
       .where(site: @site)
       .published
       .where.not(id: exclude_ids)

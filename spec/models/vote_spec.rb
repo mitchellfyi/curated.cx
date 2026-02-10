@@ -31,7 +31,7 @@ RSpec.describe Vote, type: :model do
   let(:tenant) { create(:tenant) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) { create(:content_item, site: site, source: source) }
+  let(:entry) { create(:entry, :feed, site: site, source: source) }
   let(:user) { create(:user) }
 
   before do
@@ -45,47 +45,47 @@ RSpec.describe Vote, type: :model do
   end
 
   describe "validations" do
-    subject { build(:vote, votable: content_item, user: user, site: site) }
+    subject { build(:vote, votable: entry, user: user, site: site) }
 
     it { should validate_presence_of(:value) }
     it { should validate_numericality_of(:value).only_integer }
 
     context "uniqueness" do
       it "validates uniqueness of user_id scoped to site and votable" do
-        create(:vote, votable: content_item, user: user, site: site)
+        create(:vote, votable: entry, user: user, site: site)
 
-        duplicate = build(:vote, votable: content_item, user: user, site: site)
+        duplicate = build(:vote, votable: entry, user: user, site: site)
         expect(duplicate).not_to be_valid
         expect(duplicate.errors[:user_id]).to include("has already voted on this content")
       end
 
-      it "allows same user to vote on different content items" do
-        create(:vote, votable: content_item, user: user, site: site)
+      it "allows same user to vote on different entries" do
+        create(:vote, votable: entry, user: user, site: site)
 
-        other_content_item = create(:content_item, site: site, source: source)
-        other_vote = build(:vote, votable: other_content_item, user: user, site: site)
+        other_entry = create(:entry, :feed, site: site, source: source)
+        other_vote = build(:vote, votable: other_entry, user: user, site: site)
         expect(other_vote).to be_valid
       end
 
-      it "allows different users to vote on the same content item" do
-        create(:vote, votable: content_item, user: user, site: site)
+      it "allows different users to vote on the same entry" do
+        create(:vote, votable: entry, user: user, site: site)
 
         other_user = create(:user)
-        other_vote = build(:vote, votable: content_item, user: other_user, site: site)
+        other_vote = build(:vote, votable: entry, user: other_user, site: site)
         expect(other_vote).to be_valid
       end
     end
   end
 
   describe "scopes" do
-    describe ".for_content_item" do
-      it "returns votes for the specified content item" do
-        vote1 = create(:vote, votable: content_item, user: user, site: site)
-        other_content_item = create(:content_item, site: site, source: source)
-        vote2 = create(:vote, votable: other_content_item, user: create(:user), site: site)
+    describe ".for_entry" do
+      it "returns votes for the specified entry" do
+        vote1 = create(:vote, votable: entry, user: user, site: site)
+        other_entry = create(:entry, :feed, site: site, source: source)
+        vote2 = create(:vote, votable: other_entry, user: create(:user), site: site)
 
-        expect(Vote.for_content_item(content_item)).to include(vote1)
-        expect(Vote.for_content_item(content_item)).not_to include(vote2)
+        expect(Vote.for_entry(entry)).to include(vote1)
+        expect(Vote.for_entry(entry)).not_to include(vote2)
       end
     end
 
@@ -93,28 +93,28 @@ RSpec.describe Vote, type: :model do
       it "returns votes for the specified note" do
         note = create(:note, :published, site: site, user: user)
         vote1 = create(:vote, votable: note, user: user, site: site)
-        vote2 = create(:vote, votable: content_item, user: create(:user), site: site)
+        vote2 = create(:vote, votable: entry, user: create(:user), site: site)
 
         expect(Vote.for_note(note)).to include(vote1)
         expect(Vote.for_note(note)).not_to include(vote2)
       end
     end
 
-    describe ".content_items" do
-      it "returns only votes on content items" do
+    describe ".for_entries" do
+      it "returns only votes on entries" do
         note = create(:note, :published, site: site, user: user)
-        content_vote = create(:vote, votable: content_item, user: user, site: site)
+        content_vote = create(:vote, votable: entry, user: user, site: site)
         note_vote = create(:vote, votable: note, user: create(:user), site: site)
 
-        expect(Vote.content_items).to include(content_vote)
-        expect(Vote.content_items).not_to include(note_vote)
+        expect(Vote.for_entries).to include(content_vote)
+        expect(Vote.for_entries).not_to include(note_vote)
       end
     end
 
     describe ".notes" do
       it "returns only votes on notes" do
         note = create(:note, :published, site: site, user: user)
-        content_vote = create(:vote, votable: content_item, user: user, site: site)
+        content_vote = create(:vote, votable: entry, user: user, site: site)
         note_vote = create(:vote, votable: note, user: create(:user), site: site)
 
         expect(Vote.notes).to include(note_vote)
@@ -124,10 +124,10 @@ RSpec.describe Vote, type: :model do
 
     describe ".by_user" do
       it "returns votes by the specified user" do
-        vote1 = create(:vote, votable: content_item, user: user, site: site)
+        vote1 = create(:vote, votable: entry, user: user, site: site)
         other_user = create(:user)
-        other_content_item = create(:content_item, site: site, source: source)
-        vote2 = create(:vote, votable: other_content_item, user: other_user, site: site)
+        other_entry = create(:entry, :feed, site: site, source: source)
+        vote2 = create(:vote, votable: other_entry, user: other_user, site: site)
 
         expect(Vote.by_user(user)).to include(vote1)
         expect(Vote.by_user(user)).not_to include(vote2)
@@ -139,13 +139,13 @@ RSpec.describe Vote, type: :model do
     let(:other_tenant) { create(:tenant) }
     let(:other_site) { create(:site, tenant: other_tenant) }
     let(:other_source) { create(:source, site: other_site) }
-    let(:other_content_item) { create(:content_item, site: other_site, source: other_source) }
+    let(:other_entry) { create(:entry, :feed, site: other_site, source: other_source) }
 
     it "scopes queries to current site" do
-      vote1 = create(:vote, votable: content_item, user: user, site: site)
+      vote1 = create(:vote, votable: entry, user: user, site: site)
 
       Current.site = other_site
-      vote2 = create(:vote, votable: other_content_item, user: create(:user), site: other_site)
+      vote2 = create(:vote, votable: other_entry, user: create(:user), site: other_site)
 
       Current.site = site
       expect(Vote.all).to include(vote1)
@@ -153,7 +153,7 @@ RSpec.describe Vote, type: :model do
     end
 
     it "prevents accessing votes from other sites" do
-      vote = create(:vote, votable: content_item, user: user, site: site)
+      vote = create(:vote, votable: entry, user: user, site: site)
 
       Current.site = other_site
       expect {
@@ -163,20 +163,20 @@ RSpec.describe Vote, type: :model do
   end
 
   describe "counter cache" do
-    context "on ContentItem" do
-      it "increments upvotes_count on content_item when vote is created" do
+    context "on Entry" do
+      it "increments upvotes_count on entry when vote is created" do
         expect {
-          create(:vote, votable: content_item, user: user, site: site)
-        }.to change { content_item.reload.upvotes_count }.by(1)
+          create(:vote, votable: entry, user: user, site: site)
+        }.to change { entry.reload.upvotes_count }.by(1)
       end
 
-      it "decrements upvotes_count on content_item when vote is destroyed" do
-        vote = create(:vote, votable: content_item, user: user, site: site)
-        content_item.reload
+      it "decrements upvotes_count on entry when vote is destroyed" do
+        vote = create(:vote, votable: entry, user: user, site: site)
+        entry.reload
 
         expect {
           vote.destroy
-        }.to change { content_item.reload.upvotes_count }.by(-1)
+        }.to change { entry.reload.upvotes_count }.by(-1)
       end
     end
 
@@ -203,10 +203,10 @@ RSpec.describe Vote, type: :model do
   describe "polymorphic voting" do
     let(:note) { create(:note, :published, site: site, user: user) }
 
-    it "allows voting on ContentItem" do
-      vote = build(:vote, votable: content_item, user: user, site: site)
+    it "allows voting on Entry" do
+      vote = build(:vote, votable: entry, user: user, site: site)
       expect(vote).to be_valid
-      expect(vote.votable_type).to eq("ContentItem")
+      expect(vote.votable_type).to eq("Entry")
     end
 
     it "allows voting on Note" do
@@ -215,8 +215,8 @@ RSpec.describe Vote, type: :model do
       expect(vote.votable_type).to eq("Note")
     end
 
-    it "allows same user to vote on both ContentItem and Note" do
-      create(:vote, votable: content_item, user: user, site: site)
+    it "allows same user to vote on both Entry and Note" do
+      create(:vote, votable: entry, user: user, site: site)
       note_vote = build(:vote, votable: note, user: user, site: site)
       expect(note_vote).to be_valid
     end

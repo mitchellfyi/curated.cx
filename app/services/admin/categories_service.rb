@@ -9,7 +9,7 @@ module Admin
     def all_categories
       target_tenant = @tenant || Current.tenant
 
-      scope = Category.without_site_scope.includes(:listings).where(tenant: target_tenant)
+      scope = Category.without_site_scope.includes(:entries).where(tenant: target_tenant)
       active_site = Current.site || target_tenant&.sites&.first
       scope = scope.where(site: active_site) if active_site
       scope = scope.where(id: Current.tenant.categories.select(:id)) if Current.tenant

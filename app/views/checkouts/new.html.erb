@@ -8,7 +8,7 @@
 
 <div class="max-w-4xl mx-auto px-4 py-12">
   <div class="mb-8">
-    <%= link_to listing_path(@listing), class: "text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" do %>
+    <%= link_to listing_path(@entry), class: "text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" do %>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
@@ -22,17 +22,17 @@
       <p class="mt-2 text-gray-600"><%= t("checkouts.subtitle") %></p>
 
       <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-        <h2 class="font-semibold text-gray-900"><%= @listing.title %></h2>
-        <p class="text-sm text-gray-600"><%= @listing.description&.truncate(100) %></p>
+        <h2 class="font-semibold text-gray-900"><%= @entry.title %></h2>
+        <p class="text-sm text-gray-600"><%= @entry.description&.truncate(100) %></p>
       </div>
     </div>
 
     <div class="p-6">
-      <% if @listing.job? %>
+      <% if @entry.category&.category_type == "job" %>
         <h3 class="text-lg font-semibold text-gray-900 mb-4"><%= t("checkouts.job_posting_options") %></h3>
         <div class="grid md:grid-cols-3 gap-4 mb-8">
           <% @checkout_options.select { |o| o[:type].to_s.start_with?("job_post") }.each do |option| %>
-            <%= form_with url: listing_checkout_path(@listing), method: :post, class: "block" do |f| %>
+            <%= form_with url: listing_checkout_path(@entry), method: :post, class: "block" do |f| %>
               <%= f.hidden_field :checkout_type, value: option[:type] %>
               <button type="submit" class="w-full p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all text-left group">
                 <div class="text-2xl font-bold text-gray-900 group-hover:text-blue-600">
@@ -49,7 +49,7 @@
       <h3 class="text-lg font-semibold text-gray-900 mb-4"><%= t("checkouts.featured_options") %></h3>
       <div class="grid md:grid-cols-3 gap-4">
         <% @checkout_options.select { |o| o[:type].to_s.start_with?("featured") }.each do |option| %>
-          <%= form_with url: listing_checkout_path(@listing), method: :post, class: "block" do |f| %>
+          <%= form_with url: listing_checkout_path(@entry), method: :post, class: "block" do |f| %>
             <%= f.hidden_field :checkout_type, value: option[:type] %>
             <button type="submit" class="w-full p-6 bg-white border-2 border-gray-200 rounded-lg hover:border-yellow-500 hover:shadow-md transition-all text-left group">
               <div class="text-2xl font-bold text-gray-900 group-hover:text-yellow-600">

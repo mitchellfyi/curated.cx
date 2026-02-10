@@ -7,7 +7,7 @@ module EditorialisationServices
   # Usage:
   #   manager = Editorialisation::PromptManager.new
   #   version = manager.current_version
-  #   prompt = manager.build_prompt(content_item)
+  #   prompt = manager.build_prompt(entry)
   #
   class PromptManager
     PROMPTS_PATH = Rails.root.join("config/editorialisation/prompts")
@@ -47,21 +47,21 @@ module EditorialisationServices
     end
 
     # Build the complete prompt for a content item
-    def build_prompt(content_item)
+    def build_prompt(entry)
       template = config["user_prompt_template"]
 
       # Truncate extracted text to avoid token limits
-      extracted_text = content_item.extracted_text || ""
+      extracted_text = entry.extracted_text || ""
       truncated_text = truncate_text(extracted_text, MAX_TEXT_LENGTH)
 
       # Build taxonomy list for the site so AI can suggest from known topics
-      taxonomy_list = build_taxonomy_list(content_item.site_id)
+      taxonomy_list = build_taxonomy_list(entry.site_id)
 
       # Interpolate template variables
       prompt = template
-        .gsub("{title}", content_item.title || "")
-        .gsub("{url}", content_item.url_canonical || "")
-        .gsub("{description}", content_item.description || "")
+        .gsub("{title}", entry.title || "")
+        .gsub("{url}", entry.url_canonical || "")
+        .gsub("{description}", entry.description || "")
         .gsub("{extracted_text}", truncated_text)
         .gsub("{taxonomy_list}", taxonomy_list)
 

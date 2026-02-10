@@ -52,11 +52,11 @@
         </div>
       <% end %>
 
-      <!-- Content Items -->
+      <!-- Feed entries -->
       <% if @results[:content_items].any? %>
         <div class="bg-white shadow rounded-lg mb-6">
           <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-medium text-gray-900">Content Items (<%= @results[:content_items].count %>)</h2>
+            <h2 class="text-lg font-medium text-gray-900">Feed entries (<%= @results[:content_items].count %>)</h2>
           </div>
           <ul class="divide-y divide-gray-200">
             <% @results[:content_items].each do |item| %>
@@ -66,16 +66,38 @@
                     <p class="text-sm font-medium text-gray-900 truncate"><%= item.title.presence || "(No title)" %></p>
                     <p class="text-xs text-gray-500 truncate"><%= item.url_canonical %></p>
                   </div>
-                  <%= link_to "View", admin_content_item_path(item), class: "text-blue-600 hover:underline text-sm ml-4" %>
+                  <%= link_to "View", admin_entry_path(item), class: "text-blue-600 hover:underline text-sm ml-4" %>
                 </div>
               </li>
             <% end %>
           </ul>
           <% if @results[:content_items].count >= 10 %>
             <div class="px-4 py-2 border-t border-gray-200 bg-gray-50">
-              <%= link_to "View all content items →", admin_content_items_path(search: @query), class: "text-sm text-blue-600 hover:underline" %>
+              <%= link_to "View all feed entries →", admin_entries_path(kind: "feed", search: @query), class: "text-sm text-blue-600 hover:underline" %>
             </div>
           <% end %>
+        </div>
+      <% end %>
+
+      <!-- Directory entries -->
+      <% if @results[:listings].any? %>
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-medium text-gray-900">Directory entries (<%= @results[:listings].count %>)</h2>
+          </div>
+          <ul class="divide-y divide-gray-200">
+            <% @results[:listings].each do |entry| %>
+              <li class="px-4 py-3 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate"><%= entry.title %></p>
+                    <p class="text-xs text-gray-500"><%= entry.domain %></p>
+                  </div>
+                  <%= link_to "View", admin_entry_path(entry), class: "text-blue-600 hover:underline text-sm ml-4" %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
         </div>
       <% end %>
 
@@ -103,28 +125,6 @@
               <%= link_to "View all notes →", admin_notes_path(search: @query), class: "text-sm text-blue-600 hover:underline" %>
             </div>
           <% end %>
-        </div>
-      <% end %>
-
-      <!-- Listings -->
-      <% if @results[:listings].any? %>
-        <div class="bg-white shadow rounded-lg mb-6">
-          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-medium text-gray-900">Listings (<%= @results[:listings].count %>)</h2>
-          </div>
-          <ul class="divide-y divide-gray-200">
-            <% @results[:listings].each do |listing| %>
-              <li class="px-4 py-3 hover:bg-gray-50">
-                <div class="flex items-center justify-between">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 truncate"><%= listing.title %></p>
-                    <p class="text-xs text-gray-500"><%= listing.domain %></p>
-                  </div>
-                  <%= link_to "View", admin_listing_path(listing), class: "text-blue-600 hover:underline text-sm ml-4" %>
-                </div>
-              </li>
-            <% end %>
-          </ul>
         </div>
       <% end %>
 

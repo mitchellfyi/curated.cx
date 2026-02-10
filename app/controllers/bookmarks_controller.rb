@@ -44,10 +44,10 @@ class BookmarksController < ApplicationController
 
   def find_bookmarkable
     case params[:bookmarkable_type]
-    when "ContentItem"
-      ContentItem.find(params[:bookmarkable_id])
-    when "Listing"
-      Listing.find(params[:bookmarkable_id])
+    when "Entry"
+      Entry.find(params[:bookmarkable_id])
+    when "Note"
+      Note.find(params[:bookmarkable_id])
     else
       raise ActiveRecord::RecordNotFound, "Invalid bookmarkable type"
     end

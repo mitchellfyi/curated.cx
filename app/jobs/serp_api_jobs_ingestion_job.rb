@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Job to fetch job listings from Google Jobs via SerpAPI and store as Listings.
+# Job to fetch job postings from Google Jobs via SerpAPI and store as directory entries.
 # Uses the ingestion architecture with ImportRun tracking.
 class SerpApiJobsIngestionJob < ApplicationJob
   include WorkflowPausable
@@ -92,7 +92,7 @@ class SerpApiJobsIngestionJob < ApplicationJob
     # Call SerpAPI
     results = fetch_from_serp_api(api_key, query, location)
 
-    # Parse results and create Listings
+    # Parse results and create directory Entries
     stats = process_results(results)
 
     # Mark import run as completed
@@ -155,32 +155,30 @@ class SerpApiJobsIngestionJob < ApplicationJob
     # Find or create jobs category
     category = find_or_create_jobs_category
 
-    # Find or initialize Listing by canonical URL (deduplication)
-    listing = Listing.find_or_initialize_by(
+    # Find or initialize directory Entry by canonical URL (deduplication)
+    entry = Entry.find_or_initialize_by_canonical_url(
       site: @site,
-      url_canonical: canonical_url
+      url_canonical: canonical_url,
+      source: @source,
+      entry_kind: "directory"
     )
 
-    # Determine if this is a new record
-    is_new = listing.new_record?
+    is_new = entry.new_record?
 
-    # Extract salary if available
     salary = result.dig("detected_extensions", "salary") ||
              result.dig("salary_info", "salary_range")
 
-    # Update attributes from SerpAPI result
-    listing.assign_attributes(
+    entry.assign_attributes(
       tenant: @tenant,
       category: category,
-      source: @source,
       url_raw: apply_url,
-      listing_type: :job,
       title: result["title"],
       company: result["company_name"],
       location: result["location"],
       description: result["description"],
       salary_range: salary,
       apply_url: apply_url,
+      raw_payload: result,
       metadata: {
         posted_at: result.dig("detected_extensions", "posted_at"),
         schedule_type: result.dig("detected_extensions", "schedule_type"),
@@ -190,14 +188,14 @@ class SerpApiJobsIngestionJob < ApplicationJob
       published_at: Time.current
     )
 
-    if listing.save
+    if entry.save
       is_new ? stats[:created] += 1 : stats[:updated] += 1
     else
       stats[:failed] += 1
       log_job_warning(
-        "Failed to save Listing",
+        "Failed to save Entry",
         url: apply_url,
-        errors: listing.errors.full_messages
+        errors: entry.errors.full_messages
       )
     end
   rescue UrlCanonicaliser::InvalidUrlError => e

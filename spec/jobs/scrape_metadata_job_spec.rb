@@ -8,8 +8,8 @@ RSpec.describe ScrapeMetadataJob, type: :job do
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
   let(:category) { create(:category, tenant: tenant, site: site) }
-  let(:listing) do
-    create(:listing,
+  let(:entry) do
+    create(:entry, :directory,
       tenant: tenant,
       site: site,
       category: category,
@@ -43,34 +43,34 @@ RSpec.describe ScrapeMetadataJob, type: :job do
         allow(MetaInspector).to receive(:new).and_return(mock_page)
       end
 
-      it "updates listing with scraped metadata" do
-        described_class.perform_now(listing.id)
+      it "updates entry with scraped metadata" do
+        described_class.perform_now(entry.id)
 
-        listing.reload
-        expect(listing.title).to eq("Sample Article Title")
-        expect(listing.description).to eq("This is a sample article description for testing metadata extraction.")
-        expect(listing.image_url).to eq("https://example.com/images/article-image.jpg")
-        expect(listing.site_name).to eq("example.com")
+        entry.reload
+        expect(entry.title).to eq("Sample Article Title")
+        expect(entry.description).to eq("This is a sample article description for testing metadata extraction.")
+        expect(entry.image_url).to eq("https://example.com/images/article-image.jpg")
+        expect(entry.site_name).to eq("example.com")
       end
 
       it "extracts published_at from meta tags" do
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
 
-        listing.reload
-        expect(listing.published_at).to eq(Time.parse("2026-01-15T10:30:00Z"))
+        entry.reload
+        expect(entry.published_at).to eq(Time.parse("2026-01-15T10:30:00Z"))
       end
 
       it "extracts body HTML and text" do
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
 
-        listing.reload
-        expect(listing.body_html).to be_present
+        entry.reload
+        expect(entry.body_html).to be_present
       end
 
-      it "returns the listing" do
-        result = described_class.perform_now(listing.id)
+      it "returns the entry" do
+        result = described_class.perform_now(entry.id)
 
-        expect(result).to eq(listing)
+        expect(result).to eq(entry)
       end
     end
 
@@ -90,10 +90,10 @@ RSpec.describe ScrapeMetadataJob, type: :job do
         )
         allow(MetaInspector).to receive(:new).and_return(mock_page)
 
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
 
-        listing.reload
-        expect(listing.published_at).to eq(Time.parse("2026-01-15T10:30:00Z"))
+        entry.reload
+        expect(entry.published_at).to eq(Time.parse("2026-01-15T10:30:00Z"))
       end
 
       it "extracts from og:published_time as fallback" do
@@ -111,10 +111,10 @@ RSpec.describe ScrapeMetadataJob, type: :job do
         )
         allow(MetaInspector).to receive(:new).and_return(mock_page)
 
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
 
-        listing.reload
-        expect(listing.published_at).to eq(Time.parse("2026-01-14T09:00:00Z"))
+        entry.reload
+        expect(entry.published_at).to eq(Time.parse("2026-01-14T09:00:00Z"))
       end
 
       it "extracts from JSON-LD datePublished" do
@@ -140,16 +140,16 @@ RSpec.describe ScrapeMetadataJob, type: :job do
         )
         allow(MetaInspector).to receive(:new).and_return(mock_page)
 
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
 
-        listing.reload
-        expect(listing.published_at).to eq(Time.parse("2026-01-13T08:00:00Z"))
+        entry.reload
+        expect(entry.published_at).to eq(Time.parse("2026-01-13T08:00:00Z"))
       end
     end
 
     context "handles missing metadata gracefully" do
-      let(:listing) do
-        create(:listing,
+      let(:entry) do
+        create(:entry, :directory,
           tenant: tenant,
           site: site,
           category: category,
@@ -171,11 +171,11 @@ RSpec.describe ScrapeMetadataJob, type: :job do
         )
         allow(MetaInspector).to receive(:new).and_return(mock_page)
 
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
 
-        listing.reload
-        expect(listing.title).to eq("Existing Title")
-        expect(listing.description).to eq("Existing Description")
+        entry.reload
+        expect(entry.title).to eq("Existing Title")
+        expect(entry.description).to eq("Existing Description")
       end
     end
 
@@ -189,7 +189,7 @@ RSpec.describe ScrapeMetadataJob, type: :job do
         # The error is wrapped but retry_on may change the flow
         error_raised = false
         begin
-          described_class.perform_now(listing.id)
+          described_class.perform_now(entry.id)
         rescue ExternalServiceError => e
           error_raised = true
           expect(e.message).to match(/Failed to fetch metadata/)
@@ -204,7 +204,7 @@ RSpec.describe ScrapeMetadataJob, type: :job do
 
         error_raised = false
         begin
-          described_class.perform_now(listing.id)
+          described_class.perform_now(entry.id)
         rescue ExternalServiceError => e
           error_raised = true
           expect(e.message).to match(/Failed to fetch metadata/)
@@ -218,7 +218,7 @@ RSpec.describe ScrapeMetadataJob, type: :job do
         allow(Rails.logger).to receive(:error)
 
         begin
-          described_class.perform_now(listing.id)
+          described_class.perform_now(entry.id)
         rescue StandardError
           # Expected
         end
@@ -246,15 +246,15 @@ RSpec.describe ScrapeMetadataJob, type: :job do
       end
 
       it "sets Current.tenant during execution" do
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
 
         # Verify the job completed successfully (requires tenant context)
-        listing.reload
-        expect(listing.title).to eq("Title")
+        entry.reload
+        expect(entry.title).to eq("Title")
       end
 
       it "clears context after execution" do
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
 
         expect(Current.tenant).to be_nil
         expect(Current.site).to be_nil
@@ -274,7 +274,7 @@ RSpec.describe ScrapeMetadataJob, type: :job do
           hash_including(timeout: 20)
         ).and_call_original
 
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
       end
 
       it "configures retries" do
@@ -283,7 +283,7 @@ RSpec.describe ScrapeMetadataJob, type: :job do
           hash_including(retries: 2)
         ).and_call_original
 
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
       end
 
       it "sets custom User-Agent" do
@@ -292,7 +292,7 @@ RSpec.describe ScrapeMetadataJob, type: :job do
           hash_including(headers: hash_including("User-Agent" => /Curated\.cx/))
         ).and_call_original
 
-        described_class.perform_now(listing.id)
+        described_class.perform_now(entry.id)
       end
     end
   end

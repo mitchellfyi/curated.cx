@@ -125,9 +125,9 @@ class WorkflowPauseService
 
     def estimate_ai_backlog(tenant, since)
       # Count content items awaiting editorialisation
-      scope = ContentItem.published.where(editorialised_at: nil)
+      scope = Entry.feed_items.published.where(editorialised_at: nil)
       scope = scope.joins(:source).where(sources: { tenant: tenant }) if tenant
-      scope = scope.where("content_items.created_at > ?", since) if since
+      scope = scope.where("entries.created_at > ?", since) if since
       scope.count
     end
 

@@ -39,9 +39,8 @@ class Source < ApplicationRecord
 
   # Associations
   belongs_to :tenant # Keep for backward compatibility
-  has_many :listings, dependent: :nullify
   has_many :import_runs, dependent: :destroy
-  has_many :content_items, dependent: :destroy
+  has_many :entries, dependent: :nullify
 
   # Enums
   enum :kind, {
@@ -113,6 +112,11 @@ class Source < ApplicationRecord
     (schedule["interval_seconds"] || schedule[:interval_seconds] || DEFAULT_INTERVAL_SECONDS).to_i
   end
 
+  # Whether a schedule interval has been explicitly configured
+  def schedule_interval_configured?
+    (schedule["interval_seconds"] || schedule[:interval_seconds]).present?
+  end
+
   def update_run_status(status)
     update_columns(
       last_run_at: Time.current,
@@ -128,12 +132,10 @@ class Source < ApplicationRecord
   # Calculate when this source will next be processed
   def next_run_at
     return nil unless enabled?
-
-    interval = schedule_interval_seconds
-    return nil if interval.nil?
+    return nil unless schedule_interval_configured?
     return Time.current if last_run_at.nil?
 
-    last_run_at + interval.seconds
+    last_run_at + schedule_interval_seconds.seconds
   end
 
   # Health status based on recent import runs
@@ -173,8 +175,9 @@ class Source < ApplicationRecord
 
   # Human-readable schedule interval
   def schedule_interval_text
+    return "Not scheduled" unless schedule_interval_configured?
+
     interval = schedule_interval_seconds
-    return "Not scheduled" if interval.nil?
 
     case interval
     when 0..899 then "Every #{(interval / 60.0).ceil} minutes"

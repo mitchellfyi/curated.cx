@@ -3,31 +3,31 @@
 # Service to generate affiliate URLs and track clicks for monetisation
 #
 # The affiliate_url_template supports placeholders:
-#   {url} - The canonical URL of the listing (URL-encoded)
-#   {title} - The listing title (URL-encoded)
-#   {id} - The listing ID
+#   {url} - The canonical URL of the entry (URL-encoded)
+#   {title} - The entry title (URL-encoded)
+#   {id} - The entry ID
 #
 # Example templates:
 #   - "https://affiliate.example.com?url={url}&ref=curated"
 #   - "https://example.com/go?target={url}&source=curated&campaign=tools"
 #
 class AffiliateUrlService
-  attr_reader :listing
+  attr_reader :entry
 
-  def initialize(listing)
-    @listing = listing
+  def initialize(entry)
+    @entry = entry
   end
 
   # Generate the affiliate URL from the template
   def generate_url
-    return nil unless listing.affiliate_url_template.present?
+    return nil unless entry.affiliate_url_template.present?
 
-    url = listing.affiliate_url_template.dup
+    url = entry.affiliate_url_template.dup
 
     # Replace placeholders
-    url = url.gsub("{url}", CGI.escape(listing.url_canonical.to_s))
-    url = url.gsub("{title}", CGI.escape(listing.title.to_s))
-    url = url.gsub("{id}", listing.id.to_s)
+    url = url.gsub("{url}", CGI.escape(entry.url_canonical.to_s))
+    url = url.gsub("{title}", CGI.escape(entry.title.to_s))
+    url = url.gsub("{id}", entry.id.to_s)
 
     # Apply attribution params if present
     apply_attribution_params(url)
@@ -35,10 +35,10 @@ class AffiliateUrlService
 
   # Track a click on the affiliate link
   def track_click(request)
-    return nil unless listing.persisted?
+    return nil unless entry.persisted?
 
     AffiliateClick.create!(
-      listing: listing,
+      entry: entry,
       clicked_at: Time.current,
       ip_hash: hash_ip(request.remote_ip),
       user_agent: truncate_user_agent(request.user_agent),
@@ -47,27 +47,27 @@ class AffiliateUrlService
   end
 
   # Class method for convenience
-  def self.generate_url_for(listing)
-    new(listing).generate_url
+  def self.generate_url_for(entry)
+    new(entry).generate_url
   end
 
   # Class method for tracking
-  def self.track_click_for(listing, request)
-    new(listing).track_click(request)
+  def self.track_click_for(entry, request)
+    new(entry).track_click(request)
   end
 
   private
 
   # Apply additional attribution params from the JSONB field
   def apply_attribution_params(url)
-    return url if listing.affiliate_attribution.blank?
+    return url if entry.affiliate_attribution.blank?
 
     # Parse existing URL to add params
     uri = URI.parse(url)
     existing_params = uri.query ? URI.decode_www_form(uri.query) : []
 
     # Add attribution params
-    listing.affiliate_attribution.each do |key, value|
+    entry.affiliate_attribution.each do |key, value|
       existing_params << [ key.to_s, value.to_s ]
     end
 

@@ -205,11 +205,11 @@
       <%# Content %>
       <%= render "admin/dashboard/section_card",
         title: "Content",
-        link: admin_content_items_path,
+        link: admin_entries_path,
         alert_count: @system_stats[:submissions_pending].to_i,
         stats: [
-          { label: "Content items", value: number_with_delimiter(@system_stats[:content_items]) },
-          { label: "Published listings", value: number_with_delimiter(@stats[:published_listings]) },
+          { label: "Feed entries", value: number_with_delimiter(@system_stats[:content_items]) },
+          { label: "Published directory", value: number_with_delimiter(@stats[:published_listings]) },
           { label: "Pending submissions", value: @system_stats[:submissions_pending], color: @system_stats[:submissions_pending].to_i > 0 ? :yellow : nil },
           { label: "Notes", value: number_with_delimiter(@system_stats[:notes]) }
         ] %>
@@ -320,11 +320,11 @@
             Manage Categories
           <% end %>
 
-          <%= link_to admin_listings_path, class: button_classes(variant: :secondary) do %>
+          <%= link_to admin_entries_path, class: button_classes(variant: :secondary) do %>
             <svg class="mr-2 -ml-1 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
-            Manage Listings
+            Manage Entries
           <% end %>
 
           <%= link_to admin_sources_path, class: button_classes(variant: :secondary) do %>
@@ -348,11 +348,11 @@
             Manage Sites
           <% end %>
 
-          <%= link_to new_admin_listing_path, class: button_classes(variant: :primary) do %>
+          <%= link_to new_admin_entry_path(kind: "directory"), class: button_classes(variant: :primary) do %>
             <svg class="mr-2 -ml-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
-            New Listing
+            New Entry
           <% end %>
 
           <%= link_to new_admin_category_path, class: button_classes(variant: :primary) do %>
@@ -376,25 +376,25 @@
 
     <%# ==================== RECENT ACTIVITY ==================== %>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <%# Recent Listings %>
-      <% if @recent_listings.any? %>
+      <%# Recent directory entries %>
+      <% if @recent_entries.any? %>
         <div class="bg-white shadow rounded-lg">
           <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Listings</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Directory Entries</h3>
             <div class="flow-root">
               <ul class="-my-5 divide-y divide-gray-200">
-                <% @recent_listings.each do |listing| %>
+                <% @recent_entries.each do |entry| %>
                   <li class="py-4">
                     <div class="flex items-center space-x-4">
                       <div class="flex-shrink-0">
-                        <%= badge(listing.category&.name || t('admin.dashboard.uncategorized'), :blue) %>
+                        <%= badge(entry.category&.name || t('admin.dashboard.uncategorized'), :blue) %>
                       </div>
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-gray-900 truncate">
-                          <%= link_to listing.title, admin_listing_path(listing), class: "hover:text-blue-600" %>
+                          <%= link_to entry.title, admin_entry_path(entry), class: "hover:text-blue-600" %>
                         </p>
                         <p class="text-sm text-gray-500 truncate">
-                          <%= listing.domain %> &bull; <%= time_ago_in_words(listing.created_at) %> ago
+                          <%= entry.domain %> &bull; <%= time_ago_in_words(entry.created_at) %> ago
                         </p>
                       </div>
                     </div>
@@ -403,7 +403,7 @@
               </ul>
             </div>
             <div class="mt-6">
-              <%= link_to t('admin.dashboard.view_all_listings'), admin_listings_path, class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
+              <%= link_to "View all entries", admin_entries_path(kind: "directory"), class: "text-sm font-medium text-blue-600 hover:text-blue-500" %>
             </div>
           </div>
         </div>

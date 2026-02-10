@@ -19,26 +19,26 @@
 #  tokens_used          :integer
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
-#  content_item_id      :bigint           not null
+#  entry_id             :bigint           not null
 #  site_id              :bigint           not null
 #
 # Indexes
 #
 #  index_editorialisations_cost_tracking              (site_id,created_at,estimated_cost_cents)
-#  index_editorialisations_on_content_item_id         (content_item_id) UNIQUE
+#  index_editorialisations_on_entry_id                (entry_id)
 #  index_editorialisations_on_site_id                 (site_id)
 #  index_editorialisations_on_site_id_and_created_at  (site_id,created_at)
 #  index_editorialisations_on_site_id_and_status      (site_id,status)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (content_item_id => content_items.id)
+#  fk_rails_...  (entry_id => entries.id)
 #  fk_rails_...  (site_id => sites.id)
 #
 FactoryBot.define do
   factory :editorialisation do
-    association :content_item
-    site { content_item.site }
+    association :entry, :feed
+    site { entry.site }
     prompt_version { "v1.0.0" }
     prompt_text { "Analyze the following article..." }
     status { :pending }

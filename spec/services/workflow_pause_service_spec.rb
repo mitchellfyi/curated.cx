@@ -116,16 +116,16 @@ RSpec.describe WorkflowPauseService do
 
   describe ".backlog_size" do
     context "for editorialisation" do
-      it "counts unpublished content items with editorialisation enabled" do
+      it "counts unpublished entries with editorialisation enabled" do
         site = create(:site, tenant: tenant)
         source = create(:source, site: site, tenant: tenant, config: { "editorialise" => true })
 
         # Published, not editorialised - should count
-        create(:content_item, :published, editorialised_at: nil, site: site, source: source)
-        create(:content_item, :published, editorialised_at: nil, site: site, source: source)
+        create(:entry, :feed, :published, editorialised_at: nil, site: site, source: source)
+        create(:entry, :feed, :published, editorialised_at: nil, site: site, source: source)
 
         # Already editorialised - should not count
-        create(:content_item, :published, editorialised_at: Time.current, site: site, source: source)
+        create(:entry, :feed, :published, editorialised_at: Time.current, site: site, source: source)
 
         size = described_class.backlog_size(:editorialisation, tenant: tenant)
         expect(size).to eq(2)

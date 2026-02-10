@@ -7,41 +7,30 @@ class ScrapeMetadataJob < ApplicationJob
   # Retry on transient network errors (timeouts, connection failures)
   retry_on ExternalServiceError, wait: :polynomially_longer, attempts: 3
 
-  # Discard if the listing was deleted before we could scrape
-  # (inherited from ApplicationJob via discard_on ActiveRecord::RecordNotFound)
+  # Discard if the entry was deleted (discard_on ActiveRecord::RecordNotFound)
 
-  def perform(listing_id)
-    listing = Listing.find(listing_id)
-    tenant = listing.tenant
-    site = listing.site
+  def perform(entry_id)
+    entry = Entry.find(entry_id)
+    Current.tenant = entry.tenant
+    Current.site = entry.site
 
-    # Set tenant context
-    Current.tenant = tenant
-    Current.site = site
-
-    # Scrape metadata
-    page = fetch_page_metadata(listing.url_canonical)
-
-    # Update listing with metadata
-    # MetaInspector provides page.to_s for the raw HTML content
+    page = fetch_page_metadata(entry.url_canonical)
     html_content = page.to_s.presence
-    listing.update!(
-      title: page.title.presence || listing.title,
-      description: page.description.presence || listing.description,
-      image_url: page.images.best.presence || listing.image_url,
-      site_name: page.host.presence || listing.site_name,
+    entry.update!(
+      title: page.title.presence || entry.title,
+      description: page.description.presence || entry.description,
+      image_url: page.images.best.presence || entry.image_url,
+      site_name: page.host.presence || entry.site_name,
       body_html: html_content,
       body_text: extract_text_from_html(html_content),
-      published_at: extract_published_at(page) || listing.published_at
+      published_at: extract_published_at(page) || entry.published_at
     )
 
-    listing
+    entry
   rescue ExternalServiceError
-    # Let retry_on handle this - just re-raise
     raise
   rescue StandardError => e
-    # Log with structured context and re-raise for visibility
-    log_job_error(e, listing_id: listing_id)
+    log_job_error(e, entry_id: entry_id)
     raise
   ensure
     Current.tenant = nil

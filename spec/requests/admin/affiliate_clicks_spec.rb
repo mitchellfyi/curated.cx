@@ -30,12 +30,12 @@ RSpec.describe "Admin::AffiliateClicks", type: :request do
     end
 
     context "when there are clicks" do
-      let!(:listing) { create(:listing, site: site, category: category, affiliate_url_template: "https://example.com?ref=123") }
+      let!(:entry) { create(:entry, :directory, site: site, category: category, affiliate_url_template: "https://example.com?ref=123") }
       let!(:clicks) do
         [
-          create(:affiliate_click, listing: listing, clicked_at: 1.day.ago),
-          create(:affiliate_click, listing: listing, clicked_at: 2.days.ago),
-          create(:affiliate_click, listing: listing, clicked_at: 3.days.ago)
+          create(:affiliate_click, entry: entry, clicked_at: 1.day.ago),
+          create(:affiliate_click, entry: entry, clicked_at: 2.days.ago),
+          create(:affiliate_click, entry: entry, clicked_at: 3.days.ago)
         ]
       end
 
@@ -51,20 +51,20 @@ RSpec.describe "Admin::AffiliateClicks", type: :request do
         expect(response.body).to include("3") # total clicks
       end
 
-      it "shows top listings" do
+      it "shows top entries" do
         get admin_affiliate_clicks_path
 
-        expect(response.body).to include(listing.title)
+        expect(response.body).to include(entry.title)
       end
     end
 
     context "with period filter" do
-      let!(:listing) { create(:listing, site: site, category: category, affiliate_url_template: "https://example.com?ref=123") }
+      let!(:entry) { create(:entry, :directory, site: site, category: category, affiliate_url_template: "https://example.com?ref=123") }
 
       before do
-        create(:affiliate_click, listing: listing, clicked_at: 2.days.ago)
-        create(:affiliate_click, listing: listing, clicked_at: 20.days.ago)
-        create(:affiliate_click, listing: listing, clicked_at: 60.days.ago)
+        create(:affiliate_click, entry: entry, clicked_at: 2.days.ago)
+        create(:affiliate_click, entry: entry, clicked_at: 20.days.ago)
+        create(:affiliate_click, entry: entry, clicked_at: 60.days.ago)
       end
 
       it "filters by 7 day period" do
@@ -88,13 +88,13 @@ RSpec.describe "Admin::AffiliateClicks", type: :request do
 
     context "with category filter" do
       let(:other_category) { create(:category, site: site, tenant: tenant) }
-      let!(:listing1) { create(:listing, site: site, category: category, affiliate_url_template: "https://example.com?ref=123") }
-      let!(:listing2) { create(:listing, site: site, category: other_category, affiliate_url_template: "https://example.com?ref=456") }
+      let!(:listing1) { create(:entry, :directory, site: site, category: category, affiliate_url_template: "https://example.com?ref=123") }
+      let!(:listing2) { create(:entry, :directory, site: site, category: other_category, affiliate_url_template: "https://example.com?ref=456") }
 
       before do
-        create(:affiliate_click, listing: listing1, clicked_at: 1.day.ago)
-        create(:affiliate_click, listing: listing1, clicked_at: 2.days.ago)
-        create(:affiliate_click, listing: listing2, clicked_at: 1.day.ago)
+        create(:affiliate_click, entry: listing1, clicked_at: 1.day.ago)
+        create(:affiliate_click, entry: listing1, clicked_at: 2.days.ago)
+        create(:affiliate_click, entry: listing2, clicked_at: 1.day.ago)
       end
 
       it "filters by category" do
@@ -106,8 +106,8 @@ RSpec.describe "Admin::AffiliateClicks", type: :request do
   end
 
   describe "GET /admin/affiliate_clicks/export" do
-    let!(:listing) { create(:listing, site: site, category: category, affiliate_url_template: "https://example.com?ref=123") }
-    let!(:click) { create(:affiliate_click, listing: listing, clicked_at: 1.day.ago, referrer: "https://google.com", user_agent: "Mozilla/5.0") }
+    let!(:entry) { create(:entry, :directory, site: site, category: category, affiliate_url_template: "https://example.com?ref=123") }
+    let!(:click) { create(:affiliate_click, entry: entry, clicked_at: 1.day.ago, referrer: "https://google.com", user_agent: "Mozilla/5.0") }
 
     it "returns CSV file" do
       get export_admin_affiliate_clicks_path(format: :csv)
@@ -120,8 +120,8 @@ RSpec.describe "Admin::AffiliateClicks", type: :request do
       get export_admin_affiliate_clicks_path(format: :csv)
 
       expect(response.body).to include("Date")
-      expect(response.body).to include("Listing")
-      expect(response.body).to include(listing.title)
+      expect(response.body).to include("Entry")
+      expect(response.body).to include(entry.title)
     end
 
     it "sets appropriate filename" do

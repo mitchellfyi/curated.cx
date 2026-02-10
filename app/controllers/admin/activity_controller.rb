@@ -43,10 +43,10 @@ module Admin
     end
 
     def fetch_content_imports
-      ContentItem.select(:id, :title, :url_canonical, :created_at)
+      Entry.select(:id, :title, :url_canonical, :created_at)
                  .order(created_at: :desc)
                  .limit(5)
-                 .map { |item| build_activity(:content_import, item.title.presence || item.url_canonical, admin_content_item_path(item), item.created_at) }
+                 .map { |item| build_activity(:content_import, item.title.presence || item.url_canonical, admin_entry_path(item), item.created_at) }
     end
 
     def fetch_notes

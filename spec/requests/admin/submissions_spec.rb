@@ -60,10 +60,10 @@ RSpec.describe "Admin::Submissions", type: :request do
       expect(submission.reload.status).to eq("approved")
     end
 
-    it "creates a listing" do
+    it "creates an entry" do
       expect {
         post approve_admin_submission_path(submission)
-      }.to change(Listing, :count).by(1)
+      }.to change(Entry, :count).by(1)
     end
 
     it "sets reviewer" do
@@ -94,10 +94,10 @@ RSpec.describe "Admin::Submissions", type: :request do
       expect(submission.reload.status).to eq("rejected")
     end
 
-    it "does not create a listing" do
+    it "does not create an entry" do
       expect {
         post reject_admin_submission_path(submission)
-      }.not_to change(Listing, :count)
+      }.not_to change(Entry, :count)
     end
 
     it "sets reviewer" do

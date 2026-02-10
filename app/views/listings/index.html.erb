@@ -113,7 +113,7 @@
               <div class="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-gray-800 border border-purple-200 dark:border-purple-800 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-2 mb-2">
                   <%= badge(t('monetisation.badges.featured'), :purple) %>
-                  <%= type_badge(listing.listing_type) unless listing.tool? %>
+                  <%= type_badge(listing.category&.category_type) unless listing.category&.category_type == "tool" %>
                 </div>
                 <h3 class="font-medium text-gray-900 dark:text-white line-clamp-2">
                   <%= link_to listing.title, listing_path(listing), class: "hover:text-purple-600 dark:hover:text-purple-400" %>
@@ -146,8 +146,8 @@
                         <% if listing.featured? %>
                           <%= badge(t('monetisation.badges.featured'), :purple) %>
                         <% end %>
-                        <%= type_badge(listing.listing_type) %>
-                        <% if listing.job? && listing.company.present? %>
+                        <%= type_badge(listing.category&.category_type) %>
+                        <% if listing.category&.category_type == "job" && listing.company.present? %>
                           <span class="text-sm text-gray-600 dark:text-gray-400">
                             at <%= listing.company %>
                           </span>
@@ -169,11 +169,11 @@
                             <%= t('time.ago', time: time_ago_in_words(listing.published_at)) %>
                           </time>
                         <% end %>
-                        <% if listing.job? && listing.location.present? %>
+                        <% if listing.category&.category_type == "job" && listing.location.present? %>
                           <span>•</span>
                           <span><%= listing.location %></span>
                         <% end %>
-                        <% if listing.job? && listing.salary_range.present? %>
+                        <% if listing.category&.category_type == "job" && listing.salary_range.present? %>
                           <span>•</span>
                           <span class="text-green-600 dark:text-green-400"><%= listing.salary_range %></span>
                         <% end %>

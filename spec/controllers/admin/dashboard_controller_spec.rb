@@ -33,50 +33,50 @@ RSpec.describe Admin::DashboardController, type: :controller do
         expect(assigns(:tenant)).to eq(tenant)
       end
 
-      it 'assigns categories with listings' do
+      it 'assigns categories with entries' do
         category = create(:category, tenant: tenant)
-        listing = create(:listing, tenant: tenant, category: category)
+        entry = create(:entry, :directory, tenant: tenant, category: category)
 
         get :index
         expect(assigns(:categories)).to include(category)
-        expect(assigns(:categories).first.association(:listings)).to be_loaded
+        expect(assigns(:categories).first.association(:entries)).to be_loaded
       end
 
-      it 'assigns recent listings with categories' do
-        listing = create(:listing, tenant: tenant)
+      it 'assigns recent entries with categories' do
+        entry = create(:entry, :directory, tenant: tenant)
 
         get :index
-        expect(assigns(:recent_listings)).to include(listing)
-        expect(assigns(:recent_listings).first.association(:category)).to be_loaded
+        expect(assigns(:recent_entries)).to include(entry)
+        expect(assigns(:recent_entries).first.association(:category)).to be_loaded
       end
 
-      it 'limits recent listings to 10' do
-        15.times { create(:listing, tenant: tenant) }
+      it 'limits recent entries to 10' do
+        15.times { create(:entry, :directory, tenant: tenant) }
 
         get :index
-        expect(assigns(:recent_listings).count).to eq(10)
+        expect(assigns(:recent_entries).count).to eq(10)
       end
 
-      it 'orders recent listings by recent' do
-        older_listing = create(:listing, tenant: tenant, created_at: 1.week.ago)
-        newer_listing = create(:listing, tenant: tenant, created_at: 1.day.ago)
+      it 'orders recent entries by recent' do
+        older_entry = create(:entry, :directory, tenant: tenant, created_at: 1.week.ago)
+        newer_entry = create(:entry, :directory, tenant: tenant, created_at: 1.day.ago)
 
         get :index
-        expect(assigns(:recent_listings).first).to eq(newer_listing)
+        expect(assigns(:recent_entries).first).to eq(newer_entry)
       end
 
       it 'calculates correct stats' do
         create(:category, tenant: tenant)
-        create(:listing, :published, tenant: tenant)
-        create(:listing, :unpublished, tenant: tenant)
-        create(:listing, :published, tenant: tenant, created_at: Time.current)
+        create(:entry, :directory, :published, tenant: tenant)
+        create(:entry, :directory, :unpublished, tenant: tenant)
+        create(:entry, :directory, :published, tenant: tenant, created_at: Time.current)
 
         get :index
         stats = assigns(:stats)
 
         expect(stats[:total_categories]).to eq(1)
-        expect(stats[:published_listings]).to eq(2)
-        expect(stats[:listings_today]).to eq(1)
+        expect(stats[:published_entries]).to eq(2)
+        expect(stats[:entries_today]).to eq(1)
       end
 
       it 'sets correct meta tags' do
@@ -97,7 +97,7 @@ RSpec.describe Admin::DashboardController, type: :controller do
         get :index
         expect(assigns(:tenant)).to be_present
         expect(assigns(:categories)).not_to be_nil
-        expect(assigns(:recent_listings)).not_to be_nil
+        expect(assigns(:recent_entries)).not_to be_nil
         expect(assigns(:stats)).to be_present
       end
     end
@@ -157,17 +157,17 @@ RSpec.describe Admin::DashboardController, type: :controller do
         )
       end
     end
-    let!(:other_tenant_listing) do
+    let!(:other_tenant_entry) do
       ActsAsTenant.with_tenant(other_tenant) do
         Current.site = other_site
         ActsAsTenant.current_tenant = other_tenant
-        Listing.create!(
+        Entry.create!(
           tenant: other_tenant,
           site: other_site,
           category: other_tenant_category,
           url_raw: "https://other.example.com/#{SecureRandom.hex(4)}",
           url_canonical: "https://other.example.com/#{SecureRandom.hex(6)}",
-          title: "Other Listing",
+          title: "Other Entry",
           domain: "other.example.com",
           metadata: {},
           ai_summaries: {},
@@ -185,7 +185,7 @@ RSpec.describe Admin::DashboardController, type: :controller do
       get :index
 
       expect(assigns(:categories)).not_to include(other_tenant_category)
-      expect(assigns(:recent_listings)).not_to include(other_tenant_listing)
+      expect(assigns(:recent_entries)).not_to include(other_tenant_entry)
     end
   end
 end

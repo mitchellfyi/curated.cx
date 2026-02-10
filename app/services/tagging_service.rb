@@ -8,16 +8,16 @@
 #   # => { topic_tags: ["tech", "news"], content_type: "article", confidence: 0.9, explanation: [...] }
 #
 class TaggingService
-  def self.tag(content_item)
-    new(content_item).call
+  def self.tag(entry)
+    new(entry).call
   end
 
-  def initialize(content_item)
-    @content_item = content_item
+  def initialize(entry)
+    @entry = entry
   end
 
   def call
-    return empty_result if @content_item.blank? || @content_item.site_id.blank?
+    return empty_result if @entry.blank? || @entry.site_id.blank?
 
     rules = fetch_rules
     return empty_result if rules.empty?
@@ -34,14 +34,14 @@ class TaggingService
 
   def fetch_rules
     TaggingRule.without_site_scope
-               .where(site_id: @content_item.site_id, enabled: true)
+               .where(site_id: @entry.site_id, enabled: true)
                .includes(:taxonomy)
                .by_priority
   end
 
   def evaluate_rules(rules)
     rules.filter_map do |rule|
-      result = rule.matches?(@content_item)
+      result = rule.matches?(@entry)
       if result[:match]
         {
           rule: rule,

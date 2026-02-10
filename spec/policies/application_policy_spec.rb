@@ -148,7 +148,7 @@ RSpec.describe ApplicationPolicy, type: :policy do
   end
 
   describe 'Scope' do
-    let(:scope) { double('scope', model: Listing) }
+    let(:scope) { double('scope', model: Entry) }
     let(:policy_scope) { described_class::Scope.new(user, scope) }
 
     context 'when user is admin' do

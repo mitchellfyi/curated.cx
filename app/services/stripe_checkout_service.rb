@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-# Service for creating Stripe Checkout sessions for listings.
+# Service for creating Stripe Checkout sessions for entries.
 #
 # Usage:
-#   service = StripeCheckoutService.new(listing, checkout_type: :job_post)
+#   service = StripeCheckoutService.new(entry, checkout_type: :job_post)
 #   session = service.create_session(success_url:, cancel_url:)
 #
 class StripeCheckoutService
   class StripeNotConfiguredError < StandardError; end
   class InvalidCheckoutTypeError < StandardError; end
 
-  # Price configurations for different listing types and durations
+  # Price configurations for different entry types and durations
   PRICE_CONFIGS = {
     job_post_30: {
       name: "Job Posting - 30 Days",
@@ -35,33 +35,33 @@ class StripeCheckoutService
     },
     featured_7: {
       name: "Featured Placement - 7 Days",
-      description: "Feature your listing for 7 days",
+      description: "Feature your entry for 7 days",
       amount: 49_00, # $49.00
       currency: "usd",
       duration_days: 7
     },
     featured_14: {
       name: "Featured Placement - 14 Days",
-      description: "Feature your listing for 14 days",
+      description: "Feature your entry for 14 days",
       amount: 89_00, # $89.00
       currency: "usd",
       duration_days: 14
     },
     featured_30: {
       name: "Featured Placement - 30 Days",
-      description: "Feature your listing for 30 days",
+      description: "Feature your entry for 30 days",
       amount: 149_00, # $149.00
       currency: "usd",
       duration_days: 30
     }
   }.freeze
 
-  attr_reader :listing, :checkout_type, :price_config
+  attr_reader :entry, :checkout_type, :price_config
 
-  # @param listing [Listing] The listing to create checkout for
+  # @param entry [Entry] The entry to create checkout for
   # @param checkout_type [Symbol] One of the PRICE_CONFIGS keys
-  def initialize(listing, checkout_type:)
-    @listing = listing
+  def initialize(entry, checkout_type:)
+    @entry = entry
     @checkout_type = checkout_type.to_sym
     @price_config = PRICE_CONFIGS[@checkout_type]
 
@@ -75,8 +75,8 @@ class StripeCheckoutService
   def create_session(success_url:, cancel_url:)
     session = Stripe::Checkout::Session.create(session_params(success_url, cancel_url))
 
-    # Update listing with session ID and pending status
-    listing.update!(
+    # Update entry with session ID and pending status
+    entry.update!(
       stripe_checkout_session_id: session.id,
       payment_status: :pending_payment
     )
@@ -109,7 +109,7 @@ class StripeCheckoutService
       success_url: success_url,
       cancel_url: cancel_url,
       metadata: session_metadata,
-      client_reference_id: listing.id.to_s,
+      client_reference_id: entry.id.to_s,
       customer_email: customer_email,
       expires_at: 30.minutes.from_now.to_i
     }
@@ -130,23 +130,23 @@ class StripeCheckoutService
   end
 
   def product_description
-    "#{price_config[:description]} - #{listing.title}"
+    "#{price_config[:description]} - #{entry.title}"
   end
 
   def session_metadata
     {
-      listing_id: listing.id.to_s,
+      entry_id: entry.id.to_s,
       checkout_type: checkout_type.to_s,
       duration_days: price_config[:duration_days].to_s,
-      site_id: listing.site_id.to_s,
-      tenant_id: listing.tenant_id.to_s
+      site_id: entry.site_id.to_s,
+      tenant_id: entry.tenant_id.to_s
     }
   end
 
   def customer_email
-    # If listing was submitted by a user, use their email
-    return nil unless listing.respond_to?(:submitted_by) && listing.submitted_by.present?
+    # If entry was submitted by a user, use their email
+    return nil unless entry.respond_to?(:submitted_by) && entry.submitted_by.present?
 
-    listing.submitted_by.email
+    entry.submitted_by.email
   end
 end

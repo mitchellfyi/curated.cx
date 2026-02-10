@@ -22,7 +22,7 @@ module Admin
     # GET /admin/tenants/:id
     def show
       @sites = @tenant.sites.includes(:domains)
-      @recent_listings = Listing.where(site: @sites).recent.limit(10)
+      @recent_entries = Entry.directory_items.where(site: @sites).recent.limit(10)
       @users_count = User.joins(:roles).where(roles: { resource: @tenant }).distinct.count
     end
 
@@ -78,7 +78,7 @@ module Admin
       {
         total_tenants: Tenant.count,
         total_sites: Site.count,
-        total_listings: Listing.count,
+        total_listings: Entry.directory_items.count,
         total_users: User.count,
         active_sources: Source.enabled.count,
         failed_imports_today: ImportRun.failed.where("started_at > ?", Time.current.beginning_of_day).count,
@@ -89,7 +89,7 @@ module Admin
     def build_tenant_metrics
       # Pre-load per-tenant counts for index display
       site_counts = Site.group(:tenant_id).count
-      listing_counts = Listing.joins(:site).group("sites.tenant_id").count
+      listing_counts = Entry.directory_items.joins(:site).group("sites.tenant_id").count
       source_counts = Source.enabled.joins(:site).group("sites.tenant_id").count
       failed_import_counts = ImportRun.failed
                                        .where("started_at > ?", Time.current.beginning_of_day)

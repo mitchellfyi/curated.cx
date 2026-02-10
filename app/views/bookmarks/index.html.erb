@@ -13,7 +13,7 @@
         <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow" id="<%= dom_id(bookmark) %>">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <% if bookmark.bookmarkable.is_a?(ContentItem) %>
+              <% if bookmark.bookmarkable.is_a?(Entry) && bookmark.bookmarkable.feed? %>
                 <% item = bookmark.bookmarkable %>
                 <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
                   <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded"><%= t('bookmarks.types.content') %></span>
@@ -31,7 +31,7 @@
                   </p>
                 <% end %>
 
-              <% elsif bookmark.bookmarkable.is_a?(Listing) %>
+              <% elsif bookmark.bookmarkable.is_a?(Entry) && bookmark.bookmarkable.directory? %>
                 <% listing = bookmark.bookmarkable %>
                 <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
                   <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded"><%= t('bookmarks.types.listing') %></span>

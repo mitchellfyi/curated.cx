@@ -9,14 +9,14 @@ RSpec.describe TaggingService, type: :service do
 
   describe ".tag" do
     it "delegates to instance call" do
-      content_item = create(:content_item, site: site, source: source)
+      entry = create(:entry, :feed, site: site, source: source)
       expect_any_instance_of(described_class).to receive(:call)
-      described_class.tag(content_item)
+      described_class.tag(entry)
     end
   end
 
   describe "#call" do
-    context "when content_item is blank" do
+    context "when entry is blank" do
       it "returns empty result" do
         result = described_class.tag(nil)
         expect(result[:topic_tags]).to eq([])
@@ -26,18 +26,18 @@ RSpec.describe TaggingService, type: :service do
       end
     end
 
-    context "when content_item has no site" do
+    context "when entry has no site" do
       it "returns empty result" do
-        content_item = build(:content_item, site: nil, site_id: nil)
-        result = described_class.tag(content_item)
+        entry = build(:entry, :feed, site: nil, site_id: nil)
+        result = described_class.tag(entry)
         expect(result[:topic_tags]).to eq([])
       end
     end
 
     context "when no rules exist" do
       it "returns empty result" do
-        content_item = create(:content_item, site: site, source: source)
-        result = described_class.tag(content_item)
+        entry = create(:entry, :feed, site: site, source: source)
+        result = described_class.tag(entry)
         expect(result[:topic_tags]).to eq([])
         expect(result[:content_type]).to be_nil
         expect(result[:confidence]).to be_nil
@@ -48,8 +48,8 @@ RSpec.describe TaggingService, type: :service do
     context "with matching rules" do
       let(:taxonomy_tech) { create(:taxonomy, site: site, slug: "technology") }
       let(:taxonomy_news) { create(:taxonomy, site: site, slug: "news") }
-      let(:content_item) do
-        create(:content_item,
+      let(:entry) do
+        create(:entry, :feed,
           site: site,
           source: source,
           url_canonical: "https://example.com/news/tech-article",
@@ -64,7 +64,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "example\\.com/news/.*",
             priority: 100)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           expect(result[:topic_tags]).to include("news")
           expect(result[:confidence]).to eq(1.0)
           expect(result[:explanation].first[:taxonomy_slug]).to eq("news")
@@ -79,7 +79,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: source.id.to_s,
             priority: 100)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           expect(result[:topic_tags]).to include("technology")
           expect(result[:confidence]).to eq(0.9)
         end
@@ -93,7 +93,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "technology, innovation",
             priority: 100)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           expect(result[:topic_tags]).to include("technology")
           expect(result[:confidence]).to be >= 0.8 # 0.7 + (0.1 * 2)
         end
@@ -107,7 +107,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "example.com",
             priority: 100)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           expect(result[:topic_tags]).to include("news")
           expect(result[:confidence]).to eq(0.85)
         end
@@ -126,7 +126,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "technology",
             priority: 200)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           expect(result[:topic_tags]).to include("news", "technology")
           expect(result[:explanation].size).to eq(2)
         end
@@ -143,7 +143,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "example.com",
             priority: 200) # confidence 0.85
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           expect(result[:confidence]).to eq(1.0)
         end
 
@@ -159,7 +159,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "example.com",
             priority: 200)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           expect(result[:topic_tags].count("news")).to eq(1)
         end
       end
@@ -178,7 +178,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "innovation",
             priority: 100)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           rule_ids = result[:explanation].map { |e| e[:rule_id] }
           expect(rule_ids.first).to eq(rule1.id)
           expect(rule_ids.last).to eq(rule2.id)
@@ -193,7 +193,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "technology",
             priority: 100)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           expect(result[:topic_tags]).to eq([])
         end
       end
@@ -206,7 +206,7 @@ RSpec.describe TaggingService, type: :service do
             pattern: "example\\.com/news/.*",
             priority: 100)
 
-          result = described_class.tag(content_item)
+          result = described_class.tag(entry)
           explanation = result[:explanation].first
           expect(explanation[:rule_id]).to eq(rule.id)
           expect(explanation[:taxonomy_slug]).to eq("news")
@@ -221,7 +221,7 @@ RSpec.describe TaggingService, type: :service do
       let(:other_taxonomy) { create(:taxonomy, site: other_site, slug: "other") }
 
       it "only applies rules from content item's site" do
-        content_item = create(:content_item,
+        entry = create(:entry, :feed,
           site: site,
           source: source,
           title: "Technology Article")
@@ -237,7 +237,7 @@ RSpec.describe TaggingService, type: :service do
           pattern: "technology",
           priority: 100)
 
-        result = described_class.tag(content_item)
+        result = described_class.tag(entry)
         expect(result[:topic_tags]).to eq([ "tech" ])
         expect(result[:topic_tags]).not_to include("other")
       end

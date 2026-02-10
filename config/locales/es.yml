@@ -120,6 +120,26 @@ es:
       test_rule: Probar Regla
       title: Reglas de Etiquetado
       updated: Regla de etiquetado actualizada exitosamente
+    entries:
+      bulk_deleted: "%{count} entradas eliminadas"
+      bulk_editorialise: "%{count} entradas en cola para editorialización"
+      bulk_enrich: "%{count} entradas en cola para enriquecimiento"
+      bulk_published: "%{count} entradas publicadas"
+      bulk_unpublished: "%{count} entradas despublicadas"
+      created: Entrada creada
+      deleted: Entrada eliminada
+      editorialise_queued: Editorialización en cola
+      enrich_queued: Enriquecimiento en cola
+      expiry_extended: Expiración de entrada extendida
+      featured: Entrada destacada
+      no_items_selected: No se seleccionaron entradas
+      published: Entrada publicada
+      published_now: Entrada publicada
+      unfeatured: Entrada ya no está destacada
+      unknown_action: Acción desconocida
+      unpublished: Entrada despublicada
+      unscheduled: Programación de entrada cancelada
+      updated: Entrada actualizada
     editorialisations:
       actions: Acciones
       ai_output: Salida de IA
@@ -127,7 +147,7 @@ es:
       all: Todos
       back_to_list: Volver a la Lista
       cannot_retry: Solo se pueden reintentar editorializaciones fallidas o omitidas
-      content_item: Elemento de Contenido
+      entry: Entrada
       created: Creado
       description: Ver registros y resultados de editorialización de IA
       details: Detalles
@@ -135,7 +155,7 @@ es:
       empty: Sin editorializaciones
       empty_description: Las editorializaciones aparecerán aquí después de procesar el contenido.
       error: Error
-      for_content_item: Para elemento de contenido
+      for_entry: Para entrada
       ai_model: Modelo de IA
       prompt_text: Texto del Prompt
       prompt_version: Versión del Prompt

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Job to fetch news from Google News via SerpAPI and store as ContentItems.
+# Job to fetch news from Google News via SerpAPI and store as feed Entries.
 # Uses the new ingestion architecture with ImportRun tracking.
 class SerpApiIngestionJob < ApplicationJob
   include WorkflowPausable
@@ -93,7 +93,7 @@ class SerpApiIngestionJob < ApplicationJob
     # Call SerpAPI
     results = fetch_from_serp_api(api_key, query, location, language)
 
-    # Parse results and create ContentItems
+    # Parse results and create feed Entries
     stats = process_results(results)
 
     # Mark import run as completed
@@ -153,18 +153,17 @@ class SerpApiIngestionJob < ApplicationJob
     # Canonicalize the URL
     canonical_url = UrlCanonicaliser.canonicalize(url)
 
-    # Find or initialize ContentItem by canonical URL (deduplication)
-    content_item = ContentItem.find_or_initialize_by_canonical_url(
+    # Find or initialize feed Entry by canonical URL (deduplication)
+    entry = Entry.find_or_initialize_by_canonical_url(
       site: @site,
       url_canonical: canonical_url,
-      source: @source
+      source: @source,
+      entry_kind: "feed"
     )
 
-    # Determine if this is a new record
-    is_new = content_item.new_record?
+    is_new = entry.new_record?
 
-    # Update attributes from SerpAPI result
-    content_item.assign_attributes(
+    entry.assign_attributes(
       url_raw: url,
       title: result["title"],
       description: result["snippet"],
@@ -173,14 +172,14 @@ class SerpApiIngestionJob < ApplicationJob
       tags: extract_tags(result)
     )
 
-    if content_item.save
+    if entry.save
       is_new ? stats[:created] += 1 : stats[:updated] += 1
     else
       stats[:failed] += 1
       log_job_warning(
-        "Failed to save ContentItem",
+        "Failed to save Entry",
         url: url,
-        errors: content_item.errors.full_messages
+        errors: entry.errors.full_messages
       )
     end
   rescue UrlCanonicaliser::InvalidUrlError => e

@@ -25,9 +25,9 @@ RSpec.describe "Admin::Observability", type: :request do
         let!(:import_run_failed) do
           create(:import_run, :failed, source: source, started_at: 2.hours.ago)
         end
-        let!(:content_item) { create(:content_item, source: source, site: source.site) }
+        let!(:entry) { create(:entry, :feed, source: source, site: source.site) }
         let!(:editorialisation) do
-          create(:editorialisation, :completed, content_item: content_item, site: source.site)
+          create(:editorialisation, :completed, entry: entry, site: source.site)
         end
 
         before do
@@ -210,13 +210,13 @@ RSpec.describe "Admin::Observability", type: :request do
 
       context "with tenant context" do
         let!(:source) { create(:source, :rss, site: tenant1.sites.first) }
-        let!(:content_item1) { create(:content_item, source: source, site: source.site) }
-        let!(:content_item2) { create(:content_item, source: source, site: source.site) }
+        let!(:content_item1) { create(:entry, :feed, source: source, site: source.site) }
+        let!(:content_item2) { create(:entry, :feed, source: source, site: source.site) }
         let!(:editorialisation_completed) do
-          create(:editorialisation, :completed, content_item: content_item1, site: source.site)
+          create(:editorialisation, :completed, entry: content_item1, site: source.site)
         end
         let!(:editorialisation_failed) do
-          create(:editorialisation, :failed, content_item: content_item2, site: source.site)
+          create(:editorialisation, :failed, entry: content_item2, site: source.site)
         end
 
         before do
@@ -343,9 +343,9 @@ RSpec.describe "Admin::Observability", type: :request do
 
       context "with tenant context" do
         let!(:source) { create(:source, :rss, site: tenant1.sites.first) }
-        let!(:content_item) { create(:content_item, source: source, site: source.site) }
+        let!(:entry) { create(:entry, :feed, source: source, site: source.site) }
         let!(:editorialisation) do
-          create(:editorialisation, :completed, content_item: content_item, site: source.site)
+          create(:editorialisation, :completed, entry: entry, site: source.site)
         end
 
         before do
@@ -484,9 +484,9 @@ RSpec.describe "Admin::Observability", type: :request do
 
     context "with nil associations" do
       let!(:source) { create(:source, :rss, site: tenant1.sites.first) }
-      let!(:content_item) { create(:content_item, source: source, site: source.site) }
+      let!(:entry) { create(:entry, :feed, source: source, site: source.site) }
       let!(:editorialisation) do
-        create(:editorialisation, :completed, content_item: content_item, site: source.site)
+        create(:editorialisation, :completed, entry: entry, site: source.site)
       end
 
       before do
@@ -496,8 +496,8 @@ RSpec.describe "Admin::Observability", type: :request do
       end
 
       it "handles editorialisations with deleted content items gracefully" do
-        # Simulate orphaned editorialisation (content_item deleted after editorialisation created)
-        # The view uses safe navigation: ed.content_item&.title
+        # Simulate orphaned editorialisation (entry deleted after editorialisation created)
+        # The view uses safe navigation: ed.entry&.title
         get editorialisations_admin_observability_path
         expect(response).to have_http_status(:success)
       end

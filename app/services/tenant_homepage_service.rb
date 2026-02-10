@@ -20,7 +20,7 @@ class TenantHomepageService
   def tenant_data
     {
       content_items: content_items_feed,
-      categories_with_listings: categories_with_recent_listings
+      categories_with_entries: categories_with_recent_entries
     }
   end
 
@@ -46,31 +46,31 @@ class TenantHomepageService
     )
   end
 
-  def categories_with_recent_listings
-    # Fetch categories with published listings in a single query
+  def categories_with_recent_entries
+    # Fetch categories with published entries in a single query
     categories = Category.where(site: @site)
-                         .joins(:listings)
-                         .where(listings: { site: @site })
-                         .where.not(listings: { published_at: nil })
+                         .joins(:entries)
+                         .where(entries: { site: @site })
+                         .where.not(entries: { published_at: nil })
                          .distinct
                          .order(:name)
                          .to_a
 
     return [] if categories.empty?
 
-    # Fetch top 4 listings per category in a single query using window function
-    # This avoids N+1 by getting all listings at once
+    # Fetch top 4 entries per category in a single query using window function
+    # This avoids N+1 by getting all entries at once
     category_ids = categories.map(&:id)
-    listings_by_category = Listing.where(site: @site, category_id: category_ids)
+    entries_by_category = Entry.directory_items.where(site: @site, category_id: category_ids)
                                   .where.not(published_at: nil)
                                   .order(category_id: :asc, published_at: :desc)
                                   .to_a
                                   .group_by(&:category_id)
-                                  .transform_values { |listings| listings.first(4) }
+                                  .transform_values { |entries| entries.first(4) }
 
     categories.filter_map do |category|
-      listings = listings_by_category[category.id] || []
-      [ category, listings ] if listings.any?
+      entries = entries_by_category[category.id] || []
+      [ category, entries ] if entries.any?
     end
   end
 end

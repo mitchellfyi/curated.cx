@@ -1,0 +1,250 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <%= link_to "← Back to Entries", admin_entries_path, class: "text-gray-600 hover:underline text-sm" %>
+      <div class="mt-4 flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <%= @entry.feed? ? badge("Feed", :blue) : type_badge(@entry.listing_type_key) %>
+            <% if @entry.directory? %>
+              <%= badge(@entry.category_name, :blue) if @entry.category %>
+              <%= badge_success(t("admin.listings.statuses.published")) if @entry.published? %>
+              <%= badge_warning(t("admin.listings.statuses.draft")) unless @entry.published? %>
+              <%= badge(t("monetisation.badges.featured"), :purple) if @entry.featured? %>
+              <%= badge_danger(t("monetisation.job.expired")) if @entry.expired? %>
+              <%= badge_success(t("admin.listings.statuses.paid")) if @entry.paid? %>
+            <% end %>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900"><%= @entry.title.presence || "(No title)" %></h1>
+          <p class="text-gray-500 truncate" style="max-width: 600px;"><span class="font-mono text-sm"><%= truncate(@entry.url_canonical, length: 80) %></span></p>
+        </div>
+        <div class="flex space-x-3">
+          <%= link_to "Edit", edit_admin_entry_path(@entry), class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+          <% if @entry.published_at.nil? %>
+            <%= button_to "Publish", publish_admin_entry_path(@entry), method: :post, class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700" %>
+          <% else %>
+            <%= button_to "Unpublish", unpublish_admin_entry_path(@entry), method: :post, class: "inline-flex items-center px-4 py-2 border border-yellow-600 rounded-md text-sm font-medium text-yellow-600 bg-white hover:bg-yellow-50" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <% if @entry.feed? %>
+      <!-- Feed status badges -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        <% if @entry.editorialised_at.present? %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">✓ AI Processed</span>
+        <% else %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500">Not editorialised</span>
+          <%= button_to "Run AI →", editorialise_admin_entry_path(@entry), method: :post, class: "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-600 text-white hover:bg-purple-700", form: { class: "inline" } %>
+        <% end %>
+        <% case @entry.enrichment_status %>
+        <% when "complete" %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">✓ Enriched</span>
+        <% when "enriching" %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">⟳ Enriching...</span>
+        <% when "failed" %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">✗ Enrichment Failed</span>
+        <% else %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500">Enrichment Pending</span>
+        <% end %>
+        <%= button_to "Re-enrich →", enrich_admin_entry_path(@entry), method: :post, class: "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-600 text-white hover:bg-blue-700", form: { class: "inline" } %>
+      </div>
+    <% else %>
+      <!-- Directory: monetisation actions -->
+      <div class="bg-white shadow rounded-lg mb-8">
+        <div class="px-4 py-5 sm:p-6">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Monetisation Actions</h2>
+          <div class="flex flex-wrap gap-3">
+            <% if @entry.featured? %>
+              <%= button_to "Remove Featured", unfeature_admin_entry_path(@entry), method: :post, class: button_classes(variant: :secondary) %>
+            <% else %>
+              <%= button_to "Feature Entry", feature_admin_entry_path(@entry), method: :post, class: button_classes(variant: :purple) %>
+            <% end %>
+            <% if @entry.job? %>
+              <%= button_to "Extend Expiry (+30 days)", extend_expiry_admin_entry_path(@entry), method: :post, class: button_classes(variant: :secondary) %>
+            <% end %>
+            <%= button_to "Delete", admin_entry_path(@entry), method: :delete, class: button_classes(variant: :danger_outline), data: { turbo_confirm: t("actions.confirm") } %>
+          </div>
+        </div>
+      </div>
+
+      <% if @entry.scheduled? || !@entry.published? %>
+        <div class="bg-white shadow rounded-lg mb-8">
+          <div class="px-4 py-5 sm:p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4"><%= t("admin.listings.scheduling.publishing") %></h2>
+            <% if @entry.scheduled? %>
+              <%= button_to t("admin.listings.scheduling.publish_immediately"), publish_now_admin_entry_path(@entry), method: :post, class: button_classes(variant: :success) %>
+              <%= button_to t("admin.listings.scheduling.unschedule"), unschedule_admin_entry_path(@entry), method: :post, class: button_classes(variant: :secondary) %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">Description</h3></div>
+          <div class="px-4 py-5 sm:p-6">
+            <% if @entry.description.present? %>
+              <p class="text-gray-700"><%= @entry.description %></p>
+            <% else %>
+              <p class="text-gray-400 italic">No description</p>
+            <% end %>
+          </div>
+        </div>
+
+        <% if @entry.feed? %>
+          <% if @entry.ai_summary.present? || @entry.why_it_matters.present? %>
+            <div class="bg-purple-50 shadow rounded-lg">
+              <div class="px-4 py-5 border-b border-purple-100 sm:px-6"><h3 class="text-lg leading-6 font-medium text-purple-900">AI Editorialisation</h3></div>
+              <div class="px-4 py-5 sm:p-6 space-y-4">
+                <% if @entry.ai_summary.present? %>
+                  <div>
+                    <h4 class="text-sm font-medium text-purple-700">Summary</h4>
+                    <p class="mt-1 text-gray-700"><%= @entry.ai_summary %></p>
+                  </div>
+                <% end %>
+                <% if @entry.why_it_matters.present? %>
+                  <div>
+                    <h4 class="text-sm font-medium text-purple-700">Why It Matters</h4>
+                    <p class="mt-1 text-gray-700"><%= @entry.why_it_matters %></p>
+                  </div>
+                <% end %>
+                <% if @entry.ai_suggested_tags.present? %>
+                  <div>
+                    <h4 class="text-sm font-medium text-purple-700">Suggested Tags</h4>
+                    <div class="mt-1 flex flex-wrap gap-1">
+                      <% @entry.ai_suggested_tags.each do |tag| %>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700"><%= tag %></span>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @entry.extracted_text.present? %>
+            <div class="bg-white shadow rounded-lg">
+              <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">Extracted Text</h3></div>
+              <div class="px-4 py-5 sm:p-6">
+                <pre class="text-sm text-gray-700 whitespace-pre-wrap max-h-64 overflow-y-auto"><%= truncate(@entry.extracted_text, length: 2000) %></pre>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @entry.raw_payload.present? %>
+            <div class="bg-white shadow rounded-lg">
+              <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">Raw Payload</h3></div>
+              <div class="px-4 py-5 sm:p-6">
+                <pre class="text-xs text-gray-600 bg-gray-50 p-4 rounded overflow-x-auto max-h-64 overflow-y-auto"><%= JSON.pretty_generate(@entry.raw_payload.is_a?(Hash) ? @entry.raw_payload : {}) %></pre>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+
+        <% if @entry.directory? && (@entry.body_html.present? || @entry.body_text.present?) %>
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">Content</h3></div>
+            <div class="px-4 py-5 sm:p-6">
+              <% if @entry.body_html.present? %>
+                <div class="prose max-w-none"><%= sanitize(@entry.body_html, tags: %w[p br strong em ul ol li h1 h2 h3 h4 h5 h6 blockquote a], attributes: %w[href]) %></div>
+              <% elsif @entry.body_text.present? %>
+                <div class="prose max-w-none"><%= simple_format(@entry.body_text) %></div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @entry.directory? && @entry.job? %>
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900"><%= t("admin.listings.form.job_settings") %></h3></div>
+            <div class="px-4 py-5 sm:p-6">
+              <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                <div><dt class="text-sm font-medium text-gray-500">Company</dt><dd class="mt-1 text-sm text-gray-900"><%= @entry.company.presence || "-" %></dd></div>
+                <div><dt class="text-sm font-medium text-gray-500">Location</dt><dd class="mt-1 text-sm text-gray-900"><%= @entry.location.presence || "-" %></dd></div>
+                <div><dt class="text-sm font-medium text-gray-500">Salary</dt><dd class="mt-1 text-sm text-gray-900"><%= @entry.salary_range.presence || "-" %></dd></div>
+                <div><dt class="text-sm font-medium text-gray-500">Expires</dt><dd class="mt-1 text-sm text-gray-900"><%= @entry.expires_at&.strftime("%Y-%m-%d %H:%M") || "-" %></dd></div>
+                <% if @entry.apply_url.present? %>
+                  <div class="sm:col-span-2"><dt class="text-sm font-medium text-gray-500">Apply URL</dt><dd class="mt-1 text-sm text-blue-600"><%= link_to @entry.apply_url, safe_external_url(@entry.apply_url), target: "_blank", rel: "noopener noreferrer" %></dd></div>
+                <% end %>
+              </dl>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="space-y-6">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">Metadata</h3></div>
+          <div class="px-4 py-5 sm:p-6">
+            <dl class="space-y-4">
+              <% if @entry.feed? && @entry.source %>
+                <div><dt class="text-sm font-medium text-gray-500">Source</dt><dd class="mt-1 text-sm text-gray-900"><%= link_to @entry.source.name, admin_source_path(@entry.source), class: "text-blue-600 hover:underline" %></dd></div>
+              <% end %>
+              <% if @entry.directory? && @entry.category %>
+                <div><dt class="text-sm font-medium text-gray-500">Category</dt><dd class="mt-1 text-sm text-gray-900"><%= @entry.category_name %></dd></div>
+              <% end %>
+              <div><dt class="text-sm font-medium text-gray-500">Site</dt><dd class="mt-1 text-sm text-gray-900"><%= @entry.site&.name %></dd></div>
+              <div><dt class="text-sm font-medium text-gray-500">Created</dt><dd class="mt-1 text-sm text-gray-900"><%= @entry.created_at.strftime("%Y-%m-%d %H:%M UTC") %></dd></div>
+              <div><dt class="text-sm font-medium text-gray-500">Published At</dt><dd class="mt-1 text-sm text-gray-900"><%= @entry.published_at&.strftime("%Y-%m-%d %H:%M UTC") || "Not published" %></dd></div>
+              <% if @entry.scheduled_for.present? %>
+                <div><dt class="text-sm font-medium text-gray-500">Scheduled For</dt><dd class="mt-1 text-sm text-yellow-600"><%= @entry.scheduled_for.strftime("%Y-%m-%d %H:%M UTC") %></dd></div>
+              <% end %>
+            </dl>
+          </div>
+        </div>
+
+        <% if @entry.feed? && @entry.topic_tags.present? %>
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">Topic Tags</h3></div>
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex flex-wrap gap-2">
+                <% @entry.topic_tags.each do |tag| %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><%= tag %></span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @entry.feed? && @editorialisation %>
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">AI Processing Details</h3></div>
+            <div class="px-4 py-5 sm:p-6">
+              <dl class="space-y-3">
+                <div><dt class="text-sm font-medium text-gray-500">Status</dt><dd class="mt-1"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= @editorialisation.completed? ? 'bg-green-100 text-green-800' : @editorialisation.failed? ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800' %>"><%= @editorialisation.status.titleize %></span></dd></div>
+                <div><dt class="text-sm font-medium text-gray-500">Model</dt><dd class="mt-1 text-sm text-gray-900"><%= @editorialisation.ai_model || "N/A" %></dd></div>
+                <div><dt class="text-sm font-medium text-gray-500">Tokens Used</dt><dd class="mt-1 text-sm text-gray-900"><%= @editorialisation.tokens_used || "N/A" %></dd></div>
+                <div class="mt-4"><%= link_to "View Full Details →", admin_editorialisation_path(@editorialisation), class: "text-sm text-blue-600 hover:underline" %></div>
+              </dl>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">Engagement</h3></div>
+          <div class="px-4 py-5 sm:p-6">
+            <div class="grid grid-cols-3 gap-4 text-center">
+              <div><p class="text-2xl font-semibold text-gray-900"><%= @entry.upvotes_count %></p><p class="text-xs text-gray-500">Upvotes</p></div>
+              <div><p class="text-2xl font-semibold text-gray-900"><%= @entry.comments_count %></p><p class="text-xs text-gray-500">Comments</p></div>
+              <div><p class="text-2xl font-semibold text-gray-900"><%= @entry.views_count %></p><p class="text-xs text-gray-500">Views</p></div>
+            </div>
+          </div>
+        </div>
+
+        <% if @entry.directory? && @entry.has_affiliate? %>
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 border-b border-gray-200 sm:px-6"><h3 class="text-lg leading-6 font-medium text-gray-900">Affiliate</h3></div>
+            <div class="px-4 py-5 sm:p-6">
+              <p class="text-sm text-gray-900">Clicks: <%= @entry.affiliate_clicks.count %></p>
+              <p class="text-sm text-blue-600 break-all mt-2"><%= link_to affiliate_redirect_url(@entry), affiliate_redirect_url(@entry), target: "_blank" %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

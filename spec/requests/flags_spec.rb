@@ -6,11 +6,11 @@ RSpec.describe "Flags", type: :request do
   let(:tenant) { create(:tenant, :enabled) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) { create(:content_item, :published, site: site, source: source) }
+  let(:entry) { create(:entry, :feed, :published, site: site, source: source) }
   let(:user) { create(:user) }
   let(:content_owner) { create(:user) }
   let(:admin) { create(:user, admin: true) }
-  let(:comment) { create(:comment, content_item: content_item, user: content_owner, site: site) }
+  let(:comment) { create(:comment, entry: entry, user: content_owner, site: site) }
 
   before do
     host! tenant.hostname
@@ -24,8 +24,8 @@ RSpec.describe "Flags", type: :request do
       context "flagging a content item" do
         let(:valid_params) do
           {
-            flaggable_type: "ContentItem",
-            flaggable_id: content_item.id,
+            flaggable_type: "Entry",
+            flaggable_id: entry.id,
             flag: { reason: "spam", details: "This is spam content" }
           }
         end
@@ -43,7 +43,7 @@ RSpec.describe "Flags", type: :request do
 
           flag = Flag.last
           expect(flag.user).to eq(user)
-          expect(flag.flaggable).to eq(content_item)
+          expect(flag.flaggable).to eq(entry)
           expect(flag.site).to eq(site)
           expect(flag.reason).to eq("spam")
           expect(flag.details).to eq("This is spam content")
@@ -85,7 +85,7 @@ RSpec.describe "Flags", type: :request do
       end
 
       context "when flagging own comment" do
-        let(:own_comment) { create(:comment, content_item: content_item, user: user, site: site) }
+        let(:own_comment) { create(:comment, entry: entry, user: user, site: site) }
         let(:invalid_params) do
           {
             flaggable_type: "Comment",
@@ -110,13 +110,13 @@ RSpec.describe "Flags", type: :request do
 
       context "when already flagged" do
         before do
-          create(:flag, flaggable: content_item, user: user, site: site)
+          create(:flag, flaggable: entry, user: user, site: site)
         end
 
         let(:duplicate_params) do
           {
-            flaggable_type: "ContentItem",
-            flaggable_id: content_item.id,
+            flaggable_type: "Entry",
+            flaggable_id: entry.id,
             flag: { reason: "spam" }
           }
         end
@@ -141,8 +141,8 @@ RSpec.describe "Flags", type: :request do
 
         let(:valid_params) do
           {
-            flaggable_type: "ContentItem",
-            flaggable_id: content_item.id,
+            flaggable_type: "Entry",
+            flaggable_id: entry.id,
             flag: { reason: "spam" }
           }
         end
@@ -170,8 +170,8 @@ RSpec.describe "Flags", type: :request do
 
         let(:valid_params) do
           {
-            flaggable_type: "ContentItem",
-            flaggable_id: content_item.id,
+            flaggable_type: "Entry",
+            flaggable_id: entry.id,
             flag: { reason: "spam" }
           }
         end
@@ -211,7 +211,7 @@ RSpec.describe "Flags", type: :request do
       context "with non-existent flaggable" do
         let(:invalid_params) do
           {
-            flaggable_type: "ContentItem",
+            flaggable_type: "Entry",
             flaggable_id: 99999,
             flag: { reason: "spam" }
           }
@@ -229,8 +229,8 @@ RSpec.describe "Flags", type: :request do
     context "when user is not authenticated" do
       let(:valid_params) do
         {
-          flaggable_type: "ContentItem",
-          flaggable_id: content_item.id,
+          flaggable_type: "Entry",
+          flaggable_id: entry.id,
           flag: { reason: "spam" }
         }
       end
@@ -247,8 +247,8 @@ RSpec.describe "Flags", type: :request do
 
       let(:valid_params) do
         {
-          flaggable_type: "ContentItem",
-          flaggable_id: content_item.id,
+          flaggable_type: "Entry",
+          flaggable_id: entry.id,
           flag: { reason: "spam" }
         }
       end
@@ -265,8 +265,8 @@ RSpec.describe "Flags", type: :request do
 
       let(:valid_params) do
         {
-          flaggable_type: "ContentItem",
-          flaggable_id: content_item.id,
+          flaggable_type: "Entry",
+          flaggable_id: entry.id,
           flag: { reason: "spam" }
         }
       end
@@ -285,8 +285,8 @@ RSpec.describe "Flags", type: :request do
 
     it "only creates flags for current site" do
       params = {
-        flaggable_type: "ContentItem",
-        flaggable_id: content_item.id,
+        flaggable_type: "Entry",
+        flaggable_id: entry.id,
         flag: { reason: "spam" }
       }
 
@@ -305,13 +305,13 @@ RSpec.describe "Flags", type: :request do
       ActsAsTenant.with_tenant(other_tenant) do
         other_site = other_tenant.sites.first || create(:site, tenant: other_tenant)
         other_source = create(:source, site: other_site)
-        other_content_item = create(:content_item, :published, site: other_site, source: other_source)
+        other_content_item = create(:entry, :feed, :published, site: other_site, source: other_source)
       end
 
       # Attempt to flag content from a different site while in our site context
-      # This should fail because the content_item can't be found in current site scope
+      # This should fail because the entry can't be found in current site scope
       params = {
-        flaggable_type: "ContentItem",
+        flaggable_type: "Entry",
         flaggable_id: other_content_item.id,
         flag: { reason: "spam" }
       }

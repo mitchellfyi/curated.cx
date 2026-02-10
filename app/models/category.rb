@@ -4,24 +4,28 @@
 #
 # Table name: categories
 #
-#  id           :bigint           not null, primary key
-#  allow_paths  :boolean          default(TRUE), not null
-#  key          :string           not null
-#  name         :string           not null
-#  shown_fields :jsonb            not null
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  site_id      :bigint           not null
-#  tenant_id    :bigint           not null
+#  id               :bigint           not null, primary key
+#  allow_paths      :boolean          default(TRUE), not null
+#  category_type    :string           default("article"), not null
+#  display_template :string
+#  key              :string           not null
+#  metadata_schema  :jsonb            not null
+#  name             :string           not null
+#  shown_fields     :jsonb            not null
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  site_id          :bigint           not null
+#  tenant_id        :bigint           not null
 #
 # Indexes
 #
-#  index_categories_on_site_id            (site_id)
-#  index_categories_on_site_id_and_key    (site_id,key) UNIQUE
-#  index_categories_on_site_id_and_name   (site_id,name)
-#  index_categories_on_tenant_id          (tenant_id)
-#  index_categories_on_tenant_id_and_key  (tenant_id,key) UNIQUE
-#  index_categories_on_tenant_name        (tenant_id,name)
+#  index_categories_on_site_id                    (site_id)
+#  index_categories_on_site_id_and_category_type  (site_id,category_type)
+#  index_categories_on_site_id_and_key            (site_id,key) UNIQUE
+#  index_categories_on_site_id_and_name           (site_id,name)
+#  index_categories_on_tenant_id                  (tenant_id)
+#  index_categories_on_tenant_id_and_key          (tenant_id,key) UNIQUE
+#  index_categories_on_tenant_name                (tenant_id,name)
 #
 # Foreign Keys
 #
@@ -61,7 +65,7 @@ class Category < ApplicationRecord
 
   # Associations
   belongs_to :tenant # Keep for backward compatibility and data access
-  has_many :listings, dependent: :destroy
+  has_many :entries, dependent: :destroy
 
   # Validations
   validates :key, presence: true, uniqueness: { scope: :site_id }

@@ -104,9 +104,9 @@ RSpec.describe "Workflow Pause Behavior" do
     end
   end
 
-  describe EditorialiseContentItemJob do
+  describe EditorialiseEntryJob do
     let(:source) { create(:source, :rss, site: site) }
-    let(:content_item) { create(:content_item, :published, site: site, source: source) }
+    let(:entry) { create(:entry, :feed, :published, site: site, source: source) }
 
     context "when editorialisation is paused" do
       before do
@@ -116,7 +116,7 @@ RSpec.describe "Workflow Pause Behavior" do
       it "skips execution" do
         expect(EditorialisationService).not_to receive(:editorialise)
 
-        EditorialiseContentItemJob.perform_now(content_item.id)
+        EditorialiseEntryJob.perform_now(entry.id)
       end
     end
 
@@ -128,13 +128,13 @@ RSpec.describe "Workflow Pause Behavior" do
       it "skips execution" do
         expect(EditorialisationService).not_to receive(:editorialise)
 
-        EditorialiseContentItemJob.perform_now(content_item.id)
+        EditorialiseEntryJob.perform_now(entry.id)
       end
 
       it "logs the limit exceeded" do
         allow(Rails.logger).to receive(:warn).and_call_original
 
-        EditorialiseContentItemJob.perform_now(content_item.id)
+        EditorialiseEntryJob.perform_now(entry.id)
 
         expect(Rails.logger).to have_received(:warn).with(/AI usage limit/)
       end
@@ -159,17 +159,17 @@ RSpec.describe "Workflow Pause Behavior" do
         allow(EditorialisationService).to receive(:editorialise).and_return(mock_result)
         allow(AiUsageTracker).to receive(:track!)
 
-        EditorialiseContentItemJob.perform_now(content_item.id)
+        EditorialiseEntryJob.perform_now(entry.id)
 
-        expect(EditorialisationService).to have_received(:editorialise).with(content_item)
+        expect(EditorialisationService).to have_received(:editorialise).with(entry)
       end
 
       it "tracks AI usage after successful completion" do
-        editorialisation = create(:editorialisation, :completed, content_item: content_item, site: site)
+        editorialisation = create(:editorialisation, :completed, entry: entry, site: site)
         allow(EditorialisationService).to receive(:editorialise).and_return(editorialisation)
         allow(AiUsageTracker).to receive(:track!)
 
-        EditorialiseContentItemJob.perform_now(content_item.id)
+        EditorialiseEntryJob.perform_now(entry.id)
 
         expect(AiUsageTracker).to have_received(:track!).with(
           input_tokens: 100,

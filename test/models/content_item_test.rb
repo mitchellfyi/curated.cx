@@ -4,35 +4,45 @@
 #
 # Table name: content_items
 #
-#  id                    :bigint           not null, primary key
-#  ai_suggested_tags     :jsonb            not null
-#  ai_summary            :text
-#  comments_count        :integer          default(0), not null
-#  comments_locked_at    :datetime
-#  content_type          :string
-#  description           :text
-#  editorialised_at      :datetime
-#  extracted_text        :text
-#  hidden_at             :datetime
-#  published_at          :datetime
-#  raw_payload           :jsonb            not null
-#  scheduled_for         :datetime
-#  summary               :text
-#  tagging_confidence    :decimal(3, 2)
-#  tagging_explanation   :jsonb            not null
-#  tags                  :jsonb            not null
-#  title                 :string
-#  topic_tags            :jsonb            not null
-#  upvotes_count         :integer          default(0), not null
-#  url_canonical         :string           not null
-#  url_raw               :text             not null
-#  why_it_matters        :text
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  comments_locked_by_id :bigint
-#  hidden_by_id          :bigint
-#  site_id               :bigint           not null
-#  source_id             :bigint           not null
+#  id                     :bigint           not null, primary key
+#  ai_suggested_tags      :jsonb            not null
+#  ai_summary             :text
+#  audience_tags          :string           default([]), is an Array
+#  author_name            :string
+#  comments_count         :integer          default(0), not null
+#  comments_locked_at     :datetime
+#  content_type           :string
+#  description            :text
+#  editorialised_at       :datetime
+#  extracted_text         :text
+#  favicon_url            :string
+#  hidden_at              :datetime
+#  key_takeaways          :jsonb
+#  og_image_url           :string
+#  published_at           :datetime
+#  quality_score          :decimal(3, 1)
+#  raw_payload            :jsonb            not null
+#  read_time_minutes      :integer
+#  scheduled_for          :datetime
+#  screenshot_captured_at :datetime
+#  screenshot_url         :string
+#  summary                :text
+#  tagging_confidence     :decimal(3, 2)
+#  tagging_explanation    :jsonb            not null
+#  tags                   :jsonb            not null
+#  title                  :string
+#  topic_tags             :jsonb            not null
+#  upvotes_count          :integer          default(0), not null
+#  url_canonical          :string           not null
+#  url_raw                :text             not null
+#  why_it_matters         :text
+#  word_count             :integer
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  comments_locked_by_id  :bigint
+#  hidden_by_id           :bigint
+#  site_id                :bigint           not null
+#  source_id              :bigint           not null
 #
 # Indexes
 #

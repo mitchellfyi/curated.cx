@@ -22,8 +22,8 @@ RSpec.describe "Dashboard", type: :request do
 
       it "assigns the correct counts" do
         # Create some bookmarks and submissions for the user
-        content_item = create(:content_item, site: tenant.sites.first)
-        create(:bookmark, user: user, bookmarkable: content_item)
+        entry = create(:entry, :feed, site: tenant.sites.first)
+        create(:bookmark, user: user, bookmarkable: entry)
         create(:submission, user: user, site: tenant.sites.first)
 
         get dashboard_path

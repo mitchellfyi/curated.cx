@@ -28,9 +28,9 @@ class ApplicationJob < ActiveJob::Base
   # @param context [Hash] Additional context to include in the log
   #
   # Example:
-  #   log_job_error(error, listing_id: listing.id)
+  #   log_job_error(error, entry_id: entry.id)
   #   # => "ScrapeMetadataJob failed: TimeoutError - Connection timed out
-  #   #     {job_id: '...', tenant_id: 1, site_id: 2, listing_id: 123}"
+  #   #     {job_id: '...', tenant_id: 1, site_id: 2, entry_id: 123}"
   #
   def log_job_error(error, **context)
     full_context = build_error_context(context)

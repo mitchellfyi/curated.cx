@@ -76,10 +76,9 @@ class Flag < ApplicationRecord
   scope :pending, -> { where(status: :pending) }
   scope :open, -> { pending } # Alias for consistency with other models
   scope :resolved, -> { where.not(status: :pending) }
-  scope :for_content_items, -> { where(flaggable_type: "ContentItem") }
+  scope :for_entries, -> { where(flaggable_type: "Entry") }
   scope :for_comments, -> { where(flaggable_type: "Comment") }
   scope :for_notes, -> { where(flaggable_type: "Note") }
-  scope :for_listings, -> { where(flaggable_type: "Listing") }
   scope :recent, -> { order(created_at: :desc) }
   scope :by_user, ->(user) { where(user: user) }
   scope :by_reason, ->(reason) { where(reason: reason) }
@@ -104,8 +103,8 @@ class Flag < ApplicationRecord
     !pending?
   end
 
-  def content_item?
-    flaggable_type == "ContentItem"
+  def entry?
+    flaggable_type == "Entry"
   end
 
   def comment?
@@ -140,7 +139,7 @@ class Flag < ApplicationRecord
 
     return unless flag_count >= threshold
 
-    # Use hide! method for ContentItem (uses hidden_at timestamp)
+    # Use hide! method for Entry (uses hidden_at timestamp)
     # or hidden= setter for other flaggable types
     if flaggable.respond_to?(:hide!)
       # hide! requires a user, but we don't have one in the callback context

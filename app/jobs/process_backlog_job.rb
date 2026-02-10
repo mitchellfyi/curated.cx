@@ -58,26 +58,21 @@ class ProcessBacklogJob < ApplicationJob
   end
 
   def process_ai_backlog(tenant:)
-    # Find content items needing editorialisation
-    scope = ContentItem.published
-                       .where(editorialised_at: nil)
-                       .joins(:source)
-                       .where(sources: { editorialisation_enabled: true })
+    scope = Entry.feed_items.published
+      .where(editorialised_at: nil)
+      .joins(:source)
+      .where(sources: { editorialisation_enabled: true })
 
-    if tenant
-      scope = scope.where(sources: { tenant: tenant })
-    end
+    scope = scope.where(sources: { tenant: tenant }) if tenant
 
-    # Queue editorialisation jobs (limit to avoid overwhelming the queue)
     count = 0
-    scope.order(created_at: :desc).limit(500).find_each do |content_item|
-      EditorialiseContentItemJob.perform_later(content_item.id)
+    scope.order(created_at: :desc).limit(500).find_each do |entry|
+      EditorialiseEntryJob.perform_later(entry.id)
       count += 1
     end
 
     Rails.logger.info(
-      "[ProcessBacklogJob] Queued #{count} editorialisation jobs " \
-      "for tenant=#{tenant&.id || 'all'}"
+      "[ProcessBacklogJob] Queued #{count} editorialisation jobs for tenant=#{tenant&.id || 'all'}"
     )
   end
 end

@@ -20,8 +20,8 @@ RSpec.describe RefreshScreenshotsJob, type: :job do
 
   describe "#perform" do
     context "with stale screenshots" do
-      let!(:stale_item) { create(:content_item, :with_stale_screenshot) }
-      let!(:fresh_item) { create(:content_item, :with_screenshot) }
+      let!(:stale_item) { create(:entry, :feed, :with_stale_screenshot) }
+      let!(:fresh_item) { create(:entry, :feed, :with_screenshot) }
 
       it "enqueues CaptureScreenshotJob for stale items" do
         expect {
@@ -45,7 +45,7 @@ RSpec.describe RefreshScreenshotsJob, type: :job do
     end
 
     context "with no stale screenshots" do
-      let!(:fresh_item) { create(:content_item, :with_screenshot) }
+      let!(:fresh_item) { create(:entry, :feed, :with_screenshot) }
 
       it "does not enqueue any jobs" do
         expect {
@@ -55,7 +55,7 @@ RSpec.describe RefreshScreenshotsJob, type: :job do
     end
 
     context "with items that have no screenshots" do
-      let!(:item_without_screenshot) { create(:content_item) }
+      let!(:item_without_screenshot) { create(:entry, :feed) }
 
       it "does not enqueue any jobs" do
         expect {

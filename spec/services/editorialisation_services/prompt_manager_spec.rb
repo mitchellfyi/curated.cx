@@ -6,8 +6,8 @@ RSpec.describe EditorialisationServices::PromptManager, type: :service do
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) do
-    build(:content_item,
+  let(:entry) do
+    build(:entry, :feed,
       site: site,
       source: source,
       title: "Test Article Title",
@@ -96,7 +96,7 @@ RSpec.describe EditorialisationServices::PromptManager, type: :service do
     let(:manager) { described_class.new(version: "v1.0.0") }
 
     it "returns a hash with required keys" do
-      prompt = manager.build_prompt(content_item)
+      prompt = manager.build_prompt(entry)
 
       expect(prompt).to be_a(Hash)
       expect(prompt).to have_key(:system_prompt)
@@ -106,52 +106,52 @@ RSpec.describe EditorialisationServices::PromptManager, type: :service do
     end
 
     it "includes the system prompt" do
-      prompt = manager.build_prompt(content_item)
+      prompt = manager.build_prompt(entry)
 
       expect(prompt[:system_prompt]).to be_present
       expect(prompt[:system_prompt]).to include("content curator")
     end
 
     it "interpolates title in user prompt" do
-      prompt = manager.build_prompt(content_item)
+      prompt = manager.build_prompt(entry)
 
       expect(prompt[:user_prompt]).to include("Test Article Title")
     end
 
     it "interpolates URL in user prompt" do
-      prompt = manager.build_prompt(content_item)
+      prompt = manager.build_prompt(entry)
 
       expect(prompt[:user_prompt]).to include("https://example.com/test-article")
     end
 
     it "interpolates description in user prompt" do
-      prompt = manager.build_prompt(content_item)
+      prompt = manager.build_prompt(entry)
 
       expect(prompt[:user_prompt]).to include("This is a test description")
     end
 
     it "interpolates extracted text in user prompt" do
-      prompt = manager.build_prompt(content_item)
+      prompt = manager.build_prompt(entry)
 
       expect(prompt[:user_prompt]).to include("extracted text from the article")
     end
 
     it "includes the version" do
-      prompt = manager.build_prompt(content_item)
+      prompt = manager.build_prompt(entry)
 
       expect(prompt[:version]).to eq("v1.0.0")
     end
 
     it "includes model configuration" do
-      prompt = manager.build_prompt(content_item)
+      prompt = manager.build_prompt(entry)
 
       expect(prompt[:model]).to be_a(Hash)
       expect(prompt[:model]["name"]).to be_present
     end
 
     context "with very long extracted text" do
-      let(:content_item) do
-        build(:content_item,
+      let(:entry) do
+        build(:entry, :feed,
           site: site,
           source: source,
           title: "Test",
@@ -162,16 +162,16 @@ RSpec.describe EditorialisationServices::PromptManager, type: :service do
       end
 
       it "truncates extracted text to MAX_TEXT_LENGTH" do
-        prompt = manager.build_prompt(content_item)
+        prompt = manager.build_prompt(entry)
 
         # The text should be truncated with "..." appended
         expect(prompt[:user_prompt].length).to be < 30000
       end
     end
 
-    context "with nil content_item fields" do
-      let(:content_item) do
-        build(:content_item,
+    context "with nil entry fields" do
+      let(:entry) do
+        build(:entry, :feed,
           site: site,
           source: source,
           title: nil,
@@ -182,7 +182,7 @@ RSpec.describe EditorialisationServices::PromptManager, type: :service do
       end
 
       it "handles nil values gracefully" do
-        prompt = manager.build_prompt(content_item)
+        prompt = manager.build_prompt(entry)
 
         expect(prompt[:user_prompt]).to be_present
         # Should not contain "nil" string

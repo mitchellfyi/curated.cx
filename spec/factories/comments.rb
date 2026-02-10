@@ -40,13 +40,13 @@ FactoryBot.define do
     body { Faker::Lorem.paragraph }
     parent { nil }
 
-    # Backward compatibility: allow content_item: as alias for commentable:
+    # Backward compatibility: allow entry: as alias for commentable:
     transient do
-      content_item { nil }
+      entry { nil }
     end
 
-    # Use lazy evaluation so commentable isn't created when content_item is passed
-    commentable { content_item || association(:content_item) }
+    # Use lazy evaluation so commentable isn't created when entry is passed
+    commentable { entry || association(:entry) }
     site { commentable.site }
 
     trait :reply do

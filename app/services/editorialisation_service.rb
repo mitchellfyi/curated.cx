@@ -4,7 +4,7 @@
 # Orchestrates prompt building, AI API calls, and result storage.
 #
 # Usage:
-#   result = EditorialisationService.editorialise(content_item)
+#   result = EditorialisationService.editorialise(entry)
 #   # result is the Editorialisation record (completed, failed, or skipped)
 #
 class EditorialisationService
@@ -12,13 +12,13 @@ class EditorialisationService
   MIN_TEXT_LENGTH = 200
 
   # Entry point - class method for convenience
-  def self.editorialise(content_item)
-    new(content_item).call
+  def self.editorialise(entry)
+    new(entry).call
   end
 
-  def initialize(content_item)
-    @content_item = content_item
-    @site = content_item.site
+  def initialize(entry)
+    @entry = entry
+    @site = entry.site
   end
 
   # Main execution method
@@ -51,7 +51,7 @@ class EditorialisationService
 
   private
 
-  attr_reader :content_item, :site
+  attr_reader :entry, :site
 
   # Check if content item is eligible for editorialisation
   def eligible?
@@ -65,23 +65,23 @@ class EditorialisationService
 
   def calculate_skip_reason
     # Check if already editorialised
-    if content_item.editorialised_at.present?
+    if entry.editorialised_at.present?
       return "Already editorialised"
     end
 
     # Check if existing completed editorialisation exists
-    if ::Editorialisation.exists?(content_item_id: content_item.id, status: :completed)
+    if ::Editorialisation.exists?(entry_id: entry.id, status: :completed)
       return "Existing completed editorialisation"
     end
 
     # Check text length
-    text_length = content_item.extracted_text&.length || 0
+    text_length = entry.extracted_text&.length || 0
     if text_length < MIN_TEXT_LENGTH
       return "Insufficient text (#{text_length} chars, minimum #{MIN_TEXT_LENGTH})"
     end
 
     # Check if source has editorialisation enabled
-    unless content_item.source&.editorialisation_enabled?
+    unless entry.source&.editorialisation_enabled?
       return "Source editorialisation disabled"
     end
 
@@ -90,15 +90,15 @@ class EditorialisationService
 
   def create_skipped_record(reason)
     # If an editorialisation already exists for this content item, return it
-    # (respects unique constraint on content_item_id)
-    existing = ::Editorialisation.find_by(content_item_id: content_item.id)
+    # (respects unique constraint on entry_id)
+    existing = ::Editorialisation.find_by(entry_id: entry.id)
     return existing if existing
 
     prompt_manager = EditorialisationServices::PromptManager.new
 
     ::Editorialisation.create!(
       site: site,
-      content_item: content_item,
+      entry: entry,
       prompt_version: prompt_manager.version,
       prompt_text: "(skipped)",
       status: :skipped,
@@ -108,11 +108,11 @@ class EditorialisationService
 
   def create_pending_record
     prompt_manager = EditorialisationServices::PromptManager.new
-    prompt = prompt_manager.build_prompt(content_item)
+    prompt = prompt_manager.build_prompt(entry)
 
     ::Editorialisation.create!(
       site: site,
-      content_item: content_item,
+      entry: entry,
       prompt_version: prompt[:version],
       prompt_text: prompt[:user_prompt],
       status: :pending
@@ -124,7 +124,7 @@ class EditorialisationService
 
     # Build prompt
     prompt_manager = EditorialisationServices::PromptManager.new(version: editorialisation.prompt_version)
-    prompt = prompt_manager.build_prompt(content_item)
+    prompt = prompt_manager.build_prompt(entry)
 
     # Make AI API call
     ai_client = EditorialisationServices::AiClient.new
@@ -149,7 +149,7 @@ class EditorialisationService
     )
 
     # Update content item with AI results
-    update_content_item(parsed)
+    update_entry(parsed)
 
     editorialisation
   end
@@ -212,7 +212,7 @@ class EditorialisationService
     text.to_s.truncate(max_length)
   end
 
-  def update_content_item(parsed)
+  def update_entry(parsed)
     attrs = {
       ai_summary: parsed["summary"],
       why_it_matters: parsed["why_it_matters"],
@@ -236,14 +236,14 @@ class EditorialisationService
       attrs[:topic_tags] = merge_ai_tags_into_topic_tags(parsed["suggested_tags"])
     end
 
-    content_item.update_columns(attrs)
+    entry.update_columns(attrs)
   end
 
   # Merge AI-suggested tags with existing topic_tags, keeping only those
   # that match known taxonomy slugs for this site.
   def merge_ai_tags_into_topic_tags(suggested_tags)
-    existing_tags = content_item.topic_tags || []
-    site_taxonomy_slugs = Taxonomy.where(site_id: content_item.site_id).pluck(:slug)
+    existing_tags = entry.topic_tags || []
+    site_taxonomy_slugs = Taxonomy.where(site_id: entry.site_id).pluck(:slug)
 
     # Only keep AI suggestions that match known taxonomy slugs
     matched_suggestions = Array(suggested_tags).select { |tag| site_taxonomy_slugs.include?(tag) }

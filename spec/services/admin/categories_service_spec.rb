@@ -23,9 +23,9 @@ RSpec.describe Admin::CategoriesService, type: :service do
       expect(categories).not_to include(other_tenant_category)
     end
 
-    it 'includes listings association' do
+    it 'includes entries association' do
       categories = service.all_categories
-      expect(categories.first.association(:listings)).to be_loaded
+      expect(categories.first.association(:entries)).to be_loaded
     end
 
     it 'orders by name' do

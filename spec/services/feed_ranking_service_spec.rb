@@ -14,11 +14,11 @@ RSpec.describe FeedRankingService, type: :service do
   end
 
   describe ".ranked_feed" do
-    it "returns ContentItems for the given site" do
-      item = create(:content_item, :published, site: site, source: source)
+    it "returns Entrys for the given site" do
+      item = create(:entry, :feed, :published, site: site, source: source)
       other_site = create(:site, tenant: tenant)
       other_source = create(:source, site: other_site)
-      other_item = create(:content_item, :published, site: other_site, source: other_source)
+      other_item = create(:entry, :feed, :published, site: other_site, source: other_source)
 
       result = described_class.ranked_feed(site: site)
 
@@ -27,8 +27,8 @@ RSpec.describe FeedRankingService, type: :service do
     end
 
     it "only returns published items" do
-      published = create(:content_item, :published, site: site, source: source)
-      unpublished = create(:content_item, :unpublished, site: site, source: source)
+      published = create(:entry, :feed, :published, site: site, source: source)
+      unpublished = create(:entry, :feed, :unpublished, site: site, source: source)
 
       result = described_class.ranked_feed(site: site)
 
@@ -37,7 +37,7 @@ RSpec.describe FeedRankingService, type: :service do
     end
 
     it "respects limit parameter" do
-      create_list(:content_item, 5, :published, site: site, source: source)
+      create_list(:entry, :feed, 5, :published, site: site, source: source)
 
       result = described_class.ranked_feed(site: site, limit: 3)
 
@@ -45,7 +45,7 @@ RSpec.describe FeedRankingService, type: :service do
     end
 
     it "respects offset parameter" do
-      items = create_list(:content_item, 5, :published, site: site, source: source)
+      items = create_list(:entry, :feed, 5, :published, site: site, source: source)
                 .sort_by(&:published_at).reverse
 
       result = described_class.ranked_feed(site: site, filters: { sort: "latest" }, limit: 2, offset: 2)
@@ -57,13 +57,13 @@ RSpec.describe FeedRankingService, type: :service do
   describe "filtering" do
     describe "by tag" do
       let!(:tagged_item) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: [ "tech", "ai" ])
         item
       end
 
       let!(:untagged_item) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: [ "sports" ])
         item
       end
@@ -84,13 +84,13 @@ RSpec.describe FeedRankingService, type: :service do
 
     describe "by content type" do
       let!(:article) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(content_type: "article")
         item
       end
 
       let!(:video) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(content_type: "video")
         item
       end
@@ -112,23 +112,23 @@ RSpec.describe FeedRankingService, type: :service do
     describe "combined filters" do
       before do
         # Clear any existing items
-        ContentItem.where(site: site).delete_all
+        Entry.where(site: site).delete_all
       end
 
       let!(:tech_article) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: [ "tech" ], content_type: "article")
         item
       end
 
       let!(:tech_video) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: [ "tech" ], content_type: "video")
         item
       end
 
       let!(:sports_article) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: [ "sports" ], content_type: "article")
         item
       end
@@ -147,8 +147,8 @@ RSpec.describe FeedRankingService, type: :service do
   describe "sorting" do
     describe "latest sort" do
       it "orders by published_at descending" do
-        old_item = create(:content_item, :published, site: site, source: source, published_at: 2.days.ago)
-        new_item = create(:content_item, :published, site: site, source: source, published_at: 1.hour.ago)
+        old_item = create(:entry, :feed, :published, site: site, source: source, published_at: 2.days.ago)
+        new_item = create(:entry, :feed, :published, site: site, source: source, published_at: 1.hour.ago)
 
         result = described_class.ranked_feed(site: site, filters: { sort: "latest" })
 
@@ -159,23 +159,23 @@ RSpec.describe FeedRankingService, type: :service do
 
     describe "top_week sort" do
       before do
-        ContentItem.where(site: site).delete_all
+        Entry.where(site: site).delete_all
       end
 
       let!(:old_high_engagement) do
-        item = create(:content_item, :published, site: site, source: source, published_at: 2.weeks.ago)
+        item = create(:entry, :feed, :published, site: site, source: source, published_at: 2.weeks.ago)
         item.update_columns(upvotes_count: 100, comments_count: 50)
         item
       end
 
       let!(:recent_low_engagement) do
-        item = create(:content_item, :published, site: site, source: source, published_at: 1.day.ago)
+        item = create(:entry, :feed, :published, site: site, source: source, published_at: 1.day.ago)
         item.update_columns(upvotes_count: 1, comments_count: 0)
         item
       end
 
       let!(:recent_high_engagement) do
-        item = create(:content_item, :published, site: site, source: source, published_at: 2.days.ago)
+        item = create(:entry, :feed, :published, site: site, source: source, published_at: 2.days.ago)
         item.update_columns(upvotes_count: 50, comments_count: 25)
         item
       end
@@ -197,14 +197,14 @@ RSpec.describe FeedRankingService, type: :service do
 
     describe "ranked sort (default)" do
       before do
-        ContentItem.where(site: site).delete_all
+        Entry.where(site: site).delete_all
       end
 
       it "ranks newer items higher than older items (freshness decay)" do
-        old_item = create(:content_item, :published, site: site, source: source, published_at: 3.days.ago)
+        old_item = create(:entry, :feed, :published, site: site, source: source, published_at: 3.days.ago)
         old_item.update_columns(upvotes_count: 0, comments_count: 0)
 
-        new_item = create(:content_item, :published, site: site, source: source, published_at: 1.hour.ago)
+        new_item = create(:entry, :feed, :published, site: site, source: source, published_at: 1.hour.ago)
         new_item.update_columns(upvotes_count: 0, comments_count: 0)
 
         result = described_class.ranked_feed(site: site, filters: { sort: "ranked" })
@@ -214,10 +214,10 @@ RSpec.describe FeedRankingService, type: :service do
       end
 
       it "ranks items from high quality sources higher" do
-        low_quality_item = create(:content_item, :published, site: site, source: low_quality_source, published_at: 1.hour.ago)
+        low_quality_item = create(:entry, :feed, :published, site: site, source: low_quality_source, published_at: 1.hour.ago)
         low_quality_item.update_columns(upvotes_count: 0, comments_count: 0)
 
-        high_quality_item = create(:content_item, :published, site: site, source: high_quality_source, published_at: 1.hour.ago)
+        high_quality_item = create(:entry, :feed, :published, site: site, source: high_quality_source, published_at: 1.hour.ago)
         high_quality_item.update_columns(upvotes_count: 0, comments_count: 0)
 
         result = described_class.ranked_feed(site: site, filters: { sort: "ranked" })
@@ -227,10 +227,10 @@ RSpec.describe FeedRankingService, type: :service do
       end
 
       it "ranks items with higher engagement higher" do
-        low_engagement = create(:content_item, :published, site: site, source: source, published_at: 1.hour.ago)
+        low_engagement = create(:entry, :feed, :published, site: site, source: source, published_at: 1.hour.ago)
         low_engagement.update_columns(upvotes_count: 0, comments_count: 0)
 
-        high_engagement = create(:content_item, :published, site: site, source: source, published_at: 1.hour.ago)
+        high_engagement = create(:entry, :feed, :published, site: site, source: source, published_at: 1.hour.ago)
         high_engagement.update_columns(upvotes_count: 100, comments_count: 50)
 
         result = described_class.ranked_feed(site: site, filters: { sort: "ranked" })
@@ -240,8 +240,8 @@ RSpec.describe FeedRankingService, type: :service do
       end
 
       it "uses default sort when sort parameter is invalid" do
-        old_item = create(:content_item, :published, site: site, source: source, published_at: 2.days.ago)
-        new_item = create(:content_item, :published, site: site, source: source, published_at: 1.hour.ago)
+        old_item = create(:entry, :feed, :published, site: site, source: source, published_at: 2.days.ago)
+        new_item = create(:entry, :feed, :published, site: site, source: source, published_at: 1.hour.ago)
 
         # Invalid sort should fall back to latest (published_at desc)
         result = described_class.ranked_feed(site: site, filters: { sort: "invalid" })

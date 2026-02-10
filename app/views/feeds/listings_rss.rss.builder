@@ -39,13 +39,13 @@ xml.rss version: "2.0",
         xml.category listing.category.name if listing.category.present?
 
         # Listing type
-        xml.category "Type: #{listing.listing_type.titleize}" if listing.listing_type.present?
+        xml.category "Type: #{listing.category&.category_type&.titleize}" if listing.category&.category_type.present?
 
         # Featured badge
         xml.category "Featured" if listing.featured?
 
         # Job-specific fields
-        if listing.job?
+        if listing.category&.category_type == "job"
           xml.category "Company: #{listing.company}" if listing.company.present?
           xml.category "Location: #{listing.location}" if listing.location.present?
         end

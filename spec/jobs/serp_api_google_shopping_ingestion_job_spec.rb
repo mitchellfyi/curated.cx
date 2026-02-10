@@ -21,10 +21,10 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
         })
       end
 
-      it "creates ContentItems from Google Shopping results" do
+      it "creates Entrys from Google Shopping results" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
       end
 
       it "creates an ImportRun record" do
@@ -58,10 +58,10 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
         expect(source.last_run_at).to be_within(1.second).of(Time.current)
       end
 
-      it "stores correct ContentItem attributes" do
+      it "stores correct Entry attributes" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item).to be_present
         expect(item.url_raw).to include("example.com/product/sony-wh1000xm5")
         expect(item.og_image_url).to eq("https://encrypted-tbn0.gstatic.com/shopping?q=tbn:sony_xm5")
@@ -72,49 +72,49 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
       it "stores price in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_shopping_metadata", "price")).to eq("£279.00")
       end
 
       it "stores extracted_price in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_shopping_metadata", "extracted_price")).to eq(279.0)
       end
 
       it "stores rating in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_shopping_metadata", "rating")).to eq(4.6)
       end
 
       it "stores review count in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_shopping_metadata", "review_count")).to eq(12543)
       end
 
       it "stores merchant in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_shopping_metadata", "merchant")).to eq("Amazon")
       end
 
       it "stores product_id in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.raw_payload.dig("_shopping_metadata", "product_id")).to eq("123456")
       end
 
       it "tags products correctly with source and merchant" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
+        item = Entry.find_by(title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones")
         expect(item.tags).to include("source:google_shopping")
         expect(item.tags).to include("merchant:amazon")
       end
@@ -122,14 +122,14 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
       it "handles products without thumbnails" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "JBL Tune 510BT On-Ear Wireless Headphones")
+        item = Entry.find_by(title: "JBL Tune 510BT On-Ear Wireless Headphones")
         expect(item.og_image_url).to be_nil
       end
 
       it "handles products without ratings" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "JBL Tune 510BT On-Ear Wireless Headphones")
+        item = Entry.find_by(title: "JBL Tune 510BT On-Ear Wireless Headphones")
         expect(item.raw_payload.dig("_shopping_metadata", "rating")).to be_nil
       end
     end
@@ -177,14 +177,14 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
         })
       end
 
-      it "does not create duplicate ContentItems on subsequent runs" do
+      it "does not create duplicate Entrys on subsequent runs" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
 
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(0)
+        }.to change(Entry, :count).by(0)
       end
     end
 
@@ -210,7 +210,7 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
       it "respects max_results limit" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(2)
+        }.to change(Entry, :count).by(2)
       end
     end
 
@@ -220,7 +220,7 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -233,7 +233,7 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -308,7 +308,7 @@ RSpec.describe SerpApiGoogleShoppingIngestionJob, type: :job do
       it "handles empty results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")

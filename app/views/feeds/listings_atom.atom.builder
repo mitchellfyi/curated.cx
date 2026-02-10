@@ -31,7 +31,7 @@ xml.feed xmlns: "http://www.w3.org/2005/Atom" do
       # Content
       content_parts = []
       content_parts << "<p>#{ERB::Util.html_escape(listing.description)}</p>" if listing.description.present?
-      if listing.job?
+      if listing.category&.category_type == "job"
         job_details = []
         job_details << "<strong>Company:</strong> #{ERB::Util.html_escape(listing.company)}" if listing.company.present?
         job_details << "<strong>Location:</strong> #{ERB::Util.html_escape(listing.location)}" if listing.location.present?
@@ -46,7 +46,7 @@ xml.feed xmlns: "http://www.w3.org/2005/Atom" do
 
       # Categories
       xml.category term: listing.category.name, label: listing.category.name if listing.category.present?
-      xml.category term: listing.listing_type, label: listing.listing_type.titleize if listing.listing_type.present?
+      xml.category term: listing.category&.category_type, label: listing.category&.category_type&.titleize if listing.category&.category_type.present?
       xml.category term: "featured", label: "Featured" if listing.featured?
     end
   end

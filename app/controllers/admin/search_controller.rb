@@ -42,7 +42,7 @@ module Admin
     end
 
     def search_content_items(pattern)
-      ContentItem.select(:id, :title, :url_canonical, :created_at)
+      Entry.feed_items.select(:id, :title, :url_canonical, :created_at)
                  .where("title ILIKE ? OR url_canonical ILIKE ?", pattern, pattern)
                  .order(created_at: :desc)
                  .limit(MAX_RESULTS_PER_TYPE)
@@ -57,7 +57,7 @@ module Admin
     end
 
     def search_listings(pattern)
-      Listing.select(:id, :title, :url_canonical, :domain, :created_at)
+      Entry.directory_items.select(:id, :title, :url_canonical, :domain, :created_at)
              .where("title ILIKE ? OR url_canonical ILIKE ?", pattern, pattern)
              .order(created_at: :desc)
              .limit(MAX_RESULTS_PER_TYPE)

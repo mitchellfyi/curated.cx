@@ -76,8 +76,8 @@ Rails.application.routes.draw do
       end
     end
 
-    # Content items management
-    resources :content_items do
+    # Entries (feed + directory) management
+    resources :entries do
       collection do
         post :bulk_action
       end
@@ -86,6 +86,15 @@ Rails.application.routes.draw do
         post :unpublish
         post :editorialise
         post :enrich
+        post :feature
+        post :unfeature
+        post :extend_expiry
+        post :unschedule
+        post :publish_now
+        post :hide
+        post :unhide
+        post :lock_comments
+        post :unlock_comments
       end
     end
 
@@ -108,15 +117,6 @@ Rails.application.routes.draw do
     end
 
     resources :categories
-    resources :listings do
-      member do
-        post :feature
-        post :unfeature
-        post :extend_expiry
-        post :unschedule
-        post :publish_now
-      end
-    end
     resources :taxonomies
     resources :tagging_rules do
       member do
@@ -152,16 +152,6 @@ Rails.application.routes.draw do
       member do
         post :resolve
         post :dismiss
-      end
-    end
-
-    # Content moderation
-    resources :content_items, only: [], controller: "moderation" do
-      member do
-        post :hide
-        post :unhide
-        post :lock_comments
-        post :unlock_comments
       end
     end
 
@@ -310,13 +300,10 @@ Rails.application.routes.draw do
     get "categories/:id", action: :category, as: :feeds_category, defaults: { format: :rss }
   end
 
-  # Content item engagement routes
-  resources :content_items, only: [] do
-    # Vote toggle
+  # Entry engagement routes (feed + directory)
+  resources :entries, only: [] do
     post :vote, to: "votes#toggle", on: :member
-    # Comments
     resources :comments, only: %i[index show create update destroy]
-    # View tracking (for recommendations)
     resources :views, only: [ :create ], controller: "content_views"
   end
 
@@ -363,15 +350,14 @@ Rails.application.routes.draw do
     end
   end
 
-  # Public routes for browsing content
+  # Public routes for browsing content (directory entries)
   resources :categories, only: [ :index, :show ] do
-    resources :listings, only: [ :index, :show ]
+    resources :listings, only: [ :index, :show ], controller: "directory"
   end
 
-  # Direct listing routes (for canonical URLs, bookmarks, etc.)
-  resources :listings, only: [ :index, :show ] do
-    # Checkout flow for paid listings
-    resource :checkout, only: [ :new, :create ] do
+  # Direct directory routes (canonical URLs, bookmarks; path /listings for SEO)
+  resources :listings, only: [ :index, :show ], controller: "directory" do
+    resource :checkout, only: [ :new, :create ], controller: "checkouts" do
       get :success
       get :cancel
     end

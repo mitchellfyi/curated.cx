@@ -62,7 +62,7 @@ module StructuredDataHelper
     }
   end
 
-  # Article schema for content items
+  # Article schema for feed entries
   def article_schema(content_item)
     return {} unless content_item
 

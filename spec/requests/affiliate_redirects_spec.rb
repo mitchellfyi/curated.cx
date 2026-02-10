@@ -7,12 +7,12 @@ RSpec.describe 'Affiliate Redirects', type: :request do
   let(:site) { tenant.sites.first }
   let(:category) { create(:category, tenant: tenant, site: site) }
   let(:listing_with_affiliate) do
-    create(:listing, :published, :with_affiliate,
+    create(:entry, :directory, :published, :with_affiliate,
            tenant: tenant, site: site, category: category,
            url_raw: 'https://example.com/product')
   end
   let(:listing_without_affiliate) do
-    create(:listing, :published,
+    create(:entry, :directory, :published,
            tenant: tenant, site: site, category: category,
            url_raw: 'https://example.com/other')
   end
@@ -23,7 +23,7 @@ RSpec.describe 'Affiliate Redirects', type: :request do
   end
 
   describe 'GET /go/:id' do
-    context 'with a listing that has affiliate URL' do
+    context 'with a entry that has affiliate URL' do
       it 'redirects to the affiliate URL' do
         get affiliate_redirect_path(listing_with_affiliate)
         expect(response).to have_http_status(:redirect)
@@ -44,7 +44,7 @@ RSpec.describe 'Affiliate Redirects', type: :request do
             }
 
         click = AffiliateClick.last
-        expect(click.listing).to eq(listing_with_affiliate)
+        expect(click.entry).to eq(listing_with_affiliate)
         expect(click.user_agent).to eq('Mozilla/5.0 Test')
         expect(click.referrer).to eq('https://google.com/search')
         expect(click.ip_hash).to be_present
@@ -52,7 +52,7 @@ RSpec.describe 'Affiliate Redirects', type: :request do
       end
     end
 
-    context 'with a listing without affiliate URL' do
+    context 'with a entry without affiliate URL' do
       it 'redirects to the canonical URL' do
         get affiliate_redirect_path(listing_without_affiliate)
         expect(response).to have_http_status(:redirect)
@@ -66,7 +66,7 @@ RSpec.describe 'Affiliate Redirects', type: :request do
       end
     end
 
-    context 'with non-existent listing' do
+    context 'with non-existent entry' do
       it 'redirects to root with alert' do
         get affiliate_redirect_path(id: 999_999)
         expect(response).to redirect_to(root_path)
@@ -80,7 +80,7 @@ RSpec.describe 'Affiliate Redirects', type: :request do
       end
     end
 
-    context 'with listing from another site' do
+    context 'with entry from another site' do
       let(:other_tenant) { create(:tenant, :enabled) }
       let(:other_site) { other_tenant.sites.first }
       let(:other_category) do
@@ -90,7 +90,7 @@ RSpec.describe 'Affiliate Redirects', type: :request do
       end
       let(:other_listing) do
         ActsAsTenant.without_tenant do
-          create(:listing, :published, :with_affiliate,
+          create(:entry, :directory, :published, :with_affiliate,
                  tenant: other_tenant, site: other_site, category: other_category)
         end
       end

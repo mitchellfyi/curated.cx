@@ -11,7 +11,7 @@ RSpec.describe "Admin::Flags", type: :request do
   let(:tenant_admin) { create(:user).tap { |u| u.add_role(:admin, tenant) } }
   let(:user) { create(:user) }
   let(:flagger) { create(:user) }
-  let(:content_item) { create(:content_item, :published, site: site, source: source) }
+  let(:entry) { create(:entry, :feed, :published, site: site, source: source) }
 
   before do
     host! tenant.hostname
@@ -22,8 +22,8 @@ RSpec.describe "Admin::Flags", type: :request do
     context "when user is global admin" do
       before { sign_in admin }
 
-      let!(:pending_flags) { create_list(:flag, 3, flaggable: content_item, site: site) }
-      let!(:resolved_flag) { create(:flag, :reviewed, flaggable: content_item, site: site) }
+      let!(:pending_flags) { create_list(:flag, 3, flaggable: entry, site: site) }
+      let!(:resolved_flag) { create(:flag, :reviewed, flaggable: entry, site: site) }
 
       it "returns http success" do
         get admin_flags_path
@@ -90,7 +90,7 @@ RSpec.describe "Admin::Flags", type: :request do
   end
 
   describe "GET /admin/flags/:id" do
-    let!(:flag) { create(:flag, flaggable: content_item, user: flagger, site: site) }
+    let!(:flag) { create(:flag, flaggable: entry, user: flagger, site: site) }
 
     context "when user is admin" do
       before { sign_in admin }
@@ -120,7 +120,7 @@ RSpec.describe "Admin::Flags", type: :request do
   end
 
   describe "POST /admin/flags/:id/resolve" do
-    let!(:flag) { create(:flag, flaggable: content_item, user: flagger, site: site) }
+    let!(:flag) { create(:flag, flaggable: entry, user: flagger, site: site) }
 
     context "when user is admin" do
       before { sign_in admin }
@@ -188,7 +188,7 @@ RSpec.describe "Admin::Flags", type: :request do
   end
 
   describe "POST /admin/flags/:id/dismiss" do
-    let!(:flag) { create(:flag, flaggable: content_item, user: flagger, site: site) }
+    let!(:flag) { create(:flag, flaggable: entry, user: flagger, site: site) }
 
     context "when user is admin" do
       before { sign_in admin }
@@ -256,7 +256,7 @@ RSpec.describe "Admin::Flags", type: :request do
   end
 
   describe "site isolation" do
-    let!(:flag) { create(:flag, flaggable: content_item, user: flagger, site: site) }
+    let!(:flag) { create(:flag, flaggable: entry, user: flagger, site: site) }
 
     before { sign_in admin }
 
@@ -266,7 +266,7 @@ RSpec.describe "Admin::Flags", type: :request do
         ActsAsTenant.with_tenant(other_tenant) do
           other_site = other_tenant.sites.first || create(:site, tenant: other_tenant)
           other_source = create(:source, site: other_site)
-          other_content = create(:content_item, :published, site: other_site, source: other_source)
+          other_content = create(:entry, :feed, :published, site: other_site, source: other_source)
           create(:flag, flaggable: other_content, site: other_site)
         end
       end

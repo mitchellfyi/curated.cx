@@ -39,7 +39,7 @@ class FetchSerpApiNewsJob < ApplicationJob
     # Enqueue upsert jobs for each URL
     category = find_or_create_category(site, tenant, "news")
     urls.each do |url|
-      UpsertListingsJob.perform_later(tenant.id, category.id, url, source_id: source.id)
+      UpsertEntriesJob.perform_later(tenant.id, category.id, url, source_id: source.id)
     end
 
     # Update source status

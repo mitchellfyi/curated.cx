@@ -25,23 +25,23 @@ RSpec.describe "Site Isolation", type: :request do
   let!(:category_b) { create(:category, site: site_b, tenant: tenant, key: 'news_b', name: 'News') }
 
   let!(:listing_a1) do
-    create(:listing, :published, site: site_a, tenant: tenant, category: category_a,
-           title: 'Site A Listing 1', url_canonical: 'https://example.com/a1')
+    create(:entry, :directory, :published, site: site_a, tenant: tenant, category: category_a,
+           title: 'Site A Entry 1', url_canonical: 'https://example.com/a1')
   end
 
   let!(:listing_a2) do
-    create(:listing, :published, site: site_a, tenant: tenant, category: category_a,
-           title: 'Site A Listing 2', url_canonical: 'https://example.com/a2')
+    create(:entry, :directory, :published, site: site_a, tenant: tenant, category: category_a,
+           title: 'Site A Entry 2', url_canonical: 'https://example.com/a2')
   end
 
   let!(:listing_b1) do
-    create(:listing, :published, site: site_b, tenant: tenant, category: category_b,
-           title: 'Site B Listing 1', url_canonical: 'https://example.com/b1')
+    create(:entry, :directory, :published, site: site_b, tenant: tenant, category: category_b,
+           title: 'Site B Entry 1', url_canonical: 'https://example.com/b1')
   end
 
   let!(:listing_b2) do
-    create(:listing, :published, site: site_b, tenant: tenant, category: category_b,
-           title: 'Site B Listing 2', url_canonical: 'https://example.com/b2')
+    create(:entry, :directory, :published, site: site_b, tenant: tenant, category: category_b,
+           title: 'Site B Entry 2', url_canonical: 'https://example.com/b2')
   end
 
   describe "Site A cannot access Site B content" do
@@ -49,14 +49,14 @@ RSpec.describe "Site Isolation", type: :request do
       host! 'sitea.example.com'
     end
 
-    it "only shows Site A listings on listings index" do
+    it "only shows Site A entries on entries index" do
       get listings_path
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include('Site A Listing 1')
-      expect(response.body).to include('Site A Listing 2')
-      expect(response.body).not_to include('Site B Listing 1')
-      expect(response.body).not_to include('Site B Listing 2')
+      expect(response.body).to include('Site A Entry 1')
+      expect(response.body).to include('Site A Entry 2')
+      expect(response.body).not_to include('Site B Entry 1')
+      expect(response.body).not_to include('Site B Entry 2')
     end
 
     it "only shows Site A categories" do
@@ -70,7 +70,7 @@ RSpec.describe "Site Isolation", type: :request do
       expect(categories.map(&:id)).not_to include(category_b.id)
     end
 
-    it "cannot access Site B listing directly" do
+    it "cannot access Site B entry directly" do
       get listing_path(listing_b1)
 
       expect(response).to have_http_status(:not_found)
@@ -95,14 +95,14 @@ RSpec.describe "Site Isolation", type: :request do
       host! 'siteb.example.com'
     end
 
-    it "only shows Site B listings on listings index" do
+    it "only shows Site B entries on entries index" do
       get listings_path
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include('Site B Listing 1')
-      expect(response.body).to include('Site B Listing 2')
-      expect(response.body).not_to include('Site A Listing 1')
-      expect(response.body).not_to include('Site A Listing 2')
+      expect(response.body).to include('Site B Entry 1')
+      expect(response.body).to include('Site B Entry 2')
+      expect(response.body).not_to include('Site A Entry 1')
+      expect(response.body).not_to include('Site A Entry 2')
     end
 
     it "only shows Site B categories" do
@@ -114,7 +114,7 @@ RSpec.describe "Site Isolation", type: :request do
       expect(categories.map(&:id)).not_to include(category_a.id)
     end
 
-    it "cannot access Site A listing directly" do
+    it "cannot access Site A entry directly" do
       get listing_path(listing_a1)
 
       expect(response).to have_http_status(:not_found)
@@ -144,13 +144,13 @@ RSpec.describe "Site Isolation", type: :request do
     it "proves tenant-level access would leak data" do
       # This demonstrates why we need site-level scoping:
       # If we scoped by tenant only, both sites would see each other's content
-      unscoped_listings = Listing.without_site_scope.where(tenant_id: tenant.id)
-      expect(unscoped_listings.count).to eq(4) # All listings from both sites
+      unscoped_listings = Entry.without_site_scope.where(tenant_id: tenant.id)
+      expect(unscoped_listings.count).to eq(4) # All entries from both sites
 
       # But with site scoping, each site only sees its own
       Current.site = site_a
-      scoped_listings = Listing.all
-      expect(scoped_listings.count).to eq(2) # Only Site A listings
+      scoped_listings = Entry.all
+      expect(scoped_listings.count).to eq(2) # Only Site A entries
       expect(scoped_listings.pluck(:id)).to contain_exactly(listing_a1.id, listing_a2.id)
     end
   end
@@ -160,8 +160,8 @@ RSpec.describe "Site Isolation", type: :request do
       Current.site = site_a
 
       # Query without explicit where clause - should still be scoped
-      listings = Listing.all
-      expect(listings.pluck(:id)).to contain_exactly(listing_a1.id, listing_a2.id)
+      entries = Entry.all
+      expect(entries.pluck(:id)).to contain_exactly(listing_a1.id, listing_a2.id)
 
       # Categories should also be scoped
       categories = Category.all
@@ -172,7 +172,7 @@ RSpec.describe "Site Isolation", type: :request do
       Current.site = site_a
 
       # Explicit unscoped query should work for admin/system operations
-      all_listings = Listing.without_site_scope
+      all_listings = Entry.without_site_scope
       expect(all_listings.count).to eq(4)
     end
   end

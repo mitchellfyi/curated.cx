@@ -44,24 +44,27 @@ class FeedsController < ApplicationController
   private
 
   def content_items_for_feed
-    ContentItem
-      .published
-      .not_hidden
-      .order(published_at: :desc)
-      .limit(MAX_ITEMS)
+    Entry.feed_items
+         .where(site: Current.site)
+         .published
+         .not_hidden
+         .order(published_at: :desc)
+         .limit(MAX_ITEMS)
   end
 
   def listings_for_feed
-    Listing
-      .published
-      .not_expired
-      .order(published_at: :desc)
-      .includes(:category)
-      .limit(MAX_ITEMS)
+    Entry.directory_items
+         .where(site: Current.site)
+         .published
+         .not_expired
+         .order(published_at: :desc)
+         .includes(:category)
+         .limit(MAX_ITEMS)
   end
 
   def listings_for_category(category)
-    category.listings
+    category.entries
+            .directory_items
             .published
             .not_expired
             .order(published_at: :desc)

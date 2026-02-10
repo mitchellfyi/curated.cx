@@ -8,7 +8,7 @@
         <% if listing.featured? %>
           <%= badge(t('monetisation.badges.featured'), :purple) %>
         <% end %>
-        <%= type_badge(listing.listing_type) unless listing.tool? %>
+        <%= type_badge(listing.category&.category_type) unless listing.category&.category_type == "tool" %>
       </div>
 
       <%# Title %>
@@ -31,10 +31,10 @@
             <%= t('time.ago', time: time_ago_in_words(listing.published_at)) %>
           </time>
         <% end %>
-        <% if listing.job? && listing.company.present? %>
+        <% if listing.category&.category_type == "job" && listing.company.present? %>
           <span><%= listing.company %></span>
         <% end %>
-        <% if listing.job? && listing.salary_range.present? %>
+        <% if listing.category&.category_type == "job" && listing.salary_range.present? %>
           <span class="text-green-600"><%= listing.salary_range %></span>
         <% end %>
       </div>

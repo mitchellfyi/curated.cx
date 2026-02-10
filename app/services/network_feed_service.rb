@@ -20,7 +20,7 @@ class NetworkFeedService
     def recent_content(tenant:, limit: 20, offset: 0)
       Rails.cache.fetch(cache_key("content", "network", limit, offset), expires_in: 5.minutes) do
         recent_publishable_items(
-          model_class: ContentItem,
+          model_class: Entry,
           includes: [ :source, site: :primary_domain ],
           limit: limit,
           offset: offset
@@ -93,8 +93,8 @@ class NetworkFeedService
 
         {
           site_count: network_sites_scope.count,
-          content_count: ContentItem.unscoped.where(site_id: site_ids).where.not(published_at: nil).count,
-          listing_count: Listing.unscoped.where(site_id: site_ids).where.not(published_at: nil).count,
+          content_count: Entry.unscoped.where(entry_kind: "feed", site_id: site_ids).where.not(published_at: nil).count,
+          listing_count: Entry.unscoped.where(entry_kind: "directory", site_id: site_ids).where.not(published_at: nil).count,
           note_count: Note.unscoped.where(site_id: site_ids).where.not(published_at: nil).count
         }
       end
@@ -119,15 +119,16 @@ class NetworkFeedService
     end
 
     def recent_publishable_items(model_class:, includes:, limit:, offset:)
-      model_class.unscoped
-                 .where(site: network_sites_scope)
-                 .where.not(published_at: nil)
-                 .where(hidden_at: nil)
-                 .order(published_at: :desc)
-                 .offset(offset)
-                 .limit(limit)
-                 .includes(includes)
-                 .to_a
+      scope = model_class.unscoped
+      scope = scope.feed_items if model_class == Entry
+      scope.where(site: network_sites_scope)
+           .where.not(published_at: nil)
+           .where(hidden_at: nil)
+           .order(published_at: :desc)
+           .offset(offset)
+           .limit(limit)
+           .includes(includes)
+           .to_a
     end
   end
 end

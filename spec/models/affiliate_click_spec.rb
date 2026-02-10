@@ -11,27 +11,29 @@
 #  user_agent :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  entry_id   :bigint           not null
 #  listing_id :bigint           not null
 #
 # Indexes
 #
 #  index_affiliate_clicks_on_clicked_at       (clicked_at)
+#  index_affiliate_clicks_on_entry_id         (entry_id)
 #  index_affiliate_clicks_on_listing_clicked  (listing_id,clicked_at)
 #  index_affiliate_clicks_on_listing_id       (listing_id)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (listing_id => listings.id)
+#  fk_rails_...  (entry_id => entries.id)
 #
 require 'rails_helper'
 
 RSpec.describe AffiliateClick, type: :model do
   let(:tenant) { create(:tenant) }
   let(:category) { create(:category, tenant: tenant) }
-  let(:listing) { create(:listing, :with_affiliate, tenant: tenant, category: category) }
+  let(:entry) { create(:entry, :directory, :with_affiliate, tenant: tenant, category: category) }
 
   describe 'associations' do
-    it { should belong_to(:listing) }
+    it { should belong_to(:entry) }
   end
 
   describe 'validations' do
@@ -40,22 +42,22 @@ RSpec.describe AffiliateClick, type: :model do
 
   describe 'factory' do
     it 'creates a valid affiliate click' do
-      click = build(:affiliate_click, listing: listing)
+      click = build(:affiliate_click, entry: entry)
       expect(click).to be_valid
     end
 
     it 'creates with traits' do
-      click = build(:affiliate_click, :from_google, listing: listing)
+      click = build(:affiliate_click, :from_google, entry: entry)
       expect(click.referrer).to include('google.com')
     end
   end
 
   describe 'scopes' do
-    let!(:click_today) { create(:affiliate_click, listing: listing, clicked_at: Time.current) }
-    let!(:click_yesterday) { create(:affiliate_click, listing: listing, clicked_at: 1.day.ago) }
-    let!(:click_last_week) { create(:affiliate_click, listing: listing, clicked_at: 1.week.ago) }
-    let!(:click_last_month) { create(:affiliate_click, listing: listing, clicked_at: 1.month.ago) }
-    let!(:click_old) { create(:affiliate_click, listing: listing, clicked_at: 2.months.ago) }
+    let!(:click_today) { create(:affiliate_click, entry: entry, clicked_at: Time.current) }
+    let!(:click_yesterday) { create(:affiliate_click, entry: entry, clicked_at: 1.day.ago) }
+    let!(:click_last_week) { create(:affiliate_click, entry: entry, clicked_at: 1.week.ago) }
+    let!(:click_last_month) { create(:affiliate_click, entry: entry, clicked_at: 1.month.ago) }
+    let!(:click_old) { create(:affiliate_click, entry: entry, clicked_at: 2.months.ago) }
 
     describe '.recent' do
       it 'orders by clicked_at descending' do
@@ -91,39 +93,39 @@ RSpec.describe AffiliateClick, type: :model do
     describe '.for_site' do
       let(:other_tenant) { create(:tenant) }
       let(:other_category) { create(:category, tenant: other_tenant) }
-      let(:other_listing) { create(:listing, :with_affiliate, tenant: other_tenant, category: other_category) }
-      let!(:other_click) { create(:affiliate_click, listing: other_listing) }
+      let(:other_entry) { create(:entry, :directory, :with_affiliate, tenant: other_tenant, category: other_category) }
+      let!(:other_click) { create(:affiliate_click, entry: other_entry) }
 
-      it 'filters by site_id through listing' do
-        site_id = listing.site_id
+      it 'filters by site_id through entry' do
+        site_id = entry.site_id
         expect(AffiliateClick.for_site(site_id)).to include(click_today)
         expect(AffiliateClick.for_site(site_id)).not_to include(other_click)
       end
     end
   end
 
-  describe '.count_for_listing' do
-    let!(:recent_clicks) { create_list(:affiliate_click, 3, listing: listing, clicked_at: 1.day.ago) }
-    let!(:old_click) { create(:affiliate_click, listing: listing, clicked_at: 60.days.ago) }
+  describe '.count_for_entry' do
+    let!(:recent_clicks) { create_list(:affiliate_click, 3, entry: entry, clicked_at: 1.day.ago) }
+    let!(:old_click) { create(:affiliate_click, entry: entry, clicked_at: 60.days.ago) }
 
     it 'counts clicks since the given date' do
-      expect(AffiliateClick.count_for_listing(listing.id, since: 30.days.ago)).to eq(3)
+      expect(AffiliateClick.count_for_entry(entry.id, since: 30.days.ago)).to eq(3)
     end
 
     it 'includes all clicks with default since' do
-      expect(AffiliateClick.count_for_listing(listing.id)).to eq(3)
+      expect(AffiliateClick.count_for_entry(entry.id)).to eq(3)
     end
   end
 
-  describe '.count_by_listing' do
-    let(:listing2) { create(:listing, :with_affiliate, tenant: tenant, category: category) }
-    let!(:clicks_listing1) { create_list(:affiliate_click, 3, listing: listing, clicked_at: 1.day.ago) }
-    let!(:clicks_listing2) { create_list(:affiliate_click, 2, listing: listing2, clicked_at: 1.day.ago) }
+  describe '.count_by_entry' do
+    let(:entry2) { create(:entry, :directory, :with_affiliate, tenant: tenant, category: category) }
+    let!(:clicks_entry1) { create_list(:affiliate_click, 3, entry: entry, clicked_at: 1.day.ago) }
+    let!(:clicks_entry2) { create_list(:affiliate_click, 2, entry: entry2, clicked_at: 1.day.ago) }
 
-    it 'returns counts grouped by listing_id' do
-      counts = AffiliateClick.count_by_listing(site_id: listing.site_id, since: 30.days.ago)
-      expect(counts[listing.id]).to eq(3)
-      expect(counts[listing2.id]).to eq(2)
+    it 'returns counts grouped by entry_id' do
+      counts = AffiliateClick.count_by_entry(site_id: entry.site_id, since: 30.days.ago)
+      expect(counts[entry.id]).to eq(3)
+      expect(counts[entry2.id]).to eq(2)
     end
   end
 end

@@ -8,8 +8,8 @@ RSpec.describe AiEditorialJob, type: :job do
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site, config: { "editorialise" => true }) }
-  let(:content_item) do
-    create(:content_item,
+  let(:entry) do
+    create(:entry, :feed,
       site: site,
       source: source,
       extracted_text: "A" * 500
@@ -30,7 +30,7 @@ RSpec.describe AiEditorialJob, type: :job do
   end
 
   before do
-    allow_any_instance_of(ContentItem).to receive(:enqueue_enrichment_pipeline)
+    allow_any_instance_of(Entry).to receive(:enqueue_enrichment_pipeline)
     allow_any_instance_of(EditorialisationServices::AiClient).to receive(:validate_api_key!)
     allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response)
   end
@@ -71,27 +71,27 @@ RSpec.describe AiEditorialJob, type: :job do
   end
 
   describe "#perform" do
-    it "calls EditorialisationService with the content item" do
-      expect(EditorialisationService).to receive(:editorialise).with(content_item).and_call_original
+    it "calls EditorialisationService with the entry" do
+      expect(EditorialisationService).to receive(:editorialise).with(entry).and_call_original
 
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
     end
 
     it "enqueues CaptureScreenshotJob after completion" do
       expect {
-        described_class.perform_now(content_item.id)
-      }.to have_enqueued_job(CaptureScreenshotJob).with(content_item.id)
+        described_class.perform_now(entry.id)
+      }.to have_enqueued_job(CaptureScreenshotJob).with(entry.id)
     end
 
     it "marks enrichment as complete" do
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
 
-      expect(content_item.reload.enrichment_status).to eq("complete")
-      expect(content_item.reload.enriched_at).to be_present
+      expect(entry.reload.enrichment_status).to eq("complete")
+      expect(entry.reload.enriched_at).to be_present
     end
 
     it "clears Current context after execution" do
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
 
       expect(Current.tenant).to be_nil
       expect(Current.site).to be_nil
@@ -105,23 +105,23 @@ RSpec.describe AiEditorialJob, type: :job do
       it "skips AI processing" do
         expect(EditorialisationService).not_to receive(:editorialise)
 
-        described_class.perform_now(content_item.id)
+        described_class.perform_now(entry.id)
       end
 
       it "still enqueues screenshot job" do
         expect {
-          described_class.perform_now(content_item.id)
-        }.to have_enqueued_job(CaptureScreenshotJob).with(content_item.id)
+          described_class.perform_now(entry.id)
+        }.to have_enqueued_job(CaptureScreenshotJob).with(entry.id)
       end
 
       it "marks enrichment as complete" do
-        described_class.perform_now(content_item.id)
+        described_class.perform_now(entry.id)
 
-        expect(content_item.reload.enrichment_status).to eq("complete")
+        expect(entry.reload.enrichment_status).to eq("complete")
       end
     end
 
-    context "when content item is not found" do
+    context "when entry is not found" do
       it "discards the job" do
         expect { described_class.perform_now(0) }.not_to raise_error
       end

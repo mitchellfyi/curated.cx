@@ -11,17 +11,19 @@
 #  user_agent :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  entry_id   :bigint           not null
 #  listing_id :bigint           not null
 #
 # Indexes
 #
 #  index_affiliate_clicks_on_clicked_at       (clicked_at)
+#  index_affiliate_clicks_on_entry_id         (entry_id)
 #  index_affiliate_clicks_on_listing_clicked  (listing_id,clicked_at)
 #  index_affiliate_clicks_on_listing_id       (listing_id)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (listing_id => listings.id)
+#  fk_rails_...  (entry_id => entries.id)
 #
 FactoryBot.define do
   factory :affiliate_click do

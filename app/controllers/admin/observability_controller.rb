@@ -102,9 +102,9 @@ module Admin
         editorialisations_pending: Editorialisation.pending.count,
 
         # Content stats
-        content_items_total: ContentItem.count,
-        content_items_published: ContentItem.published.count,
-        content_items_editorialised: ContentItem.where.not(editorialised_at: nil).count,
+        content_items_total: Entry.feed_items.count,
+        content_items_published: Entry.feed_items.published.count,
+        content_items_editorialised: Entry.feed_items.where.not(editorialised_at: nil).count,
 
         # Background jobs (from SolidQueue if available)
         jobs_pending: solid_queue_pending_count,
@@ -153,7 +153,7 @@ module Admin
         total_tokens_24h: Editorialisation.completed
                                           .where("created_at > ?", 24.hours.ago)
                                           .sum(:tokens_used),
-        pending_content_items: ContentItem.published
+        pending_content_items: Entry.feed_items.published
                                           .where(editorialised_at: nil)
                                           .joins(:source)
                                           .where(sources: { editorialisation_enabled: true })

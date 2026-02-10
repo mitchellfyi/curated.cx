@@ -36,7 +36,7 @@
       </div>
       <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">On Content</dt>
-        <dd class="mt-1 text-3xl font-semibold text-gray-600"><%= number_with_delimiter(@stats[:on_content_items]) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-600"><%= number_with_delimiter(@stats[:on_entries]) %></dd>
       </div>
       <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">On Notes</dt>
@@ -52,7 +52,7 @@
         </div>
         <div>
           <%= f.select :commentable_type,
-              options_for_select([["All types", ""], ["Content Items", "ContentItem"], ["Notes", "Note"], ["Discussions", "Discussion"]], params[:commentable_type]),
+              options_for_select([["All types", ""], ["Entries", "Entry"], ["Notes", "Note"], ["Discussions", "Discussion"]], params[:commentable_type]),
               {},
               class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
         </div>

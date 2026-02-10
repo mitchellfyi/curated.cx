@@ -2,14 +2,14 @@
 
 require "rails_helper"
 
-RSpec.describe EnrichContentItemJob, type: :job do
+RSpec.describe EnrichEntryJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site, config: { "editorialise" => true }) }
-  let(:content_item) do
-    create(:content_item, site: site, source: source)
+  let(:entry) do
+    create(:entry, :feed, site: site, source: source)
   end
 
   let(:metadata) do
@@ -26,7 +26,7 @@ RSpec.describe EnrichContentItemJob, type: :job do
   end
 
   before do
-    allow_any_instance_of(ContentItem).to receive(:enqueue_enrichment_pipeline)
+    allow_any_instance_of(Entry).to receive(:enqueue_enrichment_pipeline)
     allow(LinkEnrichmentService).to receive(:enrich).and_return(metadata)
   end
 
@@ -44,51 +44,51 @@ RSpec.describe EnrichContentItemJob, type: :job do
   end
 
   describe "#perform" do
-    it "calls LinkEnrichmentService with the content item URL" do
-      expect(LinkEnrichmentService).to receive(:enrich).with(content_item.url_canonical).and_return(metadata)
+    it "calls LinkEnrichmentService with the entry URL" do
+      expect(LinkEnrichmentService).to receive(:enrich).with(entry.url_canonical).and_return(metadata)
 
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
     end
 
     it "sets enrichment_status to enriching at the start" do
       allow(LinkEnrichmentService).to receive(:enrich) do
-        expect(content_item.reload.enrichment_status).to eq("enriching")
+        expect(entry.reload.enrichment_status).to eq("enriching")
         metadata
       end
 
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
     end
 
-    it "updates content item with enrichment metadata" do
-      described_class.perform_now(content_item.id)
+    it "updates entry with enrichment metadata" do
+      described_class.perform_now(entry.id)
 
-      content_item.reload
-      expect(content_item.og_image_url).to eq("https://example.com/image.jpg")
-      expect(content_item.author_name).to eq("John Doe")
-      expect(content_item.word_count).to eq(1500)
-      expect(content_item.read_time_minutes).to eq(8)
-      expect(content_item.favicon_url).to eq("https://example.com/favicon.ico")
+      entry.reload
+      expect(entry.og_image_url).to eq("https://example.com/image.jpg")
+      expect(entry.author_name).to eq("John Doe")
+      expect(entry.word_count).to eq(1500)
+      expect(entry.read_time_minutes).to eq(8)
+      expect(entry.favicon_url).to eq("https://example.com/favicon.ico")
     end
 
     it "does not overwrite existing title" do
-      original_title = content_item.title
-      described_class.perform_now(content_item.id)
+      original_title = entry.title
+      described_class.perform_now(entry.id)
 
-      expect(content_item.reload.title).to eq(original_title)
+      expect(entry.reload.title).to eq(original_title)
     end
 
     it "fills in title when blank" do
-      content_item.update_columns(title: nil)
-      described_class.perform_now(content_item.id)
+      entry.update_columns(title: nil)
+      described_class.perform_now(entry.id)
 
-      expect(content_item.reload.title).to eq("Enriched Title")
+      expect(entry.reload.title).to eq("Enriched Title")
     end
 
     context "when source has editorialisation enabled" do
       it "enqueues AiEditorialJob" do
         expect {
-          described_class.perform_now(content_item.id)
-        }.to have_enqueued_job(AiEditorialJob).with(content_item.id)
+          described_class.perform_now(entry.id)
+        }.to have_enqueued_job(AiEditorialJob).with(entry.id)
       end
     end
 
@@ -97,19 +97,19 @@ RSpec.describe EnrichContentItemJob, type: :job do
 
       it "enqueues CaptureScreenshotJob instead" do
         expect {
-          described_class.perform_now(content_item.id)
-        }.to have_enqueued_job(CaptureScreenshotJob).with(content_item.id)
+          described_class.perform_now(entry.id)
+        }.to have_enqueued_job(CaptureScreenshotJob).with(entry.id)
       end
 
       it "marks enrichment as complete" do
-        described_class.perform_now(content_item.id)
+        described_class.perform_now(entry.id)
 
-        expect(content_item.reload.enrichment_status).to eq("complete")
+        expect(entry.reload.enrichment_status).to eq("complete")
       end
     end
 
     it "sets tenant context during execution" do
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
 
       # Context is cleared in ensure block
       expect(Current.tenant).to be_nil
@@ -124,27 +124,27 @@ RSpec.describe EnrichContentItemJob, type: :job do
 
       it "marks enrichment as failed" do
         begin
-          described_class.perform_now(content_item.id)
+          described_class.perform_now(entry.id)
         rescue LinkEnrichmentService::EnrichmentError
           # Expected
         end
 
-        expect(content_item.reload.enrichment_status).to eq("failed")
+        expect(entry.reload.enrichment_status).to eq("failed")
       end
 
       it "records the error message" do
         begin
-          described_class.perform_now(content_item.id)
+          described_class.perform_now(entry.id)
         rescue LinkEnrichmentService::EnrichmentError
           # Expected
         end
 
-        errors = content_item.reload.enrichment_errors
+        errors = entry.reload.enrichment_errors
         expect(errors).to be_present
       end
     end
 
-    context "when content item is not found" do
+    context "when entry is not found" do
       it "discards the job" do
         expect { described_class.perform_now(0) }.not_to raise_error
       end

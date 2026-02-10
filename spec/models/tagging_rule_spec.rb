@@ -100,8 +100,8 @@ RSpec.describe TaggingRule, type: :model do
     let(:taxonomy) { create(:taxonomy) }
     let(:site) { taxonomy.site }
     let(:source) { create(:source, site: site) }
-    let(:content_item) do
-      create(:content_item,
+    let(:entry) do
+      create(:entry, :feed,
         site: site,
         source: source,
         url_canonical: "https://example.com/news/article-1",
@@ -113,7 +113,7 @@ RSpec.describe TaggingRule, type: :model do
     describe "when rule is disabled" do
       it "returns no match" do
         rule = create(:tagging_rule, :disabled, taxonomy: taxonomy, site: site)
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be false
         expect(result[:confidence]).to eq(0.0)
       end
@@ -123,7 +123,7 @@ RSpec.describe TaggingRule, type: :model do
       it "matches URL with regex pattern" do
         rule = create(:tagging_rule, :url_pattern, taxonomy: taxonomy, site: site,
           pattern: "example\\.com/news/.*")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be true
         expect(result[:confidence]).to eq(1.0)
         expect(result[:reason]).to include("URL matched pattern")
@@ -132,19 +132,19 @@ RSpec.describe TaggingRule, type: :model do
       it "does not match non-matching URL" do
         rule = create(:tagging_rule, :url_pattern, taxonomy: taxonomy, site: site,
           pattern: "other\\.com/.*")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be false
       end
 
       it "handles invalid regex gracefully" do
         rule = create(:tagging_rule, :url_pattern, taxonomy: taxonomy, site: site,
           pattern: "[invalid(regex")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be false
       end
 
       it "handles blank URL" do
-        item = build(:content_item, site: site, source: source, url_canonical: nil)
+        item = build(:entry, :feed, site: site, source: source, url_canonical: nil)
         rule = create(:tagging_rule, :url_pattern, taxonomy: taxonomy, site: site)
         result = rule.matches?(item)
         expect(result[:match]).to be false
@@ -155,7 +155,7 @@ RSpec.describe TaggingRule, type: :model do
       it "matches content from specified source" do
         rule = create(:tagging_rule, :source_based, taxonomy: taxonomy, site: site,
           pattern: source.id.to_s)
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be true
         expect(result[:confidence]).to eq(0.9)
         expect(result[:reason]).to include("Content from source")
@@ -165,12 +165,12 @@ RSpec.describe TaggingRule, type: :model do
         other_source = create(:source, site: site)
         rule = create(:tagging_rule, :source_based, taxonomy: taxonomy, site: site,
           pattern: other_source.id.to_s)
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be false
       end
 
       it "handles blank source_id" do
-        item = build(:content_item, site: site, source: nil, source_id: nil)
+        item = build(:entry, :feed, site: site, source: nil, source_id: nil)
         rule = create(:tagging_rule, :source_based, taxonomy: taxonomy, site: site)
         result = rule.matches?(item)
         expect(result[:match]).to be false
@@ -181,7 +181,7 @@ RSpec.describe TaggingRule, type: :model do
       it "matches single keyword in title" do
         rule = create(:tagging_rule, :keyword, taxonomy: taxonomy, site: site,
           pattern: "technology")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be true
         expect(result[:confidence]).to be >= 0.7
         expect(result[:reason]).to include("Keywords matched")
@@ -190,7 +190,7 @@ RSpec.describe TaggingRule, type: :model do
       it "matches multiple keywords (increases confidence)" do
         rule = create(:tagging_rule, :keyword, taxonomy: taxonomy, site: site,
           pattern: "technology, innovation, startup")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be true
         # 0.7 + (0.1 * 3) = 1.0, but capped at 0.9
         expect(result[:confidence]).to eq(0.9)
@@ -199,12 +199,12 @@ RSpec.describe TaggingRule, type: :model do
       it "is case insensitive" do
         rule = create(:tagging_rule, :keyword, taxonomy: taxonomy, site: site,
           pattern: "TECHNOLOGY")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be true
       end
 
       it "searches in extracted_text and description" do
-        item = create(:content_item, site: site, source: source,
+        item = create(:entry, :feed, site: site, source: source,
           title: "Random Title",
           extracted_text: "Contains innovation keyword",
           description: "Mentions startup")
@@ -218,13 +218,13 @@ RSpec.describe TaggingRule, type: :model do
       it "does not match when no keywords found" do
         rule = create(:tagging_rule, :keyword, taxonomy: taxonomy, site: site,
           pattern: "blockchain, crypto")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be false
       end
 
       it "handles blank text content" do
         # Pattern can't be empty due to validation, so test with valid pattern but blank content
-        item = build(:content_item, site: site, source: source,
+        item = build(:entry, :feed, site: site, source: source,
           title: nil, extracted_text: nil, description: nil)
         rule = create(:tagging_rule, :keyword, taxonomy: taxonomy, site: site,
           pattern: "test")
@@ -237,14 +237,14 @@ RSpec.describe TaggingRule, type: :model do
       it "matches exact domain" do
         rule = create(:tagging_rule, :domain, taxonomy: taxonomy, site: site,
           pattern: "example.com")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be true
         expect(result[:confidence]).to eq(0.85)
         expect(result[:reason]).to include("Domain")
       end
 
       it "matches wildcard subdomain" do
-        item = create(:content_item, site: site, source: source,
+        item = create(:entry, :feed, site: site, source: source,
           url_canonical: "https://blog.techcrunch.com/article")
         rule = create(:tagging_rule, :domain, taxonomy: taxonomy, site: site,
           pattern: "*.techcrunch.com")
@@ -255,12 +255,12 @@ RSpec.describe TaggingRule, type: :model do
       it "does not match different domain" do
         rule = create(:tagging_rule, :domain, taxonomy: taxonomy, site: site,
           pattern: "other.com")
-        result = rule.matches?(content_item)
+        result = rule.matches?(entry)
         expect(result[:match]).to be false
       end
 
       it "handles invalid URL gracefully" do
-        item = build(:content_item, site: site, source: source,
+        item = build(:entry, :feed, site: site, source: source,
           url_canonical: "not-a-valid-url")
         rule = create(:tagging_rule, :domain, taxonomy: taxonomy, site: site)
         result = rule.matches?(item)
@@ -268,7 +268,7 @@ RSpec.describe TaggingRule, type: :model do
       end
 
       it "handles blank URL" do
-        item = build(:content_item, site: site, source: source, url_canonical: "")
+        item = build(:entry, :feed, site: site, source: source, url_canonical: "")
         rule = create(:tagging_rule, :domain, taxonomy: taxonomy, site: site)
         result = rule.matches?(item)
         expect(result[:match]).to be false

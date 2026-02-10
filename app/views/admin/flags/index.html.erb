@@ -21,7 +21,7 @@
       </div>
       <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Content Items</dt>
-        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @flags.count(&:content_item?) %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @flags.count(&:entry?) %></dd>
       </div>
       <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Comments</dt>
@@ -50,9 +50,9 @@
                 <tr>
                   <td class="px-6 py-4">
                     <div class="flex items-center">
-                      <%= badge(flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), flag.content_item? ? :blue : :green) %>
+                      <%= badge(flag.entry? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), flag.entry? ? :blue : :green) %>
                       <span class="ml-2 text-sm text-gray-900 truncate max-w-xs">
-                        <% if flag.content_item? %>
+                        <% if flag.entry? %>
                           <%= truncate(flag.flaggable.title, length: 50) %>
                         <% else %>
                           <%= truncate(flag.flaggable.body, length: 50) %>
@@ -103,9 +103,9 @@
               <tr class="bg-gray-50">
                 <td class="px-6 py-4">
                   <div class="flex items-center">
-                    <%= badge(flag.content_item? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), flag.content_item? ? :blue : :green) %>
+                    <%= badge(flag.entry? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), flag.entry? ? :blue : :green) %>
                     <span class="ml-2 text-sm text-gray-500 truncate max-w-xs">
-                      <% if flag.content_item? %>
+                      <% if flag.entry? %>
                         <%= truncate(flag.flaggable&.title || t("admin.flags.content_deleted"), length: 50) %>
                       <% else %>
                         <%= truncate(flag.flaggable&.body || t("admin.flags.content_deleted"), length: 50) %>

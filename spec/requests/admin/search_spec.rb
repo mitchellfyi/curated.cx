@@ -51,7 +51,7 @@ RSpec.describe "Admin::Search", type: :request do
 
       it "finds matching content items" do
         source = create(:source, site: Current.site)
-        content_item = create(:content_item, source: source, title: "Searchable Title")
+        entry = create(:entry, :feed, source: source, title: "Searchable Title")
 
         get admin_search_path(q: "Searchable")
         expect(response.body).to include("Searchable Title")

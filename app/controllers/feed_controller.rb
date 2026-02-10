@@ -9,7 +9,7 @@ class FeedController < ApplicationController
   MAX_RSS_ITEMS = 50
 
   def index
-    authorize ContentItem, :index?
+    authorize Entry, :index?
 
     @content_items = FeedRankingService.ranked_feed(
       site: Current.site,
@@ -26,7 +26,7 @@ class FeedController < ApplicationController
   end
 
   def rss
-    authorize ContentItem, :index?
+    authorize Entry, :index?
 
     @content_items = FeedRankingService.ranked_feed(
       site: Current.site,
@@ -56,12 +56,13 @@ class FeedController < ApplicationController
   end
 
   def content_types_for_site
-    ContentItem
-               .published
-               .distinct
-               .pluck(:content_type)
-               .compact
-               .sort
+    Entry.feed_items
+         .where(site: Current.site)
+         .published
+         .distinct
+         .pluck(:content_type)
+         .compact
+         .sort
   end
 
   def set_feed_meta_tags

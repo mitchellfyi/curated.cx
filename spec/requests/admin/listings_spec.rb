@@ -20,8 +20,8 @@ RSpec.describe "Admin::Listings", type: :request do
         before do
           @tenant1_category = create(:category, :news, tenant: tenant1, site: site1)
           @tenant2_category = create(:category, :news, tenant: tenant2, site: site2)
-          @tenant1_listing = create(:listing, tenant: tenant1, site: site1, category: @tenant1_category)
-          @tenant2_listing = create(:listing, tenant: tenant2, site: site2, category: @tenant2_category)
+          @tenant1_listing = create(:entry, :directory, tenant: tenant1, site: site1, category: @tenant1_category)
+          @tenant2_listing = create(:entry, :directory, tenant: tenant2, site: site2, category: @tenant2_category)
         end
 
     context "when accessing as admin user" do
@@ -33,53 +33,53 @@ RSpec.describe "Admin::Listings", type: :request do
           setup_tenant_context(tenant1)
         end
 
-        describe "GET /admin/listings" do
-          it "only shows listings for the current tenant" do
-            get admin_listings_path
+        describe "GET /admin/entries" do
+          it "only shows entries for the current tenant" do
+            get admin_entries_path
             expect(response).to have_http_status(:success)
-            expect(assigns(:listings)).to include(@tenant1_listing)
-            expect(assigns(:listings)).not_to include(@tenant2_listing)
+            expect(assigns(:entries)).to include(@tenant1_listing)
+            expect(assigns(:entries)).not_to include(@tenant2_listing)
           end
 
           it "only shows categories for the current tenant" do
-            get admin_listings_path
+            get admin_entries_path
             expect(response).to have_http_status(:success)
             expect(assigns(:categories)).to include(@tenant1_category)
             expect(assigns(:categories)).not_to include(@tenant2_category)
           end
         end
 
-        describe "GET /admin/listings/:id" do
-          it "can access listing from current tenant" do
-            get admin_listing_path(@tenant1_listing)
+        describe "GET /admin/entries/:id" do
+          it "can access entry from current tenant" do
+            get admin_entry_path(@tenant1_listing)
             expect(response).to have_http_status(:success)
-            expect(assigns(:listing)).to eq(@tenant1_listing)
+            expect(assigns(:entry)).to eq(@tenant1_listing)
           end
 
-          it "cannot access listing from different tenant" do
-            get admin_listing_path(@tenant2_listing)
+          it "cannot access entry from different tenant" do
+            get admin_entry_path(@tenant2_listing)
             expect(response).to have_http_status(:not_found)
           end
         end
 
-        describe "GET /admin/listings/:id/edit" do
-          it "can edit listing from current tenant" do
-            get edit_admin_listing_path(@tenant1_listing)
+        describe "GET /admin/entries/:id/edit" do
+          it "can edit entry from current tenant" do
+            get edit_admin_entry_path(@tenant1_listing)
             expect(response).to have_http_status(:success)
-            expect(assigns(:listing)).to eq(@tenant1_listing)
+            expect(assigns(:entry)).to eq(@tenant1_listing)
             expect(assigns(:categories)).to include(@tenant1_category)
             expect(assigns(:categories)).not_to include(@tenant2_category)
           end
 
-          it "cannot edit listing from different tenant" do
-            get edit_admin_listing_path(@tenant2_listing)
+          it "cannot edit entry from different tenant" do
+            get edit_admin_entry_path(@tenant2_listing)
             expect(response).to have_http_status(:not_found)
           end
         end
 
-        describe "GET /admin/listings/new" do
+        describe "GET /admin/entries/new" do
           it "only shows categories for the current tenant" do
-            get new_admin_listing_path
+            get new_admin_entry_path
             expect(response).to have_http_status(:success)
             expect(assigns(:categories)).to include(@tenant1_category)
             expect(assigns(:categories)).not_to include(@tenant2_category)
@@ -93,12 +93,12 @@ RSpec.describe "Admin::Listings", type: :request do
           setup_tenant_context(tenant2)
         end
 
-        describe "GET /admin/listings" do
-          it "only shows listings for the current tenant" do
-            get admin_listings_path
+        describe "GET /admin/entries" do
+          it "only shows entries for the current tenant" do
+            get admin_entries_path
             expect(response).to have_http_status(:success)
-            expect(assigns(:listings)).to include(@tenant2_listing)
-            expect(assigns(:listings)).not_to include(@tenant1_listing)
+            expect(assigns(:entries)).to include(@tenant2_listing)
+            expect(assigns(:entries)).not_to include(@tenant1_listing)
           end
         end
       end
@@ -113,32 +113,32 @@ RSpec.describe "Admin::Listings", type: :request do
           setup_tenant_context(tenant1)
         end
 
-        describe "GET /admin/listings" do
-          it "only shows listings for the current tenant" do
-            get admin_listings_path
+        describe "GET /admin/entries" do
+          it "only shows entries for the current tenant" do
+            get admin_entries_path
             expect(response).to have_http_status(:success)
-            expect(assigns(:listings)).to include(@tenant1_listing)
-            expect(assigns(:listings)).not_to include(@tenant2_listing)
+            expect(assigns(:entries)).to include(@tenant1_listing)
+            expect(assigns(:entries)).not_to include(@tenant2_listing)
           end
         end
 
-        describe "POST /admin/listings" do
-          it "creates listing for current tenant" do
+        describe "POST /admin/entries" do
+          it "creates entry for current tenant" do
           expect {
-            post admin_listings_path, params: {
-              listing: {
+            post admin_entries_path, params: {
+              entry: {
                 category_id: @tenant1_category.id,
                 url_raw: "https://example.com/test",
-                title: "Test Listing",
+                title: "Test Entry",
                 description: "Test description"
               }
             }
-          }.to change { tenant1.listings.count }.by(1)
+          }.to change { tenant1.entries.count }.by(1)
 
-          new_listing = tenant1.listings.last
-          expect(new_listing.title).to eq("Test Listing")
-          expect(new_listing.category).to eq(@tenant1_category)
-          expect(new_listing.tenant).to eq(tenant1)
+          new_entry = tenant1.entries.last
+          expect(new_entry.title).to eq("Test Entry")
+          expect(new_entry.category).to eq(@tenant1_category)
+          expect(new_entry.tenant).to eq(tenant1)
           end
         end
       end
@@ -154,9 +154,9 @@ RSpec.describe "Admin::Listings", type: :request do
           setup_tenant_context(tenant1)
         end
 
-        describe "GET /admin/listings" do
+        describe "GET /admin/entries" do
           it "redirects with access denied" do
-            get admin_listings_path
+            get admin_entries_path
             expect(response).to redirect_to(root_path)
             expect(flash[:alert]).to eq("Access denied. Admin privileges required.")
           end
@@ -167,7 +167,7 @@ RSpec.describe "Admin::Listings", type: :request do
 
   describe 'monetisation actions' do
     let!(:category) { create(:category, :news, tenant: tenant1, site: site1) }
-    let!(:listing) { create(:listing, tenant: tenant1, site: site1, category: category) }
+    let!(:entry) { create(:entry, :directory, tenant: tenant1, site: site1, category: category) }
 
     before do
       sign_in admin_user
@@ -175,49 +175,49 @@ RSpec.describe "Admin::Listings", type: :request do
       setup_tenant_context(tenant1)
     end
 
-    describe 'POST /admin/listings/:id/feature' do
+    describe 'POST /admin/entries/:id/feature' do
       it 'sets featured dates' do
-        post feature_admin_listing_path(listing)
+        post feature_admin_entry_path(entry)
 
-        listing.reload
-        expect(listing.featured_from).to be_within(1.second).of(Time.current)
-        expect(listing.featured_until).to be_within(1.day).of(30.days.from_now)
-        expect(listing.featured_by).to eq(admin_user)
+        entry.reload
+        expect(entry.featured_from).to be_within(1.second).of(Time.current)
+        expect(entry.featured_until).to be_within(1.day).of(30.days.from_now)
+        expect(entry.featured_by).to eq(admin_user)
       end
 
       it 'redirects with success notice' do
-        post feature_admin_listing_path(listing)
+        post feature_admin_entry_path(entry)
 
-        expect(response).to redirect_to(admin_listing_path(listing))
+        expect(response).to redirect_to(admin_entry_path(entry))
         expect(flash[:notice]).to eq(I18n.t('admin.listings.featured'))
       end
 
       it 'allows custom featured_until date' do
         future_date = 60.days.from_now
-        post feature_admin_listing_path(listing), params: { featured_until: future_date }
+        post feature_admin_entry_path(entry), params: { featured_until: future_date }
 
-        listing.reload
-        expect(listing.featured_until).to be_within(1.second).of(future_date)
+        entry.reload
+        expect(entry.featured_until).to be_within(1.second).of(future_date)
       end
 
-      it 'makes listing featured?' do
-        expect(listing).not_to be_featured
-        post feature_admin_listing_path(listing)
+      it 'makes entry featured?' do
+        expect(entry).not_to be_featured
+        post feature_admin_entry_path(entry)
 
-        listing.reload
-        expect(listing).to be_featured
+        entry.reload
+        expect(entry).to be_featured
       end
     end
 
-    describe 'POST /admin/listings/:id/unfeature' do
+    describe 'POST /admin/entries/:id/unfeature' do
       let!(:featured_listing) do
-        create(:listing, :featured, tenant: tenant1, site: site1, category: category)
+        create(:entry, :directory, :featured, tenant: tenant1, site: site1, category: category)
       end
 
       it 'clears featured dates' do
         expect(featured_listing).to be_featured
 
-        post unfeature_admin_listing_path(featured_listing)
+        post unfeature_admin_entry_path(featured_listing)
 
         featured_listing.reload
         expect(featured_listing.featured_from).to be_nil
@@ -226,71 +226,71 @@ RSpec.describe "Admin::Listings", type: :request do
       end
 
       it 'redirects with success notice' do
-        post unfeature_admin_listing_path(featured_listing)
+        post unfeature_admin_entry_path(featured_listing)
 
-        expect(response).to redirect_to(admin_listing_path(featured_listing))
+        expect(response).to redirect_to(admin_entry_path(featured_listing))
         expect(flash[:notice]).to eq(I18n.t('admin.listings.unfeatured'))
       end
 
-      it 'makes listing not featured?' do
-        post unfeature_admin_listing_path(featured_listing)
+      it 'makes entry not featured?' do
+        post unfeature_admin_entry_path(featured_listing)
 
         featured_listing.reload
         expect(featured_listing).not_to be_featured
       end
     end
 
-    describe 'POST /admin/listings/:id/extend_expiry' do
+    describe 'POST /admin/entries/:id/extend_expiry' do
       context 'with existing expiry' do
         let!(:job_listing) do
-          create(:listing, :job, tenant: tenant1, site: site1, category: category,
+          create(:entry, :directory, :job, tenant: tenant1, site: site1, category: category,
                  expires_at: 10.days.from_now)
         end
 
         it 'extends expiry by 30 days from current expiry' do
           original_expiry = job_listing.expires_at
-          post extend_expiry_admin_listing_path(job_listing)
+          post extend_expiry_admin_entry_path(job_listing)
 
           job_listing.reload
           expect(job_listing.expires_at).to be_within(1.second).of(original_expiry + 30.days)
         end
 
         it 'redirects with success notice' do
-          post extend_expiry_admin_listing_path(job_listing)
+          post extend_expiry_admin_entry_path(job_listing)
 
-          expect(response).to redirect_to(admin_listing_path(job_listing))
+          expect(response).to redirect_to(admin_entry_path(job_listing))
           expect(flash[:notice]).to eq(I18n.t('admin.listings.expiry_extended'))
         end
       end
 
       context 'without existing expiry' do
         it 'sets expiry to 30 days from now' do
-          post extend_expiry_admin_listing_path(listing)
+          post extend_expiry_admin_entry_path(entry)
 
-          listing.reload
-          expect(listing.expires_at).to be_within(1.day).of(30.days.from_now)
+          entry.reload
+          expect(entry.expires_at).to be_within(1.day).of(30.days.from_now)
         end
       end
 
       context 'with custom expiry date' do
         it 'sets custom expiry date' do
           future_date = 90.days.from_now
-          post extend_expiry_admin_listing_path(listing), params: { expires_at: future_date }
+          post extend_expiry_admin_entry_path(entry), params: { expires_at: future_date }
 
-          listing.reload
-          expect(listing.expires_at).to be_within(1.second).of(future_date)
+          entry.reload
+          expect(entry.expires_at).to be_within(1.second).of(future_date)
         end
       end
 
-      context 'with expired listing' do
+      context 'with expired entry' do
         let!(:expired_listing) do
-          create(:listing, :expired, tenant: tenant1, site: site1, category: category)
+          create(:entry, :directory, :expired, tenant: tenant1, site: site1, category: category)
         end
 
-        it 'extends expiry and makes listing not expired' do
+        it 'extends expiry and makes entry not expired' do
           expect(expired_listing).to be_expired
 
-          post extend_expiry_admin_listing_path(expired_listing)
+          post extend_expiry_admin_entry_path(expired_listing)
 
           expired_listing.reload
           expect(expired_listing).not_to be_expired
@@ -298,37 +298,37 @@ RSpec.describe "Admin::Listings", type: :request do
       end
     end
 
-    describe 'PATCH /admin/listings/:id with monetisation fields' do
+    describe 'PATCH /admin/entries/:id with monetisation fields' do
       it 'updates affiliate_url_template' do
-        patch admin_listing_path(listing), params: {
-          listing: { affiliate_url_template: 'https://affiliate.example.com?url={url}' }
+        patch admin_entry_path(entry), params: {
+          entry: { affiliate_url_template: 'https://affiliate.example.com?url={url}' }
         }
 
-        listing.reload
-        expect(listing.affiliate_url_template).to eq('https://affiliate.example.com?url={url}')
+        entry.reload
+        expect(entry.affiliate_url_template).to eq('https://affiliate.example.com?url={url}')
       end
 
       it 'updates affiliate_attribution' do
-        patch admin_listing_path(listing), params: {
-          listing: { affiliate_attribution: { source: 'curated', medium: 'affiliate' } }
+        patch admin_entry_path(entry), params: {
+          entry: { affiliate_attribution: { source: 'curated', medium: 'affiliate' } }
         }
 
-        listing.reload
-        expect(listing.affiliate_attribution).to eq({ 'source' => 'curated', 'medium' => 'affiliate' })
+        entry.reload
+        expect(entry.affiliate_attribution).to eq({ 'source' => 'curated', 'medium' => 'affiliate' })
       end
 
       it 'updates listing_type' do
-        patch admin_listing_path(listing), params: {
-          listing: { listing_type: 'job' }
+        patch admin_entry_path(entry), params: {
+          entry: { listing_type: 'job' }
         }
 
-        listing.reload
-        expect(listing).to be_job
+        entry.reload
+        expect(entry).to be_job
       end
 
       it 'updates job-specific fields' do
-        patch admin_listing_path(listing), params: {
-          listing: {
+        patch admin_entry_path(entry), params: {
+          entry: {
             listing_type: 'job',
             company: 'Acme Corp',
             location: 'Remote',
@@ -337,45 +337,45 @@ RSpec.describe "Admin::Listings", type: :request do
           }
         }
 
-        listing.reload
-        expect(listing.company).to eq('Acme Corp')
-        expect(listing.location).to eq('Remote')
-        expect(listing.salary_range).to eq('$100k-$150k')
-        expect(listing.apply_url).to eq('https://jobs.example.com/apply')
+        entry.reload
+        expect(entry.company).to eq('Acme Corp')
+        expect(entry.location).to eq('Remote')
+        expect(entry.salary_range).to eq('$100k-$150k')
+        expect(entry.apply_url).to eq('https://jobs.example.com/apply')
       end
 
       it 'updates paid status and payment reference' do
-        patch admin_listing_path(listing), params: {
-          listing: { paid: true, payment_reference: 'pay_abc123' }
+        patch admin_entry_path(entry), params: {
+          entry: { paid: true, payment_reference: 'pay_abc123' }
         }
 
-        listing.reload
-        expect(listing).to be_paid
-        expect(listing.payment_reference).to eq('pay_abc123')
+        entry.reload
+        expect(entry).to be_paid
+        expect(entry.payment_reference).to eq('pay_abc123')
       end
 
       it 'updates featured dates directly' do
         featured_from = 1.day.ago
         featured_until = 30.days.from_now
 
-        patch admin_listing_path(listing), params: {
-          listing: { featured_from: featured_from, featured_until: featured_until }
+        patch admin_entry_path(entry), params: {
+          entry: { featured_from: featured_from, featured_until: featured_until }
         }
 
-        listing.reload
-        expect(listing.featured_from).to be_within(1.second).of(featured_from)
-        expect(listing.featured_until).to be_within(1.second).of(featured_until)
+        entry.reload
+        expect(entry.featured_from).to be_within(1.second).of(featured_from)
+        expect(entry.featured_until).to be_within(1.second).of(featured_until)
       end
 
       it 'updates expires_at directly' do
         expires_at = 60.days.from_now
 
-        patch admin_listing_path(listing), params: {
-          listing: { expires_at: expires_at }
+        patch admin_entry_path(entry), params: {
+          entry: { expires_at: expires_at }
         }
 
-        listing.reload
-        expect(listing.expires_at).to be_within(1.second).of(expires_at)
+        entry.reload
+        expect(entry.expires_at).to be_within(1.second).of(expires_at)
       end
     end
 
@@ -386,24 +386,24 @@ RSpec.describe "Admin::Listings", type: :request do
         end
       end
 
-      let!(:other_listing) do
+      let!(:other_entry) do
         ActsAsTenant.without_tenant do
-          create(:listing, tenant: tenant2, site: site2, category: other_category)
+          create(:entry, :directory, tenant: tenant2, site: site2, category: other_category)
         end
       end
 
-      it 'cannot feature listing from different tenant' do
-        post feature_admin_listing_path(other_listing)
+      it 'cannot feature entry from different tenant' do
+        post feature_admin_entry_path(other_entry)
         expect(response).to have_http_status(:not_found)
       end
 
-      it 'cannot unfeature listing from different tenant' do
-        post unfeature_admin_listing_path(other_listing)
+      it 'cannot unfeature entry from different tenant' do
+        post unfeature_admin_entry_path(other_entry)
         expect(response).to have_http_status(:not_found)
       end
 
-      it 'cannot extend expiry for listing from different tenant' do
-        post extend_expiry_admin_listing_path(other_listing)
+      it 'cannot extend expiry for entry from different tenant' do
+        post extend_expiry_admin_entry_path(other_entry)
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -418,86 +418,86 @@ RSpec.describe "Admin::Listings", type: :request do
       setup_tenant_context(tenant1)
     end
 
-    describe 'POST /admin/listings with scheduling' do
-      it 'creates a published listing when publish_action is publish' do
+    describe 'POST /admin/entries with scheduling' do
+      it 'creates a published entry when publish_action is publish' do
         freeze_time do
-          post admin_listings_path, params: {
-            listing: {
+          post admin_entries_path, params: {
+            entry: {
               category_id: category.id,
               url_raw: "https://example.com/published",
-              title: "Published Listing",
+              title: "Published Entry",
               description: "Test description",
               publish_action: "publish"
             }
           }
 
-          new_listing = tenant1.listings.last
-          expect(new_listing.published_at).to be_within(1.second).of(Time.current)
-          expect(new_listing.scheduled_for).to be_nil
+          new_entry = tenant1.entries.last
+          expect(new_entry.published_at).to be_within(1.second).of(Time.current)
+          expect(new_entry.scheduled_for).to be_nil
         end
       end
 
-      it 'creates a scheduled listing when publish_action is schedule' do
+      it 'creates a scheduled entry when publish_action is schedule' do
         future_time = 1.day.from_now
 
-        post admin_listings_path, params: {
-          listing: {
+        post admin_entries_path, params: {
+          entry: {
             category_id: category.id,
             url_raw: "https://example.com/scheduled",
-            title: "Scheduled Listing",
+            title: "Scheduled Entry",
             description: "Test description",
             publish_action: "schedule",
             scheduled_for: future_time
           }
         }
 
-        new_listing = tenant1.listings.last
-        expect(new_listing.published_at).to be_nil
-        expect(new_listing.scheduled_for).to be_within(1.second).of(future_time)
-        expect(new_listing).to be_scheduled
+        new_entry = tenant1.entries.last
+        expect(new_entry.published_at).to be_nil
+        expect(new_entry.scheduled_for).to be_within(1.second).of(future_time)
+        expect(new_entry).to be_scheduled
       end
 
-      it 'creates a draft listing when publish_action is draft' do
-        post admin_listings_path, params: {
-          listing: {
+      it 'creates a draft entry when publish_action is draft' do
+        post admin_entries_path, params: {
+          entry: {
             category_id: category.id,
             url_raw: "https://example.com/draft",
-            title: "Draft Listing",
+            title: "Draft Entry",
             description: "Test description",
             publish_action: "draft"
           }
         }
 
-        new_listing = tenant1.listings.last
-        expect(new_listing.published_at).to be_nil
-        expect(new_listing.scheduled_for).to be_nil
+        new_entry = tenant1.entries.last
+        expect(new_entry.published_at).to be_nil
+        expect(new_entry.scheduled_for).to be_nil
       end
     end
 
-    describe 'PATCH /admin/listings/:id with scheduling' do
-      let!(:listing) { create(:listing, tenant: tenant1, site: site1, category: category) }
+    describe 'PATCH /admin/entries/:id with scheduling' do
+      let!(:entry) { create(:entry, :directory, tenant: tenant1, site: site1, category: category) }
 
-      it 'schedules a published listing' do
+      it 'schedules a published entry' do
         future_time = 2.days.from_now
 
-        patch admin_listing_path(listing), params: {
-          listing: {
+        patch admin_entry_path(entry), params: {
+          entry: {
             publish_action: "schedule",
             scheduled_for: future_time
           }
         }
 
-        listing.reload
-        expect(listing.published_at).to be_nil
-        expect(listing.scheduled_for).to be_within(1.second).of(future_time)
+        entry.reload
+        expect(entry.published_at).to be_nil
+        expect(entry.scheduled_for).to be_within(1.second).of(future_time)
       end
 
-      it 'publishes a scheduled listing' do
-        scheduled_listing = create(:listing, :scheduled, tenant: tenant1, site: site1, category: category)
+      it 'publishes a scheduled entry' do
+        scheduled_listing = create(:entry, :directory, :scheduled, tenant: tenant1, site: site1, category: category)
 
         freeze_time do
-          patch admin_listing_path(scheduled_listing), params: {
-            listing: { publish_action: "publish" }
+          patch admin_entry_path(scheduled_listing), params: {
+            entry: { publish_action: "publish" }
           }
 
           scheduled_listing.reload
@@ -507,10 +507,10 @@ RSpec.describe "Admin::Listings", type: :request do
       end
 
       it 'unschedules to draft' do
-        scheduled_listing = create(:listing, :scheduled, tenant: tenant1, site: site1, category: category)
+        scheduled_listing = create(:entry, :directory, :scheduled, tenant: tenant1, site: site1, category: category)
 
-        patch admin_listing_path(scheduled_listing), params: {
-          listing: { publish_action: "draft" }
+        patch admin_entry_path(scheduled_listing), params: {
+          entry: { publish_action: "draft" }
         }
 
         scheduled_listing.reload
@@ -519,43 +519,43 @@ RSpec.describe "Admin::Listings", type: :request do
       end
     end
 
-    describe 'POST /admin/listings/:id/unschedule' do
+    describe 'POST /admin/entries/:id/unschedule' do
       let!(:scheduled_listing) do
-        create(:listing, :scheduled, tenant: tenant1, site: site1, category: category)
+        create(:entry, :directory, :scheduled, tenant: tenant1, site: site1, category: category)
       end
 
       it 'clears scheduled_for' do
         expect(scheduled_listing).to be_scheduled
 
-        post unschedule_admin_listing_path(scheduled_listing)
+        post unschedule_admin_entry_path(scheduled_listing)
 
         scheduled_listing.reload
         expect(scheduled_listing.scheduled_for).to be_nil
       end
 
-      it 'does not publish the listing' do
-        post unschedule_admin_listing_path(scheduled_listing)
+      it 'does not publish the entry' do
+        post unschedule_admin_entry_path(scheduled_listing)
 
         scheduled_listing.reload
         expect(scheduled_listing.published_at).to be_nil
       end
 
       it 'redirects with success notice' do
-        post unschedule_admin_listing_path(scheduled_listing)
+        post unschedule_admin_entry_path(scheduled_listing)
 
-        expect(response).to redirect_to(admin_listing_path(scheduled_listing))
+        expect(response).to redirect_to(admin_entry_path(scheduled_listing))
         expect(flash[:notice]).to eq(I18n.t('admin.listings.unscheduled'))
       end
     end
 
-    describe 'POST /admin/listings/:id/publish_now' do
+    describe 'POST /admin/entries/:id/publish_now' do
       let!(:scheduled_listing) do
-        create(:listing, :scheduled, tenant: tenant1, site: site1, category: category)
+        create(:entry, :directory, :scheduled, tenant: tenant1, site: site1, category: category)
       end
 
-      it 'publishes the listing immediately' do
+      it 'publishes the entry immediately' do
         freeze_time do
-          post publish_now_admin_listing_path(scheduled_listing)
+          post publish_now_admin_entry_path(scheduled_listing)
 
           scheduled_listing.reload
           expect(scheduled_listing.published_at).to be_within(1.second).of(Time.current)
@@ -563,16 +563,16 @@ RSpec.describe "Admin::Listings", type: :request do
       end
 
       it 'clears scheduled_for' do
-        post publish_now_admin_listing_path(scheduled_listing)
+        post publish_now_admin_entry_path(scheduled_listing)
 
         scheduled_listing.reload
         expect(scheduled_listing.scheduled_for).to be_nil
       end
 
       it 'redirects with success notice' do
-        post publish_now_admin_listing_path(scheduled_listing)
+        post publish_now_admin_entry_path(scheduled_listing)
 
-        expect(response).to redirect_to(admin_listing_path(scheduled_listing))
+        expect(response).to redirect_to(admin_entry_path(scheduled_listing))
         expect(flash[:notice]).to eq(I18n.t('admin.listings.published_now'))
       end
     end
@@ -586,17 +586,17 @@ RSpec.describe "Admin::Listings", type: :request do
 
       let!(:other_scheduled_listing) do
         ActsAsTenant.without_tenant do
-          create(:listing, :scheduled, tenant: tenant2, site: site2, category: other_category)
+          create(:entry, :directory, :scheduled, tenant: tenant2, site: site2, category: other_category)
         end
       end
 
-      it 'cannot unschedule listing from different tenant' do
-        post unschedule_admin_listing_path(other_scheduled_listing)
+      it 'cannot unschedule entry from different tenant' do
+        post unschedule_admin_entry_path(other_scheduled_listing)
         expect(response).to have_http_status(:not_found)
       end
 
-      it 'cannot publish_now listing from different tenant' do
-        post publish_now_admin_listing_path(other_scheduled_listing)
+      it 'cannot publish_now entry from different tenant' do
+        post publish_now_admin_entry_path(other_scheduled_listing)
         expect(response).to have_http_status(:not_found)
       end
     end

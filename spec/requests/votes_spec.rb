@@ -6,7 +6,7 @@ RSpec.describe "Votes", type: :request do
   let(:tenant) { create(:tenant, :enabled) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) { create(:content_item, :published, site: site, source: source) }
+  let(:entry) { create(:entry, :feed, :published, site: site, source: source) }
   let(:user) { create(:user) }
   let(:admin) { create(:user, admin: true) }
 
@@ -15,14 +15,14 @@ RSpec.describe "Votes", type: :request do
     setup_tenant_context(tenant)
   end
 
-  describe "POST /content_items/:content_item_id/vote" do
+  describe "POST /entries/:entry_id/vote" do
     context "when user is authenticated" do
       before { sign_in user }
 
       context "when user has not voted" do
         it "creates a new vote" do
           expect {
-            post vote_content_item_path(content_item), as: :json
+            post vote_entry_path(entry), as: :json
           }.to change(Vote, :count).by(1)
 
           expect(response).to have_http_status(:success)
@@ -30,12 +30,12 @@ RSpec.describe "Votes", type: :request do
 
         it "increments the upvotes_count" do
           expect {
-            post vote_content_item_path(content_item), as: :json
-          }.to change { content_item.reload.upvotes_count }.by(1)
+            post vote_entry_path(entry), as: :json
+          }.to change { entry.reload.upvotes_count }.by(1)
         end
 
         it "returns voted status and count" do
-          post vote_content_item_path(content_item), as: :json
+          post vote_entry_path(entry), as: :json
 
           json = JSON.parse(response.body)
           expect(json["voted"]).to be true
@@ -45,12 +45,12 @@ RSpec.describe "Votes", type: :request do
 
       context "when user has already voted" do
         before do
-          create(:vote, votable: content_item, user: user, site: site)
+          create(:vote, votable: entry, user: user, site: site)
         end
 
         it "removes the existing vote (toggle off)" do
           expect {
-            post vote_content_item_path(content_item), as: :json
+            post vote_entry_path(entry), as: :json
           }.to change(Vote, :count).by(-1)
 
           expect(response).to have_http_status(:success)
@@ -58,12 +58,12 @@ RSpec.describe "Votes", type: :request do
 
         it "decrements the upvotes_count" do
           expect {
-            post vote_content_item_path(content_item), as: :json
-          }.to change { content_item.reload.upvotes_count }.by(-1)
+            post vote_entry_path(entry), as: :json
+          }.to change { entry.reload.upvotes_count }.by(-1)
         end
 
         it "returns unvoted status and count" do
-          post vote_content_item_path(content_item), as: :json
+          post vote_entry_path(entry), as: :json
 
           json = JSON.parse(response.body)
           expect(json["voted"]).to be false
@@ -77,14 +77,14 @@ RSpec.describe "Votes", type: :request do
         end
 
         it "returns forbidden status" do
-          post vote_content_item_path(content_item), as: :json
+          post vote_entry_path(entry), as: :json
 
           expect(response).to have_http_status(:forbidden)
         end
 
         it "does not create a vote" do
           expect {
-            post vote_content_item_path(content_item), as: :json
+            post vote_entry_path(entry), as: :json
           }.not_to change(Vote, :count)
         end
       end
@@ -100,7 +100,7 @@ RSpec.describe "Votes", type: :request do
 
         it "allows votes within rate limit" do
           # The rate limit is 100 votes/hour, so first vote should work
-          post vote_content_item_path(content_item), as: :json
+          post vote_entry_path(entry), as: :json
           expect(response).to have_http_status(:success)
         end
 
@@ -109,7 +109,7 @@ RSpec.describe "Votes", type: :request do
           key = "rate_limit:#{site.id}:#{user.id}:vote:#{Time.current.beginning_of_hour.to_i}"
           Rails.cache.write(key, 100, expires_in: 1.hour)
 
-          post vote_content_item_path(content_item), as: :json
+          post vote_entry_path(entry), as: :json
           expect(response).to have_http_status(:too_many_requests)
         end
       end
@@ -117,7 +117,7 @@ RSpec.describe "Votes", type: :request do
 
     context "when user is not authenticated" do
       it "redirects to sign in" do
-        post vote_content_item_path(content_item)
+        post vote_entry_path(entry)
 
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -127,7 +127,7 @@ RSpec.describe "Votes", type: :request do
       before { sign_in user }
 
       it "responds with turbo stream" do
-        post vote_content_item_path(content_item), as: :turbo_stream
+        post vote_entry_path(entry), as: :turbo_stream
 
         expect(response.content_type).to include("text/vnd.turbo-stream.html")
       end
@@ -137,7 +137,7 @@ RSpec.describe "Votes", type: :request do
       before { sign_in user }
 
       it "redirects back" do
-        post vote_content_item_path(content_item)
+        post vote_entry_path(entry)
 
         expect(response).to redirect_to(feed_index_path)
       end
@@ -148,12 +148,12 @@ RSpec.describe "Votes", type: :request do
     let(:other_tenant) { create(:tenant, :enabled) }
     let(:other_site) { other_tenant.sites.first || create(:site, tenant: other_tenant) }
     let(:other_source) { create(:source, site: other_site) }
-    let(:other_content_item) { create(:content_item, :published, site: other_site, source: other_source) }
+    let(:other_content_item) { create(:entry, :feed, :published, site: other_site, source: other_source) }
 
     before { sign_in user }
 
     it "only creates votes for current site" do
-      post vote_content_item_path(content_item), as: :json
+      post vote_entry_path(entry), as: :json
 
       vote = Vote.last
       expect(vote.site).to eq(site)
@@ -173,7 +173,7 @@ RSpec.describe "Votes", type: :request do
 
       # User should be able to vote on original site content
       expect {
-        post vote_content_item_path(content_item), as: :json
+        post vote_entry_path(entry), as: :json
       }.to change(Vote, :count).by(1)
     end
   end

@@ -45,21 +45,21 @@ class StripeWebhookHandler
     if checkout_type == "digital_product"
       handle_digital_product_purchase(session)
     else
-      handle_listing_checkout(session)
+      handle_entry_checkout(session)
     end
   end
 
-  # Handle listing-based checkout (jobs, featured placements)
-  def handle_listing_checkout(session)
-    listing = find_listing_by_session(session.id)
-    return true unless listing
+  # Handle entry-based checkout (jobs, featured placements)
+  def handle_entry_checkout(session)
+    entry = find_entry_by_session(session.id)
+    return true unless entry
 
     checkout_type = session.metadata["checkout_type"]&.to_sym
     duration_days = session.metadata["duration_days"]&.to_i
 
     ActiveRecord::Base.transaction do
       # Mark as paid
-      listing.update!(
+      entry.update!(
         payment_status: :paid,
         stripe_payment_intent_id: session.payment_intent,
         paid: true,
@@ -67,13 +67,13 @@ class StripeWebhookHandler
       )
 
       # Apply the appropriate benefit based on checkout type
-      apply_listing_benefit(listing, checkout_type, duration_days)
+      apply_entry_benefit(entry, checkout_type, duration_days)
     end
 
     # Send receipt email
-    send_payment_receipt(listing, session)
+    send_payment_receipt(entry, session)
 
-    Rails.logger.info("Payment completed for listing #{listing.id}")
+    Rails.logger.info("Payment completed for entry #{entry.id}")
     true
   rescue StandardError => e
     Rails.logger.error("Error handling checkout.session.completed: #{e.message}")
@@ -120,77 +120,77 @@ class StripeWebhookHandler
 
   # Handle expired checkout session
   def handle_checkout_expired(session)
-    listing = find_listing_by_session(session.id)
-    return true unless listing
+    entry = find_entry_by_session(session.id)
+    return true unless entry
 
-    listing.update!(payment_status: :unpaid)
+    entry.update!(payment_status: :unpaid)
 
-    Rails.logger.info("Checkout expired for listing #{listing.id}")
+    Rails.logger.info("Checkout expired for entry #{entry.id}")
     true
   end
 
   # Handle failed payment
   def handle_payment_failed(payment_intent)
-    listing = Listing.find_by(stripe_payment_intent_id: payment_intent.id)
-    return true unless listing
+    entry = Entry.find_by(stripe_payment_intent_id: payment_intent.id)
+    return true unless entry
 
-    listing.update!(payment_status: :payment_failed)
+    entry.update!(payment_status: :payment_failed)
 
-    Rails.logger.info("Payment failed for listing #{listing.id}")
+    Rails.logger.info("Payment failed for entry #{entry.id}")
     true
   end
 
   # Handle refund
   def handle_charge_refunded(charge)
     payment_intent_id = charge.payment_intent
-    listing = Listing.find_by(stripe_payment_intent_id: payment_intent_id)
-    return true unless listing
+    entry = Entry.find_by(stripe_payment_intent_id: payment_intent_id)
+    return true unless entry
 
-    listing.update!(
+    entry.update!(
       payment_status: :refunded,
       paid: false
     )
 
     # Remove benefits
-    remove_listing_benefits(listing)
+    remove_entry_benefits(entry)
 
-    Rails.logger.info("Payment refunded for listing #{listing.id}")
+    Rails.logger.info("Payment refunded for entry #{entry.id}")
     true
   end
 
-  def find_listing_by_session(session_id)
-    Listing.find_by(stripe_checkout_session_id: session_id)
+  def find_entry_by_session(session_id)
+    Entry.find_by(stripe_checkout_session_id: session_id)
   end
 
-  def apply_listing_benefit(listing, checkout_type, duration_days)
+  def apply_entry_benefit(entry, checkout_type, duration_days)
     return unless checkout_type && duration_days&.positive?
 
     case checkout_type.to_s
     when /^job_post/
       # Job post: set expiry date
-      listing.update!(
+      entry.update!(
         expires_at: duration_days.days.from_now,
         published_at: Time.current
       )
     when /^featured/
       # Featured placement: set featured dates
-      listing.update!(
+      entry.update!(
         featured_from: Time.current,
         featured_until: duration_days.days.from_now
       )
     end
   end
 
-  def remove_listing_benefits(listing)
-    listing.update!(
+  def remove_entry_benefits(entry)
+    entry.update!(
       featured_from: nil,
       featured_until: nil
     )
   end
 
-  def send_payment_receipt(listing, session)
+  def send_payment_receipt(entry, session)
     # Queue receipt email
-    PaymentReceiptMailer.receipt(listing, session).deliver_later
+    PaymentReceiptMailer.receipt(entry, session).deliver_later
   rescue StandardError => e
     # Don't fail the webhook if email fails
     Rails.logger.error("Failed to send payment receipt email: #{e.message}")

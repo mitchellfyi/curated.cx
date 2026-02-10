@@ -1,22 +1,26 @@
 # frozen_string_literal: true
 
-class ListingsController < ApplicationController
+# Public directory of curated entries (formerly "listings").
+# Serves /listings and /categories/:id/listings.
+class DirectoryController < ApplicationController
   before_action :check_tenant_privacy, only: [ :index, :show ]
-  before_action :set_listing, only: [ :show ]
+  before_action :set_entry, only: [ :show ]
   before_action :set_category, only: [ :index ]
 
   def index
-    authorize Listing
+    authorize Entry
 
-    # Get featured listings for the featured section (unfiltered)
-    @featured_listings = policy_scope(Listing.includes(:category))
+    scope = Entry.directory_items.includes(:category)
+    scope = scope.where(site: Current.site)
+
+    @featured_listings = policy_scope(scope)
                           .featured
                           .not_expired
-                          .published_recent
+                          .published
+                          .recent
                           .limit(3)
 
-    # Build filtered listings query
-    base_scope = @category ? @category.listings : Listing
+    base_scope = @category ? scope.where(category_id: @category.id) : scope
     @listings = policy_scope(base_scope.includes(:category))
                   .not_expired
                   .published
@@ -24,22 +28,11 @@ class ListingsController < ApplicationController
                   .recent
                   .limit(50)
 
-    # Get categories for filter dropdown
     @categories = policy_scope(Category).order(:name)
-
-    # Get counts for listing types
-    @type_counts = policy_scope(Listing)
-                     .not_expired
-                     .published
-                     .group(:listing_type)
-                     .count
-
-    # Store current filters for view
     @current_filters = filter_params
 
-    title = @category ? @category.name : t("listings.index.title")
     set_page_meta_tags(
-      title: title,
+      title: @category ? @category.name : t("listings.index.title"),
       description: t("listings.index.description",
                     category: @category&.name || t("nav.all_categories"),
                     tenant: Current.tenant&.title)
@@ -52,16 +45,15 @@ class ListingsController < ApplicationController
   end
 
   def show
-    authorize @listing
-
-    set_listing_meta_tags(@listing)
+    authorize @entry
+    set_listing_meta_tags(@entry)
     set_canonical_url(params: [])
   end
 
   private
 
-  def set_listing
-    @listing = policy_scope(Listing).includes(:category, :tenant).find(params[:id])
+  def set_entry
+    @entry = policy_scope(Entry.directory_items).includes(:category, :tenant).find(params[:id])
   end
 
   def set_category

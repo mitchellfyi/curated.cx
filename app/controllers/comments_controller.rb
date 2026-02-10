@@ -4,15 +4,15 @@ class CommentsController < ApplicationController
   include Commentable
 
   before_action :authenticate_user!, except: %i[index show]
-  before_action :set_content_item
+  before_action :set_entry
   before_action :set_comment, only: %i[show update destroy]
   before_action :check_ban_status, only: %i[create update]
   before_action :check_comments_locked, only: :create
 
-  # GET /content_items/:content_item_id/comments
+  # GET /entries/:entry_id/comments
   def index
     @comments = policy_scope(Comment)
-                .for_content_item(@content_item)
+                .for_entry(@entry)
                 .root_comments
                 .includes(:user, :replies)
                 .oldest_first
@@ -27,12 +27,12 @@ class CommentsController < ApplicationController
 
   private
 
-  def set_content_item
-    @content_item = ContentItem.find(params[:content_item_id])
+  def set_entry
+    @entry = Entry.find(params[:entry_id])
   end
 
   def set_comment
-    @comment = @content_item.comments.find(params[:id])
+    @comment = @entry.comments.find(params[:id])
   end
 
   def comment_params
@@ -40,7 +40,7 @@ class CommentsController < ApplicationController
   end
 
   def check_comments_locked
-    if @content_item.comments_locked?
+    if @entry.comments_locked?
       respond_to do |format|
         format.html { redirect_back fallback_location: root_path, alert: I18n.t("comments.locked") }
         format.json { render json: { error: I18n.t("comments.locked") }, status: :forbidden }
@@ -52,7 +52,7 @@ class CommentsController < ApplicationController
   # Commentable hooks
 
   def commentable_build_record
-    @comment = @content_item.comments.build(comment_params)
+    @comment = @entry.comments.build(comment_params)
   end
 
   def commentable_record

@@ -7,7 +7,7 @@ class Admin::EditorialisationsController < ApplicationController
 
   def index
     @editorialisations = base_scope
-      .includes(:content_item)
+      .includes(:entry)
       .recent
       .page(params[:page])
       .per(25)
@@ -21,7 +21,7 @@ class Admin::EditorialisationsController < ApplicationController
 
   def retry
     if @editorialisation.failed? || @editorialisation.skipped?
-      EditorialiseContentItemJob.perform_later(@editorialisation.content_item_id)
+      EditorialiseEntryJob.perform_later(@editorialisation.entry_id)
       redirect_to admin_editorialisation_path(@editorialisation),
                   notice: t("admin.editorialisations.retrying")
     else
@@ -36,7 +36,7 @@ class Admin::EditorialisationsController < ApplicationController
     count = 0
 
     failed.find_each do |ed|
-      EditorialiseContentItemJob.perform_later(ed.content_item_id)
+      EditorialiseEntryJob.perform_later(ed.entry_id)
       count += 1
     end
 

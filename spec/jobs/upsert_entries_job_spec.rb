@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe UpsertListingsJob, type: :job do
+RSpec.describe UpsertEntriesJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:tenant) { create(:tenant) }
@@ -12,47 +12,47 @@ RSpec.describe UpsertListingsJob, type: :job do
   let(:url_raw) { "https://example.com/article-1?utm_source=test" }
 
   describe "#perform" do
-    context "happy path - new listing" do
-      it "creates a new listing with correct attributes" do
+    context "happy path - new entry" do
+      it "creates a new entry with correct attributes" do
         expect {
           described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
-        }.to change(Listing, :count).by(1)
+        }.to change(Entry, :count).by(1)
       end
 
-      it "sets listing attributes correctly" do
-        listing = described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
+      it "sets entry attributes correctly" do
+        entry = described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
 
-        expect(listing.tenant).to eq(tenant)
-        expect(listing.site).to eq(site)
-        expect(listing.category).to eq(category)
-        expect(listing.source).to eq(source)
-        expect(listing.url_raw).to eq(url_raw)
+        expect(entry.tenant).to eq(tenant)
+        expect(entry.site).to eq(site)
+        expect(entry.category).to eq(category)
+        expect(entry.source).to eq(source)
+        expect(entry.url_raw).to eq(url_raw)
       end
 
       it "canonicalizes URL and removes tracking params" do
-        listing = described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
+        entry = described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
 
-        expect(listing.url_canonical).to eq("https://example.com/article-1")
-        expect(listing.url_canonical).not_to include("utm_source")
+        expect(entry.url_canonical).to eq("https://example.com/article-1")
+        expect(entry.url_canonical).not_to include("utm_source")
       end
 
-      it "enqueues ScrapeMetadataJob after creating listing" do
+      it "enqueues ScrapeMetadataJob after creating entry" do
         expect {
           described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
         }.to have_enqueued_job(ScrapeMetadataJob).once
       end
 
       it "extracts basic title from URL" do
-        listing = described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
+        entry = described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
 
-        expect(listing.title).to be_present
-        expect(listing.title).not_to eq("Untitled")
+        expect(entry.title).to be_present
+        expect(entry.title).not_to eq("Untitled")
       end
     end
 
-    context "idempotency - existing listing" do
-      let!(:existing_listing) do
-        create(:listing,
+    context "idempotency - existing entry" do
+      let!(:existing_entry) do
+        create(:entry, :directory,
           tenant: tenant,
           site: site,
           category: category,
@@ -60,19 +60,19 @@ RSpec.describe UpsertListingsJob, type: :job do
           url_canonical: "https://example.com/article-1")
       end
 
-      it "does not create duplicate listing" do
+      it "does not create duplicate entry" do
         expect {
           described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
-        }.not_to change(Listing, :count)
+        }.not_to change(Entry, :count)
       end
 
-      it "returns existing listing" do
+      it "returns existing entry" do
         result = described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
 
-        expect(result.id).to eq(existing_listing.id)
+        expect(result.id).to eq(existing_entry.id)
       end
 
-      it "does NOT enqueue ScrapeMetadataJob for existing listing" do
+      it "does NOT enqueue ScrapeMetadataJob for existing entry" do
         expect {
           described_class.perform_now(tenant.id, category.id, url_raw, source_id: source.id)
         }.not_to have_enqueued_job(ScrapeMetadataJob)
@@ -83,25 +83,25 @@ RSpec.describe UpsertListingsJob, type: :job do
 
         described_class.perform_now(tenant.id, category.id, url_raw, source_id: new_source.id)
 
-        existing_listing.reload
-        expect(existing_listing.source).to eq(new_source)
+        existing_entry.reload
+        expect(existing_entry.source).to eq(new_source)
       end
     end
 
     context "URL normalization" do
       it "treats different URLs with same canonical as duplicates" do
         # First with tracking params
-        listing1 = described_class.perform_now(tenant.id, category.id, "https://example.com/page?utm_source=a")
+        entry1 = described_class.perform_now(tenant.id, category.id, "https://example.com/page?utm_source=a")
         # Second with different tracking params
-        listing2 = described_class.perform_now(tenant.id, category.id, "https://example.com/page?utm_campaign=b")
+        entry2 = described_class.perform_now(tenant.id, category.id, "https://example.com/page?utm_campaign=b")
 
-        expect(listing2.id).to eq(listing1.id)
+        expect(entry2.id).to eq(entry1.id)
       end
 
       it "normalizes case in host" do
-        listing = described_class.perform_now(tenant.id, category.id, "https://EXAMPLE.COM/page")
+        entry = described_class.perform_now(tenant.id, category.id, "https://EXAMPLE.COM/page")
 
-        expect(listing.url_canonical).to eq("https://example.com/page")
+        expect(entry.url_canonical).to eq("https://example.com/page")
       end
     end
 
@@ -135,32 +135,32 @@ RSpec.describe UpsertListingsJob, type: :job do
         other_category = create(:category, tenant: other_tenant, site: other_site)
 
         # The job should fail (either due to tenant mismatch or retry mechanism)
-        # We just verify that no listing is created for the wrong tenant
+        # We just verify that no entry is created for the wrong tenant
         begin
           described_class.perform_now(tenant.id, other_category.id, url_raw)
         rescue StandardError
           # Expected - some error should occur
         end
 
-        # Verify no listing was created with mismatched tenant
-        expect(Listing.where(tenant: tenant, category: other_category).count).to eq(0)
+        # Verify no entry was created with mismatched tenant
+        expect(Entry.where(tenant: tenant, category: other_category).count).to eq(0)
       end
     end
 
     context "without source_id" do
-      it "creates listing without source" do
-        listing = described_class.perform_now(tenant.id, category.id, url_raw)
+      it "creates entry without source" do
+        entry = described_class.perform_now(tenant.id, category.id, url_raw)
 
-        expect(listing.source).to be_nil
+        expect(entry.source).to be_nil
       end
     end
 
     context "tenant context management" do
       it "sets Current.tenant during execution" do
         # Verify the job ran successfully (requires tenant context)
-        listing = described_class.perform_now(tenant.id, category.id, url_raw)
-        expect(listing).to be_present
-        expect(listing.tenant).to eq(tenant)
+        entry = described_class.perform_now(tenant.id, category.id, url_raw)
+        expect(entry).to be_present
+        expect(entry.tenant).to eq(tenant)
       end
 
       it "clears context after execution" do
@@ -171,23 +171,25 @@ RSpec.describe UpsertListingsJob, type: :job do
     end
 
     context "race condition handling" do
-      # Simulate race condition where two jobs try to create same listing
+      # Simulate race condition where two jobs try to create same entry
       it "handles ActiveRecord::RecordNotUnique by finding existing" do
         # First create succeeds
-        listing1 = described_class.perform_now(tenant.id, category.id, url_raw)
+        entry1 = described_class.perform_now(tenant.id, category.id, url_raw)
 
-        # Simulate second job finding the same record after retry
-        expect(Listing).to receive(:find_by).with(site: site, url_canonical: anything)
-          .and_return(nil)
-          .ordered
-        expect(Listing).to receive(:create!).and_raise(ActiveRecord::RecordNotUnique)
-        expect(Listing).to receive(:find_by).with(site: site, url_canonical: anything)
-          .and_return(listing1)
-          .ordered
+        # Simulate second job: first find_by returns nil, create raises unique,
+        # second find_by returns the existing entry
+        directory_scope = Entry.directory_items
+        call_count = 0
+        allow(Entry).to receive(:directory_items).and_return(directory_scope)
+        allow(directory_scope).to receive(:find_by).and_wrap_original do |method, *args|
+          call_count += 1
+          call_count == 1 ? nil : entry1
+        end
+        allow(Entry).to receive(:create!).and_raise(ActiveRecord::RecordNotUnique)
 
         result = described_class.perform_now(tenant.id, category.id, "https://example.com/article-1")
 
-        expect(result.id).to eq(listing1.id)
+        expect(result.id).to eq(entry1.id)
       end
     end
   end

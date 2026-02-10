@@ -108,8 +108,8 @@ end
 puts "Tenant seeding complete!"
 
 # Seed categories for each tenant
-# Categories define Listing directory sections (tools, jobs, services, etc.)
-# They are NOT used for ContentItems - those use Taxonomies (topic tags).
+# Categories define directory entry sections (tools, jobs, services, etc.)
+# They are NOT used for feed entries - those use Taxonomies (topic tags).
 puts "Seeding categories..."
 
 category_data = [
@@ -224,10 +224,10 @@ end
 
 puts "User and role seeding complete!"
 
-# Seed listings for each tenant and category
-puts "Seeding listings..."
+# Seed directory entries for each tenant and category
+puts "Seeding directory entries..."
 
-# Define sample listings data by category and tenant
+# Define sample entries data by category and tenant
 listings_data = {
   "root" => {
     "news" => [
@@ -469,7 +469,7 @@ listings_data = {
   }
 }
 
-# Create listings for each tenant
+# Create directory entries for each tenant
 Tenant.all.each do |tenant|
   next unless listings_data[tenant.slug]
 
@@ -482,16 +482,17 @@ Tenant.all.each do |tenant|
     category = Category.find_by(site: site, key: category_key)
     next unless category
 
-    listing_type = (category_key == "services" ? :service : :tool)
+    listing_type = (category_key == "services" ? 2 : 0) # 0=tool, 2=service
 
     listings.each do |listing_attrs|
       canonical_url = UrlCanonicaliser.canonicalize(listing_attrs[:url_raw]) rescue listing_attrs[:url_raw]
 
-      listing = Listing.find_or_initialize_by(site: site, url_canonical: canonical_url)
-      listing.assign_attributes(
+      entry = Entry.find_or_initialize_by(site: site, url_canonical: canonical_url, entry_kind: "directory")
+      entry.assign_attributes(
         tenant: tenant,
         category: category,
         site: site,
+        entry_kind: "directory",
         listing_type: listing_type,
         url_raw: listing_attrs[:url_raw],
         url_canonical: canonical_url,
@@ -500,17 +501,17 @@ Tenant.all.each do |tenant|
         site_name: listing_attrs[:site_name],
         published_at: listing_attrs[:published_at]
       )
-      listing.save!
-      puts "  ✓ Created/updated listing for #{tenant.title}/#{category.name}: #{listing.title}"
+      entry.save!
+      puts "  ✓ Created/updated entry for #{tenant.title}/#{category.name}: #{entry.title}"
     end
   end
 end
 
-puts "Listing seeding complete!"
+puts "Directory entry seeding complete!"
 
 # Display summary (scoped per tenant for correct counts)
 puts "\n=== Seeding Summary ==="
-grand_total_listings = 0
+grand_total_entries = 0
 Tenant.all.each do |tenant|
   site = tenant.sites.find_by(slug: tenant.slug) || tenant.sites.first
   next unless site
@@ -519,14 +520,14 @@ Tenant.all.each do |tenant|
   Current.tenant = tenant
 
   site_categories = Category.where(site: site)
-  total_listings = Listing.where(site: site).count
-  grand_total_listings += total_listings
-  categories_with_counts = site_categories.map { |cat| "#{cat.name}: #{cat.listings.count}" }.join(", ")
-  puts "#{tenant.title}: #{total_listings} total listings (#{categories_with_counts})"
+  total_entries = Entry.directory_items.where(site: site).count
+  grand_total_entries += total_entries
+  categories_with_counts = site_categories.map { |cat| "#{cat.name}: #{Entry.directory_items.where(site: site, category: cat).count}" }.join(", ")
+  puts "#{tenant.title}: #{total_entries} total directory entries (#{categories_with_counts})"
 end
 Current.site = nil
 Current.tenant = nil
-puts "GRAND TOTAL: #{grand_total_listings} listings across all tenants"
+puts "GRAND TOTAL: #{grand_total_entries} directory entries across all tenants"
 puts "========================"
 
 # =============================================
@@ -764,7 +765,7 @@ puts "Job sources seeding complete!"
 # They are industry-specific per tenant/site.
 #
 # NOTE: Content FORMAT (article, tutorial, opinion, research, etc.)
-# is handled by ContentItem.content_type, NOT by taxonomies.
+# is handled by Entry.content_type, NOT by taxonomies.
 # The AI editorialisation service sets content_type automatically.
 #
 # This gives two orthogonal filter dimensions in the feed:
@@ -826,7 +827,7 @@ tenant_taxonomies = {
 }
 
 # Industry-specific keyword tagging rules per tenant
-# These auto-tag content items with the correct topic when keywords match
+# These auto-tag feed entries with the correct topic when keywords match
 tenant_tagging_rules = {
   "root" => {
     "technology"      => { keywords: "software,hardware,tech,digital,computing,cloud,SaaS,platform,silicon", priority: 10 },

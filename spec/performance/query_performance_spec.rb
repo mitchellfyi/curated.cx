@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Query Performance', type: :request do
   let(:tenant) { create(:tenant, :enabled) }
   let!(:category) { create(:category, tenant: tenant) }
-  let!(:listings) { create_list(:listing, 10, :published, tenant: tenant, category: category) }
+  let!(:entries) { create_list(:entry, :directory, 10, :published, tenant: tenant, category: category) }
 
   before do
     host! tenant.hostname
@@ -13,7 +13,7 @@ RSpec.describe 'Query Performance', type: :request do
   end
 
   describe 'N+1 query prevention' do
-    it 'loads home page without N+1 queries on listings' do
+    it 'loads home page without N+1 queries on entries' do
       # Warm up
       get root_path
 
@@ -42,8 +42,8 @@ RSpec.describe 'Query Performance', type: :request do
       expect(query_count).to be < 25
     end
 
-    it 'loads category show without N+1 queries on listings' do
-      create_list(:listing, 10, :published, tenant: tenant, category: category)
+    it 'loads category show without N+1 queries on entries' do
+      create_list(:entry, :directory, 10, :published, tenant: tenant, category: category)
 
       query_count = 0
       callback = lambda { |*args| query_count += 1 }
@@ -79,7 +79,7 @@ RSpec.describe 'Query Performance', type: :request do
   describe 'Database efficiency' do
     it 'uses indexes for common queries' do
       # This test verifies that indexes exist on commonly queried columns
-      indexes = ActiveRecord::Base.connection.indexes(:listings)
+      indexes = ActiveRecord::Base.connection.indexes(:entries)
       index_columns = indexes.flat_map(&:columns)
 
       # Should have indexes on foreign keys and commonly filtered columns

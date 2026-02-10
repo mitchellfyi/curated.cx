@@ -57,9 +57,9 @@ class Comment < ApplicationRecord
   scope :replies_to, ->(comment) { where(parent: comment) }
   scope :recent, -> { order(created_at: :desc) }
   scope :oldest_first, -> { order(created_at: :asc) }
-  scope :for_content_item, ->(item) { where(commentable: item) }
+  scope :for_entry, ->(item) { where(commentable: item) }
   scope :for_note, ->(note) { where(commentable: note) }
-  scope :content_items, -> { where(commentable_type: "ContentItem") }
+  scope :for_entries, -> { where(commentable_type: "Entry") }
   scope :notes, -> { where(commentable_type: "Note") }
   scope :visible, -> { where(hidden_at: nil) }
   scope :hidden, -> { where.not(hidden_at: nil) }
@@ -97,13 +97,13 @@ class Comment < ApplicationRecord
     update_column(:edited_at, Time.current)
   end
 
-  # Convenience method for ContentItem comments (backward compatibility)
-  def content_item
-    return nil unless commentable_type == "ContentItem"
+  # Convenience method for Entry comments
+  def entry
+    return nil unless commentable_type == "Entry"
     commentable
   end
 
-  # Check if comments are locked on the commentable (ContentItem only)
+  # Check if comments are locked on the commentable (Entry)
   def comments_locked?
     commentable.respond_to?(:comments_locked?) && commentable.comments_locked?
   end

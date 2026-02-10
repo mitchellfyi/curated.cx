@@ -38,7 +38,7 @@ xml.rss version: "2.0",
         xml.category @category.name
 
         # Listing type
-        xml.category "Type: #{listing.listing_type.titleize}" if listing.listing_type.present?
+        xml.category "Type: #{listing.category&.category_type&.titleize}" if listing.category&.category_type.present?
 
         # Featured badge
         xml.category "Featured" if listing.featured?

@@ -21,10 +21,10 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
         })
       end
 
-      it "creates ContentItems from Product Hunt results" do
+      it "creates Entrys from Product Hunt results" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
       end
 
       it "creates an ImportRun record" do
@@ -58,10 +58,10 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
         expect(source.last_run_at).to be_within(1.second).of(Time.current)
       end
 
-      it "stores correct ContentItem attributes" do
+      it "stores correct Entry attributes" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "LaunchPad AI")
+        item = Entry.find_by(title: "LaunchPad AI")
         expect(item).to be_present
         expect(item.url_raw).to eq("https://www.producthunt.com/posts/launchpad-ai")
         expect(item.description).to eq("AI-powered startup launch assistant")
@@ -73,7 +73,7 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
       it "stores votes and makers in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "LaunchPad AI")
+        item = Entry.find_by(title: "LaunchPad AI")
         expect(item.raw_payload["votesCount"]).to eq(523)
         expect(item.raw_payload["makers"]).to be_present
         expect(item.raw_payload["makers"].first["name"]).to eq("Jane Smith")
@@ -82,7 +82,7 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
       it "extracts topic tags" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "LaunchPad AI")
+        item = Entry.find_by(title: "LaunchPad AI")
         expect(item.tags).to include("source:product-hunt")
         expect(item.tags).to include("topic:artificial-intelligence")
         expect(item.tags).to include("topic:saas")
@@ -100,17 +100,17 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
         })
       end
 
-      it "does not create duplicate ContentItems on subsequent runs" do
+      it "does not create duplicate Entrys on subsequent runs" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
 
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(0)
+        }.to change(Entry, :count).by(0)
       end
 
-      it "updates existing ContentItems on subsequent runs" do
+      it "updates existing Entrys on subsequent runs" do
         described_class.perform_now(source.id)
         first_run = ImportRun.order(:created_at).last
 
@@ -147,7 +147,7 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
       it "respects max_results limit" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(2)
+        }.to change(Entry, :count).by(2)
       end
     end
 
@@ -157,7 +157,7 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -176,7 +176,7 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -223,7 +223,7 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
       it "discards the job due to ConfigurationError" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
       end
     end
 
@@ -240,7 +240,7 @@ RSpec.describe ProductHuntIngestionJob, type: :job do
       it "handles empty results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")

@@ -6,9 +6,9 @@ RSpec.describe FlagMailer, type: :mailer do
   let(:tenant) { create(:tenant) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) { create(:content_item, site: site, source: source) }
+  let(:entry) { create(:entry, :feed, site: site, source: source) }
   let(:comment_owner) { create(:user) }
-  let(:comment) { create(:comment, content_item: content_item, user: comment_owner, site: site) }
+  let(:comment) { create(:comment, entry: entry, user: comment_owner, site: site) }
   let(:flagger) { create(:user) }
   let(:admin) { create(:user, admin: true) }
   let(:tenant_owner) { create(:user).tap { |u| u.add_role(:owner, tenant) } }
@@ -20,7 +20,7 @@ RSpec.describe FlagMailer, type: :mailer do
 
   describe "#new_flag_notification" do
     context "when flagging a content item" do
-      let(:flag) { create(:flag, flaggable: content_item, user: flagger, site: site, reason: :spam) }
+      let(:flag) { create(:flag, flaggable: entry, user: flagger, site: site, reason: :spam) }
 
       before do
         admin # ensure admin exists
@@ -56,7 +56,7 @@ RSpec.describe FlagMailer, type: :mailer do
       it "includes content item title" do
         mail = described_class.new_flag_notification(flag)
 
-        expect(mail.body.encoded).to include(content_item.title)
+        expect(mail.body.encoded).to include(entry.title)
       end
 
       it "includes link to admin moderation queue" do
@@ -93,7 +93,7 @@ RSpec.describe FlagMailer, type: :mailer do
     end
 
     context "when flag has details" do
-      let(:flag) { create(:flag, :with_details, flaggable: content_item, user: flagger, site: site) }
+      let(:flag) { create(:flag, :with_details, flaggable: entry, user: flagger, site: site) }
 
       before do
         admin
@@ -107,7 +107,7 @@ RSpec.describe FlagMailer, type: :mailer do
     end
 
     context "when no admins exist" do
-      let(:flag) { create(:flag, flaggable: content_item, user: flagger, site: site) }
+      let(:flag) { create(:flag, flaggable: entry, user: flagger, site: site) }
 
       it "does not send an email" do
         mail = described_class.new_flag_notification(flag)
@@ -117,7 +117,7 @@ RSpec.describe FlagMailer, type: :mailer do
     end
 
     context "deduplicates admin emails" do
-      let(:flag) { create(:flag, flaggable: content_item, user: flagger, site: site) }
+      let(:flag) { create(:flag, flaggable: entry, user: flagger, site: site) }
       let(:global_and_tenant_admin) { create(:user, admin: true) }
 
       before do

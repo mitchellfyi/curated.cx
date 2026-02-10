@@ -42,7 +42,7 @@ RSpec.describe Source, type: :model do
   describe 'associations' do
     it { should belong_to(:tenant) }
     it { should belong_to(:site) }
-    it { should have_many(:listings).dependent(:nullify) }
+    it { should have_many(:entries).dependent(:nullify) }
   end
 
   describe 'validations' do

@@ -21,10 +21,10 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
         })
       end
 
-      it "creates ContentItems from Reddit results" do
+      it "creates Entrys from Reddit results" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
       end
 
       it "creates an ImportRun record" do
@@ -58,10 +58,10 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
         expect(source.last_run_at).to be_within(1.second).of(Time.current)
       end
 
-      it "stores correct ContentItem attributes for self-posts" do
+      it "stores correct Entry attributes for self-posts" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Best practices for building a SaaS startup?")
+        item = Entry.find_by(title: "Best practices for building a SaaS startup?")
         expect(item).to be_present
         expect(item.url_raw).to include("reddit.com/r/startups")
         expect(item.description).to include("SaaS product")
@@ -74,35 +74,35 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
       it "stores subreddit in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Best practices for building a SaaS startup?")
+        item = Entry.find_by(title: "Best practices for building a SaaS startup?")
         expect(item.raw_payload.dig("_reddit_metadata", "subreddit")).to eq("r/startups")
       end
 
       it "stores upvotes in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Best practices for building a SaaS startup?")
+        item = Entry.find_by(title: "Best practices for building a SaaS startup?")
         expect(item.raw_payload.dig("_reddit_metadata", "upvotes")).to eq(342)
       end
 
       it "stores comment count in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Best practices for building a SaaS startup?")
+        item = Entry.find_by(title: "Best practices for building a SaaS startup?")
         expect(item.raw_payload.dig("_reddit_metadata", "comment_count")).to eq(87)
       end
 
       it "stores author in raw_payload" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Best practices for building a SaaS startup?")
+        item = Entry.find_by(title: "Best practices for building a SaaS startup?")
         expect(item.raw_payload.dig("_reddit_metadata", "author")).to eq("startup_founder")
       end
 
       it "tags self-posts correctly" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Best practices for building a SaaS startup?")
+        item = Entry.find_by(title: "Best practices for building a SaaS startup?")
         expect(item.tags).to include("source:reddit")
         expect(item.tags).to include("subreddit:startups")
         expect(item.tags).to include("reddit:self_post")
@@ -111,7 +111,7 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
       it "tags link posts correctly" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "Comparison of no-code tools for MVPs")
+        item = Entry.find_by(title: "Comparison of no-code tools for MVPs")
         expect(item.tags).to include("source:reddit")
         expect(item.tags).to include("subreddit:nocode")
         expect(item.tags).to include("reddit:link_post")
@@ -120,17 +120,17 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
       it "handles posts without thumbnails" do
         described_class.perform_now(source.id)
 
-        item = ContentItem.find_by(title: "How I grew my newsletter to 10k subscribers")
+        item = Entry.find_by(title: "How I grew my newsletter to 10k subscribers")
         expect(item.og_image_url).to be_nil
       end
 
       it "marks self-posts in raw_payload" do
         described_class.perform_now(source.id)
 
-        self_post = ContentItem.find_by(title: "Best practices for building a SaaS startup?")
+        self_post = Entry.find_by(title: "Best practices for building a SaaS startup?")
         expect(self_post.raw_payload.dig("_reddit_metadata", "is_self_post")).to be true
 
-        link_post = ContentItem.find_by(title: "Comparison of no-code tools for MVPs")
+        link_post = Entry.find_by(title: "Comparison of no-code tools for MVPs")
         expect(link_post.raw_payload.dig("_reddit_metadata", "is_self_post")).to be false
       end
     end
@@ -176,14 +176,14 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
         })
       end
 
-      it "does not create duplicate ContentItems on subsequent runs" do
+      it "does not create duplicate Entrys on subsequent runs" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(3)
+        }.to change(Entry, :count).by(3)
 
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(0)
+        }.to change(Entry, :count).by(0)
       end
     end
 
@@ -209,7 +209,7 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
       it "respects max_results limit" do
         expect {
           described_class.perform_now(source.id)
-        }.to change(ContentItem, :count).by(2)
+        }.to change(Entry, :count).by(2)
       end
     end
 
@@ -219,7 +219,7 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -232,7 +232,7 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -307,7 +307,7 @@ RSpec.describe SerpApiRedditIngestionJob, type: :job do
       it "handles empty results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to change(ContentItem, :count)
+        }.not_to change(Entry, :count)
 
         source.reload
         expect(source.last_status).to eq("success")

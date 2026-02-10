@@ -16,7 +16,7 @@
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
 #  category_id    :bigint           not null
-#  listing_id     :bigint
+#  entry_id       :bigint
 #  reviewed_by_id :bigint
 #  site_id        :bigint           not null
 #  user_id        :bigint           not null
@@ -24,7 +24,7 @@
 # Indexes
 #
 #  index_submissions_on_category_id         (category_id)
-#  index_submissions_on_listing_id          (listing_id)
+#  index_submissions_on_entry_id            (entry_id)
 #  index_submissions_on_reviewed_by_id      (reviewed_by_id)
 #  index_submissions_on_site_id             (site_id)
 #  index_submissions_on_site_id_and_status  (site_id,status)
@@ -35,7 +35,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (category_id => categories.id)
-#  fk_rails_...  (listing_id => listings.id)
+#  fk_rails_...  (entry_id => entries.id)
 #  fk_rails_...  (reviewed_by_id => users.id)
 #  fk_rails_...  (site_id => sites.id)
 #  fk_rails_...  (user_id => users.id)
@@ -47,7 +47,7 @@ class Submission < ApplicationRecord
   belongs_to :user
   belongs_to :site
   belongs_to :category
-  belongs_to :listing, optional: true
+  belongs_to :entry, optional: true
   belongs_to :reviewer, class_name: "User", foreign_key: :reviewed_by_id, optional: true
 
   # Enums
@@ -69,18 +69,18 @@ class Submission < ApplicationRecord
   # Callbacks
   before_validation :normalize_url, on: :create
 
-  # Mark as approved and create listing
+  # Mark as approved and create entry (directory)
   def approve!(reviewer:, notes: nil)
     transaction do
-      listing = create_listing!
+      entry = create_entry!
       update!(
         status: :approved,
         reviewer: reviewer,
         reviewer_notes: notes,
         reviewed_at: Time.current,
-        listing: listing
+        entry: entry
       )
-      listing
+      entry
     end
   end
 
@@ -94,18 +94,18 @@ class Submission < ApplicationRecord
     )
   end
 
-  # Create a listing from this submission
-  def create_listing!
-    Listing.create!(
+  # Create a directory entry from this submission
+  def create_entry!
+    Entry.create!(
       site: site,
       tenant: site.tenant,
       category: category,
+      entry_kind: "directory",
       url_raw: url,
       url_canonical: url,
       domain: URI.parse(url).host,
       title: title,
       description: description,
-      listing_type: listing_type,
       published_at: Time.current
     )
   end

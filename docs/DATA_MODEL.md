@@ -20,7 +20,7 @@ This architecture enables:
 ```
 Tenant (1) ──< (many) Site (1) ──< (many) Domain
                  │
-                 └──< (many) Listing (1) ──< (many) AffiliateClick
+                 └──< (many) Entry (1) ──< (many) AffiliateClick
 ```
 
 ### Tenant (Owner Account)
@@ -36,7 +36,7 @@ Tenant (1) ──< (many) Site (1) ──< (many) Domain
 **Associations**:
 - `has_many :sites` - All sites owned by this tenant
 - `has_many :categories` - Legacy association (may be moved to Site in future)
-- `has_many :listings` - Legacy association (may be moved to Site in future)
+- `has_many :entries` - Legacy association (may be moved to Site in future)
 
 **Example**:
 ```ruby
@@ -275,47 +275,64 @@ site.primary_hostname  # => "www.ainews.cx"
 
 ---
 
-### Listing (Content Item)
+### Entry (Unified Content)
 
-**Purpose**: Represents a curated content item (tool, job, service, article).
+**Purpose**: Represents all curated content—unified model with `entry_kind` discriminator. Replaces the former ContentItem and Listing models.
 
-**Key Attributes**:
-- `site_id` - The site this listing belongs to
+**Entry kinds**:
+- `feed` (was ContentItem) - Ingested content (articles, tutorials, etc.)
+- `directory` (was Listing) - Curated directory items (tools, jobs, services)
+
+**Common Attributes** (all entries):
+- `site_id` - The site this entry belongs to
 - `tenant_id` - Legacy association (set from site)
-- `category_id` - Content category
-- `listing_type` - Enum: `tool`, `job`, `service`
+- `entry_kind` - Enum: `feed`, `directory`
 - `title`, `description`, `body_html` - Content fields
 - `url_canonical`, `url_raw` - Source URLs
 - `published_at` - Publication timestamp
 
-**Monetisation Fields**:
+**Feed entry attributes** (entry_kind: feed):
+- `source_id` - Ingestion source
+- `raw_payload` (JSONB) - Original ingested data
+- `tags` - Raw source tags
+- `enrichment_status` - Metadata enrichment state
+- `ai_summary` - AI-generated summary
+- `topic_tags` (JSONB) - Taxonomy slugs
+- `content_type` - Format (article, tutorial, etc.)
+
+**Directory entry attributes** (entry_kind: directory):
+- `category_id` - Content category
+- `listing_type` - Enum: `tool`, `job`, `service`
+- `company`, `location`, `salary_range`, `apply_url` - Job fields
 - `affiliate_url_template` - Affiliate URL with placeholders
 - `affiliate_attribution` (JSONB) - Tracking parameters
 - `featured_from`, `featured_until` - Featured date range
 - `featured_by_id` - Admin who set featured
 - `expires_at` - Expiry for jobs
-- `company`, `location`, `salary_range`, `apply_url` - Job fields
-- `paid`, `payment_reference` - Payment tracking
+- `paid`, `payment_status` - Payment tracking
 
 **Associations**:
 - `belongs_to :site` - Parent site
 - `belongs_to :tenant` - Legacy association
-- `belongs_to :category` - Content category
+- `belongs_to :category` (directory entries) - Content category
+- `belongs_to :source` (feed entries) - Ingestion source
 - `belongs_to :featured_by` (User) - Admin reference
 - `has_many :affiliate_clicks` - Click tracking
 
 **Scopes**:
 - `published` - Has `published_at`
-- `featured` - Currently within featured date range
-- `not_expired` - Not past `expires_at`
-- `jobs`, `tools`, `services` - By listing type
-- `active_jobs` - Jobs that are published and not expired
+- `feed` / `directory` - By entry kind
+- `featured` - Currently within featured date range (directory)
+- `not_expired` - Not past `expires_at` (directory)
+- `jobs`, `tools`, `services` - By listing type (directory)
+- `active_jobs` - Jobs that are published and not expired (directory)
 - `with_affiliate` - Has affiliate template configured
 
 **Example**:
 ```ruby
-# Create a featured job listing
-listing = site.listings.create!(
+# Create a featured job entry (directory)
+entry = site.entries.create!(
+  entry_kind: :directory,
   category: jobs_category,
   listing_type: :job,
   title: "Senior Developer",
@@ -331,9 +348,9 @@ listing = site.listings.create!(
 )
 
 # Check status
-listing.featured?  # => true
-listing.expired?   # => false
-listing.job?       # => true
+entry.featured?  # => true
+entry.expired?   # => false
+entry.job?       # => true
 ```
 
 ---
@@ -343,25 +360,25 @@ listing.job?       # => true
 **Purpose**: Tracks clicks on affiliate links for revenue analytics.
 
 **Key Attributes**:
-- `listing_id` - The clicked listing
+- `entry_id` - The clicked entry
 - `clicked_at` - Timestamp of click
 - `ip_hash` - SHA256 hash of IP (privacy)
 - `user_agent` - Browser information
 - `referrer` - Source page URL
 
 **Associations**:
-- `belongs_to :listing` - Parent listing
+- `belongs_to :entry` - Parent entry
 
 **Scopes**:
 - `recent` - Ordered by most recent
 - `today`, `this_week`, `this_month` - Time-based filtering
-- `for_site(site_id)` - Scoped to a site via listing
+- `for_site(site_id)` - Scoped to a site via entry
 
 **Example**:
 ```ruby
 # Track a click
 AffiliateClick.create!(
-  listing: listing,
+  entry: entry,
   clicked_at: Time.current,
   ip_hash: Digest::SHA256.hexdigest(ip)[0..15],
   user_agent: request.user_agent,
@@ -370,7 +387,7 @@ AffiliateClick.create!(
 
 # Analytics
 AffiliateClick.for_site(site.id).this_month.count
-AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
+AffiliateClick.count_by_entry(site_id: site.id, since: 30.days.ago)
 ```
 
 ---
@@ -380,7 +397,7 @@ AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
 **Current State**: The application currently uses `Tenant` model directly with `hostname` field for routing.
 
 **Future State**:
-- Sites will be the primary entity for content (Categories, Listings will belong to Site)
+- Sites will be the primary entity for content (Categories, Entries will belong to Site)
 - Domains will handle all hostname routing
 - Tenant will be purely the owner account
 
@@ -417,7 +434,7 @@ AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
 **Key Attributes**:
 - `site_id` - Site this flag belongs to
 - `user_id` - User who created the flag
-- `flaggable_type` / `flaggable_id` - Polymorphic reference (ContentItem, Comment, Note, DiscussionPost)
+- `flaggable_type` / `flaggable_id` - Polymorphic reference (Entry, Comment, Note, DiscussionPost)
 - `reason` - Enum: `spam`, `harassment`, `misinformation`, `inappropriate`, `other`
 - `status` - Enum: `pending`, `reviewed`, `dismissed`, `action_taken`
 - `details` - Optional explanation (max 1000 chars)
@@ -427,24 +444,24 @@ AffiliateClick.count_by_listing(site_id: site.id, since: 30.days.ago)
 **Associations**:
 - `belongs_to :site` - Site context
 - `belongs_to :user` - Reporter
-- `belongs_to :flaggable` - Polymorphic (ContentItem, Comment, Note, DiscussionPost)
+- `belongs_to :flaggable` - Polymorphic (Entry, Comment, Note, DiscussionPost)
 - `belongs_to :reviewed_by` (User) - Admin reference
 
 **Scopes**:
 - `pending` - Awaiting review
 - `resolved` - Already reviewed (any status except pending)
-- `for_content_items` - Flags on ContentItem
+- `for_entries` - Flags on Entry
 - `for_comments` - Flags on Comment
 - `for_notes` - Flags on Note
 - `recent` - Ordered by newest first
 
 **Example**:
 ```ruby
-# Flag a content item for spam
+# Flag an entry for spam
 flag = Flag.create!(
   site: Current.site,
   user: current_user,
-  flaggable: content_item,
+  flaggable: entry,
   reason: :spam,
   details: "Promoting a product"
 )
@@ -1426,10 +1443,10 @@ The project uses three distinct, non-overlapping classification concepts:
 
 ### 1. Category (Listing Directory Sections)
 
-**Applies to:** Listings only
+**Applies to:** Directory entries only
 **Purpose:** Defines the type of listing in the directory (tools, jobs, services, etc.)
 
-- Each `Listing` belongs to exactly one `Category`
+- Each directory `Entry` belongs to exactly one `Category`
 - Categories have a `category_type` that determines display template and behavior
 - Categories are seeded per tenant with industry-specific sections
 
@@ -1437,12 +1454,12 @@ The project uses three distinct, non-overlapping classification concepts:
 
 ### 2. Taxonomy → topic_tags (Content Topics)
 
-**Applies to:** ContentItems only
+**Applies to:** Feed entries only
 **Purpose:** Defines what SUBJECT the content is about. Industry-specific per tenant.
 
 - `Taxonomy` records define available topics for a site
 - `TaggingRule` records auto-assign taxonomy slugs when content matches patterns
-- `ContentItem.topic_tags` stores matched taxonomy slugs (JSONB array)
+- `Entry.topic_tags` stores matched taxonomy slugs (JSONB array, feed entries)
 - AI editorialisation also suggests tags from the taxonomy list
 - Users filter the feed by topic via `/feed?tag=slug`
 
@@ -1452,11 +1469,11 @@ The project uses three distinct, non-overlapping classification concepts:
 
 ### 3. content_type (Content Format)
 
-**Applies to:** ContentItems only
+**Applies to:** Feed entries only
 **Purpose:** Defines the FORMAT of the content, orthogonal to topic.
 
 - Set by AI editorialisation (not by tagging rules)
-- Stored in `ContentItem.content_type` (string)
+- Stored in `Entry.content_type` (string, feed entries)
 - Users filter the feed by format via `/feed?content_type=tutorial`
 
 **Valid values:** article, tutorial, opinion, research, announcement, review, guide, interview, case-study, roundup
@@ -1472,7 +1489,7 @@ The tagging pipeline:
 2. AI editorialisation runs → sets `content_type`, suggests additional topic tags
 3. Matched AI suggestions are merged into `topic_tags`
 
-### Tag Fields on ContentItem
+### Tag Fields on Entry (feed)
 
 | Field | Set By | Purpose |
 |-------|--------|---------|
@@ -1484,4 +1501,4 @@ The tagging pipeline:
 
 ---
 
-*Last Updated: 2026-02-10* (Cleaned up content classification system: industry-specific taxonomies, content_type format detection, AI tag merging)
+*Last Updated: 2026-02-10* (Entry unification: merged ContentItem and Listing into unified Entry model with entry_kind discriminator. Content classification system: industry-specific taxonomies, content_type format detection, AI tag merging.)

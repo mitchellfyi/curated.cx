@@ -14,10 +14,10 @@
   <p class="text-lg text-gray-600 mb-8"><%= t("checkouts.cancel_message") %></p>
 
   <div class="flex flex-col sm:flex-row gap-4 justify-center">
-    <%= link_to t("checkouts.try_again"), new_listing_checkout_path(@listing),
+    <%= link_to t("checkouts.try_again"), new_listing_checkout_path(@entry),
         class: "inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" %>
 
-    <%= link_to t("checkouts.view_listing"), listing_path(@listing),
+    <%= link_to t("checkouts.view_listing"), listing_path(@entry),
         class: "inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
   </div>
 </div>

@@ -2,14 +2,14 @@
 
 require "rails_helper"
 
-RSpec.describe EditorialiseContentItemJob, type: :job do
+RSpec.describe EditorialiseEntryJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:tenant) { create(:tenant) }
   let(:site) { create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site, config: { "editorialise" => true }) }
-  let(:content_item) do
-    create(:content_item,
+  let(:entry) do
+    create(:entry, :feed,
       site: site,
       source: source,
       extracted_text: "A" * 500 # Meets minimum length
@@ -30,22 +30,22 @@ RSpec.describe EditorialiseContentItemJob, type: :job do
   end
 
   before do
-    # Prevent editorialisation job from running on content_item creation
-    allow_any_instance_of(ContentItem).to receive(:enqueue_enrichment_pipeline)
+    # Prevent editorialisation job from running on entry creation
+    allow_any_instance_of(Entry).to receive(:enqueue_enrichment_pipeline)
     # Stub AiClient (including API key validation for CI environment)
     allow_any_instance_of(EditorialisationServices::AiClient).to receive(:validate_api_key!)
     allow_any_instance_of(EditorialisationServices::AiClient).to receive(:complete).and_return(ai_response)
   end
 
   describe "#perform" do
-    it "calls EditorialisationService with the content item" do
-      expect(EditorialisationService).to receive(:editorialise).with(content_item).and_call_original
+    it "calls EditorialisationService with the entry" do
+      expect(EditorialisationService).to receive(:editorialise).with(entry).and_call_original
 
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
     end
 
     it "sets Current.tenant during execution" do
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
 
       # The job clears context in ensure block, so we verify it was set by checking
       # that the service ran successfully (which requires tenant context)
@@ -53,13 +53,13 @@ RSpec.describe EditorialiseContentItemJob, type: :job do
     end
 
     it "sets Current.site during execution" do
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
 
       expect(Editorialisation.count).to eq(1)
     end
 
     it "clears Current context after execution" do
-      described_class.perform_now(content_item.id)
+      described_class.perform_now(entry.id)
 
       expect(Current.tenant).to be_nil
       expect(Current.site).to be_nil
@@ -69,7 +69,7 @@ RSpec.describe EditorialiseContentItemJob, type: :job do
       allow(EditorialisationService).to receive(:editorialise).and_raise(StandardError.new("Test error"))
 
       begin
-        described_class.perform_now(content_item.id)
+        described_class.perform_now(entry.id)
       rescue StandardError
         # Expected
       end
@@ -78,7 +78,7 @@ RSpec.describe EditorialiseContentItemJob, type: :job do
       expect(Current.site).to be_nil
     end
 
-    context "when content item not found" do
+    context "when entry not found" do
       it "discards the job without raising (via ApplicationJob discard_on)" do
         # ApplicationJob has: discard_on ActiveRecord::RecordNotFound
         # So the job is silently discarded
@@ -93,15 +93,15 @@ RSpec.describe EditorialiseContentItemJob, type: :job do
         it "logs success with token and duration info" do
           allow(Rails.logger).to receive(:info)
 
-          described_class.perform_now(content_item.id)
+          described_class.perform_now(entry.id)
 
           expect(Rails.logger).to have_received(:info).with(/Successfully editorialised.*tokens=100.*duration_ms=1000/)
         end
       end
 
       context "when editorialisation is skipped" do
-        let(:content_item) do
-          create(:content_item,
+        let(:entry) do
+          create(:entry, :feed,
             site: site,
             source: source,
             extracted_text: "Short" # Too short, will be skipped
@@ -111,7 +111,7 @@ RSpec.describe EditorialiseContentItemJob, type: :job do
         it "logs skip reason" do
           allow(Rails.logger).to receive(:info)
 
-          described_class.perform_now(content_item.id)
+          described_class.perform_now(entry.id)
 
           expect(Rails.logger).to have_received(:info).with(/Skipped.*reason=Insufficient text/)
         end
@@ -168,12 +168,12 @@ RSpec.describe EditorialiseContentItemJob, type: :job do
 
       it "does not raise (service handles it)" do
         expect {
-          described_class.perform_now(content_item.id)
+          described_class.perform_now(entry.id)
         }.not_to raise_error
       end
 
       it "creates a failed editorialisation record" do
-        described_class.perform_now(content_item.id)
+        described_class.perform_now(entry.id)
 
         editorialisation = Editorialisation.last
         expect(editorialisation.status).to eq("failed")

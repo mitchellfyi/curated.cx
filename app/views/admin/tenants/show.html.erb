@@ -38,11 +38,11 @@
       </div>
       <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Listings</dt>
-        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= Listing.where(site: @sites).count %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= Entry.directory_items.where(site: @sites).count %></dd>
       </div>
       <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Content Items</dt>
-        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= ContentItem.where(site: @sites).count %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= Entry.feed_items.where(site: @sites).count %></dd>
       </div>
     </div>
 

@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe CaptureScreenshotJob, type: :job do
   include ActiveJob::TestHelper
 
-  let(:content_item) { create(:content_item) }
+  let(:entry) { create(:entry, :feed) }
 
   describe "queue configuration" do
     it "uses the screenshots queue" do
@@ -27,26 +27,26 @@ RSpec.describe CaptureScreenshotJob, type: :job do
 
   describe "#perform" do
     context "when screenshot already exists" do
-      let(:content_item) { create(:content_item, :with_screenshot) }
+      let(:entry) { create(:entry, :feed, :with_screenshot) }
 
       it "does not call ScreenshotService" do
-        expect(ScreenshotService).not_to receive(:capture_for_content_item)
+        expect(ScreenshotService).not_to receive(:capture_for_entry)
 
-        described_class.new.perform(content_item.id)
+        described_class.new.perform(entry.id)
       end
     end
 
     context "when screenshot does not exist" do
       let(:result) { { screenshot_url: "https://screenshots.example.com/new.png", captured_at: Time.current } }
 
-      it "calls ScreenshotService.capture_for_content_item" do
-        expect(ScreenshotService).to receive(:capture_for_content_item).with(content_item).and_return(result)
+      it "calls ScreenshotService.capture_for_entry" do
+        expect(ScreenshotService).to receive(:capture_for_entry).with(entry).and_return(result)
 
-        described_class.new.perform(content_item.id)
+        described_class.new.perform(entry.id)
       end
     end
 
-    context "when content item is not found" do
+    context "when entry is not found" do
       it "discards the job (ActiveRecord::RecordNotFound)" do
         expect { described_class.perform_now(0) }.not_to raise_error
       end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_010439) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,12 +55,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
   create_table "affiliate_clicks", force: :cascade do |t|
     t.datetime "clicked_at", null: false
     t.datetime "created_at", null: false
+    t.bigint "entry_id", null: false
     t.string "ip_hash"
     t.bigint "listing_id", null: false
     t.text "referrer"
     t.datetime "updated_at", null: false
     t.string "user_agent"
     t.index ["clicked_at"], name: "index_affiliate_clicks_on_clicked_at"
+    t.index ["entry_id"], name: "index_affiliate_clicks_on_entry_id"
     t.index ["listing_id", "clicked_at"], name: "index_affiliate_clicks_on_listing_clicked"
     t.index ["listing_id"], name: "index_affiliate_clicks_on_listing_id"
   end
@@ -163,73 +165,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
-  create_table "content_items", force: :cascade do |t|
-    t.jsonb "ai_suggested_tags", default: [], null: false
-    t.text "ai_summary"
-    t.string "audience_tags", default: [], array: true
-    t.string "author_name"
-    t.integer "comments_count", default: 0, null: false
-    t.datetime "comments_locked_at"
-    t.bigint "comments_locked_by_id"
-    t.string "content_type"
-    t.datetime "created_at", null: false
-    t.text "description"
-    t.datetime "editorialised_at"
-    t.datetime "enriched_at"
-    t.jsonb "enrichment_errors", default: [], null: false
-    t.string "enrichment_status", default: "pending", null: false
-    t.text "extracted_text"
-    t.string "favicon_url"
-    t.datetime "hidden_at"
-    t.bigint "hidden_by_id"
-    t.jsonb "key_takeaways", default: []
-    t.string "og_image_url"
-    t.datetime "published_at"
-    t.decimal "quality_score", precision: 3, scale: 1
-    t.jsonb "raw_payload", default: {}, null: false
-    t.integer "read_time_minutes"
-    t.datetime "scheduled_for"
-    t.datetime "screenshot_captured_at"
-    t.string "screenshot_url"
-    t.bigint "site_id", null: false
-    t.bigint "source_id", null: false
-    t.text "summary"
-    t.decimal "tagging_confidence", precision: 3, scale: 2
-    t.jsonb "tagging_explanation", default: [], null: false
-    t.jsonb "tags", default: [], null: false
-    t.string "title"
-    t.jsonb "topic_tags", default: [], null: false
-    t.datetime "updated_at", null: false
-    t.integer "upvotes_count", default: 0, null: false
-    t.string "url_canonical", null: false
-    t.text "url_raw", null: false
-    t.text "why_it_matters"
-    t.integer "word_count"
-    t.index ["comments_locked_by_id"], name: "index_content_items_on_comments_locked_by_id"
-    t.index ["enrichment_status"], name: "index_content_items_on_enrichment_status"
-    t.index ["hidden_at"], name: "index_content_items_on_hidden_at"
-    t.index ["hidden_by_id"], name: "index_content_items_on_hidden_by_id"
-    t.index ["published_at"], name: "index_content_items_on_published_at"
-    t.index ["scheduled_for"], name: "index_content_items_on_scheduled_for", where: "(scheduled_for IS NOT NULL)"
-    t.index ["site_id", "content_type"], name: "index_content_items_on_site_id_and_content_type"
-    t.index ["site_id", "editorialised_at"], name: "index_content_items_on_site_id_and_editorialised_at"
-    t.index ["site_id", "published_at"], name: "index_content_items_on_site_id_published_at_desc", order: { published_at: :desc }
-    t.index ["site_id", "url_canonical"], name: "index_content_items_on_site_id_and_url_canonical", unique: true
-    t.index ["site_id"], name: "index_content_items_on_site_id"
-    t.index ["source_id", "created_at"], name: "index_content_items_on_source_id_and_created_at"
-    t.index ["source_id"], name: "index_content_items_on_source_id"
-    t.index ["topic_tags"], name: "index_content_items_on_topic_tags_gin", using: :gin
-  end
-
   create_table "content_views", force: :cascade do |t|
-    t.bigint "content_item_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "entry_id", null: false
     t.bigint "site_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.datetime "viewed_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.index ["content_item_id"], name: "index_content_views_on_content_item_id"
-    t.index ["site_id", "user_id", "content_item_id"], name: "index_content_views_uniqueness", unique: true
+    t.index ["entry_id"], name: "index_content_views_on_entry_id"
+    t.index ["site_id", "user_id", "entry_id"], name: "index_content_views_uniqueness", unique: true
     t.index ["site_id"], name: "index_content_views_on_site_id"
     t.index ["user_id", "site_id", "viewed_at"], name: "index_content_views_on_user_site_viewed_at", order: { viewed_at: :desc }
     t.index ["user_id"], name: "index_content_views_on_user_id"
@@ -348,9 +292,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
 
   create_table "editorialisations", force: :cascade do |t|
     t.string "ai_model"
-    t.bigint "content_item_id", null: false
     t.datetime "created_at", null: false
     t.integer "duration_ms"
+    t.bigint "entry_id", null: false
     t.text "error_message"
     t.integer "estimated_cost_cents"
     t.integer "input_tokens"
@@ -363,7 +307,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
     t.integer "status", default: 0, null: false
     t.integer "tokens_used"
     t.datetime "updated_at", null: false
-    t.index ["content_item_id"], name: "index_editorialisations_on_content_item_id", unique: true
+    t.index ["entry_id"], name: "index_editorialisations_on_entry_id"
     t.index ["site_id", "created_at", "estimated_cost_cents"], name: "index_editorialisations_cost_tracking"
     t.index ["site_id", "created_at"], name: "index_editorialisations_on_site_id_and_created_at"
     t.index ["site_id", "status"], name: "index_editorialisations_on_site_id_and_status"
@@ -393,6 +337,104 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
     t.datetime "updated_at", null: false
     t.index ["email_sequence_id", "position"], name: "index_email_steps_on_email_sequence_id_and_position", unique: true
     t.index ["email_sequence_id"], name: "index_email_steps_on_email_sequence_id"
+  end
+
+  create_table "entries", force: :cascade do |t|
+    t.jsonb "affiliate_attribution", default: {}, null: false
+    t.text "affiliate_url_template"
+    t.jsonb "ai_suggested_tags", default: [], null: false
+    t.text "ai_summary"
+    t.text "apply_url"
+    t.string "audience_tags", default: [], array: true
+    t.string "author_name"
+    t.text "body_html"
+    t.text "body_text"
+    t.bigint "category_id"
+    t.integer "comments_count", default: 0, null: false
+    t.datetime "comments_locked_at"
+    t.bigint "comments_locked_by_id"
+    t.string "company"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "domain"
+    t.datetime "editorialised_at"
+    t.datetime "enriched_at"
+    t.jsonb "enrichment_errors", default: [], null: false
+    t.string "enrichment_status", default: "pending", null: false
+    t.string "entry_kind", default: "feed", null: false
+    t.datetime "expires_at"
+    t.text "extracted_text"
+    t.string "favicon_url"
+    t.bigint "featured_by_id"
+    t.datetime "featured_from"
+    t.datetime "featured_until"
+    t.datetime "hidden_at"
+    t.bigint "hidden_by_id"
+    t.text "image_url"
+    t.jsonb "key_takeaways", default: []
+    t.string "location"
+    t.jsonb "metadata", default: {}, null: false
+    t.string "og_image_url"
+    t.boolean "paid", default: false, null: false
+    t.string "payment_reference"
+    t.integer "payment_status", default: 0, null: false
+    t.datetime "published_at"
+    t.decimal "quality_score", precision: 3, scale: 1
+    t.jsonb "raw_payload", default: {}, null: false
+    t.integer "read_time_minutes"
+    t.string "salary_range"
+    t.datetime "scheduled_for"
+    t.datetime "screenshot_captured_at"
+    t.string "screenshot_url"
+    t.bigint "site_id", null: false
+    t.string "site_name"
+    t.bigint "source_id"
+    t.string "stripe_checkout_session_id"
+    t.string "stripe_payment_intent_id"
+    t.text "summary"
+    t.decimal "tagging_confidence", precision: 3, scale: 2
+    t.jsonb "tagging_explanation", default: [], null: false
+    t.jsonb "tags", default: [], null: false
+    t.bigint "tenant_id"
+    t.string "title"
+    t.jsonb "topic_tags", default: [], null: false
+    t.datetime "updated_at", null: false
+    t.integer "upvotes_count", default: 0, null: false
+    t.string "url_canonical", null: false
+    t.text "url_raw", null: false
+    t.text "why_it_matters"
+    t.integer "word_count"
+    t.index ["category_id", "published_at"], name: "index_entries_on_category_published"
+    t.index ["category_id"], name: "index_entries_on_category_id"
+    t.index ["comments_locked_by_id"], name: "index_entries_on_comments_locked_by_id"
+    t.index ["domain"], name: "index_entries_on_domain"
+    t.index ["enrichment_status"], name: "index_entries_on_enrichment_status"
+    t.index ["entry_kind"], name: "index_entries_on_entry_kind"
+    t.index ["featured_by_id"], name: "index_entries_on_featured_by_id"
+    t.index ["hidden_at"], name: "index_entries_on_hidden_at"
+    t.index ["hidden_by_id"], name: "index_entries_on_hidden_by_id"
+    t.index ["payment_status"], name: "index_entries_on_payment_status"
+    t.index ["published_at"], name: "index_entries_on_published_at"
+    t.index ["scheduled_for"], name: "index_entries_on_scheduled_for", where: "(scheduled_for IS NOT NULL)"
+    t.index ["site_id", "content_type"], name: "index_entries_on_site_id_and_content_type"
+    t.index ["site_id", "editorialised_at"], name: "index_entries_on_site_id_and_editorialised_at"
+    t.index ["site_id", "entry_kind", "url_canonical"], name: "index_entries_on_site_kind_canonical", unique: true
+    t.index ["site_id", "expires_at"], name: "index_entries_on_site_expires_at"
+    t.index ["site_id", "featured_from", "featured_until"], name: "index_entries_on_site_featured_dates"
+    t.index ["site_id", "published_at"], name: "index_entries_on_site_id_published_at_desc", order: { published_at: :desc }
+    t.index ["site_id"], name: "index_entries_on_site_id"
+    t.index ["source_id", "created_at"], name: "index_entries_on_source_id_and_created_at"
+    t.index ["source_id"], name: "index_entries_on_source_id"
+    t.index ["stripe_checkout_session_id"], name: "index_entries_on_stripe_checkout_session_id", unique: true, where: "(stripe_checkout_session_id IS NOT NULL)"
+    t.index ["stripe_payment_intent_id"], name: "index_entries_on_stripe_payment_intent_id", unique: true, where: "(stripe_payment_intent_id IS NOT NULL)"
+    t.index ["tenant_id", "category_id"], name: "index_entries_on_tenant_id_and_category_id"
+    t.index ["tenant_id", "published_at", "created_at"], name: "index_entries_on_tenant_published_created"
+    t.index ["tenant_id", "source_id"], name: "index_entries_on_tenant_id_and_source_id"
+    t.index ["tenant_id", "title"], name: "index_entries_on_tenant_title"
+    t.index ["tenant_id", "url_canonical"], name: "index_entries_on_tenant_and_url_canonical", unique: true
+    t.index ["tenant_id"], name: "index_entries_on_tenant_id"
+    t.index ["topic_tags"], name: "index_entries_on_topic_tags", using: :gin
   end
 
   create_table "flags", force: :cascade do |t|
@@ -463,68 +505,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
     t.index ["site_id", "slug"], name: "index_landing_pages_on_site_id_and_slug", unique: true
     t.index ["site_id"], name: "index_landing_pages_on_site_id"
     t.index ["tenant_id"], name: "index_landing_pages_on_tenant_id"
-  end
-
-  create_table "listings", force: :cascade do |t|
-    t.jsonb "affiliate_attribution", default: {}, null: false
-    t.text "affiliate_url_template"
-    t.jsonb "ai_summaries", default: {}, null: false
-    t.jsonb "ai_tags", default: {}, null: false
-    t.text "apply_url"
-    t.text "body_html"
-    t.text "body_text"
-    t.bigint "category_id", null: false
-    t.string "company"
-    t.datetime "created_at", null: false
-    t.text "description"
-    t.string "domain"
-    t.datetime "expires_at"
-    t.bigint "featured_by_id"
-    t.datetime "featured_from"
-    t.datetime "featured_until"
-    t.text "image_url"
-    t.integer "listing_type", default: 0, null: false
-    t.string "location"
-    t.jsonb "metadata", default: {}, null: false
-    t.boolean "paid", default: false, null: false
-    t.string "payment_reference"
-    t.integer "payment_status", default: 0, null: false
-    t.datetime "published_at"
-    t.string "salary_range"
-    t.datetime "scheduled_for"
-    t.bigint "site_id", null: false
-    t.string "site_name"
-    t.bigint "source_id"
-    t.string "stripe_checkout_session_id"
-    t.string "stripe_payment_intent_id"
-    t.bigint "tenant_id", null: false
-    t.string "title"
-    t.datetime "updated_at", null: false
-    t.text "url_canonical", null: false
-    t.text "url_raw", null: false
-    t.index ["category_id", "published_at"], name: "index_listings_on_category_published"
-    t.index ["category_id"], name: "index_listings_on_category_id"
-    t.index ["domain"], name: "index_listings_on_domain"
-    t.index ["featured_by_id"], name: "index_listings_on_featured_by_id"
-    t.index ["payment_status"], name: "index_listings_on_payment_status"
-    t.index ["published_at"], name: "index_listings_on_published_at"
-    t.index ["scheduled_for"], name: "index_listings_on_scheduled_for", where: "(scheduled_for IS NOT NULL)"
-    t.index ["site_id", "expires_at"], name: "index_listings_on_site_expires_at"
-    t.index ["site_id", "featured_from", "featured_until"], name: "index_listings_on_site_featured_dates"
-    t.index ["site_id", "listing_type", "expires_at"], name: "index_listings_on_site_type_expires"
-    t.index ["site_id", "listing_type"], name: "index_listings_on_site_listing_type"
-    t.index ["site_id", "url_canonical"], name: "index_listings_on_site_id_and_url_canonical", unique: true
-    t.index ["site_id"], name: "index_listings_on_site_id"
-    t.index ["source_id"], name: "index_listings_on_source_id"
-    t.index ["stripe_checkout_session_id"], name: "index_listings_on_stripe_checkout_session_id", unique: true, where: "(stripe_checkout_session_id IS NOT NULL)"
-    t.index ["stripe_payment_intent_id"], name: "index_listings_on_stripe_payment_intent_id", unique: true, where: "(stripe_payment_intent_id IS NOT NULL)"
-    t.index ["tenant_id", "category_id"], name: "index_listings_on_tenant_id_and_category_id"
-    t.index ["tenant_id", "domain", "published_at"], name: "index_listings_on_tenant_domain_published"
-    t.index ["tenant_id", "published_at", "created_at"], name: "index_listings_on_tenant_published_created"
-    t.index ["tenant_id", "source_id"], name: "index_listings_on_tenant_id_and_source_id"
-    t.index ["tenant_id", "title"], name: "index_listings_on_tenant_title"
-    t.index ["tenant_id", "url_canonical"], name: "index_listings_on_tenant_and_url_canonical", unique: true
-    t.index ["tenant_id"], name: "index_listings_on_tenant_id"
   end
 
   create_table "live_stream_viewers", force: :cascade do |t|
@@ -761,8 +741,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
     t.bigint "category_id", null: false
     t.datetime "created_at", null: false
     t.text "description"
+    t.bigint "entry_id"
     t.string "ip_address"
-    t.bigint "listing_id"
     t.integer "listing_type", default: 0, null: false
     t.datetime "reviewed_at"
     t.bigint "reviewed_by_id"
@@ -774,7 +754,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
     t.text "url", null: false
     t.bigint "user_id", null: false
     t.index ["category_id"], name: "index_submissions_on_category_id"
-    t.index ["listing_id"], name: "index_submissions_on_listing_id"
+    t.index ["entry_id"], name: "index_submissions_on_entry_id"
     t.index ["reviewed_by_id"], name: "index_submissions_on_reviewed_by_id"
     t.index ["site_id", "status"], name: "index_submissions_on_site_id_and_status"
     t.index ["site_id"], name: "index_submissions_on_site_id"
@@ -947,7 +927,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "affiliate_clicks", "listings"
+  add_foreign_key "affiliate_clicks", "entries"
   add_foreign_key "bookmarks", "users"
   add_foreign_key "boost_clicks", "digest_subscriptions"
   add_foreign_key "boost_clicks", "network_boosts"
@@ -960,11 +940,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
   add_foreign_key "comments", "sites"
   add_foreign_key "comments", "users"
   add_foreign_key "comments", "users", column: "hidden_by_id"
-  add_foreign_key "content_items", "sites"
-  add_foreign_key "content_items", "sources"
-  add_foreign_key "content_items", "users", column: "comments_locked_by_id"
-  add_foreign_key "content_items", "users", column: "hidden_by_id"
-  add_foreign_key "content_views", "content_items"
+  add_foreign_key "content_views", "entries"
   add_foreign_key "content_views", "sites"
   add_foreign_key "content_views", "users"
   add_foreign_key "digest_subscriptions", "sites"
@@ -979,10 +955,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
   add_foreign_key "discussions", "users", column: "locked_by_id"
   add_foreign_key "domains", "sites"
   add_foreign_key "download_tokens", "purchases"
-  add_foreign_key "editorialisations", "content_items"
+  add_foreign_key "editorialisations", "entries"
   add_foreign_key "editorialisations", "sites"
   add_foreign_key "email_sequences", "sites"
   add_foreign_key "email_steps", "email_sequences"
+  add_foreign_key "entries", "categories"
+  add_foreign_key "entries", "sites"
+  add_foreign_key "entries", "sources"
+  add_foreign_key "entries", "tenants"
+  add_foreign_key "entries", "users", column: "comments_locked_by_id"
+  add_foreign_key "entries", "users", column: "featured_by_id"
+  add_foreign_key "entries", "users", column: "hidden_by_id"
   add_foreign_key "flags", "sites"
   add_foreign_key "flags", "users"
   add_foreign_key "flags", "users", column: "reviewed_by_id"
@@ -990,11 +973,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
   add_foreign_key "import_runs", "sources"
   add_foreign_key "landing_pages", "sites"
   add_foreign_key "landing_pages", "tenants"
-  add_foreign_key "listings", "categories"
-  add_foreign_key "listings", "sites"
-  add_foreign_key "listings", "sources"
-  add_foreign_key "listings", "tenants"
-  add_foreign_key "listings", "users", column: "featured_by_id"
   add_foreign_key "live_stream_viewers", "live_streams"
   add_foreign_key "live_stream_viewers", "sites"
   add_foreign_key "live_stream_viewers", "users"
@@ -1026,7 +1004,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_08_185840) do
   add_foreign_key "sources", "sites"
   add_foreign_key "sources", "tenants"
   add_foreign_key "submissions", "categories"
-  add_foreign_key "submissions", "listings"
+  add_foreign_key "submissions", "entries"
   add_foreign_key "submissions", "sites"
   add_foreign_key "submissions", "users"
   add_foreign_key "submissions", "users", column: "reviewed_by_id"

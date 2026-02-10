@@ -28,7 +28,7 @@ RSpec.describe Tenant, type: :model do
   describe 'associations' do
     it { should have_many(:sites).dependent(:destroy) }
     it { should have_many(:categories).dependent(:destroy) }
-    it { should have_many(:listings).dependent(:destroy) }
+    it { should have_many(:entries).dependent(:destroy) }
   end
 
   describe 'validations' do

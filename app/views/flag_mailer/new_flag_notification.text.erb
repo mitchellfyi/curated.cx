@@ -13,7 +13,7 @@
 <%= t("flag_mailer.new_flag_notification.flagged_content_header") %>
 --------------------------------------------------------------------------------
 
-<% if @flaggable.is_a?(ContentItem) -%>
+<% if @flaggable.is_a?(Entry) -%>
 <%= t("flag_mailer.new_flag_notification.content_type_label") %>: <%= t("flag_mailer.new_flag_notification.content_type.content_item") %>
 <%= t("flag_mailer.new_flag_notification.title_label") %>: <%= @flaggable.title %>
 <%= t("flag_mailer.new_flag_notification.url_label") %>: <%= @flaggable.url_canonical %>

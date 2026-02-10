@@ -6,7 +6,7 @@ class Admin::DashboardController < ApplicationController
   def index
     @tenant = Current.tenant.decorate
     @categories = categories_service.all_categories.to_a
-    @recent_listings = listings_service.all_listings(limit: 10)
+    @recent_entries = Entry.directory_items.without_site_scope.where(tenant: Current.tenant).order(created_at: :desc).limit(10)
     @system_stats = system_stats
     @stats = {
       total_categories: @categories.size,
@@ -30,10 +30,10 @@ class Admin::DashboardController < ApplicationController
 
     # Build a single SQL query from model scopes for all dashboard counts
     counts = {
-      content_items: ContentItem.all,
-      listings_total: Current.tenant.listings,
-      published_listings: Current.tenant.listings.where.not(published_at: nil),
-      listings_today: Current.tenant.listings.where.not(published_at: nil).where("created_at >= ?", today),
+      content_items: Entry.feed_items,
+      listings_total: Entry.directory_items.where(tenant_id: Current.tenant&.id),
+      published_listings: Entry.directory_items.where(tenant_id: Current.tenant&.id).where.not(published_at: nil),
+      listings_today: Entry.directory_items.where(tenant_id: Current.tenant&.id).where.not(published_at: nil).where("created_at >= ?", today),
       submissions_pending: Submission.pending,
       notes: Note.all,
       sources_enabled: Source.enabled,
@@ -126,9 +126,5 @@ class Admin::DashboardController < ApplicationController
 
   def categories_service
     @categories_service ||= Admin::CategoriesService.new(Current.tenant)
-  end
-
-  def listings_service
-    @listings_service ||= Admin::ListingsService.new(Current.tenant)
   end
 end

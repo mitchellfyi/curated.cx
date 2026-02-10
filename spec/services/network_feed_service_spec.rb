@@ -66,10 +66,10 @@ RSpec.describe NetworkFeedService do
     let(:root_source) { create(:source, site: root_site) }
 
     before do
-      create_list(:content_item, 3, site: site1, source: source1, published_at: 1.day.ago)
-      create_list(:content_item, 2, site: site2, source: source2, published_at: 2.days.ago)
-      create(:content_item, site: root_site, source: root_source, published_at: 1.hour.ago)
-      create(:content_item, site: disabled_site, published_at: 30.minutes.ago)
+      create_list(:entry, :feed, 3, site: site1, source: source1, published_at: 1.day.ago)
+      create_list(:entry, :feed, 2, site: site2, source: source2, published_at: 2.days.ago)
+      create(:entry, :feed, site: root_site, source: root_source, published_at: 1.hour.ago)
+      create(:entry, :feed, site: disabled_site, published_at: 30.minutes.ago)
     end
 
     it "returns published content from enabled sites except root" do
@@ -112,7 +112,7 @@ RSpec.describe NetworkFeedService do
     end
 
     it "does not return unpublished content" do
-      unpublished = create(:content_item, site: site1, source: source1, published_at: nil)
+      unpublished = create(:entry, :feed, site: site1, source: source1, published_at: nil)
 
       result = described_class.recent_content(tenant: root_tenant, limit: 10)
 
@@ -120,7 +120,7 @@ RSpec.describe NetworkFeedService do
     end
 
     it "does not return hidden content" do
-      hidden = create(:content_item, site: site1, source: source1, published_at: 1.hour.ago, hidden_at: Time.current)
+      hidden = create(:entry, :feed, site: site1, source: source1, published_at: 1.hour.ago, hidden_at: Time.current)
 
       result = described_class.recent_content(tenant: root_tenant, limit: 10)
 
@@ -133,8 +133,8 @@ RSpec.describe NetworkFeedService do
     let(:category1) { create(:category, site: site1, tenant: tenant1) }
 
     before do
-      3.times { create(:content_item, site: site1, source: source1, published_at: 1.day.ago) }
-      2.times { create(:listing, site: site1, tenant: tenant1, category: category1, published_at: 1.day.ago) }
+      3.times { create(:entry, :feed, site: site1, source: source1, published_at: 1.day.ago) }
+      2.times { create(:entry, :directory, site: site1, tenant: tenant1, category: category1, published_at: 1.day.ago) }
     end
 
     it "returns site count for enabled sites except root" do
@@ -147,13 +147,13 @@ RSpec.describe NetworkFeedService do
     it "returns content count from network sites" do
       result = described_class.network_stats(tenant: root_tenant)
 
-      expect(result[:content_count]).to eq(3)
+      expect(result[:feed_entry_count]).to eq(3)
     end
 
-    it "returns listing count from network sites" do
+    it "returns directory entry count from network sites" do
       result = described_class.network_stats(tenant: root_tenant)
 
-      expect(result[:listing_count]).to eq(2)
+      expect(result[:directory_entry_count]).to eq(2)
     end
 
     it "caches the result" do

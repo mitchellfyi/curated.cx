@@ -2,13 +2,13 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Site Isolation for Categories and Listings', type: :model do
+RSpec.describe 'Site Isolation for Categories and Entries', type: :model do
   let(:tenant1) { create(:tenant, slug: 'tenant1', hostname: 'tenant1.example.com') }
   let(:tenant2) { create(:tenant, slug: 'tenant2', hostname: 'tenant2.example.com') }
   let(:site1) { create(:site, tenant: tenant1) }
   let(:site2) { create(:site, tenant: tenant2) }
 
-  describe 'listing uniqueness constraint' do
+  describe 'entry uniqueness constraint' do
     it 'prevents duplicate canonical URLs within same site but allows across sites' do
       ActsAsTenant.without_tenant do
         # Create categories for each site
@@ -17,8 +17,8 @@ RSpec.describe 'Site Isolation for Categories and Listings', type: :model do
 
         url = 'https://example.com/article'
 
-        # Create first listing in site1
-        listing1 = create(:listing,
+        # Create first entry in site1
+        entry1 = create(:entry, :directory,
           site: site1,
           tenant: tenant1,
           category: category1,
@@ -26,12 +26,12 @@ RSpec.describe 'Site Isolation for Categories and Listings', type: :model do
           title: 'Test Article 1'
         )
 
-        expect(listing1).to be_persisted
-        expect(listing1.url_canonical).to eq(url)
+        expect(entry1).to be_persisted
+        expect(entry1.url_canonical).to eq(url)
 
         # Attempt to create duplicate in same site should fail (validation or database constraint)
         expect {
-          create(:listing,
+          create(:entry, :directory,
             site: site1,
             tenant: tenant1,
             category: category1,
@@ -41,7 +41,7 @@ RSpec.describe 'Site Isolation for Categories and Listings', type: :model do
         }.to raise_error(ActiveRecord::RecordInvalid, /Url canonical has already been taken/)
 
         # Creating same URL in different site should succeed
-        listing2 = create(:listing,
+        entry2 = create(:entry, :directory,
           site: site2,
           tenant: tenant2,
           category: category2,
@@ -49,9 +49,9 @@ RSpec.describe 'Site Isolation for Categories and Listings', type: :model do
           title: 'Test Article 2'
         )
 
-        expect(listing2).to be_persisted
-        expect(listing2.url_canonical).to eq(url)
-        expect(listing1.id).not_to eq(listing2.id)
+        expect(entry2).to be_persisted
+        expect(entry2.url_canonical).to eq(url)
+        expect(entry1.id).not_to eq(entry2.id)
       end
     end
   end

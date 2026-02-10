@@ -15,7 +15,7 @@ RSpec.describe ContentRecommendationService, type: :service do
   describe ".for_user" do
     context "when user is nil" do
       it "returns cold start fallback content" do
-        items = create_list(:content_item, 3, :published, site: site, source: source)
+        items = create_list(:entry, :feed, 3, :published, site: site, source: source)
 
         result = described_class.for_user(nil, site: site, limit: 6)
 
@@ -27,9 +27,9 @@ RSpec.describe ContentRecommendationService, type: :service do
     context "when user has insufficient interactions (cold start)" do
       it "returns engagement-ranked fallback content for users with less than 5 interactions" do
         # Create 3 interactions (below threshold of 5)
-        items = create_list(:content_item, 5, :published, site: site, source: source)
+        items = create_list(:entry, :feed, 5, :published, site: site, source: source)
         items.first(3).each do |item|
-          create(:vote, content_item: item, user: user, site: site)
+          create(:vote, entry: item, user: user, site: site)
         end
 
         result = described_class.for_user(user, site: site, limit: 6)
@@ -40,13 +40,13 @@ RSpec.describe ContentRecommendationService, type: :service do
 
     context "when user has sufficient interactions" do
       let!(:tech_items) do
-        items = create_list(:content_item, 5, :published, site: site, source: source)
+        items = create_list(:entry, :feed, 5, :published, site: site, source: source)
         items.each { |item| item.update_columns(topic_tags: %w[tech ai]) }
         items
       end
 
       let!(:sports_items) do
-        items = create_list(:content_item, 5, :published, site: site, source: source)
+        items = create_list(:entry, :feed, 5, :published, site: site, source: source)
         items.each { |item| item.update_columns(topic_tags: %w[sports football]) }
         items
       end
@@ -54,13 +54,13 @@ RSpec.describe ContentRecommendationService, type: :service do
       before do
         # Create 6 interactions with tech content (above threshold)
         tech_items.first(6).each do |item|
-          create(:vote, content_item: item, user: user, site: site)
+          create(:vote, entry: item, user: user, site: site)
         end
       end
 
       it "returns personalized content based on user interests" do
         # Create new uninteracted tech content to recommend
-        new_tech_item = create(:content_item, :published, site: site, source: source)
+        new_tech_item = create(:entry, :feed, :published, site: site, source: source)
         new_tech_item.update_columns(topic_tags: %w[tech programming])
 
         # Clear cache to ensure fresh computation
@@ -100,7 +100,7 @@ RSpec.describe ContentRecommendationService, type: :service do
           cached_ids = result1.map(&:id)
 
           # Create a new tech item after caching
-          new_item = create(:content_item, :published, site: site, source: source)
+          new_item = create(:entry, :feed, :published, site: site, source: source)
           new_item.update_columns(topic_tags: %w[tech ai])
 
           # Second call should return cached result (same IDs)
@@ -120,10 +120,10 @@ RSpec.describe ContentRecommendationService, type: :service do
       let(:other_source) { create(:source, site: other_site) }
 
       it "only returns content from the specified site" do
-        item1 = create(:content_item, :published, site: site, source: source)
+        item1 = create(:entry, :feed, :published, site: site, source: source)
         item1.update_columns(topic_tags: %w[tech])
 
-        other_item = create(:content_item, :published, site: other_site, source: other_source)
+        other_item = create(:entry, :feed, :published, site: other_site, source: other_source)
         other_item.update_columns(topic_tags: %w[tech])
 
         result = described_class.for_user(nil, site: site, limit: 10)
@@ -136,16 +136,16 @@ RSpec.describe ContentRecommendationService, type: :service do
 
   describe ".similar_to" do
     let(:tech_item) do
-      item = create(:content_item, :published, site: site, source: source)
+      item = create(:entry, :feed, :published, site: site, source: source)
       item.update_columns(topic_tags: %w[tech ai programming])
       item
     end
 
     it "returns items with matching topic_tags" do
-      similar_item = create(:content_item, :published, site: site, source: source)
+      similar_item = create(:entry, :feed, :published, site: site, source: source)
       similar_item.update_columns(topic_tags: %w[tech javascript])
 
-      unrelated_item = create(:content_item, :published, site: site, source: source)
+      unrelated_item = create(:entry, :feed, :published, site: site, source: source)
       unrelated_item.update_columns(topic_tags: %w[sports football])
 
       result = described_class.similar_to(tech_item, limit: 4)
@@ -160,8 +160,8 @@ RSpec.describe ContentRecommendationService, type: :service do
       expect(result.to_a).not_to include(tech_item)
     end
 
-    it "returns empty array when content_item has no topic_tags" do
-      item = create(:content_item, :published, site: site, source: source)
+    it "returns empty array when entry has no topic_tags" do
+      item = create(:entry, :feed, :published, site: site, source: source)
       item.update_columns(topic_tags: [])
 
       result = described_class.similar_to(item, limit: 4)
@@ -170,10 +170,10 @@ RSpec.describe ContentRecommendationService, type: :service do
     end
 
     it "orders results by published_at descending" do
-      old_similar = create(:content_item, :published, site: site, source: source, published_at: 1.week.ago)
+      old_similar = create(:entry, :feed, :published, site: site, source: source, published_at: 1.week.ago)
       old_similar.update_columns(topic_tags: %w[tech])
 
-      new_similar = create(:content_item, :published, site: site, source: source, published_at: 1.hour.ago)
+      new_similar = create(:entry, :feed, :published, site: site, source: source, published_at: 1.hour.ago)
       new_similar.update_columns(topic_tags: %w[tech])
 
       result = described_class.similar_to(tech_item, limit: 4)
@@ -184,7 +184,7 @@ RSpec.describe ContentRecommendationService, type: :service do
 
     it "respects the limit parameter" do
       5.times do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: %w[tech])
       end
 
@@ -199,7 +199,7 @@ RSpec.describe ContentRecommendationService, type: :service do
 
     context "when user has insufficient interactions" do
       it "returns cold start fallback content" do
-        items = create_list(:content_item, 3, :published, site: site, source: source)
+        items = create_list(:entry, :feed, 3, :published, site: site, source: source)
 
         result = described_class.for_digest(subscription, limit: 5)
 
@@ -211,14 +211,14 @@ RSpec.describe ContentRecommendationService, type: :service do
       before do
         # Create interactions above threshold
         6.times do
-          item = create(:content_item, :published, site: site, source: source)
+          item = create(:entry, :feed, :published, site: site, source: source)
           item.update_columns(topic_tags: %w[tech])
-          create(:vote, content_item: item, user: user, site: site)
+          create(:vote, entry: item, user: user, site: site)
         end
       end
 
       it "returns personalized content for the subscription user" do
-        new_tech_item = create(:content_item, :published, site: site, source: source)
+        new_tech_item = create(:entry, :feed, :published, site: site, source: source)
         new_tech_item.update_columns(topic_tags: %w[tech programming])
 
         result = described_class.for_digest(subscription, limit: 5)
@@ -230,7 +230,7 @@ RSpec.describe ContentRecommendationService, type: :service do
         # for_digest computes fresh recommendations each time
         result1 = described_class.for_digest(subscription, limit: 5)
 
-        new_item = create(:content_item, :published, site: site, source: source)
+        new_item = create(:entry, :feed, :published, site: site, source: source)
         new_item.update_columns(topic_tags: %w[tech])
 
         result2 = described_class.for_digest(subscription, limit: 5)
@@ -244,36 +244,36 @@ RSpec.describe ContentRecommendationService, type: :service do
   describe "interaction weights" do
     context "when user has votes, bookmarks, and views" do
       let!(:voted_item) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: %w[voted-topic])
-        create(:vote, content_item: item, user: user, site: site)
+        create(:vote, entry: item, user: user, site: site)
         item
       end
 
       let!(:bookmarked_item) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: %w[bookmarked-topic])
         create(:bookmark, user: user, bookmarkable: item)
         item
       end
 
       let!(:viewed_item) do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: %w[viewed-topic])
-        create(:content_view, content_item: item, user: user, site: site)
+        create(:content_view, entry: item, user: user, site: site)
         item
       end
 
       it "weights votes higher than bookmarks and views" do
         # Add more interactions to reach threshold
         3.times do
-          item = create(:content_item, :published, site: site, source: source)
+          item = create(:entry, :feed, :published, site: site, source: source)
           item.update_columns(topic_tags: %w[voted-topic])
-          create(:vote, content_item: item, user: user, site: site)
+          create(:vote, entry: item, user: user, site: site)
         end
 
         # Create new content matching different topics
-        voted_topic_item = create(:content_item, :published, site: site, source: source)
+        voted_topic_item = create(:entry, :feed, :published, site: site, source: source)
         voted_topic_item.update_columns(topic_tags: %w[voted-topic])
 
         Rails.cache.clear
@@ -288,20 +288,20 @@ RSpec.describe ContentRecommendationService, type: :service do
   describe "time decay" do
     it "weights recent interactions more heavily than old ones" do
       # Create old interaction
-      old_item = create(:content_item, :published, site: site, source: source)
+      old_item = create(:entry, :feed, :published, site: site, source: source)
       old_item.update_columns(topic_tags: %w[old-topic])
-      old_vote = create(:vote, content_item: old_item, user: user, site: site)
+      old_vote = create(:vote, entry: old_item, user: user, site: site)
       old_vote.update_columns(created_at: 60.days.ago)
 
       # Create recent interactions (above threshold)
       5.times do
-        item = create(:content_item, :published, site: site, source: source)
+        item = create(:entry, :feed, :published, site: site, source: source)
         item.update_columns(topic_tags: %w[recent-topic])
-        create(:vote, content_item: item, user: user, site: site)
+        create(:vote, entry: item, user: user, site: site)
       end
 
       # Create new content matching different topics
-      recent_topic_item = create(:content_item, :published, site: site, source: source)
+      recent_topic_item = create(:entry, :feed, :published, site: site, source: source)
       recent_topic_item.update_columns(topic_tags: %w[recent-topic])
 
       Rails.cache.clear

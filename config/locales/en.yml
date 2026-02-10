@@ -43,9 +43,9 @@ en:
         clicks_this_week: This Week
         clicks_today: Today
         total_clicks: Total Clicks
-        unique_listings: Unique Listings
+        unique_entries: Unique Entries
       title: Affiliate Analytics
-      top_listings: Top Performing Listings
+      top_entries: Top Performing Entries
     boost_earnings:
       daily_clicks: Daily Clicks
       description: Track your earnings from promoting other sites
@@ -111,7 +111,7 @@ en:
       description: Description
       title: Title
       uncategorized: Uncategorized
-      view_all_listings: View all listings
+      view_all_entries: View all entries
     digest_subscriptions:
       back_to_list: Back to Subscribers
       confirm_send_digest: Send %{frequency} digest to all due subscribers?
@@ -258,6 +258,26 @@ en:
         primary: Primary
         sites_breadcrumb: Sites
       updated: Domain updated successfully
+    entries:
+      bulk_deleted: "%{count} entries deleted"
+      bulk_editorialise: "%{count} entries queued for editorialisation"
+      bulk_enrich: "%{count} entries queued for enrichment"
+      bulk_published: "%{count} entries published"
+      bulk_unpublished: "%{count} entries unpublished"
+      created: Entry created
+      deleted: Entry deleted
+      editorialise_queued: Editorialisation queued
+      enrich_queued: Enrichment queued
+      expiry_extended: Entry expiry has been extended
+      featured: Entry has been featured
+      no_items_selected: No entries selected
+      published: Entry published
+      published_now: Entry published
+      unfeatured: Entry is no longer featured
+      unknown_action: Unknown action
+      unpublished: Entry unpublished
+      unscheduled: Entry schedule cancelled
+      updated: Entry updated
     editorialisations:
       actions: Actions
       ai_model: AI Model
@@ -266,7 +286,7 @@ en:
       all: All
       back_to_list: Back to List
       cannot_retry: Can only retry failed or skipped editorialisations
-      content_item: Content Item
+      entry: Entry
       created: Created
       description: View AI editorialisation audit logs and results
       details: Details
@@ -274,7 +294,7 @@ en:
       empty: No editorialisations
       empty_description: Editorialisations will appear here after content is processed.
       error: Error
-      for_content_item: For content item
+      for_entry: For entry
       prompt_text: Prompt Text
       prompt_version: Prompt Version
       raw_response: Raw Response
@@ -378,7 +398,7 @@ en:
       status: Status
       type:
         comment: Comment
-        content_item: Content Item
+        entry: Entry
     listings:
       affiliate: Affiliate
       affiliate_enabled: Affiliate Enabled
@@ -690,7 +710,7 @@ en:
       edit_page:
         danger_zone: Danger Zone
         delete: Delete Source
-        delete_warning: Once you delete a source, all import runs and content items
+        delete_warning: Once you delete a source, all import runs and entries
           from this source will be deleted. This action cannot be undone.
         title: Edit Source
       enabled: Enabled
@@ -892,7 +912,7 @@ en:
         content: Content
         match: Match
         matched: Matched
-        no_content: No content items to test against.
+        no_content: No entries to test against.
         no_match: No Match
         reason: Reason
         untitled: Untitled
@@ -937,7 +957,7 @@ en:
       title: Taxonomies
       updated: Taxonomy updated successfully
   affiliate:
-    listing_not_found: The requested listing could not be found.
+    entry_not_found: The requested entry could not be found.
   analytics:
     consent:
       accept: Accept
@@ -993,7 +1013,7 @@ en:
   bookmarks:
     confirm_remove: Remove this item from your saves?
     created: Item saved
-    description: Your saved content and listings
+    description: Your saved content and entries
     destroyed: Item removed from saves
     empty:
       browse: Browse Content
@@ -1007,7 +1027,7 @@ en:
     title: My Saves
     types:
       content: Content
-      listing: Listing
+      directory: Directory
   boosts:
     sponsored: Sponsored
     visit_site: Visit Site
@@ -1022,7 +1042,7 @@ en:
     cancel_message: Your payment was cancelled. No charges were made.
     cancel_title: Payment Cancelled
     cancelled: Payment was cancelled.
-    description: Choose a payment option for your listing
+    description: Choose a payment option for your entry
     featured_options: Featured Placement
     invalid_type: Invalid checkout option selected.
     job_posting_options: Job Posting Duration
@@ -1035,12 +1055,12 @@ en:
     stripe_not_configured: Payment processing is not configured. Please contact support.
     subtitle: Select a payment option below
     success: Payment successful! Thank you for your purchase.
-    success_message: Your payment was processed successfully. Your listing is now
+    success_message: Your payment was processed successfully. Your entry is now
       active.
     success_title: Payment Successful
     title: Checkout
     try_again: Try Again
-    view_listing: View Listing
+    view_entry: View Entry
   comments:
     back_to_comments: Back to comments
     back_to_feed: Back to feed
@@ -1080,9 +1100,9 @@ en:
     item:
       one: "%{count} item"
       other: "%{count} items"
-    listing:
-      one: "%{count} listing"
-      other: "%{count} listings"
+    entry:
+      one: "%{count} entry"
+      other: "%{count} entries"
   dashboard:
     account_settings: Account Settings
     browse_content: Browse content
@@ -1126,7 +1146,7 @@ en:
       sent_to: Sent to %{email}
       unsubscribe: Unsubscribe
     sections:
-      new_listings: New Listings
+      new_entries: New Entries
       recommended_for_you: Recommended for You
       todays_highlights: Today's Highlights
       top_content: Top Content
@@ -1328,7 +1348,7 @@ en:
       comment_body_label: Comment Body
       content_type:
         comment: Comment
-        content_item: Content Item
+        entry: Entry
       content_type_label: Content Type
       details_label: Additional Details
       flagged_at_label: Flagged At
@@ -1576,7 +1596,7 @@ en:
       visit: Visit
     stats:
       articles: Articles
-      listings: Listings
+      entries: Entries
       sites: Sites
     trending:
       title: Trending Sites
@@ -1619,17 +1639,17 @@ en:
   payment_receipt:
     date: Date
     duration: Duration
-    featured_active: Your listing is now featured and will appear prominently in search
+    featured_active: Your entry is now featured and will appear prominently in search
       results.
     greeting: Thank you for your payment!
     header: Payment Receipt
     job_post_active: Your job posting is now live and will be visible to job seekers.
-    listing: Listing
+    entry: Entry
     next_steps: 'What happens next:'
     payment_id: Payment ID
     purchase_type: Purchase Type
     questions: Questions? Reply to this email and we'll be happy to help.
-    subject: 'Payment Receipt: %{listing_title}'
+    subject: 'Payment Receipt: %{entry_title}'
     thank_you: Thank you for your business!
     types:
       featured_14: Featured Placement - 14 Days
@@ -1724,9 +1744,9 @@ en:
     your_link: Your Referral Link
   search:
     button: Search
-    description: Find content and listings
+    description: Find content and entries
     empty:
-      description: Enter a search term to find content and listings
+      description: Enter a search term to find content and entries
       title: Start searching
     filter_by: Filter by
     no_results:
@@ -1736,19 +1756,19 @@ en:
       suggestion_spelling: Check your spelling
       suggestions_title: Suggestions
       title: No results found
-    placeholder: Search content, listings, and more...
+    placeholder: Search content, entries, and more...
     results_count:
       one: Found 1 result for "%{query}"
       other: Found %{count} results for "%{query}"
     results_title: 'Search: %{query}'
     sections:
       content: Content
-      listings: Listings
+      directory: Directory
     title: Search
     types:
       all: All
       content: Content
-      listings: Listings
+      directory: Directory
   sequence_mailer:
     footer:
       sent_to: Sent to %{email}
@@ -1801,7 +1821,7 @@ en:
       title: 'Submission: %{title}'
       type: Type
       url: URL
-      view_listing: View published listing
+      view_entry: View published entry
     status:
       approved: Approved
       pending: Pending Review

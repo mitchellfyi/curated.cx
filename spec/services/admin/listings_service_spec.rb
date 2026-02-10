@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Admin::ListingsService, type: :service do
+RSpec.describe Admin::EntriesService, type: :service do
   let(:tenant) { create(:tenant) }
   let(:category) { create(:category, tenant: tenant) }
   let(:service) { described_class.new(tenant) }
@@ -13,115 +13,115 @@ RSpec.describe Admin::ListingsService, type: :service do
     end
   end
 
-  describe '#all_listings' do
-    let!(:listing1) { create(:listing, tenant: tenant, category: category) }
-    let!(:listing2) { create(:listing, tenant: tenant, category: category) }
-    let!(:other_tenant_listing) { create(:listing) }
+  describe '#all_entries' do
+    let!(:entry1) { create(:entry, :directory, tenant: tenant, category: category) }
+    let!(:entry2) { create(:entry, :directory, tenant: tenant, category: category) }
+    let!(:other_tenant_entry) { create(:entry, :directory) }
 
-    it 'returns listings for the current tenant' do
-      listings = service.all_listings
-      expect(listings).to include(listing1, listing2)
-      expect(listings).not_to include(other_tenant_listing)
+    it 'returns entries for the current tenant' do
+      entries = service.all_entries
+      expect(entries).to include(entry1, entry2)
+      expect(entries).not_to include(other_tenant_entry)
     end
 
     it 'includes category association' do
-      listings = service.all_listings
-      expect(listings.first.association(:category)).to be_loaded
+      entries = service.all_entries
+      expect(entries.first.association(:category)).to be_loaded
     end
 
     it 'orders by recent' do
-      listings = service.all_listings
-      expect(listings.first).to eq(listing2) # Most recent first
+      entries = service.all_entries
+      expect(entries.first).to eq(entry2) # Most recent first
     end
 
     context 'with category filter' do
       let(:other_category) { create(:category, tenant: tenant) }
-      let!(:other_category_listing) { create(:listing, tenant: tenant, category: other_category) }
+      let!(:other_category_entry) { create(:entry, :directory, tenant: tenant, category: other_category) }
 
       it 'filters by category_id' do
-        listings = service.all_listings(category_id: category.id)
-        expect(listings).to include(listing1, listing2)
-        expect(listings).not_to include(other_category_listing)
+        entries = service.all_entries(category_id: category.id)
+        expect(entries).to include(entry1, entry2)
+        expect(entries).not_to include(other_category_entry)
       end
     end
 
     context 'with limit' do
       it 'limits the number of results' do
-        listings = service.all_listings(limit: 1)
-        expect(listings.count).to eq(1)
+        entries = service.all_entries(limit: 1)
+        expect(entries.count).to eq(1)
       end
     end
   end
 
-  describe '#find_listing' do
-    let!(:listing) { create(:listing, tenant: tenant) }
+  describe '#find_entry' do
+    let!(:entry) { create(:entry, :directory, tenant: tenant) }
 
-    it 'finds the listing by id' do
-      found_listing = service.find_listing(listing.id)
-      expect(found_listing).to eq(listing)
+    it 'finds the entry by id' do
+      found_entry = service.find_entry(entry.id)
+      expect(found_entry).to eq(entry)
     end
 
-    it 'raises error for non-existent listing' do
+    it 'raises error for non-existent entry' do
       expect {
-        service.find_listing(99999)
+        service.find_entry(99999)
       }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 
-  describe '#create_listing' do
+  describe '#create_entry' do
     let(:attributes) do
       {
         category_id: category.id,
         url_raw: 'https://example.com',
-        title: 'Test Listing',
+        title: 'Test Entry',
         description: 'Test description'
       }
     end
 
-    it 'creates a new listing with given attributes' do
-      listing = service.create_listing(attributes)
-      expect(listing).to be_a(Listing)
-      expect(listing.category_id).to eq(category.id)
-      expect(listing.url_raw).to eq('https://example.com')
-      expect(listing.title).to eq('Test Listing')
-      expect(listing.description).to eq('Test description')
+    it 'creates a new entry with given attributes' do
+      entry = service.create_entry(attributes)
+      expect(entry).to be_a(Entry)
+      expect(entry.category_id).to eq(category.id)
+      expect(entry.url_raw).to eq('https://example.com')
+      expect(entry.title).to eq('Test Entry')
+      expect(entry.description).to eq('Test description')
     end
 
-    it 'does not save the listing' do
+    it 'does not save the entry' do
       expect {
-        service.create_listing(attributes)
-      }.not_to change(Listing, :count)
+        service.create_entry(attributes)
+      }.not_to change(Entry, :count)
     end
   end
 
-  describe '#update_listing' do
-    let!(:listing) { create(:listing, tenant: tenant, title: 'Original Title') }
+  describe '#update_entry' do
+    let!(:entry) { create(:entry, :directory, tenant: tenant, title: 'Original Title') }
 
-    it 'updates the listing with new attributes' do
-      result = service.update_listing(listing, { title: 'Updated Title' })
+    it 'updates the entry with new attributes' do
+      result = service.update_entry(entry, { title: 'Updated Title' })
       expect(result).to be true
-      expect(listing.reload.title).to eq('Updated Title')
+      expect(entry.reload.title).to eq('Updated Title')
     end
 
     it 'returns false for invalid attributes' do
-      result = service.update_listing(listing, { title: '' })
+      result = service.update_entry(entry, { title: '' })
       expect(result).to be false
-      expect(listing.reload.title).to eq('Original Title')
+      expect(entry.reload.title).to eq('Original Title')
     end
   end
 
-  describe '#destroy_listing' do
-    let!(:listing) { create(:listing, tenant: tenant) }
+  describe '#destroy_entry' do
+    let!(:entry) { create(:entry, :directory, tenant: tenant) }
 
-    it 'destroys the listing' do
+    it 'destroys the entry' do
       expect {
-        service.destroy_listing(listing)
-      }.to change(Listing, :count).by(-1)
+        service.destroy_entry(entry)
+      }.to change(Entry, :count).by(-1)
     end
 
-    it 'returns the destroyed listing' do
-      result = service.destroy_listing(listing)
-      expect(result).to eq(listing)
+    it 'returns the destroyed entry' do
+      result = service.destroy_entry(entry)
+      expect(result).to eq(entry)
     end
   end
 end

@@ -7,7 +7,7 @@ RSpec.describe "Bookmarks", type: :request do
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
   let(:user) { create(:user) }
-  let(:content_item) { create(:content_item, :published, site: site, source: source) }
+  let(:feed_entry) { create(:entry, :feed, :published, site: site, source: source) }
 
   before do
     host! tenant.hostname
@@ -33,7 +33,7 @@ RSpec.describe "Bookmarks", type: :request do
       end
 
       it "shows user's bookmarks" do
-        bookmark = create(:bookmark, user: user, bookmarkable: content_item)
+        bookmark = create(:bookmark, user: user, bookmarkable: feed_entry)
 
         get bookmarks_path
 
@@ -42,7 +42,7 @@ RSpec.describe "Bookmarks", type: :request do
 
       it "does not show other users bookmarks" do
         other_user = create(:user)
-        other_bookmark = create(:bookmark, user: other_user, bookmarkable: content_item)
+        other_bookmark = create(:bookmark, user: other_user, bookmarkable: feed_entry)
 
         get bookmarks_path
 
@@ -54,7 +54,7 @@ RSpec.describe "Bookmarks", type: :request do
   describe "POST /bookmarks" do
     context "when not signed in" do
       it "redirects to sign in" do
-        post bookmarks_path, params: { bookmarkable_type: "ContentItem", bookmarkable_id: content_item.id }
+        post bookmarks_path, params: { bookmarkable_type: "Entry", bookmarkable_id: feed_entry.id }
 
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -65,20 +65,20 @@ RSpec.describe "Bookmarks", type: :request do
 
       it "creates a bookmark" do
         expect {
-          post bookmarks_path, params: { bookmarkable_type: "ContentItem", bookmarkable_id: content_item.id }
+          post bookmarks_path, params: { bookmarkable_type: "Entry", bookmarkable_id: feed_entry.id }
         }.to change(Bookmark, :count).by(1)
       end
 
       it "associates bookmark with current user" do
-        post bookmarks_path, params: { bookmarkable_type: "ContentItem", bookmarkable_id: content_item.id }
+        post bookmarks_path, params: { bookmarkable_type: "Entry", bookmarkable_id: feed_entry.id }
 
         expect(Bookmark.last.user).to eq(user)
-        expect(Bookmark.last.bookmarkable).to eq(content_item)
+        expect(Bookmark.last.bookmarkable).to eq(feed_entry)
       end
 
       it "responds with turbo stream" do
         post bookmarks_path,
-          params: { bookmarkable_type: "ContentItem", bookmarkable_id: content_item.id },
+          params: { bookmarkable_type: "Entry", bookmarkable_id: feed_entry.id },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
         expect(response.media_type).to eq("text/vnd.turbo-stream.html")
@@ -87,7 +87,7 @@ RSpec.describe "Bookmarks", type: :request do
   end
 
   describe "DELETE /bookmarks/:id" do
-    let!(:bookmark) { create(:bookmark, user: user, bookmarkable: content_item) }
+    let!(:bookmark) { create(:bookmark, user: user, bookmarkable: feed_entry) }
 
     context "when not signed in" do
       it "redirects to sign in" do
@@ -108,7 +108,7 @@ RSpec.describe "Bookmarks", type: :request do
 
       it "does not allow deleting other users bookmarks" do
         other_user = create(:user)
-        other_item = create(:content_item, :published, site: site, source: source)
+        other_item = create(:entry, :feed, :published, site: site, source: source)
         other_bookmark = create(:bookmark, user: other_user, bookmarkable: other_item)
 
         delete bookmark_path(other_bookmark)

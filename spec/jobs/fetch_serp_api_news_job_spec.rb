@@ -16,10 +16,10 @@ RSpec.describe FetchSerpApiNewsJob, type: :job do
         stub_serp_api_response
       end
 
-      it "fetches news from SerpAPI and enqueues UpsertListingsJob for each result" do
+      it "fetches news from SerpAPI and enqueues UpsertEntriesJob for each result" do
         expect {
           described_class.perform_now(source.id)
-        }.to have_enqueued_job(UpsertListingsJob).exactly(3).times
+        }.to have_enqueued_job(UpsertEntriesJob).exactly(3).times
       end
 
       it "updates source status to success" do
@@ -42,7 +42,7 @@ RSpec.describe FetchSerpApiNewsJob, type: :job do
         described_class.perform_now(source.id)
 
         enqueued_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select do |job|
-          job["job_class"] == "UpsertListingsJob"
+          job["job_class"] == "UpsertEntriesJob"
         end
 
         urls = enqueued_jobs.map { |job| job["arguments"][2] }
@@ -58,7 +58,7 @@ RSpec.describe FetchSerpApiNewsJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to have_enqueued_job(UpsertListingsJob)
+        }.not_to have_enqueued_job(UpsertEntriesJob)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -71,7 +71,7 @@ RSpec.describe FetchSerpApiNewsJob, type: :job do
       it "skips processing and updates status to skipped" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to have_enqueued_job(UpsertListingsJob)
+        }.not_to have_enqueued_job(UpsertEntriesJob)
 
         source.reload
         expect(source.last_status).to eq("skipped")
@@ -126,7 +126,7 @@ RSpec.describe FetchSerpApiNewsJob, type: :job do
       it "handles empty results gracefully" do
         expect {
           described_class.perform_now(source.id)
-        }.not_to have_enqueued_job(UpsertListingsJob)
+        }.not_to have_enqueued_job(UpsertEntriesJob)
 
         source.reload
         expect(source.last_status).to eq("success")

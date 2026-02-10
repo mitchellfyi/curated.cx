@@ -8,9 +8,9 @@ This document describes the monetisation features in Curated.cx, including affil
 
 Curated.cx supports four revenue streams, all designed to be transparent and user-friendly:
 
-1. **Affiliate Support** - Tool/product listings with affiliate tracking
+1. **Affiliate Support** - Tool/product directory entries with affiliate tracking
 2. **Job Board** - Paid job posts with expiry management
-3. **Featured Placements** - Promoted listings with time-based visibility
+3. **Featured Placements** - Promoted directory entries with time-based visibility
 4. **Network Boosts** - Cross-network site promotion with CPC pricing
 
 All monetised content is clearly labeled in the UI ("Featured", "Sponsored") to maintain user trust.
@@ -21,7 +21,7 @@ All monetised content is clearly labeled in the UI ("Featured", "Sponsored") to 
 
 Affiliate support enables tracking outbound clicks to vendor sites with affiliate attribution.
 
-### Database Fields (Listing model)
+### Database Fields (Entry model)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -33,8 +33,8 @@ Affiliate support enables tracking outbound clicks to vendor sites with affiliat
 The `affiliate_url_template` field supports these placeholders:
 
 - `{url}` - The canonical URL (URL-encoded)
-- `{title}` - The listing title (URL-encoded)
-- `{id}` - The listing ID
+- `{title}` - The entry title (URL-encoded)
+- `{id}` - The entry ID
 
 **Example templates:**
 ```
@@ -61,7 +61,7 @@ These are appended to the generated URL automatically.
 Clicks are tracked via the `/go/:id` redirect endpoint:
 
 1. User clicks affiliate link
-2. Request goes to `/go/:listing_id`
+2. Request goes to `/go/:id` (entry ID)
 3. `AffiliateRedirectsController` records click in `affiliate_clicks` table
 4. User is redirected to the affiliate URL
 
@@ -73,7 +73,7 @@ Tracks individual affiliate link clicks for analytics:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `listing_id` | bigint | Reference to the listing |
+| `entry_id` | bigint | Reference to the entry |
 | `clicked_at` | datetime | When the click occurred |
 | `ip_hash` | string | Hashed IP for fraud detection |
 | `user_agent` | string | Browser user agent (truncated) |
@@ -88,7 +88,7 @@ Tracks individual affiliate link clicks for analytics:
 
 ### Admin Management
 
-Admins can configure affiliate settings in the listing edit form:
+Admins can configure affiliate settings in the entry edit form:
 
 - Set `affiliate_url_template` with vendor's tracking URL
 - Configure `affiliate_attribution` for additional params
@@ -100,7 +100,7 @@ Admins can configure affiliate settings in the listing edit form:
 
 The job board feature enables paid job postings with automatic expiry.
 
-### Database Fields (Listing model)
+### Database Fields (Entry model)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -119,7 +119,7 @@ The job board feature enables paid job postings with automatic expiry.
 enum :listing_type, { tool: 0, job: 1, service: 2 }
 ```
 
-Use `listing.job?`, `listing.tool?`, `listing.service?` to check type.
+Use `entry.job?`, `entry.tool?`, `entry.service?` to check type.
 
 ### Expiry Logic
 
@@ -127,21 +127,22 @@ Jobs automatically hide from public feeds after `expires_at`:
 
 ```ruby
 # Check if expired
-listing.expired?  # => true/false
+entry.expired?  # => true/false
 
-# Scope for active jobs
-Listing.active_jobs  # => jobs.not_expired.published
-Listing.not_expired  # => excludes expired listings
-Listing.expired      # => only expired listings
+# Scopes for directory entries
+Entry.directory_items.not_expired.published  # Active directory entries
+Entry.not_expired  # => excludes expired entries
+Entry.expired      # => only expired entries
 ```
 
 ### Visibility Rules
 
 | Scope | Description |
 |-------|-------------|
-| `Listing.jobs` | All job listings |
-| `Listing.active_jobs` | Published jobs that haven't expired |
-| `Listing.not_expired` | Listings without expiry or not yet expired |
+| `Entry.directory_items` | All directory entries |
+| `Entry.directory_items.where(listing_type: :job)` | Job entries only |
+| `Entry.directory_items.not_expired.published` | Published directory entries that haven't expired |
+| `Entry.not_expired` | Entries without expiry or not yet expired |
 
 ### Payment Integration (Stripe)
 
@@ -177,11 +178,11 @@ Stripe Checkout is fully integrated for self-service payments:
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/listings/:id/checkout` | Show checkout options |
+| GET | `/listings/:id/checkout` | Show checkout options (directory entry) |
 | POST | `/listings/:id/checkout` | Create Stripe session |
 | GET | `/listings/:id/checkout/success` | Success callback |
 | GET | `/listings/:id/checkout/cancel` | Cancel callback |
-| POST | `/stripe/webhooks` | Webhook endpoint |
+| POST | `/webhooks/stripe` | Webhook endpoint |
 
 **Webhook Events:**
 
@@ -194,7 +195,7 @@ Stripe Checkout is fully integrated for self-service payments:
 Admin routes for job management:
 
 ```
-POST /admin/listings/:id/extend_expiry
+POST /admin/entries/:id/extend_expiry
 ```
 
 Parameters:
@@ -204,9 +205,9 @@ Parameters:
 
 ## Featured Placements
 
-Featured placements promote listings to prominent positions with clear labeling.
+Featured placements promote directory entries to prominent positions with clear labeling.
 
-### Database Fields (Listing model)
+### Database Fields (Entry model)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -218,14 +219,14 @@ Featured placements promote listings to prominent positions with clear labeling.
 
 ```ruby
 # Check if currently featured
-listing.featured?  # => true/false
+entry.featured?  # => true/false
 
 # Scopes
-Listing.featured      # Currently featured listings
-Listing.not_featured  # Not currently featured
+Entry.featured      # Currently featured entries
+Entry.not_featured  # Not currently featured
 ```
 
-A listing is featured when:
+An entry is featured when:
 - `featured_from` is set and in the past
 - `featured_until` is nil OR in the future
 
@@ -234,8 +235,8 @@ A listing is featured when:
 Admin routes for featuring:
 
 ```
-POST /admin/listings/:id/feature
-POST /admin/listings/:id/unfeature
+POST /admin/entries/:id/feature
+POST /admin/entries/:id/unfeature
 ```
 
 Feature parameters:
@@ -245,10 +246,10 @@ Unfeature clears both `featured_from` and `featured_until`.
 
 ### UI Display
 
-Featured listings should display:
+Featured entries should display:
 - "Featured" or "Sponsored" badge
 - Appear in dedicated "Featured" section
-- Maintain standard listing appearance otherwise
+- Maintain standard entry appearance otherwise
 
 ---
 
@@ -443,11 +444,10 @@ Optimized indexes for monetisation queries:
 
 | Index | Columns | Purpose |
 |-------|---------|---------|
-| `index_listings_on_site_featured_dates` | `site_id, featured_from, featured_until` | Featured queries |
-| `index_listings_on_site_expires_at` | `site_id, expires_at` | Expiry queries |
-| `index_listings_on_site_listing_type` | `site_id, listing_type` | Type filtering |
-| `index_listings_on_site_type_expires` | `site_id, listing_type, expires_at` | Active jobs |
-| `index_listings_on_featured_by_id` | `featured_by_id` | Admin audit |
+| `index_entries_on_site_featured_dates` | `site_id, featured_from, featured_until` | Featured queries |
+| `index_entries_on_site_expires_at` | `site_id, expires_at` | Expiry queries |
+| `index_entries_on_site_id_and_content_type` | `site_id, content_type` | Type filtering |
+| `index_entries_on_featured_by_id` | `featured_by_id` | Admin audit |
 | `index_network_boosts_on_source_site_id_and_target_site_id` | `source_site_id, target_site_id` | Boost uniqueness |
 | `index_network_boosts_on_target_site_id_and_enabled` | `target_site_id, enabled` | Boost selection |
 | `index_boost_clicks_on_ip_hash_and_clicked_at` | `ip_hash, clicked_at` | Click deduplication |
@@ -460,10 +460,10 @@ Optimized indexes for monetisation queries:
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/go/:id` | Affiliate redirect with tracking |
-| POST | `/admin/listings/:id/feature` | Set featured status |
-| POST | `/admin/listings/:id/unfeature` | Clear featured status |
-| POST | `/admin/listings/:id/extend_expiry` | Extend job expiry |
+| GET | `/go/:id` | Affiliate redirect with tracking (entry ID) |
+| POST | `/admin/entries/:id/feature` | Set featured status |
+| POST | `/admin/entries/:id/unfeature` | Clear featured status |
+| POST | `/admin/entries/:id/extend_expiry` | Extend job expiry |
 | GET | `/boosts/:id/click` | Boost click tracking with redirect |
 
 ---
@@ -493,7 +493,7 @@ site.boosts_enabled?        # => true/false
 
 ## Future Enhancements
 
-- **Premium listings**: Tiered placement options with different visibility levels
+- **Premium entries**: Tiered placement options with different visibility levels
 - **Subscription plans**: Recurring payment options for ongoing featured placement
 - **Stripe Connect payouts**: Automatic payout processing for Network Boosts
 - **Boost auction system**: Real-time bidding for boost placements
@@ -501,4 +501,4 @@ site.boosts_enabled?        # => true/false
 
 ---
 
-*Last Updated: 2026-01-30*
+*Last Updated: 2026-02-10*

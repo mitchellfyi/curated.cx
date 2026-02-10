@@ -10,11 +10,11 @@ RSpec.describe "Listings", type: :request do
   let!(:category2) { create(:category, :apps, tenant: tenant) }
   let!(:other_tenant_category) { create(:category, tenant: disabled_tenant) }
   let!(:private_tenant_category) { create(:category, tenant: private_tenant) }
-  let!(:listing1) { create(:listing, :published, tenant: tenant, category: category1) }
-  let!(:listing2) { create(:listing, :app_listing, :published, tenant: tenant, category: category2) }
-  let!(:unpublished_listing) { create(:listing, :unpublished, tenant: tenant, category: category1) }
-  let!(:other_tenant_listing) { create(:listing, :published, tenant: disabled_tenant, category: other_tenant_category) }
-  let!(:private_tenant_listing) { create(:listing, :published, tenant: private_tenant, category: private_tenant_category) }
+  let!(:entry1) { create(:entry, :directory, :published, tenant: tenant, category: category1) }
+  let!(:entry2) { create(:entry, :directory, :app_listing, :published, tenant: tenant, category: category2) }
+  let!(:unpublished_entry) { create(:entry, :directory, :unpublished, tenant: tenant, category: category1) }
+  let!(:other_tenant_entry) { create(:entry, :directory, :published, tenant: disabled_tenant, category: other_tenant_category) }
+  let!(:private_tenant_entry) { create(:entry, :directory, :published, tenant: private_tenant, category: private_tenant_category) }
 
   before do
     host! tenant.hostname
@@ -30,32 +30,32 @@ RSpec.describe "Listings", type: :request do
         expect(response).to have_http_status(:success)
       end
 
-      it "assigns all listings for current tenant" do
+      it "assigns all entries for current tenant" do
         get listings_path
-        expect(assigns(:listings)).to include(listing1, listing2)
-        expect(assigns(:listings)).not_to include(other_tenant_listing)
+        expect(assigns(:entries)).to include(entry1, entry2)
+        expect(assigns(:entries)).not_to include(other_tenant_entry)
       end
 
       it "includes category in the query to prevent N+1" do
         # Verify the query includes category association by checking no N+1 occurs
         get listings_path
-        expect(assigns(:listings).first&.association(:category)&.loaded?).to be_truthy if assigns(:listings).present?
+        expect(assigns(:entries).first&.association(:category)&.loaded?).to be_truthy if assigns(:entries).present?
       end
 
-      it "orders listings by published_at desc" do
-        old_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
-        new_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
+      it "orders entries by published_at desc" do
+        old_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
+        new_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
 
         get listings_path
-        listings = assigns(:listings)
-        expect(listings.first).to eq(new_listing)
-        expect(listings.last).to eq(old_listing)
+        entries = assigns(:entries)
+        expect(entries.first).to eq(new_entry)
+        expect(entries.last).to eq(old_entry)
       end
 
-      it "limits listings to 50" do
-        create_list(:listing, 55, :published, tenant: tenant, category: category1)
+      it "limits entries to 50" do
+        create_list(:entry, :directory, 55, :published, tenant: tenant, category: category1)
         get listings_path
-        expect(assigns(:listings).count).to eq(50)
+        expect(assigns(:entries).count).to eq(50)
       end
 
       it "renders the index template" do
@@ -76,10 +76,10 @@ RSpec.describe "Listings", type: :request do
         expect(response).to have_http_status(:success)
       end
 
-      it "assigns all listings for current tenant" do
+      it "assigns all entries for current tenant" do
         get listings_path
-        expect(assigns(:listings)).to include(listing1, listing2)
-        expect(assigns(:listings)).not_to include(other_tenant_listing)
+        expect(assigns(:entries)).to include(entry1, entry2)
+        expect(assigns(:entries)).not_to include(other_tenant_entry)
       end
     end
 
@@ -129,10 +129,10 @@ RSpec.describe "Listings", type: :request do
         expect(response).to have_http_status(:success)
       end
 
-      it "assigns listings for the specific category" do
+      it "assigns entries for the specific category" do
         get category_listings_path(category1)
-        expect(assigns(:listings)).to include(listing1)
-        expect(assigns(:listings)).not_to include(listing2)
+        expect(assigns(:entries)).to include(entry1)
+        expect(assigns(:entries)).not_to include(entry2)
       end
 
       it "assigns the correct category" do
@@ -143,23 +143,23 @@ RSpec.describe "Listings", type: :request do
       it "includes category in the query to prevent N+1" do
         get category_listings_path(category1)
         # Verify that the category association is loaded to prevent N+1 queries
-        expect(assigns(:listings).first.association(:category)).to be_loaded
+        expect(assigns(:entries).first.association(:category)).to be_loaded
       end
 
-      it "orders listings by published_at desc" do
-        old_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
-        new_listing = create(:listing, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
+      it "orders entries by published_at desc" do
+        old_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
+        new_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
 
         get category_listings_path(category1)
-        listings = assigns(:listings)
-        expect(listings.first).to eq(new_listing)
-        expect(listings.last).to eq(old_listing)
+        entries = assigns(:entries)
+        expect(entries.first).to eq(new_entry)
+        expect(entries.last).to eq(old_entry)
       end
 
-      it "limits listings to 50" do
-        create_list(:listing, 55, :published, tenant: tenant, category: category1)
+      it "limits entries to 50" do
+        create_list(:entry, :directory, 55, :published, tenant: tenant, category: category1)
         get category_listings_path(category1)
-        expect(assigns(:listings).count).to eq(50)
+        expect(assigns(:entries).count).to eq(50)
       end
 
       it "renders the index template" do
@@ -194,10 +194,10 @@ RSpec.describe "Listings", type: :request do
         expect(response).to have_http_status(:success)
       end
 
-      it "assigns listings for the specific category" do
+      it "assigns entries for the specific category" do
         get category_listings_path(category1)
-        expect(assigns(:listings)).to include(listing1)
-        expect(assigns(:listings)).not_to include(listing2)
+        expect(assigns(:entries)).to include(entry1)
+        expect(assigns(:entries)).not_to include(entry2)
       end
     end
 
@@ -243,47 +243,47 @@ RSpec.describe "Listings", type: :request do
       before { sign_in regular_user }
 
       it "returns http success" do
-        get listing_path(listing1)
+        get listing_path(entry1)
         expect(response).to have_http_status(:success)
       end
 
-      it "assigns the correct listing" do
-        get listing_path(listing1)
-        expect(assigns(:listing)).to eq(listing1)
+      it "assigns the correct entry" do
+        get listing_path(entry1)
+        expect(assigns(:entry)).to eq(entry1)
       end
 
       it "includes category and tenant in the query to prevent N+1" do
         expect_any_instance_of(ActiveRecord::Relation).to receive(:includes).with(:category, :tenant).and_call_original
-        get listing_path(listing1)
+        get listing_path(entry1)
       end
 
       it "renders the show template" do
-        get listing_path(listing1)
+        get listing_path(entry1)
         expect(response).to render_template(:show)
       end
 
       it "sets correct meta tags" do
-        get listing_path(listing1)
-        expect(response.body).to include(listing1.title)
-        expect(response.body).to include(listing1.description)
-        expect(response.body).to include(listing1.url_canonical)
+        get listing_path(entry1)
+        expect(response.body).to include(entry1.title)
+        expect(response.body).to include(entry1.description)
+        expect(response.body).to include(entry1.url_canonical)
       end
 
       it "sets Open Graph meta tags" do
-        get listing_path(listing1)
-        expect(response.body).to include(listing1.title)
-        expect(response.body).to include(listing1.description)
-        expect(response.body).to include(listing1.image_url) if listing1.image_url.present?
+        get listing_path(entry1)
+        expect(response.body).to include(entry1.title)
+        expect(response.body).to include(entry1.description)
+        expect(response.body).to include(entry1.image_url) if entry1.image_url.present?
       end
 
-        context "when listing belongs to different tenant" do
+        context "when entry belongs to different tenant" do
           it "returns not found" do
-            get listing_path(other_tenant_listing)
+            get listing_path(other_tenant_entry)
             expect(response).to have_http_status(:not_found)
           end
         end
 
-        context "when listing does not exist" do
+        context "when entry does not exist" do
           it "returns not found" do
             get listing_path(999999)
             expect(response).to have_http_status(:not_found)
@@ -293,13 +293,13 @@ RSpec.describe "Listings", type: :request do
 
     context "when user is not signed in" do
       it "allows public access for enabled tenant" do
-        get listing_path(listing1)
+        get listing_path(entry1)
         expect(response).to have_http_status(:success)
       end
 
-      it "assigns the correct listing" do
-        get listing_path(listing1)
-        expect(assigns(:listing)).to eq(listing1)
+      it "assigns the correct entry" do
+        get listing_path(entry1)
+        expect(assigns(:entry)).to eq(entry1)
       end
     end
 
@@ -311,7 +311,7 @@ RSpec.describe "Listings", type: :request do
 
       context "when user is not signed in" do
         it "redirects to sign in" do
-          get listing_path(private_tenant_listing)
+          get listing_path(private_tenant_entry)
           expect(response).to have_http_status(:redirect)
           expect(response).to redirect_to(new_user_session_path)
         end
@@ -321,7 +321,7 @@ RSpec.describe "Listings", type: :request do
         before { sign_in regular_user }
 
         it "allows access" do
-          get listing_path(private_tenant_listing)
+          get listing_path(private_tenant_entry)
           expect(response).to have_http_status(:success)
         end
       end
@@ -334,39 +334,39 @@ RSpec.describe "Listings", type: :request do
       end
 
       it "returns not found" do
-        get listing_path(other_tenant_listing)
+        get listing_path(other_tenant_entry)
         expect(response).to have_http_status(:not_found)
       end
     end
   end
 
   describe "authorization" do
-    it "authorizes listing access for index action" do
-      expect_any_instance_of(ListingPolicy).to receive(:index?).and_return(true)
+    it "authorizes entry access for index action" do
+      expect_any_instance_of(EntryPolicy).to receive(:index?).and_return(true)
       sign_in regular_user
       get listings_path
     end
 
-    it "authorizes listing access for show action" do
-      expect_any_instance_of(ListingPolicy).to receive(:show?).and_return(true)
+    it "authorizes entry access for show action" do
+      expect_any_instance_of(EntryPolicy).to receive(:show?).and_return(true)
       sign_in regular_user
-      get listing_path(listing1)
+      get listing_path(entry1)
     end
   end
 
   describe "policy scoping" do
     before { sign_in regular_user }
 
-    it "scopes listings to current tenant" do
+    it "scopes entries to current tenant" do
       get listings_path
-      listings = assigns(:listings)
-      expect(listings.all? { |l| l.tenant_id == tenant.id }).to be true
+      entries = assigns(:entries)
+      expect(entries.all? { |l| l.tenant_id == tenant.id }).to be true
     end
 
-    it "scopes category listings to current tenant" do
+    it "scopes category entries to current tenant" do
       get category_listings_path(category1)
-      listings = assigns(:listings)
-      expect(listings.all? { |l| l.tenant_id == tenant.id }).to be true
+      entries = assigns(:entries)
+      expect(entries.all? { |l| l.tenant_id == tenant.id }).to be true
     end
   end
 
@@ -380,7 +380,7 @@ RSpec.describe "Listings", type: :request do
       expect(response.body).to include(CGI.escapeHTML(expected_description))
     end
 
-    it "sets correct meta tags for category listings" do
+    it "sets correct meta tags for category entries" do
       get category_listings_path(category1)
       expect(response.body).to include(category1.name)
       expected_description = I18n.t('listings.index.description', category: category1.name, tenant: tenant.title)
@@ -388,26 +388,26 @@ RSpec.describe "Listings", type: :request do
     end
 
     it "sets correct meta tags for show action" do
-      get listing_path(listing1)
-      expect(response.body).to include(CGI.escapeHTML(listing1.title))
-      expect(response.body).to include(CGI.escapeHTML(listing1.description))
-      expect(response.body).to include(listing1.url_canonical)
+      get listing_path(entry1)
+      expect(response.body).to include(CGI.escapeHTML(entry1.title))
+      expect(response.body).to include(CGI.escapeHTML(entry1.description))
+      expect(response.body).to include(entry1.url_canonical)
     end
   end
 
   describe "error handling" do
     before { sign_in regular_user }
 
-    context "when listing does not exist" do
+    context "when entry does not exist" do
       it "returns not found" do
         get listing_path(999999)
         expect(response).to have_http_status(:not_found)
       end
     end
 
-    context "when listing belongs to different tenant" do
+    context "when entry belongs to different tenant" do
       it "returns not found" do
-        get listing_path(other_tenant_listing)
+        get listing_path(other_tenant_entry)
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -436,9 +436,9 @@ RSpec.describe "Listings", type: :request do
       end
     end
 
-    let!(:other_listing) do
+    let!(:other_entry) do
       ActsAsTenant.without_tenant do
-        create(:listing, :published, tenant: other_tenant, site: other_site, category: other_category)
+        create(:entry, :directory, :published, tenant: other_tenant, site: other_site, category: other_category)
       end
     end
 
@@ -447,55 +447,55 @@ RSpec.describe "Listings", type: :request do
       clear_tenant_context  # Clear the main test setup tenant context
     end
 
-    it "does not show listings from other tenants" do
+    it "does not show entries from other tenants" do
       # Make sure the associations are correct
-      expect(other_listing.tenant_id).to eq(other_tenant.id)
+      expect(other_entry.tenant_id).to eq(other_tenant.id)
       expect(other_category.tenant_id).to eq(other_tenant.id)
-      expect(other_listing.category_id).to eq(other_category.id)
+      expect(other_entry.category_id).to eq(other_category.id)
 
       host! other_tenant.hostname
       setup_tenant_context(other_tenant)
 
       get listings_path
       expect(response).to have_http_status(:success)
-      expect(assigns(:listings)).to include(other_listing)
-      expect(assigns(:listings)).not_to include(listing1, listing2)
+      expect(assigns(:entries)).to include(other_entry)
+      expect(assigns(:entries)).not_to include(entry1, entry2)
     end
 
-    it "does not show category listings from other tenants" do
+    it "does not show category entries from other tenants" do
       host! other_tenant.hostname
       setup_tenant_context(other_tenant)
       get category_listings_path(other_category)
-      expect(assigns(:listings)).to include(other_listing)
-      expect(assigns(:listings)).not_to include(listing1, listing2)
+      expect(assigns(:entries)).to include(other_entry)
+      expect(assigns(:entries)).not_to include(entry1, entry2)
     end
 
-    it "does not show individual listings from other tenants" do
+    it "does not show individual entries from other tenants" do
       host! other_tenant.hostname
       setup_tenant_context(other_tenant)
-      get listing_path(other_listing)
-      expect(assigns(:listing)).to eq(other_listing)
+      get listing_path(other_entry)
+      expect(assigns(:entry)).to eq(other_entry)
     end
   end
 
-  describe "published vs unpublished listings" do
+  describe "published vs unpublished entries" do
     before { sign_in regular_user }
 
-    it "shows published listings in index" do
+    it "shows published entries in index" do
       get listings_path
-      expect(assigns(:listings)).to include(listing1, listing2)
-      expect(assigns(:listings)).not_to include(unpublished_listing)
+      expect(assigns(:entries)).to include(entry1, entry2)
+      expect(assigns(:entries)).not_to include(unpublished_entry)
     end
 
-    it "shows published listings in category index" do
+    it "shows published entries in category index" do
       get category_listings_path(category1)
-      expect(assigns(:listings)).to include(listing1)
-      expect(assigns(:listings)).not_to include(unpublished_listing)
+      expect(assigns(:entries)).to include(entry1)
+      expect(assigns(:entries)).not_to include(unpublished_entry)
     end
 
-    it "can show individual unpublished listings" do
-      get listing_path(unpublished_listing)
-      expect(assigns(:listing)).to eq(unpublished_listing)
+    it "can show individual unpublished entries" do
+      get listing_path(unpublished_entry)
+      expect(assigns(:entry)).to eq(unpublished_entry)
     end
   end
 end

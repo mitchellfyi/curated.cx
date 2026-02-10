@@ -11,20 +11,22 @@
 #  user_agent :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  entry_id   :bigint           not null
 #  listing_id :bigint           not null
 #
 # Indexes
 #
 #  index_affiliate_clicks_on_clicked_at       (clicked_at)
+#  index_affiliate_clicks_on_entry_id         (entry_id)
 #  index_affiliate_clicks_on_listing_clicked  (listing_id,clicked_at)
 #  index_affiliate_clicks_on_listing_id       (listing_id)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (listing_id => listings.id)
+#  fk_rails_...  (entry_id => entries.id)
 #
 class AffiliateClick < ApplicationRecord
-  belongs_to :listing
+  belongs_to :entry
 
   validates :clicked_at, presence: true
 
@@ -33,17 +35,17 @@ class AffiliateClick < ApplicationRecord
   scope :today, -> { where(clicked_at: Time.current.beginning_of_day..) }
   scope :this_week, -> { where(clicked_at: 1.week.ago..) }
   scope :this_month, -> { where(clicked_at: 1.month.ago..) }
-  scope :for_site, ->(site_id) { joins(:listing).where(listings: { site_id: site_id }) }
+  scope :for_site, ->(site_id) { joins(:entry).where(entries: { site_id: site_id }) }
 
   # Class methods for analytics
-  def self.count_for_listing(listing_id, since: 30.days.ago)
-    where(listing_id: listing_id, clicked_at: since..).count
+  def self.count_for_entry(entry_id, since: 30.days.ago)
+    where(entry_id: entry_id, clicked_at: since..).count
   end
 
-  def self.count_by_listing(site_id:, since: 30.days.ago)
+  def self.count_by_entry(site_id:, since: 30.days.ago)
     for_site(site_id)
       .where(clicked_at: since..)
-      .group(:listing_id)
+      .group(:entry_id)
       .count
   end
 end

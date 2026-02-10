@@ -41,7 +41,7 @@ RSpec.describe "Admin::Tenants", type: :request do
         stats = assigns(:stats)
         expect(stats).to have_key(:total_tenants)
         expect(stats).to have_key(:total_sites)
-        expect(stats).to have_key(:total_listings)
+        expect(stats).to have_key(:total_entries)
         expect(stats).to have_key(:total_users)
         expect(stats).to have_key(:active_sources)
         expect(stats).to have_key(:failed_imports_today)
@@ -53,7 +53,7 @@ RSpec.describe "Admin::Tenants", type: :request do
         metrics = assigns(:tenant_metrics)
         expect(metrics).to be_a(Hash)
         expect(metrics[tenant1.id]).to have_key(:sites)
-        expect(metrics[tenant1.id]).to have_key(:listings)
+        expect(metrics[tenant1.id]).to have_key(:entries)
         expect(metrics[tenant1.id]).to have_key(:sources)
         expect(metrics[tenant1.id]).to have_key(:failed_imports)
       end
@@ -66,7 +66,7 @@ RSpec.describe "Admin::Tenants", type: :request do
 
       it "displays tenant metrics in the table" do
         get admin_tenants_path
-        expect(response.body).to include("Listings")
+        expect(response.body).to include("Entries")
         expect(response.body).to include("Sources")
       end
     end

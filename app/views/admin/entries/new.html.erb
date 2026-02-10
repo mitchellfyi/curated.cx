@@ -1,0 +1,10 @@
+<div class="py-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <%= link_to "← Back to Entries", admin_entries_path, class: "text-gray-600 hover:underline text-sm" %>
+      <h1 class="mt-4 text-3xl font-bold text-gray-900">New <%= @entry.directory? ? "Directory" : "Feed" %> Entry</h1>
+    </div>
+
+    <%= render "form", entry: @entry %>
+  </div>
+</div>

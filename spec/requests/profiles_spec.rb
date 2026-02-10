@@ -27,8 +27,8 @@ RSpec.describe "Profiles", type: :request do
 
     it "shows user's comments from current site" do
       source = create(:source, site: site)
-      content_item = create(:content_item, :published, site: site, source: source)
-      comment = create(:comment, user: user, content_item: content_item, body: "Test comment")
+      entry = create(:entry, :feed, :published, site: site, source: source)
+      comment = create(:comment, user: user, entry: entry, body: "Test comment")
 
       get profile_path(user)
 

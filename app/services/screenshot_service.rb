@@ -28,8 +28,8 @@ class ScreenshotService
     new(url, width: width, height: height).capture
   end
 
-  def self.capture_for_content_item(content_item)
-    new(content_item.url_canonical).capture_for_content_item(content_item)
+  def self.capture_for_entry(entry)
+    new(entry.url_canonical).capture_for_entry(entry)
   end
 
   def initialize(url, width: DEFAULT_VIEWPORT_WIDTH, height: DEFAULT_VIEWPORT_HEIGHT)
@@ -56,16 +56,16 @@ class ScreenshotService
     raise ScreenshotError, "Screenshot capture failed: #{e.message}"
   end
 
-  def capture_for_content_item(content_item)
+  def capture_for_entry(entry)
     result = capture
-    content_item.update!(
+    entry.update!(
       screenshot_url: result[:screenshot_url],
       screenshot_captured_at: result[:captured_at]
     )
     result
   rescue ScreenshotError => e
-    Rails.logger.warn("ScreenshotService: Failed for content_item #{content_item.id}: #{e.message}")
-    fallback_to_og_image(content_item)
+    Rails.logger.warn("ScreenshotService: Failed for entry #{entry.id}: #{e.message}")
+    fallback_to_og_image(entry)
     nil
   end
 
@@ -133,12 +133,12 @@ class ScreenshotService
     raise ScreenshotError, "Invalid JSON response from screenshot API"
   end
 
-  def fallback_to_og_image(content_item)
-    return unless content_item.og_image_url.present? && content_item.screenshot_url.blank?
+  def fallback_to_og_image(entry)
+    return unless entry.og_image_url.present? && entry.screenshot_url.blank?
 
-    Rails.logger.info("ScreenshotService: Using OG image fallback for content_item #{content_item.id}")
-    content_item.update!(
-      screenshot_url: content_item.og_image_url,
+    Rails.logger.info("ScreenshotService: Using OG image fallback for entry #{entry.id}")
+    entry.update!(
+      screenshot_url: entry.og_image_url,
       screenshot_captured_at: Time.current
     )
   end

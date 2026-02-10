@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# Job to upsert listings from discovered URLs
-# Handles deduplication and race conditions
-class UpsertListingsJob < ApplicationJob
+# Job to upsert directory entries from discovered URLs.
+# Handles deduplication and race conditions.
+class UpsertEntriesJob < ApplicationJob
   queue_as :ingestion
 
   retry_on ActiveRecord::RecordNotUnique, wait: :polynomially_longer, attempts: 5
@@ -17,29 +17,22 @@ class UpsertListingsJob < ApplicationJob
     raise "Category must belong to a site" unless site
     raise "Site tenant mismatch" if site.tenant != tenant
 
-    # Set tenant context
     Current.tenant = tenant
     Current.site = site
 
-    # Canonicalize URL
     canonical_url = UrlCanonicaliser.canonicalize(url_raw)
     return if canonical_url.blank?
 
-    # Check if listing already exists
-    listing = Listing.find_by(site: site, url_canonical: canonical_url)
-    if listing
-      # Update source if provided
-      listing.update(source: source) if source
-      return listing
+    entry = Entry.directory_items.find_by(site: site, url_canonical: canonical_url)
+    if entry
+      entry.update(source: source) if source
+      return entry
     end
 
-    # Create new listing (with retry for race conditions)
-    listing = create_listing_with_retry(tenant, site, category, url_raw, canonical_url, source)
+    entry = create_entry_with_retry(tenant, site, category, url_raw, canonical_url, source)
+    ScrapeMetadataJob.perform_later(entry.id) if entry.persisted?
 
-    # Enqueue metadata scraping
-    ScrapeMetadataJob.perform_later(listing.id) if listing.persisted?
-
-    listing
+    entry
   rescue UrlCanonicaliser::InvalidUrlError => e
     log_job_warning("Invalid URL: #{e.message}", url_raw: url_raw)
     nil
@@ -53,33 +46,32 @@ class UpsertListingsJob < ApplicationJob
 
   private
 
-  def create_listing_with_retry(tenant, site, category, url_raw, canonical_url, source, retries: 5)
+  def create_entry_with_retry(tenant, site, category, url_raw, canonical_url, source, retries: 5)
     retries.times do |attempt|
       begin
-        return Listing.create!(
-          tenant: tenant,
+        return Entry.create!(
           site: site,
+          tenant: tenant,
           category: category,
           source: source,
           url_raw: url_raw,
           url_canonical: canonical_url,
-          title: extract_title_from_url(canonical_url)
+          entry_kind: Entry::ENTRY_KINDS.second,
+          title: extract_title_from_url(canonical_url),
+          raw_payload: {}
         )
       rescue ActiveRecord::RecordNotUnique
-        # Another job created it, fetch it
-        listing = Listing.find_by(site: site, url_canonical: canonical_url)
-        return listing if listing
+        entry = Entry.directory_items.find_by(site: site, url_canonical: canonical_url)
+        return entry if entry
 
-        # If still not found, retry after a brief delay
         sleep(0.1 * (attempt + 1))
       end
     end
 
-    # Final attempt
-    listing = Listing.find_by(tenant: tenant, url_canonical: canonical_url)
-    return listing if listing
+    entry = Entry.directory_items.find_by(tenant: tenant, url_canonical: canonical_url)
+    return entry if entry
 
-    raise "Failed to create or find listing after #{retries} retries"
+    raise "Failed to create or find entry after #{retries} retries"
   end
 
   def extract_title_from_url(url)

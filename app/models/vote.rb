@@ -37,9 +37,9 @@ class Vote < ApplicationRecord
   validates :user_id, uniqueness: { scope: %i[site_id votable_type votable_id], message: "has already voted on this content" }
 
   # Scopes
-  scope :for_content_item, ->(item) { where(votable: item) }
+  scope :for_entry, ->(item) { where(votable: item) }
   scope :for_note, ->(note) { where(votable: note) }
   scope :by_user, ->(user) { where(user: user) }
-  scope :content_items, -> { where(votable_type: "ContentItem") }
+  scope :for_entries, -> { where(votable_type: "Entry") }
   scope :notes, -> { where(votable_type: "Note") }
 end

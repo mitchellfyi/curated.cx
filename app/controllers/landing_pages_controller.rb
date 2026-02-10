@@ -23,7 +23,7 @@ class LandingPagesController < ApplicationController
 
     return if listing_ids.empty?
 
-    @featured_listings = Listing
+    @featured_listings = Entry.directory_items
       .where(id: listing_ids)
       .published
       .not_expired

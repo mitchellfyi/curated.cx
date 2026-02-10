@@ -12,7 +12,7 @@ class Admin::AffiliateClicksController < ApplicationController
 
     @stats = calculate_stats
     @daily_clicks = calculate_daily_clicks
-    @top_listings = calculate_top_listings(limit: 10)
+    @top_entries = calculate_top_entries(limit: 10)
     @categories = Category.order(:name)
 
     set_page_meta_tags(
@@ -28,7 +28,7 @@ class Admin::AffiliateClicksController < ApplicationController
 
     @clicks = base_scope
               .where(clicked_at: @date_range)
-              .includes(listing: :category)
+              .includes(entry: :category)
               .order(clicked_at: :desc)
 
     respond_to do |format|
@@ -43,8 +43,8 @@ class Admin::AffiliateClicksController < ApplicationController
   private
 
   def base_scope
-    scope = AffiliateClick.joins(:listing).where(listings: { site_id: Current.site&.id })
-    scope = scope.where(listings: { category_id: @category_id }) if @category_id.present?
+    scope = AffiliateClick.joins(:entry).where(entries: { site_id: Current.site&.id })
+    scope = scope.where(entries: { category_id: @category_id }) if @category_id.present?
     scope
   end
 
@@ -66,7 +66,7 @@ class Admin::AffiliateClicksController < ApplicationController
   def calculate_stats
     {
       total_clicks: @clicks.count,
-      unique_listings: @clicks.distinct.count(:listing_id),
+      unique_entries: @clicks.distinct.count(:entry_id),
       clicks_today: @clicks.where(clicked_at: Time.current.beginning_of_day..).count,
       clicks_this_week: @clicks.where(clicked_at: 1.week.ago..).count
     }
@@ -78,19 +78,19 @@ class Admin::AffiliateClicksController < ApplicationController
       .count
   end
 
-  def calculate_top_listings(limit:)
-    listing_ids_with_counts = @clicks
-                              .group(:listing_id)
-                              .order(Arel.sql("COUNT(*) DESC"))
-                              .limit(limit)
-                              .pluck(:listing_id, Arel.sql("COUNT(*)"))
+  def calculate_top_entries(limit:)
+    entry_ids_with_counts = @clicks
+                            .group(:entry_id)
+                            .order(Arel.sql("COUNT(*) DESC"))
+                            .limit(limit)
+                            .pluck(:entry_id, Arel.sql("COUNT(*)"))
 
-    listing_ids = listing_ids_with_counts.map(&:first)
-    listings_by_id = Listing.where(id: listing_ids).includes(:category).index_by(&:id)
+    entry_ids = entry_ids_with_counts.map(&:first)
+    entries_by_id = Entry.where(id: entry_ids).includes(:category).index_by(&:id)
 
-    listing_ids_with_counts.map do |listing_id, count|
+    entry_ids_with_counts.map do |entry_id, count|
       {
-        listing: listings_by_id[listing_id],
+        entry: entries_by_id[entry_id],
         click_count: count
       }
     end.compact_blank
@@ -98,14 +98,14 @@ class Admin::AffiliateClicksController < ApplicationController
 
   def generate_csv(clicks)
     CSV.generate(headers: true) do |csv|
-      csv << [ "Date", "Listing", "Category", "URL", "Referrer", "User Agent" ]
+      csv << [ "Date", "Entry", "Category", "URL", "Referrer", "User Agent" ]
 
       clicks.find_each do |click|
         csv << [
           click.clicked_at.strftime("%Y-%m-%d %H:%M:%S"),
-          click.listing.title,
-          click.listing.category&.name,
-          click.listing.url_canonical,
+          click.entry.title,
+          click.entry.category&.name,
+          click.entry.url_canonical,
           click.referrer,
           click.user_agent
         ]

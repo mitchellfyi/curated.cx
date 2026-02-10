@@ -1,9 +1,9 @@
 <% content_for :structured_data do %>
-  <%= json_ld_tag(listing_schema(@listing)) %>
+  <%= json_ld_tag(listing_schema(@entry)) %>
   <%= json_ld_tag(breadcrumb_schema([
     { name: t('nav.categories'), url: categories_url },
-    { name: @listing.category_name, url: category_url(@listing.category) },
-    { name: @listing.title, url: listing_url(@listing) }
+    { name: @entry.category_name, url: category_url(@entry.category) },
+    { name: @entry.title, url: listing_url(@entry) }
   ])) %>
 <% end %>
 
@@ -21,13 +21,13 @@
           <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
           </svg>
-          <%= link_to @listing.category_name, category_path(@listing.category), class: "ml-4 text-gray-400 hover:text-gray-500" %>
+          <%= link_to @entry.category_name, category_path(@entry.category), class: "ml-4 text-gray-400 hover:text-gray-500" %>
         </li>
         <li class="flex">
           <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
           </svg>
-          <span class="ml-4 text-sm font-medium text-gray-500 truncate max-w-xs"><%= @listing.title %></span>
+          <span class="ml-4 text-sm font-medium text-gray-500 truncate max-w-xs"><%= @entry.title %></span>
         </li>
       </ol>
     </nav>
@@ -36,39 +36,39 @@
       <!-- Header -->
       <div class="px-6 py-8 border-b border-gray-200">
         <div class="flex items-center flex-wrap gap-2 mb-4">
-          <%= badge(@listing.category_name, :blue) %>
-          <% if @listing.featured? %>
+          <%= badge(@entry.category_name, :blue) %>
+          <% if @entry.featured? %>
             <%= badge(t('monetisation.badges.featured'), :purple) %>
           <% end %>
-          <%= type_badge(@listing.listing_type) unless @listing.tool? %>
+          <%= type_badge(@entry.category&.category_type) unless @entry.category&.category_type == "tool" %>
         </div>
 
-        <h1 class="text-3xl font-bold text-gray-900 mb-4"><%= @listing.title %></h1>
+        <h1 class="text-3xl font-bold text-gray-900 mb-4"><%= @entry.title %></h1>
 
-        <% if @listing.description.present? %>
-          <p class="text-lg text-gray-600 mb-6"><%= @listing.description %></p>
+        <% if @entry.description.present? %>
+          <p class="text-lg text-gray-600 mb-6"><%= @entry.description %></p>
         <% end %>
 
         <!-- Job Details -->
-        <% if @listing.job? && (@listing.company.present? || @listing.location.present? || @listing.salary_range.present?) %>
+        <% if @entry.category&.category_type == "job" && (@entry.company.present? || @entry.location.present? || @entry.salary_range.present?) %>
           <div class="mb-6 p-4 bg-gray-50 rounded-lg">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <% if @listing.company.present? %>
+              <% if @entry.company.present? %>
                 <div>
                   <dt class="text-xs font-medium text-gray-500 uppercase"><%= t('admin.listings.form.company') %></dt>
-                  <dd class="mt-1 text-sm font-medium text-gray-900"><%= @listing.company %></dd>
+                  <dd class="mt-1 text-sm font-medium text-gray-900"><%= @entry.company %></dd>
                 </div>
               <% end %>
-              <% if @listing.location.present? %>
+              <% if @entry.location.present? %>
                 <div>
                   <dt class="text-xs font-medium text-gray-500 uppercase"><%= t('admin.listings.form.location') %></dt>
-                  <dd class="mt-1 text-sm font-medium text-gray-900"><%= @listing.location %></dd>
+                  <dd class="mt-1 text-sm font-medium text-gray-900"><%= @entry.location %></dd>
                 </div>
               <% end %>
-              <% if @listing.salary_range.present? %>
+              <% if @entry.salary_range.present? %>
                 <div>
                   <dt class="text-xs font-medium text-gray-500 uppercase"><%= t('monetisation.job.salary') %></dt>
-                  <dd class="mt-1 text-sm font-medium text-green-600"><%= @listing.salary_range %></dd>
+                  <dd class="mt-1 text-sm font-medium text-green-600"><%= @entry.salary_range %></dd>
                 </div>
               <% end %>
             </div>
@@ -77,28 +77,28 @@
 
         <div class="flex items-center justify-between flex-wrap gap-4">
           <div class="flex items-center text-sm text-gray-500 flex-wrap gap-x-4 gap-y-1">
-            <span class="font-medium"><%= @listing.domain %></span>
-            <% if @listing.published_at %>
+            <span class="font-medium"><%= @entry.domain %></span>
+            <% if @entry.published_at %>
               <span>•</span>
-              <time datetime="<%= @listing.published_at.iso8601 %>">
-                <%= @listing.published_at.strftime("%B %d, %Y") %>
+              <time datetime="<%= @entry.published_at.iso8601 %>">
+                <%= @entry.published_at.strftime("%B %d, %Y") %>
               </time>
             <% end %>
-            <% if @listing.site_name.present? && @listing.site_name != @listing.domain %>
+            <% if @entry.site_name.present? && @entry.site_name != @entry.domain %>
               <span>•</span>
-              <span><%= @listing.site_name %></span>
+              <span><%= @entry.site_name %></span>
             <% end %>
           </div>
 
           <div class="flex items-center gap-3">
             <%= render "shared/share_buttons",
-                        url: listing_url(@listing),
-                        title: @listing.title,
-                        description: @listing.description,
+                        url: listing_url(@entry),
+                        title: @entry.title,
+                        description: @entry.description,
                         content_type: "listing",
-                        content_id: @listing.id.to_s %>
-            <% if @listing.job? && @listing.apply_url.present? %>
-              <%= link_to @listing.apply_url,
+                        content_id: @entry.id.to_s %>
+            <% if @entry.category&.category_type == "job" && @entry.apply_url.present? %>
+              <%= link_to @entry.apply_url,
                   target: "_blank",
                   rel: "noopener noreferrer",
                   class: button_classes(variant: :success) do %>
@@ -109,7 +109,7 @@
               <% end %>
             <% end %>
             <%# Use affiliate redirect URL if affiliate tracking is enabled, otherwise use canonical URL %>
-            <% visit_url = @listing.has_affiliate? ? affiliate_redirect_path(@listing) : @listing.url_canonical %>
+            <% visit_url = @entry.has_affiliate? ? affiliate_redirect_path(@entry) : @entry.url_canonical %>
             <%= link_to visit_url,
                 target: "_blank",
                 rel: "noopener noreferrer",
@@ -124,58 +124,58 @@
       </div>
 
       <!-- Image -->
-      <% if @listing.image_url.present? %>
+      <% if @entry.image_url.present? %>
         <div class="px-6 py-4">
-          <img src="<%= @listing.image_url %>" alt="<%= @listing.title %>" class="w-full h-auto rounded-lg">
+          <img src="<%= @entry.image_url %>" alt="<%= @entry.title %>" class="w-full h-auto rounded-lg">
         </div>
       <% end %>
 
       <!-- Content -->
-      <% if @listing.body_html.present? %>
+      <% if @entry.body_html.present? %>
         <div class="px-6 py-6">
           <div class="prose max-w-none">
-            <%= sanitize(@listing.body_html, tags: %w[p br strong em ul ol li h1 h2 h3 h4 h5 h6 blockquote a], attributes: %w[href]) %>
+            <%= sanitize(@entry.body_html, tags: %w[p br strong em ul ol li h1 h2 h3 h4 h5 h6 blockquote a], attributes: %w[href]) %>
           </div>
         </div>
-      <% elsif @listing.body_text.present? %>
+      <% elsif @entry.body_text.present? %>
         <div class="px-6 py-6">
           <div class="prose max-w-none">
-            <%= simple_format(@listing.body_text) %>
+            <%= simple_format(@entry.body_text) %>
           </div>
         </div>
       <% end %>
 
       <!-- AI Summaries (if present) -->
-      <% if @listing.ai_summaries.present? && @listing.ai_summaries.any? %>
+      <% if @entry.ai_summaries.present? && @entry.ai_summaries.any? %>
         <div class="px-6 py-6 border-t border-gray-200 bg-gray-50">
           <h3 class="text-lg font-medium text-gray-900 mb-4">AI Summary</h3>
-          <% if @listing.ai_summaries['short'].present? %>
+          <% if @entry.ai_summaries['short'].present? %>
             <div class="mb-3">
               <h4 class="text-sm font-medium text-gray-700 mb-1">Quick Summary</h4>
-              <p class="text-sm text-gray-600"><%= @listing.ai_summaries['short'] %></p>
+              <p class="text-sm text-gray-600"><%= @entry.ai_summaries['short'] %></p>
             </div>
           <% end %>
-          <% if @listing.ai_summaries['medium'].present? %>
+          <% if @entry.ai_summaries['medium'].present? %>
             <div class="mb-3">
               <h4 class="text-sm font-medium text-gray-700 mb-1">Overview</h4>
-              <p class="text-sm text-gray-600"><%= @listing.ai_summaries['medium'] %></p>
+              <p class="text-sm text-gray-600"><%= @entry.ai_summaries['medium'] %></p>
             </div>
           <% end %>
-          <% if @listing.ai_summaries['long'].present? %>
+          <% if @entry.ai_summaries['long'].present? %>
             <div>
               <h4 class="text-sm font-medium text-gray-700 mb-1">Detailed Summary</h4>
-              <div class="text-sm text-gray-600"><%= simple_format(@listing.ai_summaries['long']) %></div>
+              <div class="text-sm text-gray-600"><%= simple_format(@entry.ai_summaries['long']) %></div>
             </div>
           <% end %>
         </div>
       <% end %>
 
       <!-- Tags (if present) -->
-      <% if @listing.ai_tags.present? && @listing.ai_tags['keywords'].present? %>
+      <% if @entry.ai_tags.present? && @entry.ai_tags['keywords'].present? %>
         <div class="px-6 py-4 border-t border-gray-200">
           <h3 class="text-sm font-medium text-gray-700 mb-2">Tags</h3>
           <div class="flex flex-wrap gap-2">
-            <% @listing.ai_tags['keywords'].each do |tag| %>
+            <% @entry.ai_tags['keywords'].each do |tag| %>
               <%= badge(tag, :gray) %>
             <% end %>
           </div>
@@ -186,11 +186,11 @@
 
     <!-- Back Navigation -->
     <div class="mt-8">
-      <%= link_to category_path(@listing.category), class: "inline-flex items-center text-blue-600 hover:text-blue-500" do %>
+      <%= link_to category_path(@entry.category), class: "inline-flex items-center text-blue-600 hover:text-blue-500" do %>
         <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
-        <%= t('actions.back') %> to <%= @listing.category_name %>
+        <%= t('actions.back') %> to <%= @entry.category_name %>
       <% end %>
     </div>
   </div>

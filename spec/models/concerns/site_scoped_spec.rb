@@ -137,18 +137,18 @@ RSpec.describe SiteScoped, type: :model do
       end
 
       context "when model does not include TenantScoped" do
-        # ContentItem includes SiteScoped but not TenantScoped
+        # Entry (feed kind) includes SiteScoped but not TenantScoped
         it "does not attempt to set tenant" do
           ActsAsTenant.without_tenant do
             source = create(:source, site: site1, tenant: tenant1)
-            # ContentItem does not have a tenant attribute
-            content_item = ContentItem.new(
+            # Entry does not have a tenant attribute for feed kind
+            entry = Entry.new(
               site: site1,
               source: source,
               url_canonical: "https://example.com/article",
               title: "Test Article"
             )
-            expect { content_item.valid? }.not_to raise_error
+            expect { entry.valid? }.not_to raise_error
           end
         end
       end
@@ -189,19 +189,19 @@ RSpec.describe SiteScoped, type: :model do
       end
 
       context "when model does not include TenantScoped" do
-        # ContentItem includes SiteScoped but not TenantScoped
+        # Entry (feed kind) includes SiteScoped but not TenantScoped
         it "skips tenant consistency validation" do
           ActsAsTenant.without_tenant do
             source = create(:source, site: site1, tenant: tenant1)
-            content_item = ContentItem.new(
+            entry = Entry.new(
               site: site1,
               source: source,
               url_canonical: "https://example.com/article",
               title: "Test Article"
             )
-            content_item.valid?
+            entry.valid?
             # Should not have site tenant consistency error (no tenant attribute)
-            expect(content_item.errors[:site]).not_to include("must belong to the same tenant")
+            expect(entry.errors[:site]).not_to include("must belong to the same tenant")
           end
         end
       end

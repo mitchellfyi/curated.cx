@@ -25,7 +25,7 @@ RSpec.describe "Sitemaps", type: :request do
 
       expect(response.body).to include("sitemapindex")
       expect(response.body).to include("sitemap/main")
-      expect(response.body).to include("sitemap/listings")
+      expect(response.body).to include("sitemap/entries")
       expect(response.body).to include("sitemap/content")
     end
   end
@@ -54,13 +54,13 @@ RSpec.describe "Sitemaps", type: :request do
     end
   end
 
-  describe "GET /sitemap/listings.xml" do
+  describe "GET /sitemap/entries.xml" do
     let!(:published_listing) do
-      create(:listing, site: site, category: category, published_at: 1.day.ago)
+      create(:entry, :directory, site: site, category: category, published_at: 1.day.ago)
     end
 
     let!(:unpublished_listing) do
-      create(:listing, site: site, category: category, published_at: nil)
+      create(:entry, :directory, site: site, category: category, published_at: nil)
     end
 
     it "returns XML urlset" do
@@ -70,13 +70,13 @@ RSpec.describe "Sitemaps", type: :request do
       expect(response.content_type).to include("application/xml")
     end
 
-    it "includes published listings" do
+    it "includes published entries" do
       get sitemap_listings_path(format: :xml)
 
       expect(response.body).to include(listing_url(published_listing))
     end
 
-    it "excludes unpublished listings" do
+    it "excludes unpublished entries" do
       get sitemap_listings_path(format: :xml)
 
       expect(response.body).not_to include(listing_url(unpublished_listing))
@@ -86,11 +86,11 @@ RSpec.describe "Sitemaps", type: :request do
   describe "GET /sitemap/content.xml" do
     let(:source) { create(:source, site: site) }
     let!(:published_content) do
-      create(:content_item, :published, site: site, source: source)
+      create(:entry, :feed, :published, site: site, source: source)
     end
 
     let!(:hidden_content) do
-      create(:content_item, :published, :hidden, site: site, source: source)
+      create(:entry, :feed, :published, :hidden, site: site, source: source)
     end
 
     it "returns XML urlset" do

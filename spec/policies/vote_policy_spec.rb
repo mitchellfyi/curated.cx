@@ -8,8 +8,8 @@ RSpec.describe VotePolicy, type: :policy do
   let(:tenant) { create(:tenant) }
   let(:site) { tenant.sites.first || create(:site, tenant: tenant) }
   let(:source) { create(:source, site: site) }
-  let(:content_item) { create(:content_item, site: site, source: source) }
-  let(:vote) { build(:vote, content_item: content_item, user: user, site: site) }
+  let(:entry) { create(:entry, :feed, site: site, source: source) }
+  let(:vote) { build(:vote, entry: entry, user: user, site: site) }
 
   before do
     allow(Current).to receive(:site).and_return(site)
@@ -55,7 +55,7 @@ RSpec.describe VotePolicy, type: :policy do
   end
 
   describe "#destroy?" do
-    let!(:existing_vote) { create(:vote, content_item: content_item, user: user, site: site) }
+    let!(:existing_vote) { create(:vote, entry: entry, user: user, site: site) }
 
     context "when user owns the vote and is not banned" do
       it "allows destroying the vote" do
@@ -121,7 +121,7 @@ RSpec.describe VotePolicy, type: :policy do
 
   describe "Scope" do
     let(:policy_scope) { described_class::Scope.new(user, Vote.unscoped) }
-    let!(:our_vote) { create(:vote, content_item: content_item, user: user, site: site) }
+    let!(:our_vote) { create(:vote, entry: entry, user: user, site: site) }
 
     context "when Current.site is present" do
       before do
@@ -130,8 +130,8 @@ RSpec.describe VotePolicy, type: :policy do
           other_tenant = create(:tenant)
           other_site = other_tenant.sites.first
           other_source = create(:source, site: other_site, tenant: other_tenant)
-          other_content_item = create(:content_item, site: other_site, source: other_source)
-          create(:vote, content_item: other_content_item, user: create(:user), site: other_site)
+          other_content_item = create(:entry, :feed, site: other_site, source: other_source)
+          create(:vote, entry: other_content_item, user: create(:user), site: other_site)
         end
         allow(Current).to receive(:site).and_return(site)
       end

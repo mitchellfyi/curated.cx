@@ -6,7 +6,7 @@ RSpec.describe RefreshMetadataJob, type: :job do
   include ActiveJob::TestHelper
 
   before do
-    allow_any_instance_of(ContentItem).to receive(:enqueue_enrichment_pipeline)
+    allow_any_instance_of(Entry).to receive(:enqueue_enrichment_pipeline)
   end
 
   describe "queue configuration" do
@@ -20,19 +20,19 @@ RSpec.describe RefreshMetadataJob, type: :job do
     let(:source) { create(:source, site: site) }
 
     context "with stale enriched items" do
-      let!(:stale_item) { create(:content_item, :enrichment_stale, site: site, source: source) }
-      let!(:fresh_item) { create(:content_item, :enrichment_complete, site: site, source: source) }
+      let!(:stale_item) { create(:entry, :feed, :enrichment_stale, site: site, source: source) }
+      let!(:fresh_item) { create(:entry, :feed, :enrichment_complete, site: site, source: source) }
 
-      it "enqueues EnrichContentItemJob for stale items" do
+      it "enqueues EnrichEntryJob for stale items" do
         expect {
           described_class.perform_now
-        }.to have_enqueued_job(EnrichContentItemJob).with(stale_item.id)
+        }.to have_enqueued_job(EnrichEntryJob).with(stale_item.id)
       end
 
       it "does not enqueue for fresh items" do
         described_class.perform_now
 
-        expect(EnrichContentItemJob).not_to have_been_enqueued.with(fresh_item.id)
+        expect(EnrichEntryJob).not_to have_been_enqueued.with(fresh_item.id)
       end
 
       it "resets enrichment status for stale items" do
@@ -46,12 +46,12 @@ RSpec.describe RefreshMetadataJob, type: :job do
       it "does not enqueue any jobs" do
         expect {
           described_class.perform_now
-        }.not_to have_enqueued_job(EnrichContentItemJob)
+        }.not_to have_enqueued_job(EnrichEntryJob)
       end
     end
 
     context "with custom stale interval" do
-      let!(:item) { create(:content_item, :enrichment_complete, site: site, source: source) }
+      let!(:item) { create(:entry, :feed, :enrichment_complete, site: site, source: source) }
 
       before do
         # Make enriched_at 8 days ago
@@ -61,7 +61,7 @@ RSpec.describe RefreshMetadataJob, type: :job do
       it "uses the custom interval" do
         expect {
           described_class.perform_now(stale_interval: 7.days)
-        }.to have_enqueued_job(EnrichContentItemJob).with(item.id)
+        }.to have_enqueued_job(EnrichEntryJob).with(item.id)
       end
     end
   end

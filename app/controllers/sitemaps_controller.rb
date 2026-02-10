@@ -111,26 +111,26 @@ class SitemapsController < ApplicationController
   end
 
   def sitemap_listings
-    Listing
-           .published
-           .not_expired
-           .order(:id)
-           .limit(MAX_URLS_PER_SITEMAP)
+    Entry.directory_items
+         .published
+         .not_expired
+         .order(:id)
+         .limit(MAX_URLS_PER_SITEMAP)
   end
 
   def content_items
-    ContentItem
-               .published
-               .not_hidden
-               .order(:id)
-               .limit(MAX_URLS_PER_SITEMAP)
+    Entry.feed_items
+         .published
+         .not_hidden
+         .order(:id)
+         .limit(MAX_URLS_PER_SITEMAP)
   end
 
   def latest_listing_date
-    Listing.published.maximum(:updated_at) || Time.current
+    Entry.directory_items.published.maximum(:updated_at) || Time.current
   end
 
   def latest_content_date
-    ContentItem.published.maximum(:updated_at) || Time.current
+    Entry.feed_items.published.maximum(:updated_at) || Time.current
   end
 end

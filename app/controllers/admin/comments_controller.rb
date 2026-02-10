@@ -71,7 +71,7 @@ module Admin
         visible: Comment.where(hidden_at: nil).count,
         hidden: Comment.where.not(hidden_at: nil).count,
         this_week: Comment.where("created_at > ?", 1.week.ago).count,
-        on_content_items: Comment.where(commentable_type: "ContentItem").count,
+        on_entries: Comment.where(commentable_type: "Entry").count,
         on_notes: Comment.where(commentable_type: "Note").count
       }
     end

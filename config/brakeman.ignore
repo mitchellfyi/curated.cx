@@ -17,7 +17,7 @@
       "note": "Intentional: Redirect to signed S3 URL for secure file downloads. Token validation ensures authorized access."
     },
     {
-      "fingerprint": "8dddb9413a799c52607edff5bfa864c964dc9381b617a2e3949bafd835cc07eb",
+      "fingerprint": "ab1bf25afcda15d4e314fbfbf89b1d04552bf9b762a8e1d4316e659bb5f357d4",
       "note": "False positive: Consolidated dashboard stats query uses only hardcoded keys and .to_sql from model scopes, no user input"
     }
   ],

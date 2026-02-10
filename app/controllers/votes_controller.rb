@@ -9,7 +9,7 @@ class VotesController < ApplicationController
   private
 
   def set_votable
-    @votable = ContentItem.find(params[:id])
+    @votable = Entry.find(params[:id])
   end
 
   def votable_dom_id
@@ -21,7 +21,7 @@ class VotesController < ApplicationController
   end
 
   def votable_partial_locals
-    { content_item: @votable, voted: @voted }
+    { entry: @votable, voted: @voted }
   end
 
   def votable_fallback_location

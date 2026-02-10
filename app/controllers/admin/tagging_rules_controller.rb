@@ -49,7 +49,7 @@ class Admin::TaggingRulesController < ApplicationController
   end
 
   def test
-    @content_items = ContentItem.without_site_scope.where(site: Current.site).limit(10)
+    @content_items = Entry.feed_items.without_site_scope.where(site: Current.site).limit(10)
     @results = @content_items.map do |item|
       {
         content_item: item,
