@@ -109,21 +109,21 @@
       </div>
     </div>
 
-    <!-- Recent Listings -->
-    <% if @recent_listings.any? %>
+    <!-- Recent Entries -->
+    <% if @recent_entries.any? %>
       <div class="mt-8 bg-white shadow rounded-lg">
         <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Listings</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Entries</h3>
         </div>
         <ul class="divide-y divide-gray-200">
-          <% @recent_listings.each do |listing| %>
+          <% @recent_entries.each do |entry| %>
             <li class="px-4 py-4 sm:px-6">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-900 truncate" style="max-width: 500px;"><%= listing.title %></p>
-                  <p class="text-xs text-gray-500"><%= listing.site&.name %> · <%= time_ago_in_words(listing.created_at) %> ago</p>
+                  <p class="text-sm font-medium text-gray-900 truncate" style="max-width: 500px;"><%= entry.title %></p>
+                  <p class="text-xs text-gray-500"><%= entry.site&.name %> · <%= time_ago_in_words(entry.created_at) %> ago</p>
                 </div>
-                <%= link_to "View", admin_listing_path(listing), class: "text-blue-600 hover:underline text-sm" %>
+                <%= link_to "View", admin_entry_path(entry), class: "text-blue-600 hover:underline text-sm" %>
               </div>
             </li>
           <% end %>

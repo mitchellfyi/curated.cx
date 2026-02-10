@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_010439) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -57,14 +57,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_010439) do
     t.datetime "created_at", null: false
     t.bigint "entry_id", null: false
     t.string "ip_hash"
-    t.bigint "listing_id", null: false
     t.text "referrer"
     t.datetime "updated_at", null: false
     t.string "user_agent"
     t.index ["clicked_at"], name: "index_affiliate_clicks_on_clicked_at"
     t.index ["entry_id"], name: "index_affiliate_clicks_on_entry_id"
-    t.index ["listing_id", "clicked_at"], name: "index_affiliate_clicks_on_listing_clicked"
-    t.index ["listing_id"], name: "index_affiliate_clicks_on_listing_id"
   end
 
   create_table "bookmarks", force: :cascade do |t|
@@ -343,7 +340,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_010439) do
     t.jsonb "affiliate_attribution", default: {}, null: false
     t.text "affiliate_url_template"
     t.jsonb "ai_suggested_tags", default: [], null: false
+    t.jsonb "ai_summaries", default: {}, null: false
     t.text "ai_summary"
+    t.jsonb "ai_tags", default: {}, null: false
     t.text "apply_url"
     t.string "audience_tags", default: [], array: true
     t.string "author_name"
@@ -373,6 +372,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_010439) do
     t.bigint "hidden_by_id"
     t.text "image_url"
     t.jsonb "key_takeaways", default: []
+    t.integer "listing_type", default: 0, null: false
     t.string "location"
     t.jsonb "metadata", default: {}, null: false
     t.string "og_image_url"
@@ -422,6 +422,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_010439) do
     t.index ["site_id", "entry_kind", "url_canonical"], name: "index_entries_on_site_kind_canonical", unique: true
     t.index ["site_id", "expires_at"], name: "index_entries_on_site_expires_at"
     t.index ["site_id", "featured_from", "featured_until"], name: "index_entries_on_site_featured_dates"
+    t.index ["site_id", "listing_type"], name: "index_entries_on_site_id_and_listing_type"
     t.index ["site_id", "published_at"], name: "index_entries_on_site_id_published_at_desc", order: { published_at: :desc }
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["source_id", "created_at"], name: "index_entries_on_source_id_and_created_at"

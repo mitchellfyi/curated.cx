@@ -2,7 +2,7 @@
 <div class="max-w-3xl mx-auto px-4 py-8">
   <%# Breadcrumb %>
   <nav class="mb-6">
-    <%= link_to content_item_comments_path(@content_item), class: "text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1" do %>
+    <%= link_to entry_comments_path(@entry), class: "text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1" do %>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
       </svg>
@@ -13,8 +13,8 @@
   <%# Content item context %>
   <div class="mb-6 text-sm text-gray-500">
     <%= t('comments.on_content') %>
-    <%= link_to @content_item.title || t('feed.content.untitled'),
-                safe_external_url(@content_item.url_canonical),
+    <%= link_to @entry.title || t('feed.content.untitled'),
+                safe_external_url(@entry.url_canonical),
                 target: "_blank",
                 rel: "noopener noreferrer",
                 class: "text-blue-600 hover:text-blue-800" %>

@@ -120,7 +120,7 @@ RSpec.describe StructuredDataHelper, type: :helper do
   end
 
   describe "#item_list_schema" do
-    let(:entries) { create_list(:entry, :directory, 3, site: site, category: category) }
+    let(:entries) { create_list(:entry, 3, :directory, site: site, category: category) }
 
     it "returns item list schema" do
       result = helper.item_list_schema(entries, list_name: "Top Tools")

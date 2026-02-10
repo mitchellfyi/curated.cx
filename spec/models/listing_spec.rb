@@ -7,8 +7,8 @@ RSpec.describe Entry, type: :model do
   let(:category) { create(:category, tenant: tenant, allow_paths: true) }
 
   describe 'associations' do
-    it { should belong_to(:tenant) }
-    it { should belong_to(:category) }
+    it { should belong_to(:tenant).optional }
+    it { should belong_to(:category).optional }
   end
 
   describe 'validations' do

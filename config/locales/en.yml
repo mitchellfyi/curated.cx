@@ -111,7 +111,6 @@ en:
       description: Description
       title: Title
       uncategorized: Uncategorized
-      view_all_entries: View all entries
     digest_subscriptions:
       back_to_list: Back to Subscribers
       confirm_send_digest: Send %{frequency} digest to all due subscribers?
@@ -258,26 +257,6 @@ en:
         primary: Primary
         sites_breadcrumb: Sites
       updated: Domain updated successfully
-    entries:
-      bulk_deleted: "%{count} entries deleted"
-      bulk_editorialise: "%{count} entries queued for editorialisation"
-      bulk_enrich: "%{count} entries queued for enrichment"
-      bulk_published: "%{count} entries published"
-      bulk_unpublished: "%{count} entries unpublished"
-      created: Entry created
-      deleted: Entry deleted
-      editorialise_queued: Editorialisation queued
-      enrich_queued: Enrichment queued
-      expiry_extended: Entry expiry has been extended
-      featured: Entry has been featured
-      no_items_selected: No entries selected
-      published: Entry published
-      published_now: Entry published
-      unfeatured: Entry is no longer featured
-      unknown_action: Unknown action
-      unpublished: Entry unpublished
-      unscheduled: Entry schedule cancelled
-      updated: Entry updated
     editorialisations:
       actions: Actions
       ai_model: AI Model
@@ -286,15 +265,14 @@ en:
       all: All
       back_to_list: Back to List
       cannot_retry: Can only retry failed or skipped editorialisations
-      entry: Entry
       created: Created
       description: View AI editorialisation audit logs and results
       details: Details
       duration: Duration
       empty: No editorialisations
       empty_description: Editorialisations will appear here after content is processed.
+      entry: Entry
       error: Error
-      for_entry: For entry
       prompt_text: Prompt Text
       prompt_version: Prompt Version
       raw_response: Raw Response
@@ -366,6 +344,26 @@ en:
         subject: Subject
       new: New Email Step
       updated: Email step updated successfully.
+    entries:
+      bulk_deleted: "%{count} entries deleted"
+      bulk_editorialise: "%{count} entries queued for editorialisation"
+      bulk_enrich: "%{count} entries queued for enrichment"
+      bulk_published: "%{count} entries published"
+      bulk_unpublished: "%{count} entries unpublished"
+      created: Entry created
+      deleted: Entry deleted
+      editorialise_queued: Editorialisation queued
+      enrich_queued: Enrichment queued
+      expiry_extended: Entry expiry has been extended
+      featured: Entry has been featured
+      no_items_selected: No entries selected
+      published: Entry published
+      published_now: Entry published
+      unfeatured: Entry is no longer featured
+      unknown_action: Unknown action
+      unpublished: Entry unpublished
+      unscheduled: Entry schedule cancelled
+      updated: Entry updated
     flags:
       back_to_queue: Back to Moderation Queue
       content: Content
@@ -402,11 +400,7 @@ en:
     listings:
       affiliate: Affiliate
       affiliate_enabled: Affiliate Enabled
-      created: Created
       currently_featured: Currently Featured
-      deleted: Deleted
-      expiry_extended: Listing expiry has been extended
-      featured: Listing has been featured
       form:
         affiliate_settings: Affiliate Settings
         affiliate_url_template: Affiliate URL Template
@@ -443,7 +437,6 @@ en:
         tool: Tool
       no_affiliate: No Affiliate
       not_featured: Not Featured
-      published_now: Listing published
       scheduling:
         currently_scheduled: This listing is scheduled to publish at %{time}
         not_scheduled_hint: Use the edit form to schedule this listing for later
@@ -465,9 +458,6 @@ en:
         paid: Paid
         published: Published
         scheduled: Scheduled
-      unfeatured: Listing is no longer featured
-      unscheduled: Listing schedule cancelled
-      updated: Updated
     live_streams:
       actions:
         delete: Delete
@@ -710,8 +700,8 @@ en:
       edit_page:
         danger_zone: Danger Zone
         delete: Delete Source
-        delete_warning: Once you delete a source, all import runs and entries
-          from this source will be deleted. This action cannot be undone.
+        delete_warning: Once you delete a source, all import runs and entries from
+          this source will be deleted. This action cannot be undone.
         title: Edit Source
       enabled: Enabled
       form:
@@ -1027,7 +1017,6 @@ en:
     title: My Saves
     types:
       content: Content
-      directory: Directory
   boosts:
     sponsored: Sponsored
     visit_site: Visit Site
@@ -1055,12 +1044,10 @@ en:
     stripe_not_configured: Payment processing is not configured. Please contact support.
     subtitle: Select a payment option below
     success: Payment successful! Thank you for your purchase.
-    success_message: Your payment was processed successfully. Your entry is now
-      active.
+    success_message: Your payment was processed successfully. Your entry is now active.
     success_title: Payment Successful
     title: Checkout
     try_again: Try Again
-    view_entry: View Entry
   comments:
     back_to_comments: Back to comments
     back_to_feed: Back to feed
@@ -1097,12 +1084,12 @@ en:
     save: Save
     view: View
   counts:
-    item:
-      one: "%{count} item"
-      other: "%{count} items"
     entry:
       one: "%{count} entry"
       other: "%{count} entries"
+    item:
+      one: "%{count} item"
+      other: "%{count} items"
   dashboard:
     account_settings: Account Settings
     browse_content: Browse content
@@ -1146,7 +1133,6 @@ en:
       sent_to: Sent to %{email}
       unsubscribe: Unsubscribe
     sections:
-      new_entries: New Entries
       recommended_for_you: Recommended for You
       todays_highlights: Today's Highlights
       top_content: Top Content
@@ -1596,7 +1582,7 @@ en:
       visit: Visit
     stats:
       articles: Articles
-      entries: Entries
+      listings: Listings
       sites: Sites
     trending:
       title: Trending Sites
@@ -1644,7 +1630,6 @@ en:
     greeting: Thank you for your payment!
     header: Payment Receipt
     job_post_active: Your job posting is now live and will be visible to job seekers.
-    entry: Entry
     next_steps: 'What happens next:'
     payment_id: Payment ID
     purchase_type: Purchase Type
@@ -1821,7 +1806,6 @@ en:
       title: 'Submission: %{title}'
       type: Type
       url: URL
-      view_entry: View published entry
     status:
       approved: Approved
       pending: Pending Review

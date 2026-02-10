@@ -43,7 +43,7 @@
           <%= link_to t('search.types.content'),
                       search_path(q: @query, type: 'content'),
                       class: "px-3 py-1.5 text-sm border-l border-gray-200 #{@type_filter == 'content' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}" %>
-          <%= link_to t('search.types.listings'),
+          <%= link_to t('search.types.directory'),
                       search_path(q: @query, type: 'listings'),
                       class: "px-3 py-1.5 text-sm border-l border-gray-200 #{@type_filter == 'listings' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}" %>
         </div>
@@ -102,7 +102,7 @@
       <% if @listings.any? %>
         <div class="mb-8">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            <%= t('search.sections.listings') %>
+            <%= t('search.sections.directory') %>
             <span class="text-sm font-normal text-gray-500">(<%= @listings.size %>)</span>
           </h2>
           <div class="space-y-4">

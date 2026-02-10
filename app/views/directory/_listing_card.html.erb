@@ -1,0 +1,43 @@
+<%# Compact listing card for homepage display %>
+<article class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-sm transition-shadow">
+  <div class="flex items-start justify-between">
+    <div class="flex-1 min-w-0">
+      <%# Badges row %>
+      <div class="flex items-center flex-wrap gap-2 mb-2">
+        <%= badge(listing.category_name, :blue) %>
+        <% if listing.featured? %>
+          <%= badge(t('monetisation.badges.featured'), :purple) %>
+        <% end %>
+        <%= type_badge(listing.category&.category_type) unless listing.category&.category_type == "tool" %>
+      </div>
+
+      <%# Title %>
+      <h4 class="font-medium text-gray-900 line-clamp-2 mb-1">
+        <%= link_to listing.title, listing_path(listing), class: "hover:text-blue-600" %>
+      </h4>
+
+      <%# Description %>
+      <% if listing.description.present? %>
+        <p class="text-sm text-gray-600 line-clamp-2 mb-2">
+          <%= truncate(listing.description, length: 100) %>
+        </p>
+      <% end %>
+
+      <%# Meta info %>
+      <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+        <span class="font-medium"><%= listing.domain %></span>
+        <% if listing.published_at %>
+          <time datetime="<%= listing.published_at.iso8601 %>">
+            <%= t('time.ago', time: time_ago_in_words(listing.published_at)) %>
+          </time>
+        <% end %>
+        <% if listing.category&.category_type == "job" && listing.company.present? %>
+          <span><%= listing.company %></span>
+        <% end %>
+        <% if listing.category&.category_type == "job" && listing.salary_range.present? %>
+          <span class="text-green-600"><%= listing.salary_range %></span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</article>

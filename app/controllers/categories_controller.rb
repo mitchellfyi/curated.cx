@@ -6,7 +6,7 @@ class CategoriesController < ApplicationController
 
   def index
     authorize Category
-    @categories = policy_scope(Category).includes(:listings).order(:name)
+    @categories = policy_scope(Category).includes(:entries).order(:name)
 
     set_page_meta_tags(
       title: t("categories.index.title"),
@@ -16,9 +16,9 @@ class CategoriesController < ApplicationController
 
   def show
     authorize @category
-    @listings = policy_scope(@category.listings.includes(:category))
-                       .published_recent
-                       .limit(20)
+    @entries = policy_scope(@category.entries.includes(:category))
+                      .published.recent
+                      .limit(20)
 
     set_category_meta_tags(@category)
   end

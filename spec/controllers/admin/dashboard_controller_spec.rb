@@ -66,17 +66,17 @@ RSpec.describe Admin::DashboardController, type: :controller do
       end
 
       it 'calculates correct stats' do
-        create(:category, tenant: tenant)
-        create(:entry, :directory, :published, tenant: tenant)
-        create(:entry, :directory, :unpublished, tenant: tenant)
-        create(:entry, :directory, :published, tenant: tenant, created_at: Time.current)
+        category = create(:category, tenant: tenant)
+        create(:entry, :directory, :published, category: category)
+        create(:entry, :directory, :unpublished, category: category)
+        create(:entry, :directory, :published, category: category, created_at: Time.current)
 
         get :index
         stats = assigns(:stats)
 
         expect(stats[:total_categories]).to eq(1)
-        expect(stats[:published_entries]).to eq(2)
-        expect(stats[:entries_today]).to eq(1)
+        expect(stats[:published_listings]).to eq(2)
+        expect(stats[:listings_today]).to eq(2)
       end
 
       it 'sets correct meta tags' do
@@ -162,6 +162,7 @@ RSpec.describe Admin::DashboardController, type: :controller do
         Current.site = other_site
         ActsAsTenant.current_tenant = other_tenant
         Entry.create!(
+          entry_kind: "directory",
           tenant: other_tenant,
           site: other_site,
           category: other_tenant_category,

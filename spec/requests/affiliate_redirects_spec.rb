@@ -70,7 +70,7 @@ RSpec.describe 'Affiliate Redirects', type: :request do
       it 'redirects to root with alert' do
         get affiliate_redirect_path(id: 999_999)
         expect(response).to redirect_to(root_path)
-        expect(flash[:alert]).to eq(I18n.t('affiliate.listing_not_found'))
+        expect(flash[:alert]).to eq(I18n.t('affiliate.entry_not_found'))
       end
 
       it 'does not track a click' do
@@ -98,7 +98,7 @@ RSpec.describe 'Affiliate Redirects', type: :request do
       it 'redirects to root with alert' do
         get affiliate_redirect_path(other_listing)
         expect(response).to redirect_to(root_path)
-        expect(flash[:alert]).to eq(I18n.t('affiliate.listing_not_found'))
+        expect(flash[:alert]).to eq(I18n.t('affiliate.entry_not_found'))
       end
     end
 

@@ -17,7 +17,7 @@ RSpec.describe "Feeds", type: :request do
   describe "GET /feeds/content" do
     let!(:entries) do
       # Factory defaults have published_at set and hidden_at nil
-      create_list(:entry, :feed, 3, source: source)
+      create_list(:entry, 3, :feed, source: source)
     end
 
     context "with RSS format" do
@@ -65,7 +65,7 @@ RSpec.describe "Feeds", type: :request do
   describe "GET /feeds/entries" do
     let!(:entries) do
       # Factory defaults create published entries (published_at is set)
-      create_list(:entry, :directory, 3, site: site, category: category)
+      create_list(:entry, 3, :directory, site: site, category: category)
     end
 
     context "with RSS format" do
@@ -109,7 +109,7 @@ RSpec.describe "Feeds", type: :request do
 
   describe "GET /feeds/categories/:id" do
     let!(:category_listings) do
-      create_list(:entry, :directory, 3, site: site, category: category)
+      create_list(:entry, 3, :directory, site: site, category: category)
     end
 
     context "with RSS format" do

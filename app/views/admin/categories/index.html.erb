@@ -23,11 +23,11 @@
       </div>
       <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Total Listings</dt>
-        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @categories.sum { |c| c.listings.size } %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-blue-600"><%= @categories.sum { |c| c.entries.size } %></dd>
       </div>
       <div class="bg-white overflow-hidden shadow rounded-lg p-5">
         <dt class="text-sm font-medium text-gray-500 truncate">Avg per Category</dt>
-        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @categories.any? ? (@categories.sum { |c| c.listings.size } / @categories.count.to_f).round(1) : 0 %></dd>
+        <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @categories.any? ? (@categories.sum { |c| c.entries.size } / @categories.count.to_f).round(1) : 0 %></dd>
       </div>
     </div>
 
@@ -47,7 +47,7 @@
                     <div class="mt-1 flex items-center text-sm text-gray-500">
                       <span>Key: <code class="bg-gray-100 px-1 rounded"><%= category.key %></code></span>
                       <span class="mx-2">•</span>
-                      <span><%= t('counts.listing', count: category.listings.size) %></span>
+                      <span><%= t('counts.entry', count: category.entries.size) %></span>
                     </div>
                   </div>
                   <div class="flex-shrink-0 flex items-center space-x-2">

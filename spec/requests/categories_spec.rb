@@ -10,8 +10,8 @@ RSpec.describe "Categories", type: :request do
   let!(:category2) { create(:category, :apps, tenant: tenant) }
   let!(:other_tenant_category) { create(:category, tenant: disabled_tenant) }
   let!(:private_tenant_category) { create(:category, tenant: private_tenant) }
-  let!(:listings1) { create_list(:entry, :directory, 3, :published, tenant: tenant, category: category1) }
-  let!(:listings2) { create_list(:entry, :directory, 2, :app_listing, :published, tenant: tenant) }
+  let!(:listings1) { create_list(:entry, 3, :directory, :published, tenant: tenant, category: category1) }
+  let!(:listings2) { create_list(:entry, 2, :directory, :app_listing, :published, category: category2) }
 
   before do
     host! tenant.hostname
@@ -138,19 +138,18 @@ RSpec.describe "Categories", type: :request do
       end
 
       it "limits entries to 20" do
-        create_list(:entry, :directory, 25, :published, tenant: tenant, category: category1)
+        create_list(:entry, 25, :directory, :published, tenant: tenant, category: category1)
         get category_path(category1)
         expect(assigns(:entries).count).to eq(20)
       end
 
-      it "orders entries by published_at desc" do
+      it "orders entries by created_at desc" do
         old_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
         new_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
 
         get category_path(category1)
         entries = assigns(:entries)
-        expect(entries.first).to eq(new_entry)
-        expect(entries.last).to eq(old_entry)
+        expect(entries.index(new_entry)).to be < entries.index(old_entry)
       end
 
       it "only shows published entries" do

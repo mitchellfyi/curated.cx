@@ -71,9 +71,9 @@ RSpec.describe TenantsController, type: :controller do
 
     it 'assigns published content items for the site' do
       get :show
-      expect(assigns(:entries)).to include(content_item1, content_item2)
-      expect(assigns(:entries)).not_to include(unpublished_item)
-      expect(assigns(:entries)).not_to include(other_tenant_item)
+      expect(assigns(:content_items)).to include(content_item1, content_item2)
+      expect(assigns(:content_items)).not_to include(unpublished_item)
+      expect(assigns(:content_items)).not_to include(other_tenant_item)
     end
 
     it 'limits content items to 12' do
@@ -81,13 +81,13 @@ RSpec.describe TenantsController, type: :controller do
       15.times { create(:entry, :feed, :published, site: site, source: source) }
 
       get :show
-      expect(assigns(:entries).count).to eq(12)
+      expect(assigns(:content_items).count).to eq(12)
     end
 
     it 'includes source association in content items' do
       get :show
       # The service may or may not preload associations, but items should have sources
-      expect(assigns(:entries).first.source).to be_present
+      expect(assigns(:content_items).first.source).to be_present
     end
 
     it 'orders content items by ranking' do
@@ -96,7 +96,7 @@ RSpec.describe TenantsController, type: :controller do
 
       get :show
       # Newer items should rank higher in the default ranking
-      entries = assigns(:entries)
+      entries = assigns(:content_items)
       expect(entries.index(newer_item)).to be < entries.index(older_item)
     end
 
@@ -119,7 +119,7 @@ RSpec.describe TenantsController, type: :controller do
       # The controller uses FeedRankingService
       get :show
       expect(response).to have_http_status(:success)
-      expect(assigns(:entries)).to be_present
+      expect(assigns(:content_items)).to be_present
     end
 
     context 'when tenant has no description' do

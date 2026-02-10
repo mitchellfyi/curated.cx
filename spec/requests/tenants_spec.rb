@@ -9,7 +9,7 @@ RSpec.describe "Tenants", type: :request do
   let(:category) { create(:category, tenant: tenant) }
   let(:site) { tenant.sites.first }
   let(:source) { create(:source, site: site, tenant: tenant) }
-  let!(:entries) { create_list(:entry, :feed, 5, :published, site: site, source: source) }
+  let!(:entries) { create_list(:entry, 5, :feed, :published, site: site, source: source) }
 
   describe "GET /tenants" do
     context "when user is admin" do
@@ -83,13 +83,13 @@ RSpec.describe "Tenants", type: :request do
 
       it "assigns content items for the feed" do
         get tenant_path(tenant)
-        expect(assigns(:entries)).to be_present
+        expect(assigns(:content_items)).to be_present
       end
 
       it "limits content items" do
         get tenant_path(tenant)
         # Controller limits to 12 items
-        expect(assigns(:entries).count).to be <= 12
+        expect(assigns(:content_items).count).to be <= 12
       end
 
       it "renders the show template" do
@@ -317,7 +317,7 @@ RSpec.describe "Tenants", type: :request do
 
       it "assigns content items for the feed" do
         get root_path
-        expect(assigns(:entries)).to be_present
+        expect(assigns(:content_items)).to be_present
       end
     end
 

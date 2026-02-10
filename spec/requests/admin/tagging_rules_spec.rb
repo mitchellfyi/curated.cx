@@ -171,14 +171,14 @@ RSpec.describe "Admin::TaggingRules", type: :request do
           it "tests rule against content items" do
             get test_admin_tagging_rule_path(@tenant1_rule)
             expect(response).to have_http_status(:success)
-            expect(assigns(:entries)).to include(entry)
+            expect(assigns(:content_items)).to include(entry)
             expect(assigns(:results)).to be_present
           end
 
           it "includes match results for each content item" do
             get test_admin_tagging_rule_path(@tenant1_rule)
             result = assigns(:results).first
-            expect(result).to have_key(:entry)
+            expect(result).to have_key(:content_item)
             expect(result).to have_key(:match_result)
           end
         end

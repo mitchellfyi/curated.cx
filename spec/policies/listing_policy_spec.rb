@@ -171,6 +171,10 @@ RSpec.describe EntryPolicy, type: :policy do
     let(:scope) { Entry.all }
     let(:policy_scope) { described_class::Scope.new(user, scope) }
 
+    before do
+      allow(Current).to receive(:site).and_return(entry.site)
+    end
+
     context 'when user is admin' do
       let(:user) { admin_user }
 
@@ -179,8 +183,8 @@ RSpec.describe EntryPolicy, type: :policy do
       end
     end
 
-    context 'when Current.tenant is present' do
-      it 'filters by tenant_id' do
+    context 'when Current.site is present' do
+      it 'filters by site' do
         other_tenant = create(:tenant)
         other_entry = create(:entry, :directory, tenant: other_tenant)
 
@@ -190,8 +194,8 @@ RSpec.describe EntryPolicy, type: :policy do
       end
     end
 
-    context 'when Current.tenant is nil' do
-      before { allow(Current).to receive(:tenant).and_return(nil) }
+    context 'when Current.site is nil' do
+      before { allow(Current).to receive(:site).and_return(nil) }
 
       it 'returns no entries' do
         result = policy_scope.resolve

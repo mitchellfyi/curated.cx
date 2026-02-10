@@ -8,7 +8,7 @@ module Admin
     def show
       @stats = build_overview_stats
       @recent_import_runs = ImportRun.recent.includes(:source).limit(10)
-      @recent_editorialisations = Editorialisation.recent.includes(:content_item).limit(10)
+      @recent_editorialisations = Editorialisation.recent.includes(:entry).limit(10)
       @serp_api_stats = SerpApiGlobalRateLimiter.usage_stats
       @ai_usage_stats = AiUsageTracker.usage_stats
       @active_pauses = WorkflowPause.active.recent.limit(5).includes(:tenant, :source, :paused_by)
@@ -24,7 +24,7 @@ module Admin
 
     # GET /admin/observability/editorialisations
     def editorialisations
-      @editorialisations = Editorialisation.recent.includes(:content_item, :site).page(params[:page]).per(50)
+      @editorialisations = Editorialisation.recent.includes(:entry, :site).page(params[:page]).per(50)
       @stats = build_editorialisation_stats
     end
 
@@ -51,7 +51,7 @@ module Admin
       @daily_usage = build_ai_daily_usage_chart
       @recent_editorialisations = Editorialisation.completed
                                                   .recent
-                                                  .includes(:content_item, :site)
+                                                  .includes(:entry, :site)
                                                   .limit(50)
     end
 

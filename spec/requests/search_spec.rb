@@ -108,14 +108,14 @@ RSpec.describe "Search", type: :request do
         get search_path, params: { q: "Ruby", type: "content" }
 
         expect(assigns(:entries)).to include(feed_entry)
-        expect(assigns(:entries)).to be_empty
+        expect(assigns(:entries)).not_to include(directory_entry)
       end
 
       it "filters to entries only" do
         get search_path, params: { q: "Ruby", type: "entries" }
 
-        expect(assigns(:entries)).to be_empty
         expect(assigns(:entries)).to include(directory_entry)
+        expect(assigns(:entries)).not_to include(feed_entry)
       end
 
       it "returns both when no type filter" do

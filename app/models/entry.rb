@@ -7,7 +7,119 @@
 #
 # Table name: entries
 #
-# (See schema.rb or run annotate for full schema.)
+#  id                         :bigint           not null, primary key
+#  affiliate_attribution      :jsonb            not null
+#  affiliate_url_template     :text
+#  ai_suggested_tags          :jsonb            not null
+#  ai_summaries               :jsonb            not null
+#  ai_summary                 :text
+#  ai_tags                    :jsonb            not null
+#  apply_url                  :text
+#  audience_tags              :string           default([]), is an Array
+#  author_name                :string
+#  body_html                  :text
+#  body_text                  :text
+#  comments_count             :integer          default(0), not null
+#  comments_locked_at         :datetime
+#  company                    :string
+#  content_type               :string
+#  description                :text
+#  domain                     :string
+#  editorialised_at           :datetime
+#  enriched_at                :datetime
+#  enrichment_errors          :jsonb            not null
+#  enrichment_status          :string           default("pending"), not null
+#  entry_kind                 :string           default("feed"), not null
+#  expires_at                 :datetime
+#  extracted_text             :text
+#  favicon_url                :string
+#  featured_from              :datetime
+#  featured_until             :datetime
+#  hidden_at                  :datetime
+#  image_url                  :text
+#  key_takeaways              :jsonb
+#  listing_type               :integer          default(0), not null
+#  location                   :string
+#  metadata                   :jsonb            not null
+#  og_image_url               :string
+#  paid                       :boolean          default(FALSE), not null
+#  payment_reference          :string
+#  payment_status             :integer          default("unpaid"), not null
+#  published_at               :datetime
+#  quality_score              :decimal(3, 1)
+#  raw_payload                :jsonb            not null
+#  read_time_minutes          :integer
+#  salary_range               :string
+#  scheduled_for              :datetime
+#  screenshot_captured_at     :datetime
+#  screenshot_url             :string
+#  site_name                  :string
+#  summary                    :text
+#  tagging_confidence         :decimal(3, 2)
+#  tagging_explanation        :jsonb            not null
+#  tags                       :jsonb            not null
+#  title                      :string
+#  topic_tags                 :jsonb            not null
+#  upvotes_count              :integer          default(0), not null
+#  url_canonical              :string           not null
+#  url_raw                    :text             not null
+#  why_it_matters             :text
+#  word_count                 :integer
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  category_id                :bigint
+#  comments_locked_by_id      :bigint
+#  featured_by_id             :bigint
+#  hidden_by_id               :bigint
+#  site_id                    :bigint           not null
+#  source_id                  :bigint
+#  stripe_checkout_session_id :string
+#  stripe_payment_intent_id   :string
+#  tenant_id                  :bigint
+#
+# Indexes
+#
+#  index_entries_on_category_id                   (category_id)
+#  index_entries_on_category_published            (category_id,published_at)
+#  index_entries_on_comments_locked_by_id         (comments_locked_by_id)
+#  index_entries_on_domain                        (domain)
+#  index_entries_on_enrichment_status             (enrichment_status)
+#  index_entries_on_entry_kind                    (entry_kind)
+#  index_entries_on_featured_by_id                (featured_by_id)
+#  index_entries_on_hidden_at                     (hidden_at)
+#  index_entries_on_hidden_by_id                  (hidden_by_id)
+#  index_entries_on_payment_status                (payment_status)
+#  index_entries_on_published_at                  (published_at)
+#  index_entries_on_scheduled_for                 (scheduled_for) WHERE (scheduled_for IS NOT NULL)
+#  index_entries_on_site_expires_at               (site_id,expires_at)
+#  index_entries_on_site_featured_dates           (site_id,featured_from,featured_until)
+#  index_entries_on_site_id                       (site_id)
+#  index_entries_on_site_id_and_content_type      (site_id,content_type)
+#  index_entries_on_site_id_and_editorialised_at  (site_id,editorialised_at)
+#  index_entries_on_site_id_and_listing_type      (site_id,listing_type)
+#  index_entries_on_site_id_published_at_desc     (site_id,published_at DESC)
+#  index_entries_on_site_kind_canonical           (site_id,entry_kind,url_canonical) UNIQUE
+#  index_entries_on_source_id                     (source_id)
+#  index_entries_on_source_id_and_created_at      (source_id,created_at)
+#  index_entries_on_stripe_checkout_session_id    (stripe_checkout_session_id) UNIQUE WHERE (stripe_checkout_session_id IS NOT NULL)
+#  index_entries_on_stripe_payment_intent_id      (stripe_payment_intent_id) UNIQUE WHERE (stripe_payment_intent_id IS NOT NULL)
+#  index_entries_on_tenant_and_url_canonical      (tenant_id,url_canonical) UNIQUE
+#  index_entries_on_tenant_id                     (tenant_id)
+#  index_entries_on_tenant_id_and_category_id     (tenant_id,category_id)
+#  index_entries_on_tenant_id_and_source_id       (tenant_id,source_id)
+#  index_entries_on_tenant_published_created      (tenant_id,published_at,created_at)
+#  index_entries_on_tenant_title                  (tenant_id,title)
+#  index_entries_on_topic_tags                    (topic_tags) USING gin
+#
+# Foreign Keys
+#
+#  fk_rails_...  (category_id => categories.id)
+#  fk_rails_...  (comments_locked_by_id => users.id)
+#  fk_rails_...  (featured_by_id => users.id)
+#  fk_rails_...  (hidden_by_id => users.id)
+#  fk_rails_...  (site_id => sites.id)
+#  fk_rails_...  (source_id => sources.id)
+#  fk_rails_...  (tenant_id => tenants.id)
 #
 class Entry < ApplicationRecord
   include SiteScoped
@@ -16,6 +128,9 @@ class Entry < ApplicationRecord
   # Kind discriminator
   ENTRY_KINDS = %w[feed directory].freeze
   enum :entry_kind, { feed: "feed", directory: "directory" }, default: :feed
+
+  # Directory listing type
+  enum :listing_type, { tool: 0, job: 1, service: 2 }, default: :tool
 
   # Payment status (directory / paid listings)
   enum :payment_status, {
@@ -29,7 +144,7 @@ class Entry < ApplicationRecord
   # Enrichment status (feed)
   ENRICHMENT_STATUSES = %w[pending enriching complete failed].freeze
 
-  delegate :name, :primary_domain, :primary_hostname, to: :site, prefix: true, allow_nil: true
+  delegate :primary_domain, :primary_hostname, to: :site, prefix: true, allow_nil: true
   delegate :name, to: :source, prefix: true, allow_nil: true
   delegate :name, to: :category, prefix: true, allow_nil: true
 
@@ -40,7 +155,7 @@ class Entry < ApplicationRecord
       description: "B",
       ai_summary: "C",
       company: "D",
-      body_text: "E"
+      body_text: "D"
     },
     using: {
       tsearch: { prefix: true, dictionary: "english" }
@@ -134,6 +249,10 @@ class Entry < ApplicationRecord
   scope :in_category, ->(cat) { where(category_id: cat) }
   scope :with_affiliate, -> { where.not(affiliate_url_template: [ nil, "" ]) }
   scope :paid_listings, -> { where(paid: true) }
+  scope :jobs, -> { directory_items.where(listing_type: :job) }
+  scope :tools, -> { directory_items.where(listing_type: :tool) }
+  scope :services, -> { directory_items.where(listing_type: :service) }
+  scope :active_jobs, -> { jobs.published.not_expired }
 
   scope :from_today, -> { where("published_at >= ?", Time.current.beginning_of_day) }
   scope :from_this_week, -> { where("published_at >= ?", 1.week.ago.beginning_of_day) }
@@ -229,6 +348,14 @@ class Entry < ApplicationRecord
     super || {}
   end
 
+  def ai_summaries
+    super || {}
+  end
+
+  def ai_tags
+    super || {}
+  end
+
   def affiliate_attribution
     super || {}
   end
@@ -309,14 +436,8 @@ class Entry < ApplicationRecord
   end
 
   # Directory / monetisation
-  LISTING_TYPE_KEYS = %w[tool job service].freeze
-
-  def job?
-    directory? && listing_type.to_i == 1
-  end
-
   def listing_type_key
-    LISTING_TYPE_KEYS[listing_type.to_i] || "tool"
+    listing_type || "tool"
   end
 
   def views_count
@@ -418,7 +539,7 @@ class Entry < ApplicationRecord
   end
 
   def validate_jsonb_fields
-    %i[metadata affiliate_attribution].each do |field_name|
+    %i[metadata affiliate_attribution ai_summaries ai_tags].each do |field_name|
       val = public_send(field_name)
       next if val.blank?
       errors.add(field_name, "must be a valid JSON object") unless val.is_a?(Hash)

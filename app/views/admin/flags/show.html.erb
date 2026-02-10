@@ -40,7 +40,7 @@
         <h2 class="text-lg font-semibold mb-4"><%= t("admin.flags.show.flagged_content") %></h2>
         <div class="bg-gray-50 p-4 rounded-lg">
           <div class="flex items-center mb-3">
-            <%= badge(@flag.entry? ? t("admin.flags.type.content_item") : t("admin.flags.type.comment"), @flag.entry? ? :blue : :green) %>
+            <%= badge(@flag.entry? ? t("admin.flags.type.entry") : t("admin.flags.type.comment"), @flag.entry? ? :blue : :green) %>
           </div>
           <% if @flag.entry? %>
             <% entry = @flag.flaggable %>

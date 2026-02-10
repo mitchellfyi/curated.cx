@@ -18,6 +18,7 @@ class SearchController < ApplicationController
     else
       @content_items = []
       @listings = []
+      @entries = []
       @total_count = 0
     end
 
@@ -35,7 +36,7 @@ class SearchController < ApplicationController
     when "content"
       @content_items = search_content_items
       @listings = []
-    when "listings"
+    when "listings", "entries"
       @content_items = []
       @listings = search_listings
     else
@@ -43,7 +44,8 @@ class SearchController < ApplicationController
       @listings = search_listings
     end
 
-    @total_count = @content_items.size + @listings.size
+    @entries = Array(@content_items) + Array(@listings)
+    @total_count = @entries.size
   end
 
   def search_content_items

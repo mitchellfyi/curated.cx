@@ -189,7 +189,7 @@ RSpec.describe "Admin::Listings", type: :request do
         post feature_admin_entry_path(entry)
 
         expect(response).to redirect_to(admin_entry_path(entry))
-        expect(flash[:notice]).to eq(I18n.t('admin.listings.featured'))
+        expect(flash[:notice]).to eq(I18n.t('admin.entries.featured'))
       end
 
       it 'allows custom featured_until date' do
@@ -229,7 +229,7 @@ RSpec.describe "Admin::Listings", type: :request do
         post unfeature_admin_entry_path(featured_listing)
 
         expect(response).to redirect_to(admin_entry_path(featured_listing))
-        expect(flash[:notice]).to eq(I18n.t('admin.listings.unfeatured'))
+        expect(flash[:notice]).to eq(I18n.t('admin.entries.unfeatured'))
       end
 
       it 'makes entry not featured?' do
@@ -259,7 +259,7 @@ RSpec.describe "Admin::Listings", type: :request do
           post extend_expiry_admin_entry_path(job_listing)
 
           expect(response).to redirect_to(admin_entry_path(job_listing))
-          expect(flash[:notice]).to eq(I18n.t('admin.listings.expiry_extended'))
+          expect(flash[:notice]).to eq(I18n.t('admin.entries.expiry_extended'))
         end
       end
 
@@ -544,7 +544,7 @@ RSpec.describe "Admin::Listings", type: :request do
         post unschedule_admin_entry_path(scheduled_listing)
 
         expect(response).to redirect_to(admin_entry_path(scheduled_listing))
-        expect(flash[:notice]).to eq(I18n.t('admin.listings.unscheduled'))
+        expect(flash[:notice]).to eq(I18n.t('admin.entries.unscheduled'))
       end
     end
 
@@ -573,7 +573,7 @@ RSpec.describe "Admin::Listings", type: :request do
         post publish_now_admin_entry_path(scheduled_listing)
 
         expect(response).to redirect_to(admin_entry_path(scheduled_listing))
-        expect(flash[:notice]).to eq(I18n.t('admin.listings.published_now'))
+        expect(flash[:notice]).to eq(I18n.t('admin.entries.published_now'))
       end
     end
 

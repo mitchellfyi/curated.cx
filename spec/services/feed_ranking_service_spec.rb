@@ -37,7 +37,7 @@ RSpec.describe FeedRankingService, type: :service do
     end
 
     it "respects limit parameter" do
-      create_list(:entry, :feed, 5, :published, site: site, source: source)
+      create_list(:entry, 5, :feed, :published, site: site, source: source)
 
       result = described_class.ranked_feed(site: site, limit: 3)
 
@@ -45,7 +45,7 @@ RSpec.describe FeedRankingService, type: :service do
     end
 
     it "respects offset parameter" do
-      items = create_list(:entry, :feed, 5, :published, site: site, source: source)
+      items = create_list(:entry, 5, :feed, :published, site: site, source: source)
                 .sort_by(&:published_at).reverse
 
       result = described_class.ranked_feed(site: site, filters: { sort: "latest" }, limit: 2, offset: 2)

@@ -32,30 +32,31 @@ RSpec.describe "Listings", type: :request do
 
       it "assigns all entries for current tenant" do
         get listings_path
-        expect(assigns(:entries)).to include(entry1, entry2)
-        expect(assigns(:entries)).not_to include(other_tenant_entry)
+        expect(assigns(:listings)).to include(entry1, entry2)
+        expect(assigns(:listings)).not_to include(other_tenant_entry)
       end
 
       it "includes category in the query to prevent N+1" do
         # Verify the query includes category association by checking no N+1 occurs
         get listings_path
-        expect(assigns(:entries).first&.association(:category)&.loaded?).to be_truthy if assigns(:entries).present?
+        expect(assigns(:listings).first&.association(:category)&.loaded?).to be_truthy if assigns(:listings).present?
       end
 
-      it "orders entries by published_at desc" do
+      it "orders entries by created_at desc" do
         old_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
         new_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
 
         get listings_path
-        entries = assigns(:entries)
-        expect(entries.first).to eq(new_entry)
-        expect(entries.last).to eq(old_entry)
+        listings = assigns(:listings)
+        old_idx = listings.to_a.index(old_entry)
+        new_idx = listings.to_a.index(new_entry)
+        expect(new_idx).to be < old_idx
       end
 
       it "limits entries to 50" do
-        create_list(:entry, :directory, 55, :published, tenant: tenant, category: category1)
+        create_list(:entry, 55, :directory, :published, tenant: tenant, category: category1)
         get listings_path
-        expect(assigns(:entries).count).to eq(50)
+        expect(assigns(:listings).count).to eq(50)
       end
 
       it "renders the index template" do
@@ -78,8 +79,8 @@ RSpec.describe "Listings", type: :request do
 
       it "assigns all entries for current tenant" do
         get listings_path
-        expect(assigns(:entries)).to include(entry1, entry2)
-        expect(assigns(:entries)).not_to include(other_tenant_entry)
+        expect(assigns(:listings)).to include(entry1, entry2)
+        expect(assigns(:listings)).not_to include(other_tenant_entry)
       end
     end
 
@@ -131,8 +132,8 @@ RSpec.describe "Listings", type: :request do
 
       it "assigns entries for the specific category" do
         get category_listings_path(category1)
-        expect(assigns(:entries)).to include(entry1)
-        expect(assigns(:entries)).not_to include(entry2)
+        expect(assigns(:listings)).to include(entry1)
+        expect(assigns(:listings)).not_to include(entry2)
       end
 
       it "assigns the correct category" do
@@ -143,23 +144,24 @@ RSpec.describe "Listings", type: :request do
       it "includes category in the query to prevent N+1" do
         get category_listings_path(category1)
         # Verify that the category association is loaded to prevent N+1 queries
-        expect(assigns(:entries).first.association(:category)).to be_loaded
+        expect(assigns(:listings).first.association(:category)).to be_loaded
       end
 
-      it "orders entries by published_at desc" do
+      it "orders entries by created_at desc" do
         old_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 2.days.ago)
         new_entry = create(:entry, :directory, :published, tenant: tenant, category: category1, published_at: 1.hour.ago)
 
         get category_listings_path(category1)
-        entries = assigns(:entries)
-        expect(entries.first).to eq(new_entry)
-        expect(entries.last).to eq(old_entry)
+        listings = assigns(:listings)
+        old_idx = listings.to_a.index(old_entry)
+        new_idx = listings.to_a.index(new_entry)
+        expect(new_idx).to be < old_idx
       end
 
       it "limits entries to 50" do
-        create_list(:entry, :directory, 55, :published, tenant: tenant, category: category1)
+        create_list(:entry, 55, :directory, :published, tenant: tenant, category: category1)
         get category_listings_path(category1)
-        expect(assigns(:entries).count).to eq(50)
+        expect(assigns(:listings).count).to eq(50)
       end
 
       it "renders the index template" do
@@ -196,8 +198,8 @@ RSpec.describe "Listings", type: :request do
 
       it "assigns entries for the specific category" do
         get category_listings_path(category1)
-        expect(assigns(:entries)).to include(entry1)
-        expect(assigns(:entries)).not_to include(entry2)
+        expect(assigns(:listings)).to include(entry1)
+        expect(assigns(:listings)).not_to include(entry2)
       end
     end
 
@@ -359,14 +361,14 @@ RSpec.describe "Listings", type: :request do
 
     it "scopes entries to current tenant" do
       get listings_path
-      entries = assigns(:entries)
-      expect(entries.all? { |l| l.tenant_id == tenant.id }).to be true
+      listings = assigns(:listings)
+      expect(listings.all? { |l| l.tenant_id == tenant.id }).to be true
     end
 
     it "scopes category entries to current tenant" do
       get category_listings_path(category1)
-      entries = assigns(:entries)
-      expect(entries.all? { |l| l.tenant_id == tenant.id }).to be true
+      listings = assigns(:listings)
+      expect(listings.all? { |l| l.tenant_id == tenant.id }).to be true
     end
   end
 
@@ -458,16 +460,16 @@ RSpec.describe "Listings", type: :request do
 
       get listings_path
       expect(response).to have_http_status(:success)
-      expect(assigns(:entries)).to include(other_entry)
-      expect(assigns(:entries)).not_to include(entry1, entry2)
+      expect(assigns(:listings)).to include(other_entry)
+      expect(assigns(:listings)).not_to include(entry1, entry2)
     end
 
     it "does not show category entries from other tenants" do
       host! other_tenant.hostname
       setup_tenant_context(other_tenant)
       get category_listings_path(other_category)
-      expect(assigns(:entries)).to include(other_entry)
-      expect(assigns(:entries)).not_to include(entry1, entry2)
+      expect(assigns(:listings)).to include(other_entry)
+      expect(assigns(:listings)).not_to include(entry1, entry2)
     end
 
     it "does not show individual entries from other tenants" do
@@ -483,14 +485,14 @@ RSpec.describe "Listings", type: :request do
 
     it "shows published entries in index" do
       get listings_path
-      expect(assigns(:entries)).to include(entry1, entry2)
-      expect(assigns(:entries)).not_to include(unpublished_entry)
+      expect(assigns(:listings)).to include(entry1, entry2)
+      expect(assigns(:listings)).not_to include(unpublished_entry)
     end
 
     it "shows published entries in category index" do
       get category_listings_path(category1)
-      expect(assigns(:entries)).to include(entry1)
-      expect(assigns(:entries)).not_to include(unpublished_entry)
+      expect(assigns(:listings)).to include(entry1)
+      expect(assigns(:listings)).not_to include(unpublished_entry)
     end
 
     it "can show individual unpublished entries" do

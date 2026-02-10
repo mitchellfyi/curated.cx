@@ -42,7 +42,7 @@ RSpec.describe TenantHomepageService do
     it "returns entries from FeedRankingService" do
       result = service.tenant_data
 
-      expect(result[:entries]).not_to be_nil
+      expect(result[:content_items]).not_to be_nil
     end
 
     it "returns categories_with_entries as an array" do
@@ -65,7 +65,7 @@ RSpec.describe TenantHomepageService do
       end
 
       it "limits entries per category to 4" do
-        create_list(:entry, :directory, 5, tenant: tenant, site: site, category: category, published_at: 1.day.ago)
+        create_list(:entry, 5, :directory, tenant: tenant, site: site, category: category, published_at: 1.day.ago)
 
         result = service.tenant_data
 

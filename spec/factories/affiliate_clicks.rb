@@ -12,14 +12,11 @@
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #  entry_id   :bigint           not null
-#  listing_id :bigint           not null
 #
 # Indexes
 #
-#  index_affiliate_clicks_on_clicked_at       (clicked_at)
-#  index_affiliate_clicks_on_entry_id         (entry_id)
-#  index_affiliate_clicks_on_listing_clicked  (listing_id,clicked_at)
-#  index_affiliate_clicks_on_listing_id       (listing_id)
+#  index_affiliate_clicks_on_clicked_at  (clicked_at)
+#  index_affiliate_clicks_on_entry_id    (entry_id)
 #
 # Foreign Keys
 #
@@ -27,7 +24,7 @@
 #
 FactoryBot.define do
   factory :affiliate_click do
-    listing
+    association :entry, factory: [ :entry, :directory, :with_affiliate ]
     clicked_at { Time.current }
     ip_hash { Digest::SHA256.hexdigest("192.168.1.#{rand(1..255)}")[0..15] }
     user_agent { "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" }

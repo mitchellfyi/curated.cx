@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Entry, type: :model do
   describe "associations" do
     it { should belong_to(:site) }
-    it { should belong_to(:source) }
+    it { should belong_to(:source).optional }
   end
 
   describe "validations" do

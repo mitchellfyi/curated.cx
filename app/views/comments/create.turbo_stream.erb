@@ -19,7 +19,7 @@
     <div id="<%= dom_id(@comment.parent, :reply_form) %>" class="hidden mt-3">
       <%= render 'comments/form',
                  comment: Comment.new(parent_id: @comment.parent_id),
-                 commentable: @content_item,
+                 commentable: @entry,
                  replying_to: @comment.parent %>
     </div>
   <% end %>
@@ -27,5 +27,5 @@
 
 <%# Update comments count in header if on comments page %>
 <%= turbo_stream.update "comments_count" do %>
-  <%= t('comments.comment_count', count: @content_item.comments.count) %>
+  <%= t('comments.comment_count', count: @entry.comments.count) %>
 <% end %>

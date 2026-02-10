@@ -6,7 +6,7 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
   let(:tenant) { create(:tenant, :enabled) }
   let!(:site) { tenant.sites.first }
   let!(:category) { create(:category, tenant: tenant, site: site) }
-  let!(:entries) { create_list(:entry, :directory, 10, :published, tenant: tenant, category: category) }
+  let!(:entries) { create_list(:entry, 10, :directory, :published, tenant: tenant, category: category) }
   let(:admin_user) { create(:user, :admin) }
 
   before do
@@ -117,7 +117,7 @@ RSpec.describe 'Admin Dashboard Query Performance', type: :request do
     before do
       # Create additional data to stress test
       create_list(:category, 5, tenant: tenant, site: site)
-      create_list(:entry, :directory, 20, :published, tenant: tenant, category: category)
+      create_list(:entry, 20, :directory, :published, tenant: tenant, category: category)
     end
 
     it 'query count does not increase with data volume' do

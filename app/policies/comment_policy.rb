@@ -39,7 +39,9 @@ class CommentPolicy < ApplicationPolicy
   private
 
   def content_item_comments_locked?
-    record.respond_to?(:content_item) && record.content_item&.comments_locked?
+    return false unless record.is_a?(Comment)
+    commentable = record.commentable
+    commentable.respond_to?(:comments_locked?) && commentable.comments_locked?
   end
 
   def admin_or_owner_only?

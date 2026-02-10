@@ -3,5 +3,5 @@
 
 <%# Update comments count in header if on comments page %>
 <%= turbo_stream.update "comments_count" do %>
-  <%= t('comments.comment_count', count: @content_item.comments.count) %>
+  <%= t('comments.comment_count', count: @entry.comments.count) %>
 <% end %>

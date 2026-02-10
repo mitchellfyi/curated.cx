@@ -66,8 +66,8 @@ RSpec.describe NetworkFeedService do
     let(:root_source) { create(:source, site: root_site) }
 
     before do
-      create_list(:entry, :feed, 3, site: site1, source: source1, published_at: 1.day.ago)
-      create_list(:entry, :feed, 2, site: site2, source: source2, published_at: 2.days.ago)
+      create_list(:entry, 3, :feed, site: site1, source: source1, published_at: 1.day.ago)
+      create_list(:entry, 2, :feed, site: site2, source: source2, published_at: 2.days.ago)
       create(:entry, :feed, site: root_site, source: root_source, published_at: 1.hour.ago)
       create(:entry, :feed, site: disabled_site, published_at: 30.minutes.ago)
     end
@@ -147,13 +147,13 @@ RSpec.describe NetworkFeedService do
     it "returns content count from network sites" do
       result = described_class.network_stats(tenant: root_tenant)
 
-      expect(result[:feed_entry_count]).to eq(3)
+      expect(result[:content_count]).to eq(3)
     end
 
     it "returns directory entry count from network sites" do
       result = described_class.network_stats(tenant: root_tenant)
 
-      expect(result[:directory_entry_count]).to eq(2)
+      expect(result[:listing_count]).to eq(2)
     end
 
     it "caches the result" do

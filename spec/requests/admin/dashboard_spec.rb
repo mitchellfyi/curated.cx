@@ -36,14 +36,14 @@ RSpec.describe "Admin::Dashboards", type: :request do
             expect(assigns(:categories)).to include(tenant1_category)
             expect(assigns(:categories)).not_to include(tenant2_category)
 
-            expect(assigns(:recent_listings)).to include(tenant1_listing)
-            expect(assigns(:recent_listings)).not_to include(tenant2_listing)
+            expect(assigns(:recent_entries)).to include(tenant1_listing)
+            expect(assigns(:recent_entries)).not_to include(tenant2_listing)
 
             # Check stats are scoped to current tenant
             stats = assigns(:stats)
             expect(stats[:total_categories]).to eq(1) # Only tenant1_category
-            expect(stats[:published_entries]).to eq(2) # tenant1_listing + tenant1_listing_today
-            expect(stats[:published_entries]).to eq(2) # Both tenant1 entries are published
+            expect(stats[:published_listings]).to eq(2) # tenant1_listing + tenant1_listing_today
+            expect(stats[:published_listings]).to eq(2) # Both tenant1 entries are published
             expect(stats[:listings_today]).to eq(2) # Both tenant1_listing and tenant1_listing_today are created today
           end
 
@@ -70,14 +70,14 @@ RSpec.describe "Admin::Dashboards", type: :request do
             expect(assigns(:categories)).to include(tenant2_category)
             expect(assigns(:categories)).not_to include(tenant1_category)
 
-            expect(assigns(:recent_listings)).to include(tenant2_listing)
-            expect(assigns(:recent_listings)).not_to include(tenant1_listing)
+            expect(assigns(:recent_entries)).to include(tenant2_listing)
+            expect(assigns(:recent_entries)).not_to include(tenant1_listing)
 
             # Check stats are scoped to current tenant
             stats = assigns(:stats)
             expect(stats[:total_categories]).to eq(1) # Only tenant2_category
-            expect(stats[:published_entries]).to eq(2) # tenant2_listing + tenant2_listing_yesterday
-            expect(stats[:published_entries]).to eq(2) # Both tenant2 entries are published
+            expect(stats[:published_listings]).to eq(2) # tenant2_listing + tenant2_listing_yesterday
+            expect(stats[:published_listings]).to eq(2) # Both tenant2 entries are published
             expect(stats[:listings_today]).to eq(2) # Both tenant2_listing and tenant2_listing_yesterday are created today
           end
         end
@@ -102,14 +102,14 @@ RSpec.describe "Admin::Dashboards", type: :request do
             expect(assigns(:categories)).to include(tenant1_category)
             expect(assigns(:categories)).not_to include(tenant2_category)
 
-            expect(assigns(:recent_listings)).to include(tenant1_listing)
-            expect(assigns(:recent_listings)).not_to include(tenant2_listing)
+            expect(assigns(:recent_entries)).to include(tenant1_listing)
+            expect(assigns(:recent_entries)).not_to include(tenant2_listing)
 
             # Check stats are scoped to current tenant
             stats = assigns(:stats)
             expect(stats[:total_categories]).to eq(1)
-            expect(stats[:published_entries]).to eq(2)
-            expect(stats[:published_entries]).to eq(2)
+            expect(stats[:published_listings]).to eq(2)
+            expect(stats[:published_listings]).to eq(2)
             expect(stats[:listings_today]).to eq(2) # Both tenant1_listing and tenant1_listing_today are created today
           end
         end
@@ -167,7 +167,7 @@ RSpec.describe "Admin::Dashboards", type: :request do
         stats = assigns(:system_stats)
 
         # Content
-        expect(stats).to have_key(:entries)
+        expect(stats).to have_key(:content_items)
         expect(stats).to have_key(:submissions_pending)
         expect(stats).to have_key(:notes)
 
@@ -242,7 +242,7 @@ RSpec.describe "Admin::Dashboards", type: :request do
         category = create(:category, tenant: tenant1)
         create(:entry, :directory, :published, tenant: tenant1, category: category)
         get admin_root_path
-        expect(response.body).to include("Recent Listings")
+        expect(response.body).to include("Recent Directory Entries")
       end
 
       it "includes AI usage summary" do

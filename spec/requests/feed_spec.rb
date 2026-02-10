@@ -15,7 +15,7 @@ RSpec.describe "Feed", type: :request do
   describe "GET /feed" do
     context "with published content items" do
       let!(:entries) do
-        items = create_list(:entry, :feed, 5, :published, site: site, source: source)
+        items = create_list(:entry, 5, :feed, :published, site: site, source: source)
         items.each_with_index do |item, i|
           item.update_columns(
             topic_tags: [ "tech", "ai" ],
@@ -42,8 +42,8 @@ RSpec.describe "Feed", type: :request do
       it "assigns entries" do
         get feed_index_path
 
-        expect(assigns(:entries)).to be_present
-        expect(assigns(:entries).count).to eq(5)
+        expect(assigns(:content_items)).to be_present
+        expect(assigns(:content_items).count).to eq(5)
       end
 
       it "assigns taxonomies for filter UI" do
@@ -77,21 +77,21 @@ RSpec.describe "Feed", type: :request do
       it "filters by tag parameter" do
         get feed_index_path, params: { tag: "tech" }
 
-        expect(assigns(:entries)).to include(tech_article)
-        expect(assigns(:entries)).not_to include(sports_video)
+        expect(assigns(:content_items)).to include(tech_article)
+        expect(assigns(:content_items)).not_to include(sports_video)
       end
 
       it "filters by content_type parameter" do
         get feed_index_path, params: { content_type: "video" }
 
-        expect(assigns(:entries)).not_to include(tech_article)
-        expect(assigns(:entries)).to include(sports_video)
+        expect(assigns(:content_items)).not_to include(tech_article)
+        expect(assigns(:content_items)).to include(sports_video)
       end
 
       it "supports combined filters" do
         get feed_index_path, params: { tag: "tech", content_type: "article" }
 
-        expect(assigns(:entries)).to contain_exactly(tech_article)
+        expect(assigns(:content_items)).to contain_exactly(tech_article)
       end
     end
 
@@ -111,44 +111,44 @@ RSpec.describe "Feed", type: :request do
       it "supports latest sort" do
         get feed_index_path, params: { sort: "latest" }
 
-        expect(assigns(:entries).first).to eq(new_item)
+        expect(assigns(:content_items).first).to eq(new_item)
       end
 
       it "supports top_week sort" do
         get feed_index_path, params: { sort: "top_week" }
 
-        expect(assigns(:entries).first).to eq(old_item)
+        expect(assigns(:content_items).first).to eq(old_item)
       end
 
       it "supports ranked sort" do
         get feed_index_path, params: { sort: "ranked" }
 
-        expect(assigns(:entries)).to be_present
+        expect(assigns(:content_items)).to be_present
       end
     end
 
     context "pagination" do
       before do
-        create_list(:entry, :feed, 25, :published, site: site, source: source)
+        create_list(:entry, 25, :feed, :published, site: site, source: source)
       end
 
       it "limits results to 20 per page" do
         get feed_index_path
 
-        expect(assigns(:entries).count).to eq(20)
+        expect(assigns(:content_items).count).to eq(20)
       end
 
       it "supports page parameter" do
         get feed_index_path, params: { page: 2 }
 
-        expect(assigns(:entries).count).to eq(5)
+        expect(assigns(:content_items).count).to eq(5)
       end
 
       it "handles invalid page gracefully" do
         get feed_index_path, params: { page: -1 }
 
         expect(response).to have_http_status(:success)
-        expect(assigns(:entries).count).to eq(20)
+        expect(assigns(:content_items).count).to eq(20)
       end
     end
 
@@ -203,7 +203,7 @@ RSpec.describe "Feed", type: :request do
 
   describe "GET /feed/rss" do
     let!(:entries) do
-      items = create_list(:entry, :feed, 5, :published, site: site, source: source)
+      items = create_list(:entry, 5, :feed, :published, site: site, source: source)
       items.each do |item|
         item.update_columns(
           title: "Test Article #{item.id}",
@@ -246,7 +246,7 @@ RSpec.describe "Feed", type: :request do
     end
 
     it "limits to MAX_RSS_ITEMS" do
-      create_list(:entry, :feed, 60, :published, site: site, source: source)
+      create_list(:entry, 60, :feed, :published, site: site, source: source)
 
       get feed_rss_path(format: :rss)
 
@@ -311,8 +311,8 @@ RSpec.describe "Feed", type: :request do
     it "only shows content from current site" do
       get feed_index_path
 
-      expect(assigns(:entries)).to include(our_item)
-      expect(assigns(:entries)).not_to include(other_item)
+      expect(assigns(:content_items)).to include(our_item)
+      expect(assigns(:content_items)).not_to include(other_item)
     end
   end
 end

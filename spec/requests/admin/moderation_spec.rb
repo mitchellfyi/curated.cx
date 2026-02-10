@@ -22,42 +22,35 @@ RSpec.describe "Admin::Moderation", type: :request do
     context "when user is global admin" do
       before { sign_in admin }
 
-      it "hides the content item" do
-        post hide_admin_entry_path(entry), as: :json
+      it "hides the content item and redirects" do
+        post hide_admin_entry_path(entry)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(entry.reload.hidden?).to be true
       end
 
       it "sets hidden_at timestamp" do
         freeze_time do
-          post hide_admin_entry_path(entry), as: :json
+          post hide_admin_entry_path(entry)
 
           expect(entry.reload.hidden_at).to eq(Time.current)
         end
       end
 
       it "sets hidden_by to current user" do
-        post hide_admin_entry_path(entry), as: :json
+        post hide_admin_entry_path(entry)
 
         expect(entry.reload.hidden_by).to eq(admin)
-      end
-
-      it "returns hidden status in json" do
-        post hide_admin_entry_path(entry), as: :json
-
-        json = JSON.parse(response.body)
-        expect(json["hidden"]).to be true
       end
     end
 
     context "when user is tenant owner" do
       before { sign_in owner }
 
-      it "hides the content item" do
-        post hide_admin_entry_path(entry), as: :json
+      it "hides the content item and redirects" do
+        post hide_admin_entry_path(entry)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(entry.reload.hidden?).to be true
       end
     end
@@ -65,10 +58,10 @@ RSpec.describe "Admin::Moderation", type: :request do
     context "when user is tenant admin" do
       before { sign_in tenant_admin }
 
-      it "hides the content item" do
-        post hide_admin_entry_path(entry), as: :json
+      it "hides the content item and redirects" do
+        post hide_admin_entry_path(entry)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(entry.reload.hidden?).to be true
       end
     end
@@ -108,40 +101,33 @@ RSpec.describe "Admin::Moderation", type: :request do
     context "when user is admin" do
       before { sign_in admin }
 
-      it "unhides the content item" do
-        post unhide_admin_entry_path(hidden_entry), as: :json
+      it "unhides the content item and redirects" do
+        post unhide_admin_entry_path(hidden_entry)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(hidden_entry.reload.hidden?).to be false
       end
 
       it "clears hidden_at timestamp" do
-        post unhide_admin_entry_path(hidden_entry), as: :json
+        post unhide_admin_entry_path(hidden_entry)
 
         expect(hidden_entry.reload.hidden_at).to be_nil
       end
 
       it "clears hidden_by" do
-        post unhide_admin_entry_path(hidden_entry), as: :json
+        post unhide_admin_entry_path(hidden_entry)
 
         expect(hidden_entry.reload.hidden_by).to be_nil
-      end
-
-      it "returns hidden false in json" do
-        post unhide_admin_entry_path(hidden_entry), as: :json
-
-        json = JSON.parse(response.body)
-        expect(json["hidden"]).to be false
       end
     end
 
     context "when user is tenant owner" do
       before { sign_in owner }
 
-      it "unhides the content item" do
-        post unhide_admin_entry_path(hidden_entry), as: :json
+      it "unhides the content item and redirects" do
+        post unhide_admin_entry_path(hidden_entry)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(hidden_entry.reload.hidden?).to be false
       end
     end
@@ -161,42 +147,35 @@ RSpec.describe "Admin::Moderation", type: :request do
     context "when user is admin" do
       before { sign_in admin }
 
-      it "locks comments on the content item" do
-        post lock_comments_admin_entry_path(entry), as: :json
+      it "locks comments on the content item and redirects" do
+        post lock_comments_admin_entry_path(entry)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(entry.reload.comments_locked?).to be true
       end
 
       it "sets comments_locked_at timestamp" do
         freeze_time do
-          post lock_comments_admin_entry_path(entry), as: :json
+          post lock_comments_admin_entry_path(entry)
 
           expect(entry.reload.comments_locked_at).to eq(Time.current)
         end
       end
 
       it "sets comments_locked_by to current user" do
-        post lock_comments_admin_entry_path(entry), as: :json
+        post lock_comments_admin_entry_path(entry)
 
         expect(entry.reload.comments_locked_by).to eq(admin)
-      end
-
-      it "returns comments_locked true in json" do
-        post lock_comments_admin_entry_path(entry), as: :json
-
-        json = JSON.parse(response.body)
-        expect(json["comments_locked"]).to be true
       end
     end
 
     context "when user is tenant owner" do
       before { sign_in owner }
 
-      it "locks comments on the content item" do
-        post lock_comments_admin_entry_path(entry), as: :json
+      it "locks comments on the content item and redirects" do
+        post lock_comments_admin_entry_path(entry)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(entry.reload.comments_locked?).to be true
       end
     end
@@ -218,40 +197,33 @@ RSpec.describe "Admin::Moderation", type: :request do
     context "when user is admin" do
       before { sign_in admin }
 
-      it "unlocks comments on the content item" do
-        post unlock_comments_admin_entry_path(locked_content_item), as: :json
+      it "unlocks comments on the content item and redirects" do
+        post unlock_comments_admin_entry_path(locked_content_item)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(locked_content_item.reload.comments_locked?).to be false
       end
 
       it "clears comments_locked_at timestamp" do
-        post unlock_comments_admin_entry_path(locked_content_item), as: :json
+        post unlock_comments_admin_entry_path(locked_content_item)
 
         expect(locked_content_item.reload.comments_locked_at).to be_nil
       end
 
       it "clears comments_locked_by" do
-        post unlock_comments_admin_entry_path(locked_content_item), as: :json
+        post unlock_comments_admin_entry_path(locked_content_item)
 
         expect(locked_content_item.reload.comments_locked_by).to be_nil
-      end
-
-      it "returns comments_locked false in json" do
-        post unlock_comments_admin_entry_path(locked_content_item), as: :json
-
-        json = JSON.parse(response.body)
-        expect(json["comments_locked"]).to be false
       end
     end
 
     context "when user is tenant owner" do
       before { sign_in owner }
 
-      it "unlocks comments on the content item" do
-        post unlock_comments_admin_entry_path(locked_content_item), as: :json
+      it "unlocks comments on the content item and redirects" do
+        post unlock_comments_admin_entry_path(locked_content_item)
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(admin_root_path)
         expect(locked_content_item.reload.comments_locked?).to be false
       end
     end
@@ -300,10 +272,11 @@ RSpec.describe "Admin::Moderation", type: :request do
   describe "turbo_stream format" do
     before { sign_in admin }
 
-    it "responds with turbo stream on hide" do
+    it "redirects on hide even with turbo_stream format" do
       post hide_admin_entry_path(entry), as: :turbo_stream
 
-      expect(response.content_type).to include("text/vnd.turbo-stream.html")
+      expect(response).to have_http_status(:redirect)
+      expect(entry.reload.hidden?).to be true
     end
   end
 

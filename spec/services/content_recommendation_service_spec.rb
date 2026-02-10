@@ -15,7 +15,7 @@ RSpec.describe ContentRecommendationService, type: :service do
   describe ".for_user" do
     context "when user is nil" do
       it "returns cold start fallback content" do
-        items = create_list(:entry, :feed, 3, :published, site: site, source: source)
+        items = create_list(:entry, 3, :feed, :published, site: site, source: source)
 
         result = described_class.for_user(nil, site: site, limit: 6)
 
@@ -27,7 +27,7 @@ RSpec.describe ContentRecommendationService, type: :service do
     context "when user has insufficient interactions (cold start)" do
       it "returns engagement-ranked fallback content for users with less than 5 interactions" do
         # Create 3 interactions (below threshold of 5)
-        items = create_list(:entry, :feed, 5, :published, site: site, source: source)
+        items = create_list(:entry, 5, :feed, :published, site: site, source: source)
         items.first(3).each do |item|
           create(:vote, entry: item, user: user, site: site)
         end
@@ -40,13 +40,13 @@ RSpec.describe ContentRecommendationService, type: :service do
 
     context "when user has sufficient interactions" do
       let!(:tech_items) do
-        items = create_list(:entry, :feed, 5, :published, site: site, source: source)
+        items = create_list(:entry, 5, :feed, :published, site: site, source: source)
         items.each { |item| item.update_columns(topic_tags: %w[tech ai]) }
         items
       end
 
       let!(:sports_items) do
-        items = create_list(:entry, :feed, 5, :published, site: site, source: source)
+        items = create_list(:entry, 5, :feed, :published, site: site, source: source)
         items.each { |item| item.update_columns(topic_tags: %w[sports football]) }
         items
       end
@@ -199,7 +199,7 @@ RSpec.describe ContentRecommendationService, type: :service do
 
     context "when user has insufficient interactions" do
       it "returns cold start fallback content" do
-        items = create_list(:entry, :feed, 3, :published, site: site, source: source)
+        items = create_list(:entry, 3, :feed, :published, site: site, source: source)
 
         result = described_class.for_digest(subscription, limit: 5)
 

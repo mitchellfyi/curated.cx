@@ -10,7 +10,7 @@ class Admin::CategoriesController < ApplicationController
   end
 
   def show
-    @recent_listings = @category.listings.includes(:category).recent.limit(10)
+    @recent_listings = @category.entries.includes(:category).recent.limit(10)
   end
 
   def new

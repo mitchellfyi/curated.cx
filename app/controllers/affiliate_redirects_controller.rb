@@ -17,7 +17,7 @@ class AffiliateRedirectsController < ApplicationController
     @entry = find_entry
 
     unless @entry
-      redirect_to root_path, alert: t("affiliate.listing_not_found")
+      redirect_to root_path, alert: t("affiliate.entry_not_found")
       return
     end
 

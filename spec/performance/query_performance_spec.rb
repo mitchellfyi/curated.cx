@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Query Performance', type: :request do
   let(:tenant) { create(:tenant, :enabled) }
   let!(:category) { create(:category, tenant: tenant) }
-  let!(:entries) { create_list(:entry, :directory, 10, :published, tenant: tenant, category: category) }
+  let!(:entries) { create_list(:entry, 10, :directory, :published, tenant: tenant, category: category) }
 
   before do
     host! tenant.hostname
@@ -43,7 +43,7 @@ RSpec.describe 'Query Performance', type: :request do
     end
 
     it 'loads category show without N+1 queries on entries' do
-      create_list(:entry, :directory, 10, :published, tenant: tenant, category: category)
+      create_list(:entry, 10, :directory, :published, tenant: tenant, category: category)
 
       query_count = 0
       callback = lambda { |*args| query_count += 1 }

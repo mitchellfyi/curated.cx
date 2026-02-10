@@ -25,7 +25,7 @@ RSpec.describe "Sitemaps", type: :request do
 
       expect(response.body).to include("sitemapindex")
       expect(response.body).to include("sitemap/main")
-      expect(response.body).to include("sitemap/entries")
+      expect(response.body).to include("sitemap/listings")
       expect(response.body).to include("sitemap/content")
     end
   end

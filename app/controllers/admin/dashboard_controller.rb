@@ -6,7 +6,7 @@ class Admin::DashboardController < ApplicationController
   def index
     @tenant = Current.tenant.decorate
     @categories = categories_service.all_categories.to_a
-    @recent_entries = Entry.directory_items.without_site_scope.where(tenant: Current.tenant).order(created_at: :desc).limit(10)
+    @recent_entries = Entry.directory_items.without_site_scope.where(tenant: Current.tenant).includes(:category).order(created_at: :desc).limit(10)
     @system_stats = system_stats
     @stats = {
       total_categories: @categories.size,

@@ -203,7 +203,7 @@ module Admin
     private
 
     def base_scope
-      Entry.without_site_scope
+      Entry.without_site_scope.where(tenant: Current.tenant)
     end
 
     def set_entry

@@ -13,14 +13,14 @@
   <%# Content item summary %>
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
     <h1 class="text-xl font-semibold text-gray-900 mb-2">
-      <%= link_to @content_item.title || t('feed.content.untitled'),
-                  safe_external_url(@content_item.url_canonical),
+      <%= link_to @entry.title || t('feed.content.untitled'),
+                  safe_external_url(@entry.url_canonical),
                   target: "_blank",
                   rel: "noopener noreferrer",
                   class: "hover:text-blue-600 transition-colors" %>
     </h1>
-    <% if @content_item.source.present? %>
-      <p class="text-sm text-gray-500"><%= @content_item.source.name %></p>
+    <% if @entry.source.present? %>
+      <p class="text-sm text-gray-500"><%= @entry.source.name %></p>
     <% end %>
   </div>
 
@@ -33,7 +33,7 @@
     </div>
 
     <%# Locked message %>
-    <% if @content_item.comments_locked? %>
+    <% if @entry.comments_locked? %>
       <div class="px-6 py-4 bg-amber-50 border-b border-amber-100">
         <p class="text-sm text-amber-800">
           <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,11 +46,11 @@
 
     <%# Comment form %>
     <% if user_signed_in? %>
-      <% if policy(Comment).create? && !@content_item.comments_locked? %>
+      <% if policy(Comment).create? && !@entry.comments_locked? %>
         <div class="px-6 py-4 border-b border-gray-200">
           <%= render 'comments/form',
                      comment: Comment.new,
-                     commentable: @content_item %>
+                     commentable: @entry %>
         </div>
       <% end %>
     <% else %>
