@@ -81,7 +81,7 @@ RSpec.describe Admin::DashboardController, type: :controller do
 
       it 'sets correct meta tags' do
         get :index
-        expect(response.body).to include(tenant.title)
+        expect(response.body).to include(ERB::Util.html_escape(tenant.title))
       end
     end
 
