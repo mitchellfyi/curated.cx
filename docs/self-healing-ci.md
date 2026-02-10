@@ -359,7 +359,7 @@ const maxLinesPerJob = 150; // Reduce from 200
 
 ## Related Documentation
 
-- [CI Workflow Documentation](.github/workflows/ci.yml)
+- [CI Workflow File](.github/workflows/ci.yml) - The main CI workflow file
 - [GitHub Actions workflow_run event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run)
 - [GitHub Copilot](https://docs.github.com/en/copilot)
 - [GitHub Actions API](https://docs.github.com/en/rest/actions)
