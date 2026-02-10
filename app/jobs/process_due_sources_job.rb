@@ -21,6 +21,8 @@ class ProcessDueSourcesJob < ApplicationJob
 
   def perform
     Source.enabled.due_for_run.find_each do |source|
+      next unless source.run_due?
+
       enqueue_job_for_source(source)
     end
   end
@@ -31,14 +33,13 @@ class ProcessDueSourcesJob < ApplicationJob
     job_class = JOB_MAPPING[source.kind]
 
     if job_class.nil?
-      Rails.logger.info("ProcessDueSourcesJob: No job mapping for source kind '#{source.kind}' (source_id: #{source.id})")
+      log_job_info("No job mapping for source kind",
+                   source_kind: source.kind, source_id: source.id)
       return
     end
 
     job_class.perform_later(source.id)
   rescue StandardError => e
-    Rails.logger.error(
-      "ProcessDueSourcesJob: Failed to enqueue job for source #{source.id}: #{e.message}"
-    )
+    log_job_error(e, source_id: source.id, source_kind: source.kind)
   end
 end

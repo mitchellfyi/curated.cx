@@ -211,13 +211,13 @@ class SerpApiIngestionJob < ApplicationJob
   end
 
   def extract_tags(result)
-    tags = []
+    tags = [ "source:google_news" ]
 
     # Extract source name as a tag
     # SerpAPI returns source as either a string or a hash with "name" key
     source_value = result["source"]
     source_name = source_value.is_a?(Hash) ? source_value["name"] : source_value
-    tags << "source:#{source_name.downcase.gsub(/\s+/, '-')}" if source_name.present?
+    tags << "publisher:#{source_name.downcase.gsub(/\s+/, '-')}" if source_name.present?
 
     tags
   end

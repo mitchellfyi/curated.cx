@@ -18,13 +18,16 @@ Read these prompts before writing code:
 
 ## Quality Gates
 
-All code must pass before commit:
-- Linting passes
-- Type checking passes (if applicable)
-- Tests pass
-- Build succeeds
+**Run before every commit:**
 
-Check `.doyaken/manifest.yaml` for project-specific commands.
+```bash
+bundle exec rubocop          # Lint (auto-fix: bundle exec rubocop -a)
+bundle exec rspec            # Tests
+bundle exec brakeman -q --no-pager  # Security scan
+```
+
+All checks must pass before committing. If you introduce lint errors, fix them.
+If tests fail, investigate and fix before proceeding.
 
 ## Commit Messages
 

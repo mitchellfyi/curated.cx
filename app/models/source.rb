@@ -73,9 +73,11 @@ class Source < ApplicationRecord
   scope :enabled, -> { where(enabled: true) }
   scope :disabled, -> { where(enabled: false) }
   scope :by_kind, ->(kind) { where(kind: kind) }
+  # Pre-filter: sources that haven't run in at least 15 minutes (minimum cooldown).
+  # Callers should also check source.run_due? for per-source interval accuracy.
   scope :due_for_run, -> {
     where(enabled: true)
-      .where("last_run_at IS NULL OR last_run_at < ?", 1.hour.ago)
+      .where("last_run_at IS NULL OR last_run_at < ?", 15.minutes.ago)
   }
 
   # Class methods
@@ -97,18 +99,18 @@ class Source < ApplicationRecord
     super || {}
   end
 
+  # Default schedule interval: 1 hour (3600 seconds)
+  DEFAULT_INTERVAL_SECONDS = 3600
+
   def run_due?
     return true if last_run_at.nil?
     return false unless enabled?
 
-    interval = schedule_interval_seconds
-    return false if interval.nil?
-
-    last_run_at < interval.seconds.ago
+    last_run_at < schedule_interval_seconds.seconds.ago
   end
 
   def schedule_interval_seconds
-    schedule["interval_seconds"] || schedule[:interval_seconds]
+    (schedule["interval_seconds"] || schedule[:interval_seconds] || DEFAULT_INTERVAL_SECONDS).to_i
   end
 
   def update_run_status(status)

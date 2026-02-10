@@ -40,6 +40,19 @@ class ApplicationJob < ActiveJob::Base
     )
   end
 
+  # Log an informational message with structured context.
+  #
+  # @param message [String] The info message
+  # @param context [Hash] Additional context to include in the log
+  #
+  def log_job_info(message, **context)
+    full_context = build_error_context(context)
+
+    Rails.logger.info(
+      "#{self.class.name}: #{message} #{full_context.to_json}"
+    )
+  end
+
   # Log a warning with structured context.
   #
   # @param message [String] The warning message

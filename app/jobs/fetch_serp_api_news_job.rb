@@ -23,7 +23,7 @@ class FetchSerpApiNewsJob < ApplicationJob
 
     # Get API key from source config
     api_key = source.config["api_key"] || source.config[:api_key]
-    raise "SerpAPI key not configured" if api_key.blank?
+    raise ConfigurationError, "SerpAPI key not configured" if api_key.blank?
 
     # Get query and other params from config
     query = source.config["query"] || source.config[:query] || ""
@@ -73,7 +73,7 @@ class FetchSerpApiNewsJob < ApplicationJob
     response = Net::HTTP.get_response(uri)
 
     unless response.is_a?(Net::HTTPSuccess)
-      raise "SerpAPI request failed: #{response.code} #{response.message}"
+      raise ExternalServiceError, "SerpAPI request failed: #{response.code} #{response.message}"
     end
 
     JSON.parse(response.body)

@@ -16,10 +16,11 @@ domains: {}
 tools: {}
 
 quality:
-  test_command: ""
-  lint_command: ""
-  format_command: ""
+  test_command: "bundle exec rspec"
+  lint_command: "bundle exec rubocop"
+  format_command: "bundle exec rubocop -a"
   build_command: ""
+  security_command: "bundle exec brakeman -q --no-pager"
 
 agent:
   name: "claude"

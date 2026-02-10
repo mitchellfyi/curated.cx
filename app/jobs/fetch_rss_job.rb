@@ -13,8 +13,6 @@ class FetchRssJob < ApplicationJob
   retry_on StandardError, wait: :polynomially_longer, attempts: 3
   discard_on ActiveRecord::RecordNotFound
 
-  class ConfigurationError < StandardError; end
-
   def perform(source_id)
     @source = Source.find(source_id)
     @site = @source.site
