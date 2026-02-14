@@ -1,0 +1,54 @@
+<div class="py-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Business Claim Details</h1>
+      <p class="mt-1 text-sm text-gray-500">Submitted <%= @claim.created_at.strftime("%B %d, %Y at %I:%M %p") %></p>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <% status_colors = { "pending" => "yellow", "verified" => "green", "rejected" => "red" } %>
+          <% color = status_colors[@claim.status] || "gray" %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-<%= color %>-100 text-<%= color %>-800">
+            <%= @claim.status.titleize %>
+          </span>
+          <% if @claim.pending? %>
+            <div class="flex gap-2">
+              <%= link_to "Verify", verify_admin_business_claim_path(@claim), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700" %>
+              <%= link_to "Reject", reject_admin_business_claim_path(@claim), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700", data: { confirm: "Are you sure?" } %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <dl class="divide-y divide-gray-200">
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Entry</dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <%= link_to @claim.entry&.title || "Unknown", admin_entry_path(@claim.entry), class: "text-blue-600 hover:text-blue-900" %>
+            <div class="text-xs text-gray-500 mt-1"><%= @claim.entry&.url_canonical %></div>
+          </dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Claimant</dt>
+          <dd class="text-sm text-gray-900 col-span-2"><%= @claim.user&.email || "Unknown" %></dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Verification Method</dt>
+          <dd class="text-sm text-gray-900 col-span-2"><%= @claim.verification_method&.titleize || "Not specified" %></dd>
+        </div>
+        <% if @claim.verified_at %>
+          <div class="px-6 py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Verified At</dt>
+            <dd class="text-sm text-gray-900 col-span-2"><%= @claim.verified_at.strftime("%B %d, %Y at %I:%M %p") %></dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+
+    <div class="mt-6">
+      <%= link_to "← Back to Business Claims", admin_business_claims_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+    </div>
+  </div>
+</div>

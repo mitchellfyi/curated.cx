@@ -1,0 +1,84 @@
+<div class="py-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Sponsorship Details</h1>
+      <p class="mt-1 text-sm text-gray-500">Created <%= @sponsorship.created_at.strftime("%B %d, %Y") %></p>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <% status_colors = { "active" => "green", "pending" => "yellow", "paused" => "gray", "completed" => "blue", "rejected" => "red" } %>
+            <% color = status_colors[@sponsorship.status] || "gray" %>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-<%= color %>-100 text-<%= color %>-800">
+              <%= @sponsorship.status.titleize %>
+            </span>
+            <span class="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+              <%= @sponsorship.placement_type.titleize %>
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <% if @sponsorship.pending? %>
+              <%= link_to "Approve", approve_admin_sponsorship_path(@sponsorship), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700" %>
+              <%= link_to "Reject", reject_admin_sponsorship_path(@sponsorship), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700", data: { confirm: "Are you sure?" } %>
+            <% elsif @sponsorship.active? %>
+              <%= link_to "Pause", pause_admin_sponsorship_path(@sponsorship), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700" %>
+              <%= link_to "Complete", complete_admin_sponsorship_path(@sponsorship), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" %>
+            <% elsif @sponsorship.status == "paused" %>
+              <%= link_to "Resume", approve_admin_sponsorship_path(@sponsorship), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700" %>
+            <% end %>
+            <%= link_to "Edit", edit_admin_sponsorship_path(@sponsorship), class: "px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200" %>
+          </div>
+        </div>
+      </div>
+
+      <dl class="divide-y divide-gray-200">
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Sponsor</dt>
+          <dd class="text-sm text-gray-900 col-span-2"><%= @sponsorship.user&.email || "Unknown" %></dd>
+        </div>
+        <% if @sponsorship.entry %>
+          <div class="px-6 py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Entry</dt>
+            <dd class="text-sm text-gray-900 col-span-2">
+              <%= link_to @sponsorship.entry.title, admin_entry_path(@sponsorship.entry), class: "text-blue-600 hover:text-blue-900" %>
+            </dd>
+          </div>
+        <% end %>
+        <% if @sponsorship.category_slug.present? %>
+          <div class="px-6 py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Category</dt>
+            <dd class="text-sm text-gray-900 col-span-2"><%= @sponsorship.category_slug %></dd>
+          </div>
+        <% end %>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Period</dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <%= @sponsorship.starts_at.strftime("%B %d, %Y") %> — <%= @sponsorship.ends_at.strftime("%B %d, %Y") %>
+          </dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Budget</dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <%= number_to_currency(@sponsorship.budget_cents / 100.0) %>
+            <span class="text-gray-500">(Spent: <%= number_to_currency(@sponsorship.spent_cents / 100.0) %>)</span>
+          </dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Performance</dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <%= number_with_delimiter(@sponsorship.impressions) %> impressions ·
+            <%= number_with_delimiter(@sponsorship.clicks) %> clicks ·
+            <%= @sponsorship.ctr %>% CTR
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="mt-6 flex justify-between">
+      <%= link_to "← Back to Sponsorships", admin_sponsorships_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+      <%= link_to "Delete", admin_sponsorship_path(@sponsorship), method: :delete, data: { confirm: "Are you sure you want to delete this sponsorship?" }, class: "text-sm text-red-600 hover:text-red-900" %>
+    </div>
+  </div>
+</div>

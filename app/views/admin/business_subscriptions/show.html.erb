@@ -1,0 +1,61 @@
+<div class="py-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Subscription Details</h1>
+      <p class="mt-1 text-sm text-gray-500">Created <%= @subscription.created_at.strftime("%B %d, %Y") %></p>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <% tier_colors = { "pro" => "blue", "premium" => "purple" } %>
+            <% t_color = tier_colors[@subscription.tier] || "gray" %>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-<%= t_color %>-100 text-<%= t_color %>-800">
+              <%= @subscription.tier.titleize %>
+            </span>
+            <% status_colors = { "active" => "green", "past_due" => "yellow", "cancelled" => "red" } %>
+            <% s_color = status_colors[@subscription.status] || "gray" %>
+            <span class="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-<%= s_color %>-100 text-<%= s_color %>-800">
+              <%= @subscription.status.titleize %>
+            </span>
+          </div>
+          <% if @subscription.active? %>
+            <%= link_to "Cancel", cancel_admin_business_subscription_path(@subscription), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700", data: { confirm: "Are you sure you want to cancel this subscription?" } %>
+          <% end %>
+        </div>
+      </div>
+
+      <dl class="divide-y divide-gray-200">
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Entry</dt>
+          <dd class="text-sm text-gray-900 col-span-2">
+            <%= link_to @subscription.entry&.title || "Unknown", admin_entry_path(@subscription.entry), class: "text-blue-600 hover:text-blue-900" %>
+          </dd>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Subscriber</dt>
+          <dd class="text-sm text-gray-900 col-span-2"><%= @subscription.user&.email || "Unknown" %></dd>
+        </div>
+        <% if @subscription.stripe_subscription_id %>
+          <div class="px-6 py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Stripe ID</dt>
+            <dd class="text-sm text-gray-900 col-span-2 font-mono"><%= @subscription.stripe_subscription_id %></dd>
+          </div>
+        <% end %>
+        <% if @subscription.current_period_start && @subscription.current_period_end %>
+          <div class="px-6 py-4 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Current Period</dt>
+            <dd class="text-sm text-gray-900 col-span-2">
+              <%= @subscription.current_period_start.strftime("%B %d, %Y") %> — <%= @subscription.current_period_end.strftime("%B %d, %Y") %>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+
+    <div class="mt-6">
+      <%= link_to "← Back to Subscriptions", admin_business_subscriptions_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+    </div>
+  </div>
+</div>

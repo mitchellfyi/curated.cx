@@ -110,7 +110,7 @@
 
   <!-- Commerce Section (Collapsible) - Admin/Owner only -->
   <% if is_admin_or_owner %>
-  <% commerce_active = request.path.include?('digital_products') || request.path.include?('affiliate_clicks') || request.path.include?('live_streams') %>
+  <% commerce_active = request.path.include?('digital_products') || request.path.include?('affiliate_clicks') || request.path.include?('live_streams') || request.path.include?('sponsorships') || request.path.include?('business_claims') || request.path.include?('business_subscriptions') %>
   <div data-sidebar-target="section" data-section-name="commerce">
     <button type="button" data-action="click->sidebar#toggle" class="w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md <%= commerce_active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' %>">
       <span class="flex items-center">
@@ -129,6 +129,23 @@
       <% end %>
       <%= link_to admin_affiliate_clicks_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('affiliate_clicks') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Affiliate Clicks
+      <% end %>
+      <%= link_to admin_sponsorships_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('sponsorships') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Sponsorships
+        <% pending_sponsorships = Sponsorship.where(site: Current.site).pending.count rescue 0 %>
+        <% if pending_sponsorships > 0 %>
+          <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= pending_sponsorships %></span>
+        <% end %>
+      <% end %>
+      <%= link_to admin_business_claims_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('business_claims') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Business Claims
+        <% pending_claims = BusinessClaim.joins(:entry).where(entries: { site_id: Current.site&.id }).pending.count rescue 0 %>
+        <% if pending_claims > 0 %>
+          <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= pending_claims %></span>
+        <% end %>
+      <% end %>
+      <%= link_to admin_business_subscriptions_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('business_subscriptions') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
+        Subscriptions
       <% end %>
       <%= link_to admin_live_streams_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('live_streams') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Live Streams
