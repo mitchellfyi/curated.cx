@@ -38,7 +38,7 @@
       </div>
       <div class="bg-white rounded-lg shadow p-4">
         <p class="text-xs font-medium text-gray-500 uppercase">Revenue</p>
-        <p class="mt-1 text-2xl font-bold text-gray-900"><%= number_to_currency(@total_revenue / 100.0) %></p>
+        <p class="mt-1 text-2xl font-bold text-gray-900"><%= number_to_currency(@total_budget / 100.0) %></p>
       </div>
     </div>
 
@@ -95,9 +95,15 @@
                   <% end %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <% status_colors = { "active" => "green", "pending" => "yellow", "paused" => "gray", "completed" => "blue", "rejected" => "red" } %>
-                  <% color = status_colors[sponsorship.status] || "gray" %>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= color %>-100 text-<%= color %>-800">
+                  <% status_class = case sponsorship.status
+                     when "active" then "bg-green-100 text-green-800"
+                     when "pending" then "bg-yellow-100 text-yellow-800"
+                     when "paused" then "bg-gray-100 text-gray-800"
+                     when "completed" then "bg-blue-100 text-blue-800"
+                     when "rejected" then "bg-red-100 text-red-800"
+                     else "bg-gray-100 text-gray-800"
+                     end %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= status_class %>">
                     <%= sponsorship.status.titleize %>
                   </span>
                 </td>

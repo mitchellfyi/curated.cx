@@ -98,7 +98,7 @@ module Admin
       @pending_sponsorships = scope.pending.count
       @total_impressions = scope.sum(:impressions)
       @total_clicks = scope.sum(:clicks)
-      @total_revenue = scope.sum(:budget_cents)
+      @total_budget = scope.sum(:budget_cents)
     end
   end
 end

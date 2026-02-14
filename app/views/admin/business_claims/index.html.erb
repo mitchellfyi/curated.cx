@@ -67,9 +67,13 @@
                   <%= claim.user&.email || "Unknown" %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <% status_colors = { "pending" => "yellow", "verified" => "green", "rejected" => "red" } %>
-                  <% color = status_colors[claim.status] || "gray" %>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= color %>-100 text-<%= color %>-800">
+                  <% status_class = case claim.status
+                     when "pending" then "bg-yellow-100 text-yellow-800"
+                     when "verified" then "bg-green-100 text-green-800"
+                     when "rejected" then "bg-red-100 text-red-800"
+                     else "bg-gray-100 text-gray-800"
+                     end %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= status_class %>">
                     <%= claim.status.titleize %>
                   </span>
                 </td>
