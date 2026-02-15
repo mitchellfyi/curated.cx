@@ -20,7 +20,7 @@ class TenantsController < ApplicationController
       load_tenant_homepage(service)
     end
 
-    set_page_meta_tags(
+    set_social_meta_tags(
       title: Current.tenant&.title,
       description: Current.tenant&.description || t("app.tagline")
     )
