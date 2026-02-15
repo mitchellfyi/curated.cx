@@ -36,6 +36,7 @@ module Admin
     def set_claim
       @claim = BusinessClaim.joins(:entry)
                             .where(entries: { site_id: Current.site&.id })
+                            .includes(:entry, :user)
                             .find(params[:id])
     end
 

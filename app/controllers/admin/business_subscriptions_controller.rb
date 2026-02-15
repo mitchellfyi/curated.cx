@@ -32,6 +32,7 @@ module Admin
     def set_subscription
       @subscription = BusinessSubscription.joins(:entry)
                                            .where(entries: { site_id: Current.site&.id })
+                                           .includes(:entry, :user)
                                            .find(params[:id])
     end
 
