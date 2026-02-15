@@ -14,6 +14,6 @@ class CreateBusinessClaims < ActiveRecord::Migration[8.0]
     end
 
     add_index :business_claims, :status
-    add_index :business_claims, [:entry_id, :user_id], unique: true
+    add_index :business_claims, [ :entry_id, :user_id ], unique: true
   end
 end

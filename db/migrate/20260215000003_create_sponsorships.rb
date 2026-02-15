@@ -21,7 +21,7 @@ class CreateSponsorships < ActiveRecord::Migration[8.0]
 
     add_index :sponsorships, :placement_type
     add_index :sponsorships, :status
-    add_index :sponsorships, [:site_id, :status]
-    add_index :sponsorships, [:starts_at, :ends_at]
+    add_index :sponsorships, [ :site_id, :status ]
+    add_index :sponsorships, [ :starts_at, :ends_at ]
   end
 end
