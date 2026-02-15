@@ -82,7 +82,7 @@ class SerpApiIngestionJob < ApplicationJob
 
   def execute_ingestion
     # Get API key from source config
-    api_key = config_value("api_key")
+    api_key = config_value("api_key") || Rails.application.credentials.dig(:serpapi, :api_key)
     raise ConfigurationError, "SerpAPI key not configured" if api_key.blank?
 
     # Get query and other params from config

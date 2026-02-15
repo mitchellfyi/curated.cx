@@ -58,6 +58,7 @@ class EnrichEntryJob < ApplicationJob
     attrs[:favicon_url] = metadata[:favicon_url] if metadata[:favicon_url].present?
     attrs[:title] = metadata[:title] if entry.title.blank? && metadata[:title].present?
     attrs[:description] = metadata[:description] if entry.description.blank? && metadata[:description].present?
+    attrs[:extracted_text] = metadata[:extracted_text] if metadata[:extracted_text].present?
 
     entry.update_columns(attrs) if attrs.present?
   end

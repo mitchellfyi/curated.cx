@@ -49,6 +49,10 @@ RSpec.describe LinkEnrichmentService do
         allow(MetaInspector).to receive(:new).and_return(mock_page)
         allow(mock_parsed).to receive(:css).with("body").and_return(mock_body)
         allow(mock_parsed).to receive(:css).with('link[rel~="icon"], link[rel="shortcut icon"]').and_return(mock_favicon_links)
+        allow(mock_parsed).to receive(:css).with("script, style, nav, header, footer, aside, .sidebar, .nav, .menu, .comments").and_return([])
+        allow(mock_parsed).to receive(:at_css).and_return(nil)
+        allow(mock_parsed).to receive(:at_css).with("body").and_return(mock_body)
+        allow(mock_body).to receive(:text).and_return("This is a sample article with enough words to count properly")
       end
 
       it "returns enriched metadata" do
@@ -122,6 +126,9 @@ RSpec.describe LinkEnrichmentService do
         allow(MetaInspector).to receive(:new).and_return(mock_page)
         allow(mock_parsed).to receive(:css).with("body").and_return(mock_body)
         allow(mock_parsed).to receive(:css).with('link[rel~="icon"], link[rel="shortcut icon"]').and_return([])
+        allow(mock_parsed).to receive(:css).with("script, style, nav, header, footer, aside, .sidebar, .nav, .menu, .comments").and_return([])
+        allow(mock_parsed).to receive(:at_css).and_return(nil)
+        allow(mock_parsed).to receive(:at_css).with("body").and_return(mock_body)
       end
 
       it "falls back to article:author" do
@@ -150,6 +157,8 @@ RSpec.describe LinkEnrichmentService do
         allow(MetaInspector).to receive(:new).and_return(mock_page)
         allow(mock_parsed).to receive(:css).with("body").and_return(nil)
         allow(mock_parsed).to receive(:css).with('link[rel~="icon"], link[rel="shortcut icon"]').and_return([])
+        allow(mock_parsed).to receive(:css).with("script, style, nav, header, footer, aside, .sidebar, .nav, .menu, .comments").and_return([])
+        allow(mock_parsed).to receive(:at_css).and_return(nil)
       end
 
       it "returns nil word count and read time" do
@@ -182,6 +191,9 @@ RSpec.describe LinkEnrichmentService do
         allow(MetaInspector).to receive(:new).and_return(mock_page)
         allow(mock_parsed).to receive(:css).with("body").and_return(mock_body)
         allow(mock_parsed).to receive(:css).with('link[rel~="icon"], link[rel="shortcut icon"]').and_return([])
+        allow(mock_parsed).to receive(:css).with("script, style, nav, header, footer, aside, .sidebar, .nav, .menu, .comments").and_return([])
+        allow(mock_parsed).to receive(:at_css).and_return(nil)
+        allow(mock_parsed).to receive(:at_css).with("body").and_return(mock_body)
       end
 
       it "calculates read time based on word count" do

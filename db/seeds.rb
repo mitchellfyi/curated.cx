@@ -562,6 +562,44 @@ source_configs = {
         editorialise: true
       },
       schedule: { interval_seconds: 7200 }  # 2 hours
+    },
+    {
+      name: "MIT Technology Review - AI",
+      kind: :rss,
+      config: {
+        url: "https://www.technologyreview.com/feed/",
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
+    },
+    {
+      name: "The Verge - AI",
+      kind: :rss,
+      config: {
+        url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
+    },
+    {
+      name: "Ars Technica - AI",
+      kind: :rss,
+      config: {
+        url: "https://feeds.arstechnica.com/arstechnica/technology-lab",
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
+    },
+    {
+      name: "Hacker News - AI",
+      kind: :hacker_news,
+      config: {
+        query: "AI OR LLM OR GPT OR machine learning",
+        tags: "story",
+        max_results: 30,
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
     }
   ],
   "construction" => [
@@ -588,6 +626,24 @@ source_configs = {
         editorialise: true
       },
       schedule: { interval_seconds: 7200 }
+    },
+    {
+      name: "Construction Dive",
+      kind: :rss,
+      config: {
+        url: "https://www.constructiondive.com/feeds/news/",
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
+    },
+    {
+      name: "ENR - Engineering News-Record",
+      kind: :rss,
+      config: {
+        url: "https://www.enr.com/rss",
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
     }
   ],
   "dayz" => [
@@ -614,6 +670,24 @@ source_configs = {
         editorialise: true
       },
       schedule: { interval_seconds: 7200 }
+    },
+    {
+      name: "DayZ Steam News",
+      kind: :rss,
+      config: {
+        url: "https://store.steampowered.com/feeds/news/app/221100",
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
+    },
+    {
+      name: "DayZ Reddit",
+      kind: :rss,
+      config: {
+        url: "https://www.reddit.com/r/dayz/.rss",
+        editorialise: true
+      },
+      schedule: { interval_seconds: 3600 }
     }
   ]
 }

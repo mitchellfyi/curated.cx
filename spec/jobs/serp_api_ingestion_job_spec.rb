@@ -235,6 +235,10 @@ RSpec.describe SerpApiIngestionJob, type: :job do
         create(:source, :serp_api_google_news, site: site, config: { "query" => "test" })
       end
 
+      before do
+        allow(Rails.application.credentials).to receive(:dig).with(:serpapi, :api_key).and_return(nil)
+      end
+
       it "marks the ImportRun as failed" do
         # Note: ConfigurationError may trigger retry mechanism, so we catch any error
         begin

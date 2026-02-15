@@ -22,6 +22,8 @@ class LinkEnrichmentService
     page = fetch_page
     word_count = estimate_word_count(page)
 
+    extracted_text = extract_body_text(page)
+
     {
       title: page.best_title.presence,
       description: page.best_description.presence,
@@ -32,7 +34,8 @@ class LinkEnrichmentService
       read_time_minutes: calculate_read_time(word_count),
       domain: page.host,
       favicon_url: extract_favicon(page) ||
-                   page.meta_tags.dig("name", "msapplication-TileImage")&.first.presence
+                   page.meta_tags.dig("name", "msapplication-TileImage")&.first.presence,
+      extracted_text: extracted_text.presence
     }.compact
   rescue MetaInspector::TimeoutError, MetaInspector::RequestError => e
     raise EnrichmentError, "Failed to fetch URL: #{e.message}"
@@ -62,6 +65,23 @@ class LinkEnrichmentService
     words.size
   rescue StandardError
     0
+  end
+
+  def extract_body_text(page)
+    doc = page.parsed
+    return nil unless doc
+
+    # Remove script, style, nav, header, footer elements
+    doc.css("script, style, nav, header, footer, aside, .sidebar, .nav, .menu, .comments").each(&:remove)
+
+    # Get text from article or main content area, falling back to body
+    content = doc.at_css("article") || doc.at_css("[role='main']") || doc.at_css("main") || doc.at_css("body")
+    return nil unless content
+
+    text = content.text.to_s.gsub(/\s+/, " ").strip
+    text.truncate(10_000)
+  rescue StandardError
+    nil
   end
 
   def calculate_read_time(word_count)

@@ -81,6 +81,10 @@ RSpec.describe FetchSerpApiNewsJob, type: :job do
     context "when API key is not configured" do
       let(:source) { create(:source, :serp_api_google_news, site: site, config: { "query" => "test" }) }
 
+      before do
+        allow(Rails.application.credentials).to receive(:dig).with(:serpapi, :api_key).and_return(nil)
+      end
+
       it "updates source status with error message" do
         # Note: Job has retry_on StandardError, so errors trigger retry mechanism
         # We test the source status update behavior

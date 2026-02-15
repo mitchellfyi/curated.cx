@@ -52,7 +52,7 @@ RSpec.describe UpsertEntriesJob, type: :job do
 
     context "idempotency - existing entry" do
       let!(:existing_entry) do
-        create(:entry, :directory,
+        create(:entry, :feed,
           tenant: tenant,
           site: site,
           category: category,
@@ -178,10 +178,8 @@ RSpec.describe UpsertEntriesJob, type: :job do
 
         # Simulate second job: first find_by returns nil, create raises unique,
         # second find_by returns the existing entry
-        directory_scope = Entry.directory_items
         call_count = 0
-        allow(Entry).to receive(:directory_items).and_return(directory_scope)
-        allow(directory_scope).to receive(:find_by).and_wrap_original do |method, *args|
+        allow(Entry).to receive(:find_by).and_wrap_original do |method, *args|
           call_count += 1
           call_count == 1 ? nil : entry1
         end

@@ -23,7 +23,7 @@ class UpsertEntriesJob < ApplicationJob
     canonical_url = UrlCanonicaliser.canonicalize(url_raw)
     return if canonical_url.blank?
 
-    entry = Entry.directory_items.find_by(site: site, url_canonical: canonical_url)
+    entry = Entry.find_by(site: site, url_canonical: canonical_url)
     if entry
       entry.update(source: source) if source
       return entry
@@ -56,19 +56,20 @@ class UpsertEntriesJob < ApplicationJob
           source: source,
           url_raw: url_raw,
           url_canonical: canonical_url,
-          entry_kind: Entry::ENTRY_KINDS.second,
+          entry_kind: :feed,
           title: extract_title_from_url(canonical_url),
-          raw_payload: {}
+          raw_payload: { "url" => url_raw, "ingested_via" => "upsert_entries_job" },
+          tags: [ "source:rss" ]
         )
       rescue ActiveRecord::RecordNotUnique
-        entry = Entry.directory_items.find_by(site: site, url_canonical: canonical_url)
+        entry = Entry.find_by(site: site, url_canonical: canonical_url)
         return entry if entry
 
         sleep(0.1 * (attempt + 1))
       end
     end
 
-    entry = Entry.directory_items.find_by(tenant: tenant, url_canonical: canonical_url)
+    entry = Entry.find_by(site: site, url_canonical: canonical_url)
     return entry if entry
 
     raise "Failed to create or find entry after #{retries} retries"

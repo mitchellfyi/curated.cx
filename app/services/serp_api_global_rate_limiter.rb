@@ -144,11 +144,13 @@ class SerpApiGlobalRateLimiter
       (daily_average * Time.current.end_of_month.day).round
     end
 
-    # Count ImportRuns for SerpAPI sources since a given time
+    # Count ImportRuns for SerpAPI sources since a given time.
+    # Only count runs that actually made API calls (not failed before calling).
     def count_serp_api_runs(since)
       ImportRun.joins(:source)
                .where(sources: { kind: serp_api_kinds })
                .where("import_runs.started_at >= ?", since)
+               .where.not(status: :failed)
                .count
     end
 
