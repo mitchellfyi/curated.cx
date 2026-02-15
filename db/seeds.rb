@@ -640,7 +640,7 @@ source_configs = {
       name: "ENR - Engineering News-Record",
       kind: :rss,
       config: {
-        url: "https://www.enr.com/rss",
+        url: "https://www.enr.com/rss/1",
         editorialise: true
       },
       schedule: { interval_seconds: 3600 }
