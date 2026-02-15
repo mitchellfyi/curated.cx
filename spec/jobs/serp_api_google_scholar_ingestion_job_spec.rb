@@ -211,6 +211,10 @@ RSpec.describe SerpApiGoogleScholarIngestionJob, type: :job do
     end
 
     context "when API key is not configured" do
+      before do
+        allow(Rails.application.credentials).to receive(:dig).with(:serpapi, :api_key).and_return(nil)
+      end
+
       let(:source) do
         create(:source, :google_scholar, site: site, config: { "query" => "test" })
       end

@@ -227,6 +227,10 @@ RSpec.describe SerpApiAmazonIngestionJob, type: :job do
     end
 
     context "when API key is not configured" do
+      before do
+        allow(Rails.application.credentials).to receive(:dig).with(:serpapi, :api_key).and_return(nil)
+      end
+
       let(:source) do
         create(:source, :amazon_search, site: site, config: { "query" => "test" })
       end
