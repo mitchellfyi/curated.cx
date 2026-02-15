@@ -1,0 +1,107 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Business Claims</h1>
+      <p class="mt-1 text-sm text-gray-500">Review and manage business ownership claims</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Total</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900"><%= @total_claims %></p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Pending</p>
+        <p class="mt-1 text-2xl font-bold text-yellow-600"><%= @pending_claims %></p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Verified</p>
+        <p class="mt-1 text-2xl font-bold text-green-600"><%= @verified_claims %></p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Rejected</p>
+        <p class="mt-1 text-2xl font-bold text-red-600"><%= @rejected_claims %></p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow mb-6 p-4">
+      <%= form_with url: admin_business_claims_path, method: :get, class: "flex flex-wrap gap-4 items-end" do |f| %>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+          <%= f.select :status, options_for_select(BusinessClaim::STATUSES.map { |s| [s.titleize, s] }, params[:status]), { include_blank: "All" }, class: "block w-full rounded-md border-gray-300 text-sm" %>
+        </div>
+        <div>
+          <%= f.submit "Filter", class: "px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200" %>
+        </div>
+        <div>
+          <%= link_to "Clear", admin_business_claims_path, class: "px-4 py-2 text-sm text-gray-500 hover:text-gray-700" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <% if @claims.any? %>
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entry</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Claimant</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @claims.each do |claim| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4">
+                  <div class="text-sm font-medium text-gray-900 truncate max-w-xs"><%= claim.entry&.title || "Unknown" %></div>
+                  <div class="text-xs text-gray-500 truncate max-w-xs"><%= claim.entry&.url_canonical %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= claim.user&.email || "Unknown" %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% status_class = case claim.status
+                     when "pending" then "bg-yellow-100 text-yellow-800"
+                     when "verified" then "bg-green-100 text-green-800"
+                     when "rejected" then "bg-red-100 text-red-800"
+                     else "bg-gray-100 text-gray-800"
+                     end %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= status_class %>">
+                    <%= claim.status.titleize %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= claim.verification_method&.titleize || "—" %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= claim.created_at.strftime("%b %d, %Y") %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <%= link_to "View", admin_business_claim_path(claim), class: "text-blue-600 hover:text-blue-900" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+        <div class="px-6 py-4 border-t border-gray-200">
+          <%= paginate @claims %>
+        </div>
+      <% else %>
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No business claims</h3>
+          <p class="mt-1 text-sm text-gray-500">Business claims will appear here when users request ownership verification.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

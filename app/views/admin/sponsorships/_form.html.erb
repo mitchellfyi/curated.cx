@@ -1,0 +1,64 @@
+<%= form_with(model: [:admin, sponsorship], class: "space-y-6") do |f| %>
+  <% if sponsorship.errors.any? %>
+    <div class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="text-sm text-red-700">
+          <p class="font-medium"><%= pluralize(sponsorship.errors.count, "error") %> prohibited this sponsorship from being saved:</p>
+          <ul class="mt-2 list-disc pl-5 space-y-1">
+            <% sponsorship.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="bg-white shadow rounded-lg p-6 space-y-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Sponsor (User)</label>
+      <%= f.collection_select :user_id, User.order(:email), :id, :email, { include_blank: "Select a user..." }, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Entry (optional)</label>
+      <%= f.collection_select :entry_id, Entry.where(site: Current.site).order(:title).limit(100), :id, :title, { include_blank: "No specific entry" }, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      <p class="mt-1 text-xs text-gray-500">Link to a specific entry, or leave blank for category/homepage sponsorships.</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Placement Type</label>
+      <%= f.select :placement_type, Sponsorship::PLACEMENT_TYPES.map { |t| [t.titleize, t] }, {}, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Category Slug (optional)</label>
+      <%= f.text_field :category_slug, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", placeholder: "e.g. design-tools" %>
+      <p class="mt-1 text-xs text-gray-500">For category sponsorships, specify the category slug.</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Start Date</label>
+        <%= f.datetime_local_field :starts_at, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">End Date</label>
+        <%= f.datetime_local_field :ends_at, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Budget (cents)</label>
+      <div class="mt-1 relative rounded-md shadow-sm">
+        <%= f.number_field :budget_cents, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", min: 0 %>
+      </div>
+      <p class="mt-1 text-xs text-gray-500">Enter budget in cents (e.g. 10000 = $100.00).</p>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3">
+    <%= link_to "Cancel", admin_sponsorships_path, class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50" %>
+    <%= f.submit class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 cursor-pointer" %>
+  </div>
+<% end %>

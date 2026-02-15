@@ -176,6 +176,9 @@ class Entry < ApplicationRecord
   has_many :content_views, dependent: :destroy
   has_one :editorialisation, dependent: :destroy
   has_many :affiliate_clicks, dependent: :destroy
+  has_many :sponsorships, dependent: :destroy
+  has_many :business_claims, dependent: :destroy
+  has_many :business_subscriptions, dependent: :destroy
 
   # Validations
   validates :url_canonical, presence: true, uniqueness: { scope: [ :site_id, :entry_kind ] }
@@ -248,6 +251,7 @@ class Entry < ApplicationRecord
   scope :expired, -> { where("expires_at IS NOT NULL AND expires_at <= ?", Time.current) }
   scope :in_category, ->(cat) { where(category_id: cat) }
   scope :with_affiliate, -> { where.not(affiliate_url_template: [ nil, "" ]) }
+  scope :affiliate_eligible, -> { where(affiliate_eligible: true) }
   scope :paid_listings, -> { where(paid: true) }
   scope :jobs, -> { directory_items.where(listing_type: :job) }
   scope :tools, -> { directory_items.where(listing_type: :tool) }

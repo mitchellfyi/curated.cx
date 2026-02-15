@@ -1,0 +1,146 @@
+<div class="py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Sponsorships</h1>
+        <p class="mt-1 text-sm text-gray-500">Manage sponsored listings and placements</p>
+      </div>
+      <%= link_to new_admin_sponsorship_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700" do %>
+        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        New Sponsorship
+      <% end %>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Total</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900"><%= @total_sponsorships %></p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Active</p>
+        <p class="mt-1 text-2xl font-bold text-green-600"><%= @active_sponsorships %></p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Pending</p>
+        <p class="mt-1 text-2xl font-bold text-yellow-600"><%= @pending_sponsorships %></p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Impressions</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900"><%= number_with_delimiter(@total_impressions) %></p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Clicks</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900"><%= number_with_delimiter(@total_clicks) %></p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <p class="text-xs font-medium text-gray-500 uppercase">Total Budget</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900"><%= number_to_currency(@total_budget / 100.0) %></p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow mb-6 p-4">
+      <%= form_with url: admin_sponsorships_path, method: :get, class: "flex flex-wrap gap-4 items-end" do |f| %>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+          <%= f.select :status, options_for_select(Sponsorship::STATUSES.map { |s| [s.titleize, s] }, params[:status]), { include_blank: "All" }, class: "block w-full rounded-md border-gray-300 text-sm" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Placement</label>
+          <%= f.select :placement_type, options_for_select(Sponsorship::PLACEMENT_TYPES.map { |t| [t.titleize, t] }, params[:placement_type]), { include_blank: "All" }, class: "block w-full rounded-md border-gray-300 text-sm" %>
+        </div>
+        <div>
+          <%= f.submit "Filter", class: "px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200" %>
+        </div>
+        <div>
+          <%= link_to "Clear", admin_sponsorships_path, class: "px-4 py-2 text-sm text-gray-500 hover:text-gray-700" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <% if @sponsorships.any? %>
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sponsor</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Placement</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Budget</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Performance</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @sponsorships.each do |sponsorship| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900"><%= sponsorship.user&.email || "Unknown" %></div>
+                  <% if sponsorship.entry %>
+                    <div class="text-xs text-gray-500 truncate max-w-xs"><%= sponsorship.entry.title %></div>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <%= sponsorship.placement_type.titleize %>
+                  </span>
+                  <% if sponsorship.category_slug.present? %>
+                    <div class="text-xs text-gray-500 mt-1"><%= sponsorship.category_slug %></div>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% status_class = case sponsorship.status
+                     when "active" then "bg-green-100 text-green-800"
+                     when "pending" then "bg-yellow-100 text-yellow-800"
+                     when "paused" then "bg-gray-100 text-gray-800"
+                     when "completed" then "bg-blue-100 text-blue-800"
+                     when "rejected" then "bg-red-100 text-red-800"
+                     else "bg-gray-100 text-gray-800"
+                     end %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= status_class %>">
+                    <%= sponsorship.status.titleize %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div><%= sponsorship.starts_at.strftime("%b %d, %Y") %></div>
+                  <div class="text-xs">to <%= sponsorship.ends_at.strftime("%b %d, %Y") %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= number_to_currency(sponsorship.budget_cents / 100.0) %>
+                  <div class="text-xs text-gray-500">Spent: <%= number_to_currency(sponsorship.spent_cents / 100.0) %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div><%= number_with_delimiter(sponsorship.impressions) %> imp</div>
+                  <div><%= number_with_delimiter(sponsorship.clicks) %> clicks (<%= sponsorship.ctr %>%)</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <%= link_to "View", admin_sponsorship_path(sponsorship), class: "text-blue-600 hover:text-blue-900" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+        <div class="px-6 py-4 border-t border-gray-200">
+          <%= paginate @sponsorships %>
+        </div>
+      <% else %>
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No sponsorships</h3>
+          <p class="mt-1 text-sm text-gray-500">Get started by creating a new sponsorship.</p>
+          <div class="mt-6">
+            <%= link_to "New Sponsorship", new_admin_sponsorship_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

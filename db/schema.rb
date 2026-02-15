@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_15_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -54,14 +54,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
 
   create_table "affiliate_clicks", force: :cascade do |t|
     t.datetime "clicked_at", null: false
+    t.decimal "commission_cents", precision: 10, scale: 2
+    t.boolean "converted", default: false, null: false
     t.datetime "created_at", null: false
     t.bigint "entry_id", null: false
     t.string "ip_hash"
+    t.string "network"
     t.text "referrer"
     t.datetime "updated_at", null: false
     t.string "user_agent"
+    t.bigint "user_id"
     t.index ["clicked_at"], name: "index_affiliate_clicks_on_clicked_at"
+    t.index ["converted"], name: "index_affiliate_clicks_on_converted"
     t.index ["entry_id"], name: "index_affiliate_clicks_on_entry_id"
+    t.index ["network"], name: "index_affiliate_clicks_on_network"
+    t.index ["user_id"], name: "index_affiliate_clicks_on_user_id"
   end
 
   create_table "bookmarks", force: :cascade do |t|
@@ -118,6 +125,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
     t.index ["site_id", "period_start"], name: "index_boost_payouts_on_site_id_and_period_start"
     t.index ["site_id"], name: "index_boost_payouts_on_site_id"
     t.index ["status"], name: "index_boost_payouts_on_status"
+  end
+
+  create_table "business_claims", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "entry_id", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "verification_code"
+    t.string "verification_method"
+    t.datetime "verified_at"
+    t.index ["entry_id", "user_id"], name: "index_business_claims_on_entry_id_and_user_id", unique: true
+    t.index ["entry_id"], name: "index_business_claims_on_entry_id"
+    t.index ["status"], name: "index_business_claims_on_status"
+    t.index ["user_id"], name: "index_business_claims_on_user_id"
+  end
+
+  create_table "business_subscriptions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "current_period_end"
+    t.datetime "current_period_start"
+    t.bigint "entry_id", null: false
+    t.string "status", default: "active", null: false
+    t.string "stripe_subscription_id"
+    t.string "tier", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["entry_id", "status"], name: "index_business_subscriptions_on_entry_id_and_status"
+    t.index ["entry_id"], name: "index_business_subscriptions_on_entry_id"
+    t.index ["status"], name: "index_business_subscriptions_on_status"
+    t.index ["stripe_subscription_id"], name: "index_business_subscriptions_on_stripe_subscription_id", unique: true, where: "(stripe_subscription_id IS NOT NULL)"
+    t.index ["tier"], name: "index_business_subscriptions_on_tier"
+    t.index ["user_id"], name: "index_business_subscriptions_on_user_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -338,6 +378,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
 
   create_table "entries", force: :cascade do |t|
     t.jsonb "affiliate_attribution", default: {}, null: false
+    t.boolean "affiliate_eligible", default: false, null: false
+    t.string "affiliate_network"
+    t.string "affiliate_url"
     t.text "affiliate_url_template"
     t.jsonb "ai_suggested_tags", default: [], null: false
     t.jsonb "ai_summaries", default: {}, null: false
@@ -405,6 +448,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
     t.text "url_raw", null: false
     t.text "why_it_matters"
     t.integer "word_count"
+    t.index ["affiliate_eligible"], name: "index_entries_on_affiliate_eligible", where: "(affiliate_eligible = true)"
+    t.index ["affiliate_network"], name: "index_entries_on_affiliate_network"
     t.index ["category_id", "published_at"], name: "index_entries_on_category_published"
     t.index ["category_id"], name: "index_entries_on_category_id"
     t.index ["comments_locked_by_id"], name: "index_entries_on_comments_locked_by_id"
@@ -738,6 +783,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
     t.index ["tenant_id"], name: "index_sources_on_tenant_id"
   end
 
+  create_table "sponsorships", force: :cascade do |t|
+    t.integer "budget_cents", default: 0, null: false
+    t.string "category_slug"
+    t.integer "clicks", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "ends_at", null: false
+    t.bigint "entry_id"
+    t.integer "impressions", default: 0, null: false
+    t.string "placement_type", null: false
+    t.bigint "site_id", null: false
+    t.integer "spent_cents", default: 0, null: false
+    t.datetime "starts_at", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["entry_id"], name: "index_sponsorships_on_entry_id"
+    t.index ["placement_type"], name: "index_sponsorships_on_placement_type"
+    t.index ["site_id", "status"], name: "index_sponsorships_on_site_id_and_status"
+    t.index ["site_id"], name: "index_sponsorships_on_site_id"
+    t.index ["starts_at", "ends_at"], name: "index_sponsorships_on_starts_at_and_ends_at"
+    t.index ["status"], name: "index_sponsorships_on_status"
+    t.index ["user_id"], name: "index_sponsorships_on_user_id"
+  end
+
   create_table "submissions", force: :cascade do |t|
     t.bigint "category_id", null: false
     t.datetime "created_at", null: false
@@ -929,12 +998,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "affiliate_clicks", "entries"
+  add_foreign_key "affiliate_clicks", "users"
   add_foreign_key "bookmarks", "users"
   add_foreign_key "boost_clicks", "digest_subscriptions"
   add_foreign_key "boost_clicks", "network_boosts"
   add_foreign_key "boost_impressions", "network_boosts"
   add_foreign_key "boost_impressions", "sites"
   add_foreign_key "boost_payouts", "sites"
+  add_foreign_key "business_claims", "entries"
+  add_foreign_key "business_claims", "users"
+  add_foreign_key "business_subscriptions", "entries"
+  add_foreign_key "business_subscriptions", "users"
   add_foreign_key "categories", "sites"
   add_foreign_key "categories", "tenants"
   add_foreign_key "comments", "comments", column: "parent_id"
@@ -1004,6 +1078,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_033104) do
   add_foreign_key "sites", "tenants"
   add_foreign_key "sources", "sites"
   add_foreign_key "sources", "tenants"
+  add_foreign_key "sponsorships", "entries"
+  add_foreign_key "sponsorships", "sites"
+  add_foreign_key "sponsorships", "users"
   add_foreign_key "submissions", "categories"
   add_foreign_key "submissions", "entries"
   add_foreign_key "submissions", "sites"

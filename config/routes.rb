@@ -162,6 +162,31 @@ Rails.application.routes.draw do
       end
     end
 
+    # Sponsorship management
+    resources :sponsorships do
+      member do
+        post :approve
+        post :pause
+        post :complete
+        post :reject
+      end
+    end
+
+    # Business claims management
+    resources :business_claims, only: [ :index, :show ] do
+      member do
+        post :verify
+        post :reject
+      end
+    end
+
+    # Business subscriptions management
+    resources :business_subscriptions, only: [ :index, :show ] do
+      member do
+        post :cancel
+      end
+    end
+
     # User submissions moderation
     resources :submissions, only: [ :index, :show ] do
       member do
