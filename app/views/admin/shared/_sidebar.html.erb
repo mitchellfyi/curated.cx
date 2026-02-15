@@ -132,14 +132,14 @@
       <% end %>
       <%= link_to admin_sponsorships_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('sponsorships') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Sponsorships
-        <% pending_sponsorships = Sponsorship.where(site: Current.site).pending.count rescue 0 %>
+        <% pending_sponsorships = Current.site ? Sponsorship.where(site: Current.site).pending.count : 0 %>
         <% if pending_sponsorships > 0 %>
           <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= pending_sponsorships %></span>
         <% end %>
       <% end %>
       <%= link_to admin_business_claims_path, class: "group flex items-center px-3 py-1.5 text-sm rounded-md #{request.path.include?('business_claims') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}" do %>
         Business Claims
-        <% pending_claims = BusinessClaim.joins(:entry).where(entries: { site_id: Current.site&.id }).pending.count rescue 0 %>
+        <% pending_claims = Current.site ? BusinessClaim.joins(:entry).where(entries: { site_id: Current.site.id }).pending.count : 0 %>
         <% if pending_claims > 0 %>
           <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><%= pending_claims %></span>
         <% end %>

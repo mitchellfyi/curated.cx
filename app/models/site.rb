@@ -56,6 +56,7 @@ class Site < ApplicationRecord
   has_many :subscriber_segments, dependent: :destroy
   has_many :subscriber_tags, dependent: :destroy
   has_many :notes, dependent: :destroy
+  has_many :sponsorships, dependent: :destroy
 
   # Attachments
   has_one_attached :logo

@@ -74,6 +74,8 @@ class AffiliateService
     end
 
     # Scan an entry and update its affiliate fields
+    # Uses update_columns to bypass callbacks/validations since we're only
+    # updating derived metadata fields that don't require validation
     def scan_entry(entry)
       return unless entry.url_canonical.present?
 

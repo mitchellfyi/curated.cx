@@ -77,7 +77,7 @@ module Admin
     private
 
     def set_sponsorship
-      @sponsorship = base_scope.find(params[:id])
+      @sponsorship = base_scope.includes(:entry, :user).find(params[:id])
     end
 
     def base_scope
